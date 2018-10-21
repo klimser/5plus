@@ -1,0 +1,36 @@
+options:
+  tag: "hash"
+  post: true
+  versionsMapTemplate: "common/components/helpers/GruntAssetHelper.php.tpl"
+dev_front:
+  options:
+    versionsMapFile: "frontend/views/grunt-assets.php"
+    versionsMapTrimPath: "frontend/web/"
+    tasks:
+      - less:dev_front
+      - uglify:vendors_front
+      - uglify:main_front
+dev_back:
+  options:
+    versionsMapFile: "backend/views/grunt-assets.php"
+    versionsMapTrimPath: "backend/web/"
+    tasks:
+      - less:dev_back
+      - uglify:vendors_back
+      - uglify:main_back
+prod_front:
+  options:
+    versionsMapFile: "frontend/views/grunt-assets.php"
+    versionsMapTrimPath: "frontend/web/"
+    tasks:
+      - less:prod_front
+      - uglify:vendors_front
+      - uglify:main_front
+prod_back:
+  options:
+    versionsMapFile: "backend/views/grunt-assets.php"
+    versionsMapTrimPath: "backend/web/"
+    tasks:
+      - less:prod_back
+      - uglify:vendors_back
+      - uglify:main_back

@@ -1,0 +1,22 @@
+default:
+  tasks:
+    - clean
+    - copy:fonts
+    - copy:images
+    - assets_versioning:dev_front
+    - assets_versioning:dev_back
+    - watch
+dev:
+  tasks:
+    - clean
+    - copy:fonts
+    - copy:images
+    - assets_versioning:dev_front
+    - assets_versioning:dev_back
+prod:
+  tasks:
+    - clean
+    - copy:fonts
+    - copy:images
+    - assets_versioning:prod_front
+    - assets_versioning:prod_back

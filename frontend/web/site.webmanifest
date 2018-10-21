@@ -1,0 +1,21 @@
+{
+	"name": "\u0423\u0447\u0435\u0431\u043d\u044b\u0439 \u0446\u0435\u043d\u0442\u0440 \"5 \u0441 \u043f\u043b\u044e\u0441\u043e\u043c\"",
+	"short_name": "5 \u0441 \u043f\u043b\u044e\u0441\u043e\u043c",
+	"start_url": "./?utm_source=web_app_manifest",
+	"lang": "ru-RU",
+	"background_color": "#FFFFFF",
+	"icons": [
+		{
+			"src": "\/icons\/android-chrome-192x192.png?v=Nm5Ovj34NA",
+			"sizes": "192x192",
+			"type": "image\/png",
+			"density": 4
+		},
+		{
+			"src": "\/icons\/android-chrome-512x512.png?v=Nm5Ovj34NA",
+			"sizes": "512x512",
+			"type": "image\/png",
+			"density": 4
+		}
+	]
+}

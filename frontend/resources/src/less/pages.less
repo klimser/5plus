@@ -1,0 +1,194 @@
+.subject-index h2 {
+  margin-top: 0;
+  display: inline-block;
+  position: relative;
+  text-transform: uppercase;
+  font-size: 24px;
+  font-family: "Museo Sans Cyrl 500", "sf_ui_display", "Helvetica", "Arial", sans-serif;
+}
+.subject-index h2:before {
+  content: ".";
+  width: 70px;
+  border-bottom: solid 2px @brand-blue;
+  display: block;
+  position: absolute;
+  bottom: 0;
+  color: transparent;
+  z-index: -1;
+}
+.subject-index .subject-item {
+  margin-bottom: @half-gutter-width;
+}
+.subject-index a:hover {
+  text-decoration: none;
+}
+.subject-index a:hover span.link-body {
+  text-decoration: underline dashed;
+}
+.more-block {
+  border-top: solid 1px @brand-blue;
+  text-align: center;
+  padding: 10px 0;
+}
+.more-block a span.link-body {
+  text-decoration: underline dashed;
+}
+.title-separator {
+  text-transform: uppercase;
+  margin: @grid-gutter-width 0 @half-gutter-width;
+  font-size: 26px;
+  color: @brand-blue;
+  font-family: "Museo Sans Cyrl 500", "sf_ui_display", "Helvetica", "Arial", sans-serif;
+}
+
+.teacher-page-item {
+  margin-bottom: @grid-gutter-width;
+}
+.teacher-page-item a {
+  display: table-row;
+  width: 100%;
+}
+
+.teacher-page-item a img, .teacher-page-item a div.link-body {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.teacher-page-item a div.link-body {
+  padding: @half-gutter-width;
+}
+
+.news-item a {
+  display: inline-block;
+  position: relative;
+  color: @nearly-black;
+}
+.news-item a img {
+  border-radius: 4px;
+}
+.news-item a .link-body {
+  display: inline-block;
+  position: relative;
+  line-height: @grid-gutter-width;
+  margin-top: @half-gutter-width;
+}
+.news-item a .link-body:before, .news-item a .link-body:after {
+  display: block;
+  width: 0;
+  height: 0;
+  content: ".";
+  line-height: 0;
+  overflow: hidden;
+  position: absolute;
+  transition: 0.5s;
+}
+.news-item a:hover .link-body:before, .news-item a:hover .link-body:after, .news-item a:focus .link-body:before, .news-item a:focus .link-body:after {
+  background: @brand-red;
+  height: 2px;
+  width: @half-gutter-width;
+  border-radius: 2px;
+}
+.news-item a .link-body:before {
+  left: 0;
+  bottom: 0;
+}
+.news-item a .link-body:after {
+  right: 0;
+  top: 0;
+}
+.news-item a div.news-date {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  color: white;
+  background: @brand-blue;
+  padding: 10px @half-gutter-width 10px;
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+}
+
+#add-review-button {
+  position: fixed;
+  right: 15%;
+  bottom: 15%;
+  display: block;
+  width: (@grid-gutter-width * 2);
+  height: (@grid-gutter-width * 2);
+  font-size: 300%;
+  background: @brand-red;
+  box-shadow: 0 0 4px 4px @brand-red;
+  border-radius: @grid-gutter-width;
+  text-align: center;
+  line-height: (@grid-gutter-width * 2 - 4);
+  font-family: "Museo Sans Cyrl 500", "sf_ui_display", "Helvetica", "Arial", sans-serif;
+  color: white;
+}
+#add-review-button:hover, #add-review-button:focus {
+  text-decoration: none;
+  background: @brand-blue;
+  box-shadow: 0 0 4px 4px @brand-blue;
+}
+.review-item {
+  background: white;
+  box-shadow: 3px 4px 0 0 rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  padding: @half-gutter-width;
+  margin-bottom: @grid-gutter-width;
+}
+.review-item .review-header {
+  color: @brand-blue;
+  padding-bottom: @half-gutter-width;
+  font-family: "Museo Sans Cyrl 500", "sf_ui_display", "Helvetica", "Arial", sans-serif;
+}
+.review-item .review-body {
+  border-top: solid 1px @light-grey;
+  color: @dark-grey;
+  padding-top: @half-gutter-width;
+}
+.review-item .read-more-block a .link-body {
+  text-decoration: underline dashed;
+}
+.review-item .review-body.review-teaser {
+  height: 78px;
+  overflow: hidden;
+}
+
+@feedback_form_background: rgba(200, 200, 200, 0.3);
+
+#feedback_form {
+  margin: @grid-gutter-width 0;
+}
+#feedback_form input, #feedback_form textarea {
+  background: @feedback_form_background;
+}
+#feedback_form input::placeholder, #feedback_form textarea::placeholder {
+  color: #888;
+  opacity: 1;
+}
+#feedback_form button.feedback_button {
+  width: 100%;
+  color: @nearly-black;
+  background: @feedback_form_background;
+}
+
+.quiz-adv {
+  float: right;
+  margin-left: 10px;
+  padding: 1em 1em;
+  border: solid 1px @brand-red;
+  background: none;
+  font-family: "Museo Sans Cyrl 500", "sf_ui_display", "Helvetica", "Arial", sans-serif;
+  font-size: 120%;
+  color: @brand-red;
+  max-width: 40%;
+  border-radius: 40px;
+}
+.quiz-adv:hover {
+  text-decoration: none;
+  background: @brand-red;
+  color: white;
+}
+
+nav.toc.affix {
+  top: 0;
+}

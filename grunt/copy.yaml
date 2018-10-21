@@ -1,0 +1,38 @@
+fonts:
+  files:
+    -
+      expand: true
+      flatten: true
+      src:
+        - frontend/resources/src/fonts/*
+        - node_modules/bootstrap/fonts/*
+      dest: frontend/web/assets/grunt/fonts
+      dest: backend/web/assets/grunt/fonts
+    -
+      expand: true
+      flatten: true
+      src:
+        - node_modules/@fortawesome/fontawesome-free/webfonts/*
+      dest: frontend/web/assets/grunt/webfonts
+      dest: backend/web/assets/grunt/webfonts
+images:
+  files:
+    -
+      expand: true
+      cwd: frontend/resources/src/images/
+      src: '**'
+      dest: frontend/web/assets/grunt/images
+    -
+      expand: true
+      flatten: true
+      src:
+        - node_modules/owl.carousel/dist/assets/ajax-loader.gif
+        - node_modules/owl.carousel/dist/assets/owl.video.play.png
+      dest: frontend/web/assets/grunt/css
+    -
+      expand: true
+      flatten: true
+      src:
+        - node_modules/chosen-js/chosen-sprite.png
+        - node_modules/chosen-js/chosen-sprite@2x.png
+      dest: backend/web/assets/grunt/css

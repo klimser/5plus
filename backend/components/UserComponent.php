@@ -1,0 +1,57 @@
+<?php
+
+namespace backend\components;
+
+use backend\models\User;
+use yii\base\Component;
+
+class UserComponent extends Component
+{
+    /**
+     * @return string[]
+     */
+    public static function getFirstLetters(): array
+    {
+        $letters = \Yii::$app->cache->get('user.letters');
+        if (!$letters) {
+            $letters = User::find()
+                ->select(['SUBSTR(name, 1, 1)'])
+                ->andWhere('name != ""')
+                ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
+                ->distinct(true)
+                ->asArray(true)
+                ->column();
+            array_walk($letters, function(&$value){$value = mb_strtoupper($value, 'UTF-8');});
+            sort($letters);
+            \Yii::$app->cache->set('user.letters', $letters);
+        }
+        return $letters;
+    }
+
+    /**
+     * @return int[]
+     */
+    public static function getStartYears(): array
+    {
+        $years = \Yii::$app->cache->get('user.years');
+        if (!$years) {
+            /** @var User[] $users */
+            $years = User::find()
+                ->select(['SUBSTR(created_at, 1, 4)'])
+                ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
+                ->distinct(true)
+                ->asArray(true)
+                ->column();
+            array_walk($years, function(&$value){$value = intval($value);});
+            sort($years);
+            \Yii::$app->cache->set('user.years', $years);
+        }
+        return $years;
+    }
+
+    public static function clearSearchCache()
+    {
+        \Yii::$app->cache->delete('user.letters');
+        \Yii::$app->cache->delete('user.years');
+    }
+}

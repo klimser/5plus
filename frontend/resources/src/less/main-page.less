@@ -1,0 +1,178 @@
+.kdpv {
+  background: #ebf4fb url("../images/kdpv.jpg") no-repeat center;
+  width:100%;
+  z-index: 50;
+  margin-top: -44px;
+  height: 476px;
+}
+@media (max-width: @screen-sm-max) {
+  .after-kdpv {
+    margin-top: -45px;
+  }
+}
+.subject-carousel-widget {
+  position: relative;
+}
+.subject-carousel-widget .info-block {
+  padding-top: @half-gutter-width;
+}
+.subject-carousel-widget .info-block .widget-light {
+  text-transform: uppercase;
+  font-size: 26px;
+  font-family: "Museo Sans Cyrl 300", "sf_ui_display", "Helvetica", "Arial", sans-serif;
+}
+.subject-carousel-widget .info-block .widget-dark {
+  text-transform: uppercase;
+  font-size: 28px;
+  color: @brand-blue;
+  font-family: "Museo Sans Cyrl 500", "sf_ui_display", "Helvetica", "Arial", sans-serif;
+}
+.subject-carousel-widget .info-block .widget-button {
+  border: solid 2px @dark-grey;
+  font-size: 16px;
+  font-family: "Museo Sans Cyrl 500", "sf_ui_display", "Helvetica", "Arial", sans-serif;
+  padding: 0 20px;
+  border-radius: 18px;
+  line-height: 36px;
+  display: inline-block;
+  margin-top: @half-gutter-width;
+  transition: background 0.3s, color 0.3s;
+}
+.subject-carousel-widget .info-block .widget-button:hover {
+  background: @brand-red;
+  color: white;
+  border: none;
+  padding: 2px 22px;
+  text-decoration: none;
+}
+.subject-carousel-widget .carousel-block {
+  padding: 0 30px;
+}
+.subject-carousel-widget .carousel-nav {
+  position: absolute;
+  left: 0;
+  top: 70px;
+  font-size: 18px;
+  color: @dark-grey;
+  width: 100%;
+}
+.subject-carousel-widget .carousel-nav .owl-prev {
+  float: left;
+}
+.subject-carousel-widget .carousel-nav .owl-next {
+  float: right;
+}
+
+.carousel-widget .carousel-nav .owl-prev:hover, .carousel-widget .carousel-nav .owl-next:hover,
+.carousel-widget .carousel-nav .owl-prev:focus, .carousel-widget .carousel-nav .owl-next:focus {
+  color: @brand-red;
+}
+.carousel-widget .carousel-nav .owl-prev, .carousel-widget .carousel-nav .owl-next {
+  cursor: pointer;
+}
+
+.carousel-item {
+  text-align: center;
+}
+.carousel-item a {
+  display: block;
+}
+.carousel-item a .link-body {
+  display: inline-block;
+  position: relative;
+  line-height: @grid-gutter-width;
+}
+.carousel-item a .link-body:before, .carousel-item a .link-body:after {
+  width: 4px;
+  height: 4px;
+  display: block;
+  border-radius: 2px;
+  content: ".";
+  line-height: 0;
+  overflow: hidden;
+  background: @brand-blue;
+  position: absolute;
+  transition: 0.5s;
+}
+.carousel-item a:hover .link-body:before, .carousel-item a:hover .link-body:after {
+  background: @brand-red;
+  height: 2px;
+  width: @half-gutter-width;
+}
+.carousel-item a .link-body:before {
+  left: 0;
+  bottom: 0;
+}
+.carousel-item a .link-body:after {
+  right: 0;
+  top: 0;
+}
+.owl-carousel .owl-item .carousel-item a img {
+  width: auto;
+  max-width: 100%;
+  display: inline-block;
+}
+
+#order_form, #order_form button:not(.close), #order_form label, #order_form input, #order_form select {
+  font-size: 15px;
+}
+
+.teacher-carousel-item a div.link-body span, .teacher-page-item a div.link-body span {
+  color: @dark-grey;
+}
+.teacher-carousel-item a:hover, .teacher-page-item a:hover {
+  text-decoration: none;
+}
+@media (max-width: @screen-xs-max) {
+  .teacher-carousel-item a {
+    width: 100%;
+  }
+  .teacher-carousel-item a div.link-body {
+    text-align: center;
+  }
+}
+
+@media (min-width: @screen-sm-min) {
+  .teacher-carousel-item a {
+    display: table-row;
+    height: 234px;
+    width: 100%;
+  }
+
+  .teacher-carousel-item a img, .teacher-carousel-item a div.link-body {
+    display: table-cell;
+    vertical-align: middle;
+  }
+
+  .owl-carousel .owl-item .teacher-carousel-item a img {
+    width: 234px;
+  }
+  .teacher-carousel-item a div.link-body {
+    padding: @half-gutter-width;
+  }
+}
+
+.compact-carousel-nav {
+  text-align: center;
+  margin-top: @grid-gutter-width;
+  color: @brand-blue;
+}
+.compact-carousel-nav a.all-items-link {
+  color: @brand-blue;
+  margin: 0 @half-gutter-width;
+}
+.compact-carousel-nav a.all-items-link:hover {
+  color: @brand-red;
+  text-decoration: none;
+}
+.compact-carousel-nav a.all-items-link .link-body {
+  text-decoration: underline dashed;
+}
+
+.news-carousel-widget {
+  margin-top: @half-gutter-width;
+}
+
+.review-carousel-widget {
+  margin-bottom: @grid-gutter-width;
+}

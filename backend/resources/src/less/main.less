@@ -1,0 +1,186 @@
+@import "../../../../node_modules/bootstrap/less/bootstrap";
+@import "../../../../node_modules/@fortawesome/fontawesome-free/less/fontawesome";
+@import "../../../../node_modules/@fortawesome/fontawesome-free/less/brands";
+@import "../../../../node_modules/@fortawesome/fontawesome-free/less/regular";
+@import "../../../../node_modules/@fortawesome/fontawesome-free/less/solid";
+@import (less) "../../../../vendor/bower-asset/jquery-ui/themes/base/core.css";
+@import (less) "../../../../vendor/bower-asset/jquery-ui/themes/base/sortable.css";
+@import (less) "../../../../node_modules/chosen-js/chosen.css";
+
+@import "nestedSortable";
+
+html,
+body {
+  height: 100%;
+}
+
+.wrap {
+  min-height: 100%;
+  height: auto;
+  margin: 0 auto -60px;
+  padding: 0 0 60px;
+}
+
+.wrap > .container {
+  padding: 20px 15px;
+}
+
+.footer {
+  height: 60px;
+  background-color: #f5f5f5;
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
+}
+
+.jumbotron {
+  text-align: center;
+  background-color: transparent;
+}
+
+.jumbotron .btn {
+  font-size: 21px;
+  padding: 14px 24px;
+}
+
+.not-set {
+  color: #c55;
+  font-style: italic;
+}
+
+/* add sorting icons to gridview sort links */
+a.asc:after, a.desc:after {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  padding-left: 5px;
+}
+
+a.asc:after {
+  content: /*"\e113"*/ "\e151";
+}
+
+a.desc:after {
+  content: /*"\e114"*/ "\e152";
+}
+
+.sort-numerical a.asc:after {
+  content: "\e153";
+}
+
+.sort-numerical a.desc:after {
+  content: "\e154";
+}
+
+.sort-ordinal a.asc:after {
+  content: "\e155";
+}
+
+.sort-ordinal a.desc:after {
+  content: "\e156";
+}
+
+.grid-view th {
+  white-space: nowrap;
+}
+
+.hint-block {
+  display: block;
+  margin-top: 5px;
+  color: #999;
+}
+
+.error-summary {
+  color: #a94442;
+  background: #fdf7f7;
+  border-left: 3px solid #eed3d7;
+  padding: 10px 20px;
+  margin: 0 0 15px 0;
+}
+
+.disabled-group .control-label, .disabled-group .form-control {
+  color: #AAA;
+  border-color: #AAA;
+}
+
+@keyframes green_dissolve {
+  from {background-color: #4B6;}
+  to {background-color: transparent;}
+}
+.block_flash {
+  animation-name: green_dissolve;
+  animation-duration: 2s;
+  animation-iteration-count: 1;
+}
+
+.square-box{
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.square-box:before{
+  content: "";
+  display: block;
+  padding-top: 100%;
+}
+.square-content{
+  position:  absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  color: white;
+}
+.square-content div {
+  display: table;
+  width: 100%;
+  height: 100%;
+}
+.square-content a {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+}
+
+tr.inactive {
+  color: #BBB;
+}
+
+.event_members {
+  word-wrap: break-word;
+}
+hr.thin {margin-top: 5px; margin-bottom: 5px;}
+hr.medium {margin-top: 10px; margin-bottom: 10px;}
+
+.point {cursor: pointer;}
+.time_edit_control {width: 50% !important; padding-left: 1px !important; padding-right: 1px !important;}
+
+/* The Overlay (background) */
+.overlay {
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  background-color: rgba(255, 192, 195, 0.4);
+  overflow-x: hidden;
+}
+.big-font {
+  font-size: 170%;
+}
+.no-margin {margin: 0;}
+.no-margin-top {margin-top: 0;}
+.no-margin-bottom {margin-bottom: 0;}
+.no-margin-left {margin-left: 0;}
+.no-margin-right {margin-right: 0;}
+.margin-right-10 {margin-right: 10px;}
+.full-width {width: 100%;}
+.half-width {width: 50%;}
+
+.separated-button {
+  margin: 0 15px 15px 0;
+}
