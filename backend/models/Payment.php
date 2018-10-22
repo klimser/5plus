@@ -158,9 +158,7 @@ class Payment extends ActiveRecord
      */
     public function getPaymentsSum()
     {
-        $sum = 0;
-        foreach ($this->payments as $payment) $sum -= $payment->amount;
-        return $sum;
+        return Payment::find()->andWhere(['used_payment_id' => $this->id])->select('SUM(amount)')->scalar();
     }
 
     /**

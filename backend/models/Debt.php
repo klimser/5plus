@@ -8,13 +8,12 @@ use \common\components\extended\ActiveRecord;
  * This is the model class for table "{{%debt}}".
  *
  * @property int $user_id
+ * @property int $group_id
  * @property double $amount
  * @property string $comment
- * @property string $danger_date
- * @property \DateTime $dangerDate
- * @property string $dangerDateString
  *
  * @property User $user
+ * @property Group $group
  */
 class Debt extends ActiveRecord
 {
@@ -32,10 +31,12 @@ class Debt extends ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'amount'], 'required'],
-            [['user_id'], 'integer'],
+            [['user_id', 'group_id', 'amount'], 'required'],
+            [['user_id', 'group_id'], 'integer'],
             [['amount'], 'number'],
+            [['user_id', 'group_id'], 'unique', 'targetAttribute' => ['user_id', 'group_id'], 'message' => 'Debt already exists.'],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
+            [['group_id'], 'exist', 'targetRelation' => 'group'],
         ];
     }
 
@@ -46,9 +47,9 @@ class Debt extends ActiveRecord
     {
         return [
             'user_id' => 'Должник',
+            'group_id' => 'группа',
             'amount' => 'Сумма задолженности',
             'comment' => 'Комментарий',
-            'danger_date' => 'Дата недопуска',
         ];
     }
 
@@ -61,32 +62,10 @@ class Debt extends ActiveRecord
     }
 
     /**
-     * @return \DateTime
+     * @return \yii\db\ActiveQuery
      */
-    public function getDangerDate(): ?\DateTime
+    public function getGroup()
     {
-        return empty($this->danger_date) ? null : new \DateTime($this->danger_date);
-    }
-
-    /**
-     * @return string
-     */
-    public function getDangerDateString(): string
-    {
-        $dangerDate = $this->getDangerDate();
-        return $dangerDate ? $dangerDate->format('Y-m-d') : '';
-    }
-
-    /**
-     * @param bool $insert
-     * @return bool
-     */
-    public function beforeSave($insert)
-    {
-        if ($insert && !$this->danger_date) {
-            $dangerDate = new \DateTime('+7 day midnight');
-            $this->danger_date = $dangerDate->format('Y-m-d H:i:s');
-        }
-        return parent::beforeSave($insert);
+        return $this->hasOne(Group::class, ['id' => 'group_id']);
     }
 }

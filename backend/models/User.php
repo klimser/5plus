@@ -31,7 +31,6 @@ use yii\web\IdentityInterface;
  * @property Group[] $activeGroups
  * @property Action[] $actions
  * @property Action[] $actionsAsAdmin
- * @property Debt $debt
  * @property Payment[] $payments
  * @property Payment[] $paymentsAsAdmin
  * @property int $balance
@@ -265,16 +264,6 @@ class User extends ActiveRecord implements IdentityInterface
     public function getPaymentsAsAdmin()
     {
         return $this->hasMany(Payment::class, ['admin_id' => 'id']);
-    }
-
-    public function getBalance($forceRecalc = false)
-    {
-        if ($this->_balance === null || $forceRecalc) {
-            $spent = Payment::find()->andWhere(['user_id' => $this->id, 'used_payment_id' => null])->andWhere(['<', 'amount', 0])->select('SUM(amount)')->scalar();
-            $earned = Payment::find()->andWhere(['user_id' => $this->id, 'group_pupil_id' => null])->andWhere(['>', 'amount', 0])->select('SUM(amount)')->scalar();
-            $this->_balance = intval($earned) + intval($spent);
-        }
-        return $this->_balance;
     }
 
     /**

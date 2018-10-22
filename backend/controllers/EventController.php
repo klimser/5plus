@@ -73,19 +73,23 @@ class EventController extends AdminController
                         \Yii::$app->errorLogger->logError('event/change-status', $event->getErrorsAsString(), true);
                         throw new \Exception('Server error');
                     } else {
-                        MoneyComponent::chargeByEvent($event);
-                        GroupComponent::calculateTeacherSalary($event->group);
+                        switch ($status) {
+                            case Event::STATUS_PASSED:
+                                MoneyComponent::chargeByEvent($event);
+                                GroupComponent::calculateTeacherSalary($event->group);
 
-                        foreach ($event->members as $member) {
-                            MoneyComponent::setUserChargeDates($member->groupPupil->user);
+                                foreach ($event->members as $member) {
+                                    MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
+                                }
+                                break;
+                            case Event::STATUS_CANCELED:
+                                foreach ($event->members as $member) {
+                                    $member->status = EventMember::STATUS_MISS;
+                                    $member->save();
+                                }
+                                break;
                         }
 
-                        if ($status == Event::STATUS_CANCELED) {
-                            foreach ($event->members as $member) {
-                                $member->status = EventMember::STATUS_MISS;
-                                $member->save();
-                            }
-                        }
                         $transaction->commit();
                         $jsonData = self::getJsonOkResult([
                             'eventId' => $event->id,

@@ -72,35 +72,25 @@ class MoneyController extends AdminController
             $user = User::findOne($paymentData['user']);
             $amount = intval($paymentData['amount']);
             $paymentDate = \DateTime::createFromFormat('d.m.Y H:i:s', $paymentData['date'] . ' ' . date('H:i:s'));
-            $groupPupil = null;
+            $group = Group::findOne(['id' => $paymentData['group'], 'active' => Group::STATUS_ACTIVE]);
+
             if (!$user) $jsonData = self::getJsonErrorResult('Студент не найден');
             elseif ($amount == 0) $jsonData = self::getJsonErrorResult('Сумма не может быть 0');
             elseif (!$paymentDate) $jsonData = self::getJsonErrorResult('Указана некорректная дата платежа');
-            elseif ($paymentData['group'] > 0) {
-                $group = Group::findOne(['id' => $paymentData['group'], 'active' => Group::STATUS_ACTIVE]);
-                if (!$group) $jsonData = self::getJsonErrorResult('Группа не найдена');
-                else {
-                    $groupPupil = GroupPupil::findOne(['user_id' => $user->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE]);
-                    if (!$groupPupil) $jsonData = self::getJsonErrorResult('Студент не занимается в этой группе');
-                }
-            }
-
-            if (!$jsonData) {
+            elseif (!$group) $jsonData = self::getJsonErrorResult('Группа не найдена');
+            else {
                 $payment = new Payment();
                 $payment->admin_id = Yii::$app->user->id;
                 $payment->user_id = $user->id;
+                $payment->group_id = $group->id;
                 $payment->amount = $amount;
                 $payment->comment = $paymentData['comment'] ?: null;
                 $payment->contract = $paymentData['contract'] ?: null;
                 $payment->created_at = $paymentDate->format('Y-m-d H:i:s');
 
-                if ($groupPupil) {
-                    $payment->group_pupil_id = $groupPupil->id;
-                }
-
                 try {
                     $paymentId = MoneyComponent::registerIncome($payment);
-                    MoneyComponent::setUserChargeDates($user);
+                    MoneyComponent::setUserChargeDates($user, $group);
                     $jsonData = self::getJsonOkResult(['paymentId' => $paymentId]);
                 } catch (\Throwable $ex) {
                     $jsonData = self::getJsonErrorResult($ex->getMessage());

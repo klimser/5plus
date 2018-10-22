@@ -178,7 +178,7 @@ class GroupController extends AdminController
                         EventComponent::fillSchedule($group);
                         GroupComponent::calculateTeacherSalary($group);
                         foreach ($group->groupPupils as $groupPupil) {
-                            MoneyComponent::setUserChargeDates($groupPupil->user);
+                            MoneyComponent::setUserChargeDates($groupPupil->user, $group);
                         }
 
                         $transaction->commit();
@@ -325,6 +325,7 @@ class GroupController extends AdminController
                 if ($groupPupilFrom->save()) {
                     EventComponent::fillSchedule($groupFrom);
                     GroupComponent::calculateTeacherSalary($groupFrom);
+                    MoneyComponent::setUserChargeDates($user, $groupFrom);
                 } else throw new \Exception($groupPupilFrom->getErrorsAsString());
             }
             $groupPupilTo = new GroupPupil();
@@ -360,12 +361,12 @@ class GroupController extends AdminController
                         $discountPayment->group_pupil_id = $groupPupilTo->id;
                         $discountPayment->save();
                         GroupComponent::rechargeGroupPupil($groupPupilTo);
-                        if (!MoneyComponent::recalculateDebt($user)) throw new \Exception('Error on pupil\'s debt calculation');
+                        if (!MoneyComponent::recalculateDebt($user, $groupPupilTo->group)) throw new \Exception('Error on pupil\'s debt calculation');
                     }
                 }
             }
             GroupComponent::calculateTeacherSalary($groupTo);
-            MoneyComponent::setUserChargeDates($user);
+            MoneyComponent::setUserChargeDates($user, $groupTo);
 
             $transaction->commit();
             return $this->asJson(self::getJsonOkResult());

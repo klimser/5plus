@@ -99,7 +99,7 @@ class UserController extends AdminController
 
                         if ($addPayment) {
                             $this->addPupilMoneyIncome($groupPupil, $paymentData);
-                            MoneyComponent::setUserChargeDates($pupil);
+                            MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                         }
                     }
                     if (!$addPayment && $addContract) {

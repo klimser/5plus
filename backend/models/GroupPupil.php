@@ -19,9 +19,9 @@ use common\components\extended\ActiveRecord;
  * @property \DateTime|null $endDateObject
  * @property \DateTime $chargeDateObject
  * @property Payment[] $payments
- *
  * @property User $user
  * @property Group $group
+ * @property EventMember[] $eventMembers
  */
 class GroupPupil extends ActiveRecord
 {
@@ -90,7 +90,7 @@ class GroupPupil extends ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getEventMember()
+    public function getEventMembers()
     {
         return $this->hasMany(EventMember::class, ['group_pupil_id' => 'id'])
             ->joinWith('event')
