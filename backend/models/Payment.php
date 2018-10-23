@@ -82,6 +82,7 @@ class Payment extends ActiveRecord
 
     public function beforeValidate()
     {
+        if (empty($this->created_at)) $this->created_at = date('Y-m-d H:i:s');
         if ($this->group_pupil_id && !$this->user_id) {
             $groupPupil = GroupPupil::findOne($this->group_pupil_id);
             $this->user_id = $groupPupil->user_id;

@@ -97,8 +97,5 @@ var User = {
             }
             $("#contract_amount").val(discountSum);
         }
-    },
-    init: function() {
-        $(".phone-formatted").inputmask({"mask": "99 999-9999"});
     }
 };

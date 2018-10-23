@@ -8,7 +8,7 @@ use yii\bootstrap\ActiveForm;
 /* @var $isAdmin bool */
 
 $this->registerJs(<<<SCRIPT
-    User.init();
+    Main.initPhoneFormatted();
 SCRIPT
 );
 

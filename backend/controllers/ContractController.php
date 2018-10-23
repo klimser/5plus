@@ -2,27 +2,15 @@
 
 namespace backend\controllers;
 
-use backend\components\MoneyComponent;
-use backend\models\ActionSearch;
 use backend\models\Contract;
 use backend\models\ContractSearch;
-use backend\models\Event;
-use backend\models\EventMember;
 use backend\models\GroupParam;
-use backend\models\GroupPupil;
-use common\components\Action;
 use backend\models\Group;
-use backend\models\Payment;
 use backend\models\User;
-use common\components\helpers\Calendar;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use yii;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\BadRequestHttpException;
 
 /**
  * ContractController implements contracts management.
@@ -79,6 +67,37 @@ class ContractController extends AdminController
             'studentMap' => $studentMap,
             'groupMap' => $groupMap,
         ]);
+    }
+
+    /**
+     * @return yii\web\Response
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     */
+    public function actionFind()
+    {
+        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
+
+        $jsonData = self::getJsonOkResult();
+        $contractNum = preg_replace('#\D#', '', Yii::$app->request->post('number', ''));
+
+        if (empty($contractNum)) $jsonData = self::getJsonErrorResult('Неверный номер договора');
+        else {
+            $contract = Contract::findOne(['number' => $contractNum]);
+            if (!$contract) $jsonData = self::getJsonErrorResult('Договор не найден');
+            elseif ($contract->status != Contract::STATUS_NEW) $jsonData = self::getJsonErrorResult('Договор уже оплачен!');
+            else {
+                $jsonData['id'] = $contract->id;
+                $jsonData['user_name'] = $contract->user->name;
+                $jsonData['group_name'] = $contract->group->name;
+                $jsonData['amount'] = $contract->amount;
+                $jsonData['discount'] = $contract->discount;
+                $jsonData['create_date'] = $contract->createDate->format('d.m.Y');
+            }
+        }
+
+        return $this->asJson($jsonData);
     }
 
     /**

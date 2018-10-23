@@ -68,5 +68,9 @@ var Main = {
             $(form).append('<input type="hidden" name="sorted-list" value="' + $(sortable).sortable("toArray") + '">');
         }
         return true;
+    },
+    initPhoneFormatted: function(selector) {
+        if (selector === undefined) selector = ".phone-formatted";
+        $(selector).inputmask({"mask": "99 999-9999"});
     }
 };

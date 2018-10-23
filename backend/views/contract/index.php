@@ -24,7 +24,7 @@ $this->params['breadcrumbs'][] = $this->title;
             $return = [];
             switch ($model->status) {
                 case Contract::STATUS_PAID:
-                    if ($model->group_id) $return['class'] = 'info';
+                    if ($model->discount) $return['class'] = 'info';
                     else $return['class'] = 'success';
                     break;
                 case Contract::STATUS_PROCESS:

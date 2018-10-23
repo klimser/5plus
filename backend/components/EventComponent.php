@@ -74,7 +74,7 @@ class EventComponent extends Component
         if ($group->groupPupils) {
             $startDate = clone $group->startDateObject;
             $startDate->modify('midnight');
-            $endDate = clone $group->endDateObject;
+            $endDate = $group->endDateObject ? clone $group->endDateObject : null;
             if (!$endDate || $endDate > $limitDate) $endDate = $limitDate;
             $endDate->modify('midnight');
             $intervalDay = new \DateInterval('P1D');

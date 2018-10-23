@@ -2,6 +2,7 @@
 
 namespace backend\models;
 
+use backend\components\GroupComponent;
 use \common\components\extended\ActiveRecord;
 use common\components\helpers\Money;
 use common\models\traits\Inserted;
@@ -23,19 +24,21 @@ use common\models\traits\Inserted;
  * @property string $paid_at Дата оплаты
  * @property int $created_admin_id Кто добавил
  * @property int $paid_admin_id Кто отметил оплаченным
+ * @property \DateTime|null $createDate
  * @property \DateTime|null $paidDate
  * @property string $paidDateString
+ * @property int $lessonsCount
+ * @property int $weeksCount
  *
  * @property User $user
  * @property Group $group
+ * @property GroupParam $groupParam
  * @property Payment[] $payments
  * @property User $createdAdmin
  * @property User $paidAdmin
  */
 class Contract extends ActiveRecord
 {
-    use Inserted;
-
     const STATUS_NEW = 0;
     const STATUS_PROCESS = 1;
     const STATUS_PAID = 2;
@@ -96,6 +99,7 @@ class Contract extends ActiveRecord
     }
 
     public function beforeValidate() {
+        if (empty($this->created_at)) $this->created_at = date('Y-m-d H:i:s');
         if (!parent::beforeValidate()) return false;
 
         if ($this->getOldAttribute('status') == self::STATUS_PAID
@@ -103,10 +107,24 @@ class Contract extends ActiveRecord
             $this->addError('status', 'Paid contract cannot be changed!');
             return false;
         }
-        if ($this->status == self::STATUS_PAID) {
-            $this->paid_at = date('Y-m-d H:i:s');
-        }
         return true;
+    }
+
+    /**
+     * @return \DateTime|null
+     */
+    public function getCreateDate(): ?\DateTime
+    {
+        return empty($this->created_at) ? null : new \DateTime($this->created_at);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCreateDateString(): string
+    {
+        $createDate = $this->getCreateDate();
+        return $createDate ? $createDate->format('Y-m-d') : '';
     }
 
     /**
@@ -132,6 +150,34 @@ class Contract extends ActiveRecord
     public function getAmountString(): string
     {
         return Money::numberToStringRus($this->amount, true);
+    }
+
+    public function getGroupParam(): GroupParam
+    {
+        $groupParam = GroupParam::findByDate($this->group, $this->createDate);
+        if ($groupParam === null) {
+            $groupParam = new GroupParam();
+            $groupParam->weekday = $this->group->weekday;
+            $groupParam->lesson_price = $this->group->lesson_price;
+            $groupParam->lesson_price_discount = $this->group->lesson_price_discount;
+        };
+        return $groupParam;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLessonsCount(): int
+    {
+        return round($this->discount ? $this->amount / $this->groupParam->lesson_price_discount : $this->amount / $this->groupParam->lesson_price);
+    }
+
+    /**
+     * @return int
+     */
+    public function getWeeksCount(): int
+    {
+        return round($this->lessonsCount / GroupComponent::getWeekClasses($this->groupParam->weekday));
     }
 
     /**

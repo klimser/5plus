@@ -9,7 +9,7 @@ class Money
      */
     public static function roundThousand($amount)
     {
-        return floor(round($amount) / 1000) * 1000;
+        return round(round($amount) / 1000) * 1000;
     }
 
     /**

@@ -14,9 +14,11 @@ use backend\models\GroupPupil;
 use backend\models\Payment;
 use backend\models\User;
 use backend\models\UserSearch;
+use common\components\helpers\Money;
 use yii;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\BadRequestHttpException;
 
 /**
  * PageController implements the CRUD actions for Page model.
@@ -289,7 +291,7 @@ class UserController extends AdminController
         }
 
         if (array_key_exists('number', $contractData) && $contractData['number']) {
-            $contract->number = $contractData['number'];
+            $contract->number = strval($contractData['number']);
         } else {
             $numberPrefix = $contract->createDate->format('Ymd') . $pupil->id;
             $numberAffix = 1;
@@ -406,7 +408,7 @@ class UserController extends AdminController
     public function actionFindByPhone()
     {
         if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
 
         $jsonData = self::getJsonOkResult();
         $phone = preg_replace('#\D#', '', Yii::$app->request->post('phone', ''));
@@ -434,16 +436,10 @@ class UserController extends AdminController
                     $data = $pupil->toArray(['id', 'name']);
                     $data['groups'] = [];
                     foreach ($pupil->activeGroups as $group) {
+                        $groupParam = GroupComponent::getGroupParam($group, new \DateTime());
                         $groupData = $group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
-
-                        $groupParam = GroupParam::findByDate($group, new \DateTime());
-                        if ($groupParam) {
-                            $groupData['month_price'] = $groupParam->lesson_price * GroupComponent::getTotalClasses($groupParam->weekday);
-                            $groupData['month_price_discount'] = $groupParam->lesson_price_discount * GroupComponent::getTotalClasses($groupParam->weekday);
-                        } else {
-                            $groupData['month_price'] = $group->lesson_price * GroupComponent::getTotalClasses($group->weekday);
-                            $groupData['month_price_discount'] = $group->lesson_price_discount * GroupComponent::getTotalClasses($group->weekday);
-                        }
+                        $groupData['month_price'] = Money::roundThousand($groupParam->lesson_price * GroupComponent::getTotalClasses($groupParam->weekday));
+                        $groupData['month_price_discount'] = Money::roundThousand($groupParam->lesson_price_discount * GroupComponent::getTotalClasses($groupParam->weekday));
 
                         $data['groups'][] = $groupData;
                     }
@@ -548,7 +544,7 @@ class UserController extends AdminController
         }
 
         $pager = new yii\data\Pagination(['pageSize' => 30, 'totalCount' => Payment::find()->andWhere(['user_id' => $userToWatch])->count()]);
-        
+
         return $this->render('money-history', [
             'user' => $user,
             'payments' => Payment::find()->andWhere(['user_id' => $userToWatch])->limit($pager->limit)->offset($pager->offset)->orderBy(['created_at' => SORT_DESC])->all(),

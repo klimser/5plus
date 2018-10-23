@@ -4,6 +4,7 @@ namespace backend\controllers;
 
 use backend\components\MoneyComponent;
 use backend\models\ActionSearch;
+use backend\models\Contract;
 use backend\models\Event;
 use backend\models\EventMember;
 use backend\models\GroupParam;
@@ -59,23 +60,21 @@ class MoneyController extends AdminController
         //        if (!Yii::$app->user->can('moneyIncome')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
 
-        $jsonData = null;
-        $paymentData = Yii::$app->request->post('payment', []);
-        if (!array_key_exists('user', $paymentData)) $jsonData = self::getJsonErrorResult('No user param');
-        elseif (!array_key_exists('amount', $paymentData)) $jsonData = self::getJsonErrorResult('No amount param');
-        elseif (!array_key_exists('date', $paymentData)) $jsonData = self::getJsonErrorResult('No date param');
-        elseif (!array_key_exists('group', $paymentData)) $jsonData = self::getJsonErrorResult('No group param');
-        elseif (!array_key_exists('comment', $paymentData)) $jsonData = self::getJsonErrorResult('No comment param');
-        elseif (!array_key_exists('contract', $paymentData)) $jsonData = self::getJsonErrorResult('No contract param');
+        $userId = Yii::$app->request->post('user');
+        $groupId = Yii::$app->request->post('group');
+        $amount = intval(Yii::$app->request->post('amount', 0));
+        $discount = Yii::$app->request->post('discount');
+        $comment = Yii::$app->request->post('comment');
+        $paymentDate = date_create_from_format('d.m.Y', Yii::$app->request->post('date'));
+        $contractNum = Yii::$app->request->post('contract');
 
-        if (!$jsonData) {
-            $user = User::findOne($paymentData['user']);
-            $amount = intval($paymentData['amount']);
-            $paymentDate = \DateTime::createFromFormat('d.m.Y H:i:s', $paymentData['date'] . ' ' . date('H:i:s'));
-            $group = Group::findOne(['id' => $paymentData['group'], 'active' => Group::STATUS_ACTIVE]);
+        if (!$userId || !$groupId || !$amount || !$contractNum || !$paymentDate) $jsonData = self::getJsonErrorResult('Wrong request');
+        else {
+            $user = User::findOne($userId);
+            $group = Group::findOne(['id' => $groupId, 'active' => Group::STATUS_ACTIVE]);
 
             if (!$user) $jsonData = self::getJsonErrorResult('Студент не найден');
-            elseif ($amount == 0) $jsonData = self::getJsonErrorResult('Сумма не может быть 0');
+            elseif ($amount <= 0) $jsonData = self::getJsonErrorResult('Сумма не может быть <= 0');
             elseif (!$paymentDate) $jsonData = self::getJsonErrorResult('Указана некорректная дата платежа');
             elseif (!$group) $jsonData = self::getJsonErrorResult('Группа не найдена');
             else {
@@ -84,13 +83,76 @@ class MoneyController extends AdminController
                 $payment->user_id = $user->id;
                 $payment->group_id = $group->id;
                 $payment->amount = $amount;
-                $payment->comment = $paymentData['comment'] ?: null;
-                $payment->contract = $paymentData['contract'] ?: null;
+                $payment->discount = $discount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
+                $payment->comment = $comment ?: null;
                 $payment->created_at = $paymentDate->format('Y-m-d H:i:s');
 
+                $contract = new Contract();
+                $contract->number = $contractNum;
+                $contract->user_id = $user->id;
+                $contract->group_id = $group->id;
+                $contract->amount = $amount;
+                $contract->discount = $discount ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
+                $contract->status = Contract::STATUS_PAID;
+                $contract->payment_type = Contract::PAYMENT_TYPE_MANUAL;
+                $contract->created_at = $payment->created_at;
+                $contract->created_admin_id = Yii::$app->user->id;
+                $contract->paid_at = $payment->created_at;
+                $contract->paid_admin_id = Yii::$app->user->id;
+
                 try {
+                    if (!$contract->save()) throw new \Exception('Contract save error: ' . $contract->getErrorsAsString());
+                    $contract->link('payments', $payment);
                     $paymentId = MoneyComponent::registerIncome($payment);
                     MoneyComponent::setUserChargeDates($user, $group);
+                    $jsonData = self::getJsonOkResult(['paymentId' => $paymentId, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
+                } catch (\Throwable $ex) {
+                    $jsonData = self::getJsonErrorResult($ex->getMessage());
+                }
+            }
+        }
+
+        return $this->asJson($jsonData);
+    }
+
+    /**
+     * @return yii\web\Response
+     * @throws ForbiddenHttpException
+     * @throws yii\web\BadRequestHttpException
+     */
+    public function actionProcessContract()
+    {
+        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        //        if (!Yii::$app->user->can('moneyIncome')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+
+        $contractId = Yii::$app->request->post('id');
+        $contractPaid = date_create_from_format('d.m.Y', Yii::$app->request->post('contract_paid', ''));
+        if (!$contractId) $jsonData = self::getJsonErrorResult('No contract ID');
+        elseif (!$contractPaid) $jsonData =self::getJsonErrorResult('Неправильная дата оплаты');
+        else {
+            $contract = Contract::findOne($contractId);
+            if (!$contract) $jsonData = self::getJsonErrorResult('Договор не найден');
+            elseif ($contract->status != Contract::STATUS_NEW) $jsonData = self::getJsonErrorResult('Договор уже оплачен!');
+            else {
+                $payment = new Payment();
+                $payment->admin_id = Yii::$app->user->id;
+                $payment->user_id = $contract->user_id;
+                $payment->group_id = $contract->group_id;
+                $payment->amount = $contract->amount;
+                $payment->discount = $contract->discount;
+                $payment->contract_id = $contract->id;
+                $payment->created_at = $contractPaid->format('Y-m-d H:i:s');
+
+                $contract->status = Contract::STATUS_PAID;
+                $contract->payment_type = Contract::PAYMENT_TYPE_MANUAL;
+                $contract->paid_admin_id = Yii::$app->user->id;
+                $contract->paid_at = $contractPaid->format('Y-m-d H:i:s');
+
+                try {
+                    if (!$contract->save()) throw new \Exception('Contract save error: ' . $contract->getErrorsAsString());
+                    $paymentId = MoneyComponent::registerIncome($payment);
+                    MoneyComponent::setUserChargeDates($contract->user, $contract->group);
                     $jsonData = self::getJsonOkResult(['paymentId' => $paymentId]);
                 } catch (\Throwable $ex) {
                     $jsonData = self::getJsonErrorResult($ex->getMessage());
@@ -212,7 +274,7 @@ class MoneyController extends AdminController
         /** @var GroupParam[] $groupParams */
         $groupParams = GroupParam::find()
             ->andWhere(['year' => $year, 'month' => $month])->andWhere(['>', 'teacher_salary', 0])
-            ->with('teacher')->with('group')->orderBy(['{{%group_param}}.id' => SORT_ASC])->all();
+            ->with('teacher')->with('group')->orderBy([GroupParam::tableName() . '.id' => SORT_ASC])->all();
         $salaryMap = [];
         foreach ($groupParams as $groupParam) {
             if (!array_key_exists($groupParam->teacher_id, $salaryMap)) $salaryMap[$groupParam->teacher_id] = [];

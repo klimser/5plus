@@ -83,7 +83,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 },
                 'content' => function ($model, $key, $index, $column) {
                     if ($model->role != \backend\models\User::ROLE_PUPIL) return '';
-                    return $model->debt ? 'Долг ' . ($model->debt->amount * (-1)) : $model->balance;
+                    return $model->money < 0 ? 'Долг ' . ($model->money * (-1)) : $model->money;
                 },
             ],
             [

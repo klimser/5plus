@@ -20,7 +20,7 @@ $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' =
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerJs(<<<SCRIPT
-    User.init();
+    Main.initPhoneFormatted();
 SCRIPT
 );
 
