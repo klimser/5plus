@@ -152,6 +152,12 @@ class MoneyController extends AdminController
                 try {
                     if (!$contract->save()) throw new \Exception('Contract save error: ' . $contract->getErrorsAsString());
                     $paymentId = MoneyComponent::registerIncome($payment);
+                    \Yii::$app->actionLogger->log(
+                        $contract->user,
+                        Action::TYPE_CONTRACT_PAID,
+                        $contract->amount,
+                        $contract->group
+                    );
                     MoneyComponent::setUserChargeDates($contract->user, $contract->group);
                     $jsonData = self::getJsonOkResult(['paymentId' => $paymentId]);
                 } catch (\Throwable $ex) {
@@ -171,13 +177,13 @@ class MoneyController extends AdminController
      */
     public function actionDebt()
     {
-//        if (!Yii::$app->user->can('moneyDebt')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
 
         $searchModel = new DebtSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        $debtors = User::find()->where(['id' => Debt::find()->select(['user_id'])->asArray()->column()])->orderBy(['name' => SORT_ASC])->all();
+        /** @var User[] $debtors */
+        $debtors = User::find()->where(['id' => Debt::find()->select(['user_id'])->distinct()->asArray()->column()])->orderBy(['name' => SORT_ASC])->all();
         $debtorMap = [null => 'Все'];
         foreach ($debtors as $debtor) $debtorMap[$debtor->id] = $debtor->name;
 
@@ -185,6 +191,7 @@ class MoneyController extends AdminController
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
             'debtorMap' => $debtorMap,
+            'groups' => Group::find()->all(),
         ]);
     }
 
@@ -202,7 +209,7 @@ class MoneyController extends AdminController
         foreach ($students as $student) $studentMap[$student->id] = $student->name;
 
         /** @var User[] $admins */
-        $admins = User::find()->where(['role' => User::ROLE_ROOT])->orderBy(['name' => SORT_ASC])->all();
+        $admins = User::find()->where(['role' => [User::ROLE_ROOT, User::ROLE_MANAGER]])->orderBy(['name' => SORT_ASC])->all();
         $adminMap = [null => 'Все'];
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
@@ -234,7 +241,7 @@ class MoneyController extends AdminController
         foreach ($students as $student) $studentMap[$student->id] = $student->name;
 
         /** @var User[] $admins */
-        $admins = User::find()->where(['role' => User::ROLE_ROOT])->orderBy(['name' => SORT_ASC])->all();
+        $admins = User::find()->where(['role' => [User::ROLE_ROOT, User::ROLE_MANAGER]])->orderBy(['name' => SORT_ASC])->all();
         $adminMap = [null => 'Все'];
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
@@ -273,8 +280,10 @@ class MoneyController extends AdminController
 
         /** @var GroupParam[] $groupParams */
         $groupParams = GroupParam::find()
-            ->andWhere(['year' => $year, 'month' => $month])->andWhere(['>', 'teacher_salary', 0])
-            ->with('teacher')->with('group')->orderBy([GroupParam::tableName() . '.id' => SORT_ASC])->all();
+            ->andWhere(['year' => $year, 'month' => $month])
+            ->andWhere(['>', 'teacher_salary', 0])
+            ->with(['teacher', 'group'])
+            ->orderBy([GroupParam::tableName() . '.id' => SORT_ASC])->all();
         $salaryMap = [];
         foreach ($groupParams as $groupParam) {
             if (!array_key_exists($groupParam->teacher_id, $salaryMap)) $salaryMap[$groupParam->teacher_id] = [];

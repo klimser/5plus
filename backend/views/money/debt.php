@@ -18,19 +18,12 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'rowOptions' => function ($model, $index, $widget, $grid) {
-            $return = [];
-            $nowDate = new \DateTime();
-            if ($nowDate > $model->dangerDate) $return['class'] = 'danger';
-            return $return;
-        },
         'columns' => [
             [
                 'attribute' => 'user_id',
                 'content' => function ($model, $key, $index, $column) {
                     return $model->user->name;
                 },
-//                'options' => ['class' => 'col-xs-1'],
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'user_id',
@@ -39,32 +32,38 @@ $this->params['breadcrumbs'][] = $this->title;
                 )
             ],
             [
+                'attribute' => 'group_id',
+                'content' => function ($model, $key, $index, $column) {
+                    return $model->group->name;
+                },
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'group_id',
+                    \yii\helpers\ArrayHelper::map($groups, 'id', 'name'),
+                    ['class' => 'form-control']
+                )
+            ],
+            [
                 'attribute' => 'amount',
-//                'options' => ['class' => 'col-xs-2'],
-            ],
-            [
-                'attribute' => 'comment',
-//                'options' => ['class' => 'col-xs-2'],
-            ],
-            [
-                'attribute' => 'danger_date',
-                'format' => 'date',
-                'label' => 'Дата недопуска',
-                'filter' => \dosamigos\datepicker\DatePicker::widget([
+                'filter' => \kartik\field\FieldRange::widget([
                     'model' => $searchModel,
-                    'attribute' => 'dangerDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
+                    'attribute1' => 'amountFrom',
+                    'attribute2' => 'amountTo',
+//                    'name1'=>'amountFrom',
+//                    'name2'=>'amountTo',
+                    'separator' => '-',
+                    'template' => '{widget}',
+                    'type' => \kartik\field\FieldRange::INPUT_TEXT,
                 ]),
-//                'options' => ['class' => 'col-xs-2'],
+                'contentOptions' => ['class' => 'text-right'],
+            ],
+            [
+                'attribute' => 'created_at',
+                'format' => 'date',
             ],
             [
                 'content' => function ($model, $key, $index, $column) {
-                    return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-usd', 'title' => 'Внести оплату']), \yii\helpers\Url::to(['money/income', 'user' => $model->user_id]));
+                    return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-usd']), \yii\helpers\Url::to(['money/income', 'user' => $model->user_id]), ['class' => 'btn btn-default', 'title' => 'Внести деньги']);
                 },
             ],
         ],

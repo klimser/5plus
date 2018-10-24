@@ -12,7 +12,7 @@ SCRIPT
 $searchValue = '';
 if (isset($user)) {
     $this->registerJs(<<<SCRIPT
-    Money.findCustomer();
+    Money.findPupils();
 SCRIPT
     );
     $searchValue = $user->phoneFormatted;

@@ -72,7 +72,6 @@ class Payment extends ActiveRecord
             'user_id' => 'Студент',
             'admin_id' => 'Админ',
             'group_id' => 'Группа',
-            'group_pupil_id' => 'Ученик в группе',
             'amount' => 'Сумма',
             'comment' => 'Комментарий',
             'used_payment_id' => 'Использованный при списании платёж',

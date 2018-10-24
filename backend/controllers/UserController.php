@@ -14,6 +14,7 @@ use backend\models\GroupPupil;
 use backend\models\Payment;
 use backend\models\User;
 use backend\models\UserSearch;
+use common\components\Action;
 use common\components\helpers\Money;
 use yii;
 use yii\web\ForbiddenHttpException;
@@ -242,6 +243,14 @@ class UserController extends AdminController
                 $contract->payment_type = Contract::PAYMENT_TYPE_MANUAL;
                 if (!$contract->save()) throw new \Exception('Не удалось создать договор: ' . $contract->getErrorsAsString());
                 $contract->link('payments', $payment);
+
+                \Yii::$app->actionLogger->log(
+                    $contract->user,
+                    Action::TYPE_CONTRACT_PAID,
+                    $contract->amount,
+                    $contract->group,
+                    null
+                );
             }
 
             try {
@@ -307,6 +316,12 @@ class UserController extends AdminController
             'success',
             'Договор ' . $contract->number . ' зарегистрирован '
             . '<a target="_blank" href="' . yii\helpers\Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
+        );
+        \Yii::$app->actionLogger->log(
+            $pupil,
+            Action::TYPE_CONTRACT_ADDED,
+            $contract->amount,
+            $contract->group
         );
         return $contract;
     }

@@ -24,28 +24,15 @@
     }
 </style>
 <div class="page">
-    <div class="text-center"><b>ДОГОВОР</b></div>
-    <table>
-        <tr>
-            <td class="text-left">г. Ташкент</td>
-            <td class="text-right">
-                <span class="placeholder">
-                    «<?= $contract->createDate->format('d'); ?>»
-                    <?= \common\components\helpers\Calendar::getMonthForm2($contract->createDate->format('n')); ?>
-                    <?= $contract->createDate->format('Y'); ?> г.
-                </span>
-                № <span class="placeholder"><?= $contract->number; ?></span>
-            </td>
-        </tr>
-    </table>
+    <?= $this->render('_header', ['contract' => $contract]); ?>
 
     <p style="text-align: justify;">Негосударственное образовательное учреждение «EXCLUSIVE EDUCATION» (Учебный центр «Пять с Плюсом» &trade;), осуществляющее образовательную деятельность на основании лицензии <span class="placeholder"><b>NAS UZ 001.MO.0591-05</b></span> в лице директора <span class="placeholder"><b>Климова Александра Сергеевича</b></span>, действующего на основании Устава, именуемое в дальнейшем «Учреждение», с одной стороны, и <span class="placeholder"><?= $contract->user->parent->name; ?></span> <span class="placeholder" style="width: 19cm;"></span> <span class="placeholder" style="width: 19cm;"></span>, именуемый в дальнейшем «Заказчик» и <span class="placeholder"><?= $contract->user->name; ?></span>, именуемый в дальнейшем «Учащийся», с другой стороны, заключили настоящий Договор о нижеследующем:</p>
 
-    <?= $this->render('_contract_body', ['contract' => $contract]); ?>
+    <?= $this->render('_body', ['contract' => $contract]); ?>
 
     <table>
         <tr>
-            <?= $this->render('_contract_company_contact', ['contract' => $contract]); ?>
+            <?= $this->render('_company_contact', ['contract' => $contract]); ?>
             <td style="width: 50%; text-align: left; vertical-align: top;">
                 <div style="text-decoration: underline;"><b>Заказчик:</b></div><br>
 

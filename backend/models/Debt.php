@@ -3,6 +3,7 @@
 namespace backend\models;
 
 use \common\components\extended\ActiveRecord;
+use common\models\traits\Inserted;
 
 /**
  * This is the model class for table "{{%debt}}".
@@ -17,6 +18,7 @@ use \common\components\extended\ActiveRecord;
  */
 class Debt extends ActiveRecord
 {
+    use Inserted;
     /**
      * @inheritdoc
      */
@@ -49,7 +51,7 @@ class Debt extends ActiveRecord
             'user_id' => 'Должник',
             'group_id' => 'группа',
             'amount' => 'Сумма задолженности',
-            'comment' => 'Комментарий',
+            'created_at' => 'Когда появилась задолженость',
         ];
     }
 

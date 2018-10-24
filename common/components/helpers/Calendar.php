@@ -38,17 +38,6 @@ class Calendar
     ];
 
     /**
-     * @return \DateTime
-     */
-    public static function getNextMonth()
-    {
-        $nowDate = new \DateTime();
-        $nowDate = new \DateTime($nowDate->format('Y-m') . '-01 00:00:00');
-        $nowDate->add(new \DateInterval('P1M'));
-        return $nowDate;
-    }
-
-    /**
      * @param int $month
      * @return string
      * @throws \Exception

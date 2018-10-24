@@ -191,7 +191,7 @@ class GroupController extends AdminController
                     }
                 } catch (\Throwable $ex) {
                     $transaction->rollBack();
-                    Yii::$app->errorLogger->logError('group/update', $ex, true);
+                    Yii::$app->errorLogger->logError('group/update', $ex->getMessage(), true);
                     Yii::$app->session->addFlash('error', 'Внутренняя ошибка сервера: ' . $ex->getMessage());
                 }
             }
@@ -210,7 +210,7 @@ class GroupController extends AdminController
     private function fillGroupParams(Group $group) {
         $currMonth = clone $group->startDateObject;
         $currMonth->modify('first day of this month midnight');
-        $nextMonth = Calendar::getNextMonth();
+        $nextMonth = new \DateTime('first day of next month midnight');
         $monthInterval = new \DateInterval('P1M');
         while ($currMonth < $nextMonth) {
             GroupComponent::getGroupParam($group, $currMonth);
@@ -259,7 +259,7 @@ class GroupController extends AdminController
 
                     if (!$groupPupil->save()) throw new \Exception($groupPupil->getErrorsAsString());
 
-                    GroupComponent::rechargeGroupPupil($groupPupil);
+                    MoneyComponent::rechargePupil($groupPupil->user, $group);
                 }
                 unset($pupilsMap[$groupPupil->user_id]);
             }
@@ -325,6 +325,13 @@ class GroupController extends AdminController
                 if ($groupPupilFrom->save()) {
                     EventComponent::fillSchedule($groupFrom);
                     GroupComponent::calculateTeacherSalary($groupFrom);
+                    $balance = Payment::find()
+                        ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
+                        ->select('SUM(amount)')->scalar();
+                    if ($balance > 0) {
+                        $groupPupilFrom->date_charge_till = $moveDate->format('Y-m-d H:i:s');
+
+                    }
                     MoneyComponent::setUserChargeDates($user, $groupFrom);
                 } else throw new \Exception($groupPupilFrom->getErrorsAsString());
             }

@@ -10,7 +10,6 @@ use yii\data\ActiveDataProvider;
  */
 class PaymentSearch extends Payment
 {
-    public $groupId;
     public $amountFrom;
     public $amountTo;
     /**
@@ -19,9 +18,9 @@ class PaymentSearch extends Payment
     public function rules()
     {
         return [
-            [['user_id', 'admin_id', 'amount'], 'integer'],
+            [['user_id', 'admin_id', 'group_id', 'amount'], 'integer'],
             [['created_at'], 'string'],
-            [['comment', 'groupId', 'amountFrom', 'amountTo'], 'safe'],
+            [['comment', 'amountFrom', 'amountTo'], 'safe'],
         ];
     }
 
@@ -43,7 +42,7 @@ class PaymentSearch extends Payment
      */
     public function search($params)
     {
-        $query = Payment::find()->joinWith(['groupPupil'])->with(['user', 'admin', 'groupPupil.group']);
+        $query = Payment::find()->with(['user', 'admin', 'group']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -59,11 +58,7 @@ class PaymentSearch extends Payment
                 'amount',
                 'created_at',
                 'id',
-                'groupId' => [
-                    'asc' => ['{{%group_pupil}}.group_id' => SORT_ASC],
-                    'desc' => ['{{%group_pupil}}.group_id' => SORT_DESC],
-                    'label' => 'Группа',
-                ]
+                'group_id',
             ]
         ]);
 
@@ -89,9 +84,9 @@ class PaymentSearch extends Payment
 
         // grid filtering conditions
         $query->andFilterWhere([
-            '{{%payment}}.user_id' => $this->user_id,
+            'user_id' => $this->user_id,
             'admin_id' => $this->admin_id,
-            'group_id' => $this->groupId,
+            'group_id' => $this->group_id,
         ]);
 
         if ($this->created_at) {

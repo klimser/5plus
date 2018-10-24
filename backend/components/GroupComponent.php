@@ -71,14 +71,15 @@ class GroupComponent extends Component
         $limit = new \DateTime('first day of next month midnight');
         $to = $group->endDateObject;
         if ($to) {
-            $to->modify('first day of ' . $to->format('F Y') . ' midnight');
+            $to = clone($to);
+            $to->modify('first day of this month midnight');
             $to->add($monthInterval);
         }
         if (!$to || $to > $limit) $to = $limit;
 
         if ($group->groupPupils) {
             $dateStart = clone $group->startDateObject;
-            $dateStart->modify('first day of ' . $dateStart->format('F Y') . ' midnight');
+            $dateStart->modify('first day of this month midnight');
             $dateEnd = clone $dateStart;
             $dateEnd->add($monthInterval);
 

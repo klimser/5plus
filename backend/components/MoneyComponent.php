@@ -63,7 +63,7 @@ class MoneyComponent extends Component
     public static function recalculateDebt(User $user, Group $group): bool
     {
         $balance = Payment::find()
-            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id])
+            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_INACTIVE, 'used_payment_id' => null])
             ->select('SUM(amount)')
             ->scalar();
         $newDebt = $balance * (-1);
@@ -184,12 +184,12 @@ class MoneyComponent extends Component
     {
         self::addPupilMoney($payment->user, $payment->amount * (-1), $payment->group);
         if (!$payment->delete()) throw new \Exception('Error deleting payment from DB: ' . $payment->id);
-        $paymentComment = 'Отмена списания за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->groupPupil->group->name . '"';
+        $paymentComment = 'Отмена списания за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->group->name . '"';
         if ($logEvent && !\Yii::$app->actionLogger->log(
             $payment->user,
             Action::TYPE_CANCEL_AUTO,
             $payment->amount * (-1),
-            $payment->groupPupil->group_id,
+            $payment->group,
             $paymentComment
         )) throw new \Exception('Error logging payment cancellation: ' . $payment->id);
     }
@@ -204,13 +204,12 @@ class MoneyComponent extends Component
     {
         if (!$payment->save()) throw new \Exception('Error adding payment to DB: ' . $payment->getErrorsAsString());
         self::addPupilMoney($payment->user, $payment->amount, $payment->group);
-        $paymentComment = null;
-        if ($payment->group_pupil_id) $paymentComment = 'Списание за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->groupPupil->group->name . '"';
+        $paymentComment = 'Списание за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->group->name . '"';
         if ($logEvent && !\Yii::$app->actionLogger->log(
             $payment->user,
             $actionType,
             $payment->amount,
-            $payment->group_pupil_id ? $payment->groupPupil->group_id : null,
+            $payment->group,
             $payment->comment ?: ($actionType == Action::TYPE_INCOME ? null : $paymentComment)
         )) throw new \Exception('Error logging payment: ' . $payment->id);
     }

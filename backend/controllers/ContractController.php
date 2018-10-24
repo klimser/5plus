@@ -4,9 +4,10 @@ namespace backend\controllers;
 
 use backend\models\Contract;
 use backend\models\ContractSearch;
-use backend\models\GroupParam;
 use backend\models\Group;
+use backend\models\GroupParam;
 use backend\models\User;
+use common\components\Action;
 use yii;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -25,7 +26,6 @@ class ContractController extends AdminController
      */
     public function actionPrint($id)
     {
-//        if (!Yii::$app->user->can('moneyDebt')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
 
         $contract = $this->findModel($id);
@@ -39,13 +39,32 @@ class ContractController extends AdminController
     }
 
     /**
+     * @param $id
+     * @return yii\web\Response
+     * @throws ForbiddenHttpException
+     */
+    public function actionBarcode($id)
+    {
+        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+
+        $contract = $this->findModel($id);
+        $generator = new \Picqer\Barcode\BarcodeGeneratorSVG();
+        $response = new \yii\web\Response();
+        $response->sendContentAsFile(
+            $generator->getBarcode($contract->number, $generator::TYPE_CODE_128),
+            "barcode.svg",
+            ['mimeType' => 'image/svg+xml', 'inline' => true]
+        );
+        return $response;
+    }
+
+    /**
      * Monitor all Contracts.
      * @return string
      * @throws ForbiddenHttpException
      */
     public function actionIndex()
     {
-//        if (!Yii::$app->user->can('moneyPayment')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
 
         $searchModel = new ContractSearch();
@@ -98,6 +117,80 @@ class ContractController extends AdminController
         }
 
         return $this->asJson($jsonData);
+    }
+
+    /**
+     * Create new contract
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
+    public function actionCreate()
+    {
+//        if (!Yii::$app->user->can('moneyIncome')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+
+        if (\Yii::$app->request->isPost) {
+            $userId = Yii::$app->request->post('user_id');
+            $groupId = Yii::$app->request->post('group_id');
+            $amount = Yii::$app->request->post('amount');
+            $discount = boolval(Yii::$app->request->post('discount', 0));
+
+            if (!$userId) \Yii::$app->session->addFlash('error', 'No user');
+            elseif (!$groupId) \Yii::$app->session->addFlash('error', 'No group');
+            elseif ($amount <= 0) \Yii::$app->session->addFlash('error', 'Wrong amount');
+            else {
+                $user = User::findOne($userId);
+                $group = Group::findOne($groupId);
+                if (!$user || $user->role != User::ROLE_PUPIL) \Yii::$app->session->addFlash('error', 'Wrong pupil');
+                elseif (!$group || $group->active != Group::STATUS_ACTIVE) \Yii::$app->session->addFlash('error', 'Wrong group');
+                else {
+                    $contract = new Contract();
+                    $contract->created_admin_id = Yii::$app->user->id;
+                    $contract->user_id = $user->id;
+                    $contract->group_id = $group->id;
+                    $contract->amount = $amount;
+                    $contract->discount = $discount ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
+                    $contract->created_at = date('Y-m-d H:i:s');
+
+                    $groupParam = GroupParam::findByDate($group, new \DateTime());
+
+                    if ($contract->discount == Contract::STATUS_ACTIVE
+                        && (($groupParam && $amount < $groupParam->price3Month) || (!$groupParam && $amount < $group->price3Month))) {
+                        \Yii::$app->session->addFlash('error', 'Wrong pupil');
+                    } else {
+                        $numberPrefix = $contract->createDate->format('Ymd') . $user->id;
+                        $numberAffix = 1;
+                        while (Contract::find()->andWhere(['number' => $numberPrefix . $numberAffix])->select('COUNT(id)')->scalar() > 0) {
+                            $numberAffix++;
+                        }
+                        $contract->number = $numberPrefix . $numberAffix;
+
+                        if (!$contract->save()) \Yii::$app->session->addFlash('error', 'Не удалось создать договор: ' . $contract->getErrorsAsString());
+                        else {
+                            Yii::$app->session->addFlash(
+                                'success',
+                                'Договор ' . $contract->number . ' зарегистрирован '
+                                . '<a target="_blank" href="' . yii\helpers\Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
+                            );
+                            \Yii::$app->actionLogger->log(
+                                $user,
+                                Action::TYPE_CONTRACT_ADDED,
+                                $contract->amount,
+                                $group
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        $params = [];
+        $userId = Yii::$app->request->get('user');
+        if ($userId) {
+            $user = User::findOne($userId);
+            if ($user) $params['user'] = $user;
+        }
+        return $this->render('create', $params);
     }
 
     /**

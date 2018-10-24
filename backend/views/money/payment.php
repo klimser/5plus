@@ -58,14 +58,14 @@ $this->params['breadcrumbs'][] = $this->title;
                 )
             ],
             [
-                'attribute' => 'groupId',
+                'attribute' => 'group_id',
                 'label' => 'Группа',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->group_pupil_id ? Html::a($model->groupPupil->group->name, \yii\helpers\Url::to(['group/update', 'id' => $model->groupPupil->group_id])) : null;
+                    return Html::a($model->group->name, \yii\helpers\Url::to(['group/update', 'id' => $model->group_id]));
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
-                    'groupId',
+                    'group_id',
                     $groupMap,
                     ['class' => 'form-control']
                 )

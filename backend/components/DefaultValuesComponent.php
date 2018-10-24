@@ -48,7 +48,7 @@ class DefaultValuesComponent extends Component
                         'styles' => ['max-width' => '100%'],
                     ],
                 ],
-                'toolbar' => 'undo redo | styleselect | bold italic | fontsizeselect | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | responsivefilemanager link image',
+                'toolbar' => 'undo redo | styleselect | bold italic | subscript superscript | fontsizeselect | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | responsivefilemanager link image',
                 'imagetools_toolbar' => 'rotateleft rotateright | flipv fliph | editimage imageoptions',
                 'external_filemanager_path' => \Yii::$app->getHomeUrl() . 'filemanager/filemanager/',
                 'filemanager_title' => 'Responsive Filemanager',

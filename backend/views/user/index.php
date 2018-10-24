@@ -79,7 +79,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'money',
                 'contentOptions' => function ($model, $key, $index, $column) {
-                    return ($model->role == \backend\models\User::ROLE_PUPIL && $model->debt) ? ['class' => 'danger'] : [];
+                    return ($model->role == \backend\models\User::ROLE_PUPIL && $model->money < 0) ? ['class' => 'danger'] : [];
                 },
                 'content' => function ($model, $key, $index, $column) {
                     if ($model->role != \backend\models\User::ROLE_PUPIL) return '';
