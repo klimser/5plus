@@ -63,7 +63,7 @@ class MoneyComponent extends Component
     public static function recalculateDebt(User $user, Group $group): bool
     {
         $balance = Payment::find()
-            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_INACTIVE, 'used_payment_id' => null])
+            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_INACTIVE])
             ->select('SUM(amount)')
             ->scalar();
         $newDebt = $balance * (-1);
@@ -225,8 +225,14 @@ class MoneyComponent extends Component
         if (count($groupPupils) == 0) return;
 
         /*    Собираем информацию обо всех внесенных средствах    */
-        $money = Payment::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_INACTIVE])->select('SUM(amount)')->scalar();
-        $moneyDiscount = Payment::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_ACTIVE])->select('SUM(amount)')->scalar();
+        $money = Payment::find()
+            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_INACTIVE])
+            ->andWhere(['>', 'amount', 0])
+            ->select('SUM(amount)')->scalar();
+        $moneyDiscount = Payment::find()
+            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_ACTIVE])
+            ->andWhere(['>', 'amount', 0])
+            ->select('SUM(amount)')->scalar();
         $startDate = null;
         $groupPupilMap = [];
         foreach ($groupPupils as $groupPupil) {
@@ -288,7 +294,7 @@ class MoneyComponent extends Component
             foreach ($groupPupilMap as $id => $item) {
                 if (!$item['state'] && (!$item['entity']->date_end || $item['entity']->endDateObject > $nowDate)
                     && (!$item['entity']->group->date_end || $item['entity']->group->endDateObject > $nowDate)) {
-                    $groupPupilMap[$id]['entity']->paid_lessons = 0;
+                    $item['entity']->paid_lessons = 0;
                     $groupPupilMap[$id]['param'] = GroupComponent::getGroupParam($item['entity']->group, $nowDate);
                 }
             }
@@ -313,19 +319,19 @@ class MoneyComponent extends Component
                 foreach ($groupPupilMap as $id => $item) {
                     if (!$item['state']) {
                         if ($item['entity']->date_end && $item['entity']->endDateObject < $nowDate) {
-                            $groupPupilMap[$id]['entity']->date_charge_till = $item['entity']->date_end;
+                            $item['entity']->date_charge_till = $item['entity']->date_end;
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
                         } elseif ($item['entity']->group->date_end && $item['entity']->group->endDateObject < $nowDate) {
-                            $groupPupilMap[$id]['entity']->date_charge_till = $item['entity']->group->date_end;
+                            $item['entity']->date_charge_till = $item['entity']->group->date_end;
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
                         } elseif ($w > 0 && $item['param']->weekday[$w - 1] == '1') {
                             if ($item['param']->lesson_price_discount && $moneyDiscount > 0) {
                                 $moneyDiscount -= $item['param']->lesson_price_discount;
-                                $groupPupilMap[$id]['entity']->paid_lessons++;
+                                $item['entity']->paid_lessons++;
                             } else {
-                                if ($money > 0) $groupPupilMap[$id]['entity']->paid_lessons++;
+                                if ($money > 0) $item['entity']->paid_lessons++;
                                 $money -= $item['param']->lesson_price;
                                 if ($money < 0) {
                                     $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');

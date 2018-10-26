@@ -19,7 +19,6 @@ class PaymentSearch extends Payment
     {
         return [
             [['user_id', 'admin_id', 'group_id', 'amount'], 'integer'],
-            [['created_at'], 'string'],
             [['comment', 'amountFrom', 'amountTo'], 'safe'],
         ];
     }
@@ -69,19 +68,14 @@ class PaymentSearch extends Payment
                 }
                 unset($params['PaymentSearch']['createDateString']);
             }
-            if (array_key_exists('sort', $params)) {
-                if ($params['sort'] == 'createDate') $params['sort'] = 'created_at';
-                if ($params['sort'] == '-createDate') $params['sort'] = '-created_at';
-            }
         }
-
         if (!($this->load($params) && $this->validate())) {
             // uncomment the following line if you do not want to return any records when validation fails
             // $query->where('0=1');
 
             return $dataProvider;
         }
-
+        if (!array_key_exists('created_at', $params['PaymentSearch'])) $this->created_at = null;
         // grid filtering conditions
         $query->andFilterWhere([
             'user_id' => $this->user_id,

@@ -9,7 +9,6 @@ use backend\models\GroupParam;
 use backend\models\User;
 use common\components\Action;
 use yii;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
 
@@ -18,16 +17,15 @@ use yii\web\BadRequestHttpException;
  */
 class ContractController extends AdminController
 {
+    protected $accessRule = 'moneyManagement';
+
      /**
      * Print Contract.
      * @param int $id
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionPrint($id)
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-
         $contract = $this->findModel($id);
         $pupilType = 'individual';
         if ($contract->user->parent_id && $contract->user->parent->role == User::ROLE_COMPANY) {
@@ -41,12 +39,9 @@ class ContractController extends AdminController
     /**
      * @param $id
      * @return yii\web\Response
-     * @throws ForbiddenHttpException
      */
     public function actionBarcode($id)
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-
         $contract = $this->findModel($id);
         $generator = new \Picqer\Barcode\BarcodeGeneratorSVG();
         $response = new \yii\web\Response();
@@ -61,12 +56,9 @@ class ContractController extends AdminController
     /**
      * Monitor all Contracts.
      * @return string
-     * @throws ForbiddenHttpException
      */
     public function actionIndex()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-
         $searchModel = new ContractSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -91,11 +83,9 @@ class ContractController extends AdminController
     /**
      * @return yii\web\Response
      * @throws BadRequestHttpException
-     * @throws ForbiddenHttpException
      */
     public function actionFind()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
 
         $jsonData = self::getJsonOkResult();
@@ -122,13 +112,9 @@ class ContractController extends AdminController
     /**
      * Create new contract
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionCreate()
     {
-//        if (!Yii::$app->user->can('moneyIncome')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-
         if (\Yii::$app->request->isPost) {
             $userId = Yii::$app->request->post('user_id');
             $groupId = Yii::$app->request->post('group_id');

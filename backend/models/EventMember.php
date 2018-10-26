@@ -72,7 +72,7 @@ class EventMember extends ActiveRecord
      */
     public function getGroupPupil()
     {
-        return $this->hasOne(GroupPupil::class, ['id' => 'group_pupil_id'])->inverseOf('eventMember');
+        return $this->hasOne(GroupPupil::class, ['id' => 'group_pupil_id'])->inverseOf('eventMembers');
     }
 
     /**

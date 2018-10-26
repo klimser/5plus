@@ -37,7 +37,6 @@ class MoneyController extends AdminController
      */
     public function actionIncome()
     {
-//        if (!Yii::$app->user->can('moneyIncome')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
 
         $params = [];
@@ -56,9 +55,8 @@ class MoneyController extends AdminController
      */
     public function actionProcessIncome()
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
-        //        if (!Yii::$app->user->can('moneyIncome')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
 
         $userId = Yii::$app->request->post('user');
         $groupId = Yii::$app->request->post('group');
@@ -122,9 +120,8 @@ class MoneyController extends AdminController
      */
     public function actionProcessContract()
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
-        //        if (!Yii::$app->user->can('moneyIncome')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
 
         $contractId = Yii::$app->request->post('id');
         $contractPaid = date_create_from_format('d.m.Y', Yii::$app->request->post('contract_paid', ''));
@@ -197,7 +194,6 @@ class MoneyController extends AdminController
 
     public function actionPayment()
     {
-//        if (!Yii::$app->user->can('moneyPayment')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
 
         $searchModel = new PaymentSearch();
@@ -229,7 +225,6 @@ class MoneyController extends AdminController
 
     public function actionActions()
     {
-//        if (!Yii::$app->user->can('moneyActions')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
 
         $searchModel = new ActionSearch();
@@ -272,8 +267,7 @@ class MoneyController extends AdminController
      */
     public function actionSalary(int $year = 0, int $month = 0)
     {
-//        if (!Yii::$app->user->can('moneySalary')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('viewSalary')) throw new ForbiddenHttpException('Access denied!');
 
         if (!$year) $year = intval(date('Y'));
         if (!$month) $month = intval(date('n'));
@@ -311,7 +305,7 @@ class MoneyController extends AdminController
      */
     public function actionSalaryDetails(int $group, int $year, int $month)
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('viewSalary')) throw new ForbiddenHttpException('Access denied!');
 
         $group = Group::findOne($group);
         if (!$group) throw new yii\web\NotFoundHttpException('Group not found');

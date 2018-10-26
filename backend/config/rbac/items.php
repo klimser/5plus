@@ -4,54 +4,21 @@ return [
         'type' => 2,
         'description' => 'View the main page',
     ],
-    'managePages' => [
-        'type' => 2,
-        'description' => 'Manage pages',
-    ],
-    'admin' => [
+    'root' => [
         'type' => 1,
         'ruleName' => 'userRole',
         'children' => [
-            'parents',
             'manager',
-            'content',
+            'manageUsers',
             'manageEmployees',
+            'editUser',
         ],
     ],
     'manager' => [
         'type' => 1,
         'ruleName' => 'userRole',
         'children' => [
-            'manageUsers',
-            'editUser',
-            'manageTeachers',
-            'manageEvents',
-            'manageSubjectCategories',
-            'manageSubjects',
-            'viewSchedule',
-            'manageGroups',
-            'moneyManagement',
-            'manageFeedbacks',
-            'manageOrders',
-            'manageReviews',
-        ],
-    ],
-    'content' => [
-        'type' => 1,
-        'ruleName' => 'userRole',
-        'children' => [
-            'managePages',
-            'manageBanner',
-            'manageMenu',
-            'manageWidgetHtml',
-            'manageHighSchools',
-            'manageQuiz',
-            'manageTeachers',
-            'manageSubjectCategories',
-            'manageSubjects',
-            'manageFeedbacks',
-            'manageOrders',
-            'manageReviews',
+            'parents',
         ],
     ],
     'parents' => [
@@ -70,21 +37,59 @@ return [
             'viewMySchedule',
         ],
     ],
-    'manageUsers' => [
-        'type' => 2,
-        'description' => 'Manage users',
+    'cashier' => [
+        'type' => 1,
+        'children' => [
+            'manageUsers',
+            'editUser',
+            'moneyManagement',
+        ],
+    ],
+    'scheduler' => [
+        'type' => 1,
+        'children' => [
+            'manageSchedule',
+        ],
+    ],
+    'accountant' => [
+        'type' => 1,
+        'children' => [
+            'viewSalary',
+        ],
+    ],
+    'support' => [
+        'type' => 1,
+        'children' => [
+            'manageFeedbacks',
+            'manageOrders',
+            'manageReviews',
+        ],
+    ],
+    'groupManager' => [
+        'type' => 1,
+        'children' => [
+            'manageTeachers',
+            'manageSubjectCategories',
+            'manageSubjects',
+            'manageGroups',
+        ],
+    ],
+    'content' => [
+        'type' => 1,
+        'children' => [
+            'managePages',
+            'manageMenu',
+            'manageWidgetHtml',
+            'manageHighSchools',
+            'manageSubjectCategories',
+            'manageSubjects',
+            'manageTeachers',
+            'manageQuiz',
+        ],
     ],
     'manageEmployees' => [
         'type' => 2,
         'description' => 'Manage employees',
-    ],
-    'manageTeachers' => [
-        'type' => 2,
-        'description' => 'Manage teachers',
-    ],
-    'manageEvents' => [
-        'type' => 2,
-        'description' => 'Manage events',
     ],
     'editOwnProfile' => [
         'type' => 2,
@@ -93,21 +98,59 @@ return [
             'editUser',
         ],
     ],
+
+    /* CASHIER */
+    'manageUsers' => [
+        'type' => 2,
+        'description' => 'Manage users',
+    ],
     'editUser' => [
         'type' => 2,
         'description' => 'Edit user profile',
     ],
-    'manageBanner' => [
+    'moneyManagement' => [
         'type' => 2,
-        'description' => 'Manage banner contents',
+        'description' => 'Manage money',
     ],
+
+    /* SCHEDULER */
+    'manageSchedule' => [
+        'type' => 2,
+        'description' => 'Manage schedule',
+    ],
+
+    /* ACCOUNTANT */
+    'viewSalary' => [
+        'type' => 2,
+        'description' => 'View teacher salary',
+    ],
+
+    /* GROUP MANAGER */
+    'manageSubjectCategories' => [
+        'type' => 2,
+        'description' => 'Manage subject categories',
+    ],
+    'manageSubjects' => [
+        'type' => 2,
+        'description' => 'Manage subjects',
+    ],
+    'manageTeachers' => [
+        'type' => 2,
+        'description' => 'Manage teachers',
+    ],
+    'manageGroups' => [
+        'type' => 2,
+        'description' => 'Manage pupil groups',
+    ],
+    'manageEvents' => [
+        'type' => 2,
+        'description' => 'Manage events',
+    ],
+
+    /* SUPPORT */
     'manageFeedbacks' => [
         'type' => 2,
         'description' => 'Manage feedbacks',
-    ],
-    'manageMenu' => [
-        'type' => 2,
-        'description' => 'Manage menus',
     ],
     'manageOrders' => [
         'type' => 2,
@@ -117,14 +160,33 @@ return [
         'type' => 2,
         'description' => 'Manage reviews',
     ],
-    'manageSubjectCategories' => [
+
+    /* CONTENT MANAGER */
+    'managePages' => [
         'type' => 2,
-        'description' => 'Manage subject categories',
+        'description' => 'Manage pages',
     ],
-    'manageSubjects' => [
+    'manageMenu' => [
         'type' => 2,
-        'description' => 'Manage subjects',
+        'description' => 'Manage menus',
     ],
+    'manageWidgetHtml' => [
+        'type' => 2,
+        'description' => 'Manage blocks',
+    ],
+    'manageBanner' => [
+        'type' => 2,
+        'description' => 'Manage banner contents',
+    ],
+    'manageHighSchools' => [
+        'type' => 2,
+        'description' => 'Manage high schools',
+    ],
+    'manageQuiz' => [
+        'type' => 2,
+        'description' => 'Manage quizes',
+    ],
+
     'viewMySchedule' => [
         'type' => 2,
         'description' => 'View my schedule',
@@ -136,25 +198,5 @@ return [
     'viewSchedule' => [
         'type' => 2,
         'description' => 'View schedule',
-    ],
-    'manageGroups' => [
-        'type' => 2,
-        'description' => 'Manage pupil groups',
-    ],
-    'manageHighSchools' => [
-        'type' => 2,
-        'description' => 'Manage high schools',
-    ],
-    'manageQuiz' => [
-        'type' => 2,
-        'description' => 'Manage quizes',
-    ],
-    'moneyManagement' => [
-        'type' => 2,
-        'description' => 'Manage money',
-    ],
-    'manageWidgetHtml' => [
-        'type' => 2,
-        'description' => 'Manage blocks',
     ],
 ];

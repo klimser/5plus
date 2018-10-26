@@ -1,8 +1,6 @@
 <?php
 namespace backend\components;
 
-
-use backend\models\Debt;
 use backend\models\User;
 use yii\base\Widget;
 
@@ -19,12 +17,14 @@ class DebtWidget extends Widget
             
             if ($this->user->role == User::ROLE_PARENTS) {
                 foreach ($this->user->children as $child) {
-                    if ($child->debt) $debtAmount += $child->debt->amount;
-                    else $balance += $this->user->money;
+                    if ($child->debts) {
+                        foreach ($child->debts as $debt) $debtAmount += $debt->amount;
+                    } else $balance += $this->user->money;
                 }
             } else {
-                if ($this->user->debt) $debtAmount += $this->user->debt->amount;
-                else $balance += $this->user->money;
+                if ($this->user->debts) {
+                    foreach ($this->user->debts as $debt) $debtAmount += $debt->amount;
+                } else $balance += $this->user->money;
             }
             
             if ($debtAmount) {

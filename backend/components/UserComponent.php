@@ -7,6 +7,23 @@ use yii\base\Component;
 
 class UserComponent extends Component
 {
+    public const ROLE_LABELS = [
+        User::ROLE_ROOT   => 'Администратор',
+        User::ROLE_MANAGER => 'Офис-менеджер',
+        User::ROLE_COMPANY => 'Компания',
+        User::ROLE_PARENTS => 'Родители',
+        User::ROLE_PUPIL   => 'Студент',
+    ];
+
+    public const ACL_RULES = [
+        'cashier' => 'Кассир (приём денег)',
+        'groupManager' => 'Редактор групп',
+        'scheduler' => 'Расписание',
+        'accountant' => 'Бухгалтер (зарплата)',
+        'support' => 'Техподдержка (заявки и т п)',
+        'content' => 'Контент-менеджер',
+    ];
+
     /**
      * @return string[]
      */

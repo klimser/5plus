@@ -24,7 +24,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return = [];
             if ($model->amount > 0) {
-                if ($model->group_pupil_id) $return['class'] = 'info';
+                if ($model->discount == \backend\models\Payment::STATUS_ACTIVE) $return['class'] = 'info';
                 else $return['class'] = 'success';
             } elseif ($model->amount < 0) {
                 if ($model->used_payment_id) $return['class'] = 'warning';

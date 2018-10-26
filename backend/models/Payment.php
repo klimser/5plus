@@ -48,7 +48,7 @@ class Payment extends ActiveRecord
     {
         return [
             [['user_id', 'group_id', 'amount'], 'required'],
-            [['user_id', 'group_id', 'admin_id', 'group_pupil_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id'], 'integer'],
+            [['user_id', 'group_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id'], 'integer'],
             [['comment'], 'string'],
             [['contract'], 'string', 'max' => 50],
             ['discount', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
@@ -56,7 +56,6 @@ class Payment extends ActiveRecord
             [['user_id'], 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
             [['admin_id'], 'exist', 'targetRelation' => 'admin'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
-            [['group_pupil_id'], 'exist', 'targetRelation' => 'groupPupil'],
             [['used_payment_id'], 'exist', 'targetRelation' => 'usedPayment'],
             [['event_member_id'], 'exist', 'targetRelation' => 'eventMember'],
         ];
@@ -82,15 +81,11 @@ class Payment extends ActiveRecord
     public function beforeValidate()
     {
         if (empty($this->created_at)) $this->created_at = date('Y-m-d H:i:s');
-        if ($this->group_pupil_id && !$this->user_id) {
-            $groupPupil = GroupPupil::findOne($this->group_pupil_id);
-            $this->user_id = $groupPupil->user_id;
-        }
         if (parent::beforeValidate()) {
             if ($this->used_payment_id) {
                 $usedPayment = $this->findOne($this->used_payment_id);
                 if (!$usedPayment) return false;
-                if ($usedPayment->group_pupil_id != $this->group_pupil_id) return false;
+                if ($usedPayment->group_id != $this->group_id) return false;
             }
             return true;
         }
@@ -158,7 +153,7 @@ class Payment extends ActiveRecord
      */
     public function getPaymentsSum()
     {
-        return Payment::find()->andWhere(['used_payment_id' => $this->id])->select('SUM(amount)')->scalar();
+        return Payment::find()->andWhere(['used_payment_id' => $this->id])->select('SUM(amount)')->scalar() * (-1);
     }
 
     /**

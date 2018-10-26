@@ -5,7 +5,7 @@ namespace backend\controllers;
 use common\components\extended\Controller;
 use yii;
 
-class AdminController extends Controller
+abstract class AdminController extends Controller
 {
     /** @var string|null Если на весь контроллер применяется одно правило доступа */
     protected $accessRule = null;

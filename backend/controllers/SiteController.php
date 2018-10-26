@@ -2,6 +2,9 @@
 namespace backend\controllers;
 
 use backend\models\User;
+use common\models\Feedback;
+use common\models\Order;
+use common\models\Review;
 use yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -57,12 +60,17 @@ class SiteController extends Controller
         switch ($currentUser->role) {
             case User::ROLE_ROOT:
             case User::ROLE_MANAGER:
-            case User::ROLE_CONTENT:
                 $viewFile = 'index';
                 break;
             case User::ROLE_PARENTS: if (count($currentUser->children) > 1) $viewFile = 'index_parent'; break;
         }
-        return $this->render($viewFile);
+        $params = ['admin' => Yii::$app->user];
+        if (Yii::$app->user->can('support')) {
+            $params['orderCount'] = Order::find()->andWhere(['status' => [Order::STATUS_UNREAD, Order::STATUS_READ]])->count('id');
+            $params['feedbackCount'] = Feedback::find()->andWhere(['status' => [Feedback::STATUS_NEW, Feedback::STATUS_READ]])->count('id');
+            $params['reviewCount'] = Review::find()->andWhere(['status' => Review::STATUS_NEW])->count('id');
+        }
+        return $this->render($viewFile, $params);
     }
 
     public function actionLogin()

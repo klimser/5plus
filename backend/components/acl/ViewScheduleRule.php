@@ -1,6 +1,6 @@
 <?php
 
-namespace backend\components;
+namespace backend\components\acl;
 
 use backend\models\User;
 use yii;

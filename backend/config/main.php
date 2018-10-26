@@ -22,7 +22,7 @@ return [
             'ruleFile' => '@backend/config/rbac/rules.php',
             'itemFile' => '@backend/config/rbac/items.php',
             'assignmentFile' => '@backend/config/rbac/assignments.php',
-            'defaultRoles' => ['admin', 'manager', 'content', 'pupil', 'parents'],
+            'defaultRoles' => ['root', 'manager', 'pupil', 'parents'],
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,

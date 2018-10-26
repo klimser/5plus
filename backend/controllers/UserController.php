@@ -9,7 +9,6 @@ use backend\components\UserComponent;
 use backend\models\Contract;
 use backend\models\EventMember;
 use backend\models\Group;
-use backend\models\GroupParam;
 use backend\models\GroupPupil;
 use backend\models\Payment;
 use backend\models\User;
@@ -43,7 +42,7 @@ class UserController extends AdminController
             'searchModel' => $searchModel,
             'firstLetter' => mb_strtoupper(Yii::$app->request->get('letter', 'all'), 'UTF-8'),
             'selectedYear' => Yii::$app->request->get('year', -1),
-            'isRoot' => Yii::$app->user->identity->role == User::ROLE_ROOT,
+            'canManageEmployees' => Yii::$app->user->can('manageEmployees'),
         ]);
     }
 
@@ -375,24 +374,40 @@ class UserController extends AdminController
 
         $user = $this->findModel($userToEdit);
         $user->setScenario(in_array($user->role, [User::ROLE_PUPIL, User::ROLE_PARENTS]) ? User::SCENARIO_USER : User::SCENARIO_ADMIN);
+        $isAdmin = Yii::$app->user->can('manageUsers');
+        $editACL = Yii::$app->user->can('manageEmployees');
+        $auth = Yii::$app->authManager;
 
         if (Yii::$app->request->isPost) {
             if ($user->load(Yii::$app->request->post())) {
                 $fields = null;
-                if (Yii::$app->user->identity->role != User::ROLE_ROOT) $fields = ['username', 'password'];
+                if (!$isAdmin) $fields = ['username', 'password'];
                 if ($user->save(true, $fields)) {
                     Yii::$app->session->addFlash('success', 'Успешно обновлено');
+                    if ($editACL) {
+                        $newRules = Yii::$app->request->post('acl', []);
+                        foreach (UserComponent::ACL_RULES as $key => $devNull) {
+                            $role = $auth->getRole($key);
+                            if (array_key_exists($key, $newRules)) {
+                                if (!$auth->getAssignment($role->name, $user->id)) $auth->assign($role, $user->id);
+                            } else {
+                                if ($auth->getAssignment($role->name, $user->id)) $auth->revoke($role, $user->id);
+                            }
+                        }
+                    }
                     UserComponent::clearSearchCache();
                     return $this->redirect(['update', 'id' => $id]);
                 } else {
                     $user->moveErrorsToFlash();
                 }
-            } else \Yii::$app->session->addFlash('error', 'Внутренняя ошибка сервера');
+            } else Yii::$app->session->addFlash('error', 'Внутренняя ошибка сервера');
         }
 
         return $this->render('update', [
             'user' => $user,
-            'isAdmin' => Yii::$app->user->can('manageUsers'),
+            'isAdmin' => $isAdmin,
+            'editACL' => $editACL,
+            'authManager' => $auth,
         ]);
     }
 

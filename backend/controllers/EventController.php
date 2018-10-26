@@ -11,7 +11,7 @@ use yii\web\NotFoundHttpException;
 
 class EventController extends AdminController
 {
-    protected $accessRule = 'manageEvents';
+    protected $accessRule = 'manageSchedule';
 
     private function getLimitDate(): \DateTime
     {

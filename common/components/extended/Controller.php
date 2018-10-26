@@ -6,7 +6,7 @@ namespace common\components\extended;
 use common\models\Webpage;
 use yii\base\InvalidArgumentException;
 
-class Controller extends \yii\web\Controller
+abstract class Controller extends \yii\web\Controller
 {
     /**
      * @param string $message

@@ -1,6 +1,6 @@
 <?php
 
-namespace backend\components;
+namespace backend\components\acl;
 
 use yii;
 use yii\rbac\Rule;

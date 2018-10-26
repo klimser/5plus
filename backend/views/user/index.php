@@ -8,7 +8,7 @@ use yii\grid\GridView;
 /* @var $searchModel \backend\models\UserSearch */
 /* @var $firstLetter string */
 /* @var $selectedYear int */
-/* @var $isRoot bool */
+/* @var $canManageEmployees bool */
 
 $this->title = 'Пользователи';
 $this->params['breadcrumbs'][] = $this->title;
@@ -19,9 +19,9 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a('Добавить студента', ['create-pupil'], ['class' => 'btn btn-success']) ?>
-        <?php /*if ($isRoot): ?>
+        <?php if ($canManageEmployees): ?>
             <?= Html::a('Добавить сотрудника', ['create-employee'], ['class' => 'btn btn-success pull-right']) ?>
-        <?php endif;*/ ?>
+        <?php endif; ?>
     </p>
     <nav aria-label="User by letter" class="text-center">
         <ul class="pagination">
@@ -65,7 +65,7 @@ $this->params['breadcrumbs'][] = $this->title;
     </nav>
     <?php
         $roles = [null => 'Все'];
-        foreach (\backend\models\User::$roleLabels as $key => $val) $roles[$key] = $val;
+        foreach (\backend\components\UserComponent::ROLE_LABELS as $key => $val) $roles[$key] = $val;
     ?>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -89,7 +89,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'role',
                 'format' => 'html',
-                'content' => function ($model, $key, $index, $column) {return \backend\models\User::$roleLabels[$model->role];},
+                'content' => function ($model, $key, $index, $column) {return \backend\components\UserComponent::ROLE_LABELS[$model->role];},
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'role',

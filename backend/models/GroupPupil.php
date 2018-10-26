@@ -84,7 +84,7 @@ class GroupPupil extends ActiveRecord
      */
     public function getPayments()
     {
-        return $this->hasMany(Payment::class, ['group_pupil_id' => 'id'])->orderBy(['{{%payment}}.created_at' => SORT_ASC]);
+        return $this->hasMany(Payment::class, ['group_pupil_id' => 'id'])->orderBy([Payment::tableName() . '.created_at' => SORT_ASC]);
     }
 
     /**
@@ -94,7 +94,7 @@ class GroupPupil extends ActiveRecord
     {
         return $this->hasMany(EventMember::class, ['group_pupil_id' => 'id'])
             ->joinWith('event')
-            ->orderBy(['{{%event}}.event_date' => SORT_ASC])
+            ->orderBy([Event::tableName() . '.event_date' => SORT_ASC])
             ->inverseOf('groupPupil');
     }
 

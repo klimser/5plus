@@ -33,6 +33,7 @@ use yii\web\IdentityInterface;
  * @property Action[] $actionsAsAdmin
  * @property Payment[] $payments
  * @property Payment[] $paymentsAsAdmin
+ * @property Debt[] $debts
  * @property int $balance
  */
 class User extends ActiveRecord implements IdentityInterface
@@ -50,16 +51,6 @@ class User extends ActiveRecord implements IdentityInterface
     const ROLE_PUPIL   = 3;
     const ROLE_COMPANY = 4;
     const ROLE_MANAGER = 10;
-    const ROLE_CONTENT = 11;
-
-    public static $roleLabels = [
-        self::ROLE_ROOT   => 'Администратор',
-        self::ROLE_MANAGER => 'Офис-менеджер',
-        self::ROLE_CONTENT => 'Контент-менеджер',
-        self::ROLE_COMPANY => 'Компания',
-        self::ROLE_PARENTS => 'Родители',
-        self::ROLE_PUPIL   => 'Студент',
-    ];
 
     public $password;
 
@@ -140,7 +131,7 @@ class User extends ActiveRecord implements IdentityInterface
             ['status', 'default', 'value' => self::STATUS_ACTIVE,  'on' => self::SCENARIO_ADMIN],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_LOCKED]],
             ['role', 'default', 'value' => self::ROLE_PUPIL],
-            ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER, self::ROLE_CONTENT]],
+            ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER]],
         ];
     }
 
@@ -237,9 +228,9 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getDebt()
+    public function getDebts()
     {
-        return $this->hasOne(Debt::class, ['user_id' => 'id']);
+        return $this->hasMany(Debt::class, ['user_id' => 'id']);
     }
 
     /**

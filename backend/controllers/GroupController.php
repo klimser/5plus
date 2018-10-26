@@ -11,7 +11,6 @@ use backend\models\GroupType;
 use backend\models\Payment;
 use backend\models\User;
 use backend\components\GroupComponent;
-use common\components\helpers\Calendar;
 use common\models\Subject;
 use common\models\Teacher;
 use yii;
@@ -30,7 +29,6 @@ class GroupController extends AdminController
      */
     public function actionIndex()
     {
-
 //        /** @var User[] $users */
 //        $users = User::find()->andWhere(['role' => User::ROLE_PUPIL])->all();
 //
@@ -325,14 +323,6 @@ class GroupController extends AdminController
                 if ($groupPupilFrom->save()) {
                     EventComponent::fillSchedule($groupFrom);
                     GroupComponent::calculateTeacherSalary($groupFrom);
-                    $balance = Payment::find()
-                        ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
-                        ->select('SUM(amount)')->scalar();
-                    if ($balance > 0) {
-                        $groupPupilFrom->date_charge_till = $moveDate->format('Y-m-d H:i:s');
-
-                    }
-                    MoneyComponent::setUserChargeDates($user, $groupFrom);
                 } else throw new \Exception($groupPupilFrom->getErrorsAsString());
             }
             $groupPupilTo = new GroupPupil();
@@ -342,14 +332,11 @@ class GroupController extends AdminController
             if (!$groupPupilTo->save()) throw new \Exception('Server error: ' . $groupPupilTo->getErrorsAsString());
             $groupTo->link('groupPupils', $groupPupilTo);
 
-            EventComponent::fillSchedule($groupTo);
-
             /** @var Payment[] $discountPayments */
             $discountPayments = Payment::find()
-                ->andWhere(['group_pupil_id' => $groupPupilFrom->id])
+                ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id, 'discount' => Payment::STATUS_ACTIVE])
                 ->andWhere(['>', 'amount', 0])
                 ->all();
-
             foreach ($discountPayments as $discountPayment) {
                 if ($discountPayment->paymentsSum < $discountPayment->amount) {
                     $diff = $discountPayment->amount - $discountPayment->paymentsSum;
@@ -359,21 +346,55 @@ class GroupController extends AdminController
                         $newPayment = new Payment();
                         $newPayment->user_id = $discountPayment->user_id;
                         $newPayment->admin_id = Yii::$app->user->id;
-                        $newPayment->group_pupil_id = $groupPupilTo->id;
+                        $newPayment->group_id = $groupTo->id;
+                        $newPayment->contract_id = $discountPayment->contract_id;
                         $newPayment->amount = $diff;
+                        $newPayment->discount = $discountPayment->discount;
                         $newPayment->created_at = $moveDate->format('Y-m-d H:i:s');
                         $newPayment->comment = 'Автоперевод средств при переводе студента из группы ' . $groupFrom->name . ' в группу ' . $groupTo->name;
                         MoneyComponent::registerIncome($newPayment);
                     } else {
-                        $discountPayment->group_pupil_id = $groupPupilTo->id;
+                        $discountPayment->group_id = $groupTo->id;
                         $discountPayment->save();
-                        GroupComponent::rechargeGroupPupil($groupPupilTo);
-                        if (!MoneyComponent::recalculateDebt($user, $groupPupilTo->group)) throw new \Exception('Error on pupil\'s debt calculation');
                     }
                 }
             }
+            $freeMoney = Payment::find()
+                ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id, 'discount' => Payment::STATUS_INACTIVE])
+                ->select('SUM(amount)')
+                ->scalar();
+            while ($freeMoney > 0) {
+                /** @var Payment $lastPayment */
+                $lastPayment = Payment::find()
+                    ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id, 'discount' => Payment::STATUS_INACTIVE])
+                    ->andWhere(['>', 'amount', 0])
+                    ->orderBy(['created_at' => SORT_DESC])
+                    ->one();
+                if ($lastPayment->amount > $freeMoney) {
+                    $diff = $lastPayment->amount - $freeMoney;
+                    MoneyComponent::decreasePayment($lastPayment, $diff);
+
+                    $newPayment = new Payment();
+                    $newPayment->user_id = $lastPayment->user_id;
+                    $newPayment->admin_id = Yii::$app->user->id;
+                    $newPayment->group_id = $groupTo->id;
+                    $newPayment->contract_id = $lastPayment->contract_id;
+                    $newPayment->amount = $freeMoney;
+                    $newPayment->created_at = $moveDate->format('Y-m-d H:i:s');
+                    $newPayment->comment = 'Автоперевод средств при переводе студента из группы ' . $groupFrom->name . ' в группу ' . $groupTo->name;
+                    MoneyComponent::registerIncome($newPayment);
+                    $freeMoney = 0;
+                } else {
+                    $lastPayment->group_id = $groupTo->id;
+                    $lastPayment->save();
+                    $freeMoney -= $lastPayment->amount;
+                }
+            }
+            EventComponent::fillSchedule($groupTo);
             GroupComponent::calculateTeacherSalary($groupTo);
+            MoneyComponent::setUserChargeDates($user, $groupFrom);
             MoneyComponent::setUserChargeDates($user, $groupTo);
+            MoneyComponent::recalculateDebt($user, $groupTo);
 
             $transaction->commit();
             return $this->asJson(self::getJsonOkResult());

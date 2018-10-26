@@ -6,6 +6,8 @@ use yii\bootstrap\ActiveForm;
 /* @var $this yii\web\View */
 /* @var $user backend\models\User */
 /* @var $isAdmin bool */
+/* @var $editACL bool */
+/* @var $authManager \yii\rbac\ManagerInterface*/
 
 $this->registerJs(<<<SCRIPT
     Main.initPhoneFormatted();
@@ -35,11 +37,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="user-form">
         <?php $form = ActiveForm::begin(); ?>
 
-        <?php if ($isAdmin): ?>
-            <?= $form->field($user, 'name')->textInput(['maxlength' => true]); ?>
-        <?php else: ?>
-            <?= $form->field($user, 'name')->textInput(['maxlength' => true, 'disabled' => true]); ?>
-        <?php endif; ?>
+        <?= $form->field($user, 'name')->textInput(['maxlength' => true, 'disabled' => !$isAdmin]); ?>
 
         <?= $form->field($user, 'username')->textInput(['maxlength' => true]); ?>
 
@@ -51,6 +49,22 @@ $this->params['breadcrumbs'][] = $this->title;
 
             <?= $form->field($user, 'phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
                 ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+
+            <?php if ($editACL): ?>
+                <div class="panel panel-default">
+                    <div class="panel-heading">Права</div>
+                    <div class="panel-body">
+                        <?php foreach (\backend\components\UserComponent::ACL_RULES as $ruleKey => $ruleLabel): ?>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="acl[<?= $ruleKey; ?>]" value="1" <?= $authManager->checkAccess($user->id, $ruleKey) ? 'checked' : ''; ?>>
+                                    <?= $ruleLabel; ?>
+                                </label>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
         <?php else: ?>
             <?= $form->field($user, 'phoneFull')->staticControl(); ?>
             <?php if ($user->phone2): ?>
