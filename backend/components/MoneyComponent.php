@@ -121,7 +121,7 @@ class MoneyComponent extends Component
                             foreach ($discountPayments as $discountPayment) {
                                 $left = $discountPayment->amount - $discountPayment->paymentsSum;
                                 if ($left > 0) {
-                                    $amount = $groupParam->lesson_price_discount * $rate;
+                                    $amount = round($groupParam->lesson_price_discount * $rate);
                                     if ($left < $amount) {
                                         $amount = $left;
                                         $rate -= $amount / $groupParam->lesson_price_discount;
@@ -142,7 +142,7 @@ class MoneyComponent extends Component
                             $payment = clone $paymentStub;
                             $payment->user_id = $eventMember->groupPupil->user_id;
                             $payment->event_member_id = $eventMember->id;
-                            $payment->amount = $groupParam->lesson_price * $rate * (-1);
+                            $payment->amount = round($groupParam->lesson_price * $rate) * (-1);
 
                             self::savePayment($payment);
                         }
@@ -408,7 +408,7 @@ class MoneyComponent extends Component
             if (!empty($paymentMap)) {
                 foreach ($paymentMap as &$payment) {
                     if ($payment['amount'] > 0 && $payment['from'] <= $event->eventDateTime) {
-                        $amount = $groupParamMap[$key]->lesson_price_discount * $rate;
+                        $amount = round($groupParamMap[$key]->lesson_price_discount * $rate);
                         if ($payment['amount'] < $amount) {
                             $amount = $payment['amount'];
                             $rate -= $amount / $groupParamMap[$key]->lesson_price_discount;
@@ -423,7 +423,7 @@ class MoneyComponent extends Component
                 }
             }
             if ($rate > 0) {
-                $payments[] = ['id' => null, 'amount' => $groupParamMap[$key]->lesson_price * $rate];
+                $payments[] = ['id' => null, 'amount' => round($groupParamMap[$key]->lesson_price * $rate)];
             }
 
             return $payments;
