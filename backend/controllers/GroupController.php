@@ -15,27 +15,32 @@ use common\models\Subject;
 use common\models\Teacher;
 use yii;
 use yii\web\NotFoundHttpException;
+use yii\web\ForbiddenHttpException;
 
 /**
  * GroupController implements the CRUD actions for Teacher model.
  */
 class GroupController extends AdminController
 {
-    protected $accessRule = 'manageGroups';
-
     /**
      * Lists all Group models.
      * @return mixed
      */
     public function actionIndex()
     {
+        if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
+
 //        /** @var User[] $users */
 //        $users = User::find()->andWhere(['role' => User::ROLE_PUPIL])->all();
 //
 //        foreach ($users as $user) MoneyComponent::setUserChargeDates($user);
 
-//        $user = User::findOne(3236);
-//        MoneyComponent::setUserChargeDates($user);
+//        $user = User::findOne(2704);
+//        /** @var GroupPupil[] $groupPupils */
+//        $groupPupils = GroupPupil::find()->andWhere(['user_id' => $user->id])->all();
+//        foreach ($groupPupils as $groupPupil) {
+//            MoneyComponent::setUserChargeDates($user, $groupPupil->group);
+//        }
 
 //        $groupPupil = GroupPupil::findOne(885);
 //        GroupComponent::rechargeGroupPupil($groupPupil);
@@ -60,6 +65,7 @@ class GroupController extends AdminController
 
     public function actionInactive()
     {
+        if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
         return $this->renderList(['active' => Group::STATUS_INACTIVE]);
     }
 
@@ -74,6 +80,7 @@ class GroupController extends AdminController
             'searchModel' => $searchModel,
             'subjectMap' => yii\helpers\ArrayHelper::map(Subject::find()->select(['id', 'name'])->asArray()->all(), 'id', 'name'),
             'teacherMap' => yii\helpers\ArrayHelper::map(Teacher::find()->select(['id', 'name'])->asArray()->all(), 'id', 'name'),
+            'canEdit' => Yii::$app->user->can('manageGroups'),
         ]);
     }
 
@@ -84,6 +91,8 @@ class GroupController extends AdminController
      */
     public function actionCreate()
     {
+        if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
+
         $group = new Group();
         $group->loadDefaultValues();
 
@@ -98,6 +107,8 @@ class GroupController extends AdminController
      */
     public function actionUpdate($id)
     {
+        if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
+
         $group = $this->findModel($id);
         return $this->processGroupData($group);
     }
@@ -109,6 +120,8 @@ class GroupController extends AdminController
      */
     public function actionView($id)
     {
+        if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
+
         $group = $this->findModel($id);
 
         return $this->render('view', [
@@ -279,6 +292,8 @@ class GroupController extends AdminController
      */
     public function actionMovePupil()
     {
+        if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
+
         return $this->render('move_pupil', [
             'userId' => Yii::$app->request->get('user', 0),
             'groupId' => Yii::$app->request->get('group', 0),
@@ -292,6 +307,7 @@ class GroupController extends AdminController
      */
     public function actionProcessMovePupil()
     {
+        if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
 
         $userId = Yii::$app->request->post('user_id', 0);
@@ -409,20 +425,19 @@ class GroupController extends AdminController
      * @param int|null $pupilId
      * @return yii\web\Response
      */
-    public function actionListJson($pupilId = null) {
+    public function actionListJson($pupilId = null)
+    {
         $jsonData = [];
         if (Yii::$app->request->isAjax) {
             if ($pupilId) {
                 $jsonData = [];
                 $pupil = User::findOne($pupilId);
                 if ($pupil) {
-                    foreach ($pupil->pupilGroups as $groupPupil) {
-                        if ($groupPupil->active == GroupPupil::STATUS_ACTIVE && $groupPupil->group->active == Group::STATUS_ACTIVE) {
-                            $elem = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
-                            $elem['startDate'] = $groupPupil->startDateObject->format('d.m.Y');
-                            $elem['endDate'] = $groupPupil->endDateObject ? $groupPupil->endDateObject->format('d.m.Y') : '';
-                            $jsonData[] = $elem;
-                        }
+                    foreach ($pupil->activeGroupPupils as $groupPupil) {
+                        $elem = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
+                        $elem['startDate'] = $groupPupil->startDateObject->format('d.m.Y');
+                        $elem['endDate'] = $groupPupil->endDateObject ? $groupPupil->endDateObject->format('d.m.Y') : '';
+                        $jsonData[] = $elem;
                     }
                 }
             } else {

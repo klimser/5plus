@@ -102,6 +102,15 @@ $this->params['breadcrumbs'][] = $this->title;
                     ],
                 ]),
             ],
+            [
+                'class' => \yii\grid\ActionColumn::class,
+                'template' => '{print}',
+                'buttons' => [
+                    'print' => function ($url, $model, $key) {
+                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-print']), \yii\helpers\Url::to(['contract/print', 'id' => $model->id]), ['class' => 'btn btn-default', 'title' => 'Печать']);
+                    },
+                ],
+            ]
         ],
     ]); ?>
 </div>

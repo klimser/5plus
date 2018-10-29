@@ -450,6 +450,7 @@ class UserController extends AdminController
                 ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
                 ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                 ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $searchString])
+                ->with(['activeGroupPupils.group', 'children.activeGroupPupils.group'])
                 ->all();
             if ($searchResult) {
                 /** @var User $user */
@@ -465,11 +466,13 @@ class UserController extends AdminController
                 foreach ($pupils as $pupil) {
                     $data = $pupil->toArray(['id', 'name']);
                     $data['groups'] = [];
-                    foreach ($pupil->activeGroups as $group) {
-                        $groupParam = GroupComponent::getGroupParam($group, new \DateTime());
-                        $groupData = $group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
+                    foreach ($pupil->activeGroupPupils as $groupPupil) {
+                        $groupParam = GroupComponent::getGroupParam($groupPupil->group, new \DateTime());
+                        $groupData = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
                         $groupData['month_price'] = Money::roundThousand($groupParam->lesson_price * GroupComponent::getTotalClasses($groupParam->weekday));
                         $groupData['month_price_discount'] = Money::roundThousand($groupParam->lesson_price_discount * GroupComponent::getTotalClasses($groupParam->weekday));
+                        $groupData['date_start'] = $groupPupil->startDateObject->format('d.m.Y');
+                        $groupData['date_charge_till'] = $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '';
 
                         $data['groups'][] = $groupData;
                     }

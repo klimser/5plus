@@ -73,6 +73,12 @@ $this->params['breadcrumbs'][] = $this->title;
                                             <button class="btn btn-default btn-lg full-width" type="button" id="payment-1" onclick="Money.setPayment(1);">Со скидкой<br><small><span class="price"></span> в месяц</small></button>
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-xs-12"><br>
+                                            Занимается с <span class="big-font" id="date_start"></span><br>
+                                            Оплачено до <span class="big-font" id="date_charge_till"></span><br>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

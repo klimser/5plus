@@ -21,11 +21,22 @@ var Money = {
                         '<input type="hidden" name="id" value="' + data.id + '">' +
                         '<table class="table">' +
                         '<tr><td><b>Студент</b></td><td>' + data.user_name + '</td></tr>' +
-                        '<tr><td><b>Группа</b></td><td>' + data.group_name + '</td></tr>' +
+                        '<tr><td><b>Группа</b></td><td>' + data.group_name + '</td></tr>'+
                         '<tr><td><b>Сумма</b></td><td><span class="big-font">' + data.amount + '</span>'
                         + (data.discount ? ' <span class="label label-success">со скидкой</span>' : '') + '</td></tr>' +
-                        '<tr><td><b>Дата договора</b></td><td>' + data.create_date + '</td></tr>' +
-                        '<tr><td><b>Дата оплаты</b></td><td>' +
+                        '<tr><td><b>Дата договора</b></td><td>' + data.create_date + '</td></tr>';
+                    if (data.group_pupil_id > 0) {
+                        contractForm += '<tr><td><b>Занимается с </b></td><td><span class="big-font">' + data.date_start + '</span></td></tr>'
+                            + '<tr><td><b>Оплачено до </b></td><td><span class="big-font">' + data.date_charge_till + '</span></td></tr>';
+                    } else {
+                        contractForm += '<tr><td><b>Занимается с </b></td><td>' +
+                            '<div class="input-group date">' +
+                            '<input id="start_date" class="form-control" name="start_date" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
+                            '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
+                            '</div>' +
+                            '</td></tr>';
+                    }
+                    contractForm += '<tr><td><b>Дата оплаты</b></td><td>' +
                         '<div class="input-group date">' +
                         '<input id="contract_paid" class="form-control" name="contract_paid" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
                         '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
@@ -68,7 +79,7 @@ var Money = {
                     Money.pupils = {};
                     Money.groups = {};
                     for (var i = 0; i < data.pupils.length; i++) {
-                        pupilList += '<button class="btn btn-default btn-lg separated-button" type="button" id="pupil-' + data.pupils[i].id + '" onclick="Money.setPupil(' + data.pupils[i].id + ');">'
+                        pupilList += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="pupil-' + data.pupils[i].id + '" onclick="Money.setPupil(' + data.pupils[i].id + ');">'
                             + data.pupils[i].name
                             + '</button>';
                         var pupil = {name: data.pupils[i].name, groups: []};
@@ -97,12 +108,12 @@ var Money = {
     },
     renderGroupsBlock: function () {
         var pupil = this.pupils[this.pupilId];
-        var blockHtml = '<div class="panel panel-default"><div class="panel-body"><div class="row">';
+        var blockHtml = '<div class="panel panel-default"><div class="panel-body">';
         for (var i = 0; i < pupil.groups.length; i++) {
-            blockHtml += '<div class="col-xs-12 col-sm-6 col-md-4"><button class="btn btn-default btn-lg full-width" type="button" id="group-' + pupil.groups[i] + '" onclick="Money.setGroup(' + pupil.groups[i] + ');">' + this.groups[pupil.groups[i]].name + '</button></div>';
+            blockHtml += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="group-' + pupil.groups[i] + '" onclick="Money.setGroup(' + pupil.groups[i] + ');">' + this.groups[pupil.groups[i]].name + '</button>';
         }
-        if (pupil.groups.length === 0) blockHtml += '<div class="col-xs-12">СТУДЕНТ НЕ ЗАНИМАЕТСЯ НИ В ОДНОЙ ГРУППЕ, ВНЕСЕНИЕ ОПЛАТЫ НЕВОЗМОЖНО!</div>';
-        blockHtml += '</div></div></div>';
+        blockHtml += '<a href="/user/add-to-group?user_id=' + this.pupilId + '" target="_blank" class="btn btn-default btn-lg">Добавить в новую группу <span class="glyphicon glyphicon-new-window"></span></a>';
+        blockHtml += '</div></div>';
         $("#groups_block").html(blockHtml);
         if (pupil.groups.length === 1) $("#groups_block").find('button:first').click();
     },
@@ -114,6 +125,8 @@ var Money = {
         var group = this.groups[this.groupId];
         $("#payment-0").find(".price").text(group.month_price);
         $("#payment-1").find(".price").text(group.month_price_discount);
+        $("#date_start").text(group.date_start);
+        $("#date_charge_till").text(group.date_charge_till);
         $("#payment_type_block").removeClass("hidden").find("button").removeClass("btn-primary");
     },
     setPayment: function(paymentType) {

@@ -36,11 +36,11 @@ $this->title = 'Панель управления';
 
 <div class="row">
     <div class="col-xs-12 col-md-9">
-        <?php if ($admin->can('groupManager') || $admin->can('content')): ?>
+        <?php if ($admin->can('viewGroups') || $admin->can('content')): ?>
             <div class="panel panel-default">
                 <div class="panel-body">
                     <div class="row">
-                        <?php if ($admin->can('manageGroups')): ?>
+                        <?php if ($admin->can('viewGroups')): ?>
                             <div class="col-xs-12 col-sm-4 col-md-3">
                                 <a class="btn btn-default btn-lg full-width" href="<?= Url::to('group/index'); ?>">
                                     <span class="fas fa-users fa-2x"></span><br>
@@ -48,24 +48,30 @@ $this->title = 'Панель управления';
                                 </a>
                             </div>
                         <?php endif; ?>
-                        <div class="col-xs-12 col-sm-4 col-md-3">
-                            <a class="btn btn-default btn-lg full-width" href="<?= Url::to('teacher/index'); ?>">
-                                <span class="fas fa-user-tie fa-2x"></span><br>
-                                Учителя
-                            </a>
-                        </div>
-                        <div class="col-xs-12 col-sm-4 col-md-3">
-                            <a class="btn btn-default btn-lg full-width" href="<?= Url::to('subject-category/index'); ?>">
-                                <span class="fas fa-briefcase fa-2x"></span><br>
-                                Направления
-                            </a>
-                        </div>
-                        <div class="col-xs-12 col-sm-4 col-md-3">
-                            <a class="btn btn-default btn-lg full-width" href="<?= Url::to('subject/index'); ?>">
-                                <span class="fas fa-chalkboard-teacher fa-2x"></span><br>
-                                Курсы
-                            </a>
-                        </div>
+                        <?php if ($admin->can('manageTeachers')): ?>
+                            <div class="col-xs-12 col-sm-4 col-md-3">
+                                <a class="btn btn-default btn-lg full-width" href="<?= Url::to('teacher/index'); ?>">
+                                    <span class="fas fa-user-tie fa-2x"></span><br>
+                                    Учителя
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($admin->can('manageSubjectCategories')): ?>
+                            <div class="col-xs-12 col-sm-4 col-md-3">
+                                <a class="btn btn-default btn-lg full-width" href="<?= Url::to('subject-category/index'); ?>">
+                                    <span class="fas fa-briefcase fa-2x"></span><br>
+                                    Направления
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($admin->can('manageSubjects')): ?>
+                            <div class="col-xs-12 col-sm-4 col-md-3">
+                                <a class="btn btn-default btn-lg full-width" href="<?= Url::to('subject/index'); ?>">
+                                    <span class="fas fa-chalkboard-teacher fa-2x"></span><br>
+                                    Курсы
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

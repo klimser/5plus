@@ -6,10 +6,14 @@
 <style>
     @page {
         size: portrait;
+        margin: 0;
     }
     body {
         font-size: 3mm;
         max-width: 20cm;
+    }
+    .page {
+        margin: 0.5cm;
     }
     table td {
         text-align: justify;

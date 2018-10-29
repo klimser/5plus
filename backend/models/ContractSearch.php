@@ -96,16 +96,16 @@ class ContractSearch extends Contract
             'group_id' => $this->group_id,
         ]);
 
-        if ($this->created_at) {
+        if (isset($params['ContractSearch'], $params['ContractSearch']['created_at'])) {
             $filterDate = new \DateTime($this->created_at);
             $filterDate->add(new \DateInterval('P1D'));
             $query->andFilterWhere(['between', 'created_at', $this->created_at, $filterDate->format('Y-m-d H:i:s')]);
-        }
-        if ($this->paid_at) {
+        } else $this->created_at = null;
+        if (isset($params['ContractSearch'], $params['ContractSearch']['paid_at'])) {
             $filterDate = new \DateTime($this->paid_at);
             $filterDate->add(new \DateInterval('P1D'));
             $query->andFilterWhere(['between', 'paid_at', $this->paid_at, $filterDate->format('Y-m-d H:i:s')]);
-        }
+        } else $this->paid_at = null;
         if ($this->amountFrom) {
             $query->andFilterWhere(['>=', 'amount', intval($this->amountFrom)]);
         }

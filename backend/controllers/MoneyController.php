@@ -321,7 +321,7 @@ class MoneyController extends AdminController
         $spreadsheet->getActiveSheet()->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
         $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
         $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
-        $spreadsheet->getActiveSheet()->setTitle($group->name . ' ' . $date->format('m-Y'));
+        $spreadsheet->getActiveSheet()->setTitle($date->format('m-Y') . ' ' . mb_substr($group->name, 0, 22));
 
         $spreadsheet->getActiveSheet()->mergeCells("A1:{$lastColumn}1");
         $spreadsheet->getActiveSheet()->setCellValue('A1', "$group->name - " . Calendar::$monthNames[$month] . " $year");

@@ -25,9 +25,9 @@ use yii\web\IdentityInterface;
  * @property string $password write-only password
  * @property User $parent
  * @property User[] $children
- * @property GroupPupil[] $pupilGroups
+ * @property GroupPupil[] $groupPupils
  * @property Group[] $groups
- * @property GroupPupil[] $activePupilGroups
+ * @property GroupPupil[] $activeGroupPupils
  * @property Group[] $activeGroups
  * @property Action[] $actions
  * @property Action[] $actionsAsAdmin
@@ -178,7 +178,7 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getPupilGroups()
+    public function getGroupPupils()
     {
         return $this->hasMany(GroupPupil::class, ['user_id' => 'id']);
     }
@@ -195,7 +195,7 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getActivePupilGroups()
+    public function getActiveGroupPupils()
     {
         return $this->hasMany(GroupPupil::class, ['user_id' => 'id'])->andWhere(['active' => GroupPupil::STATUS_ACTIVE]);
     }

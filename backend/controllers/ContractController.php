@@ -6,6 +6,7 @@ use backend\models\Contract;
 use backend\models\ContractSearch;
 use backend\models\Group;
 use backend\models\GroupParam;
+use backend\models\GroupPupil;
 use backend\models\User;
 use common\components\Action;
 use yii;
@@ -103,6 +104,14 @@ class ContractController extends AdminController
                 $jsonData['amount'] = $contract->amount;
                 $jsonData['discount'] = $contract->discount;
                 $jsonData['create_date'] = $contract->createDate->format('d.m.Y');
+                /** @var GroupPupil $groupPupil */
+                $groupPupil = GroupPupil::find()->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
+                if (!$groupPupil) $jsonData['group_pupil_id'] = 0;
+                else {
+                    $jsonData['group_pupil_id'] = $groupPupil->id;
+                    $jsonData['date_start'] = $groupPupil->startDateObject->format('d.m.Y');
+                    $jsonData['date_charge_till'] = $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '';
+                }
             }
         }
 

@@ -8,6 +8,7 @@ use yii\grid\GridView;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $subjectMap \common\models\Subject[] */
 /* @var $teacherMap \common\models\Teacher[] */
+/* @var $canEdit bool */
 
 $this->title = 'Группы';
 $this->params['breadcrumbs'][] = $this->title;
@@ -16,7 +17,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['inactive']); ?>">Завершённые группы</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <p>
         <?= Html::a('Добавить группу', ['create'], ['class' => 'btn btn-success']) ?>
@@ -84,30 +84,11 @@ $this->params['breadcrumbs'][] = $this->title;
                         . '</div></div>';
                 },
             ],
-//            [
-//                'attribute' => 'active',
-//                'format' => 'text',
-//                'content' => function ($model, $key, $index, $column) use ($teacherMap) {
-//                    return $model->active == \backend\models\Group::STATUS_ACTIVE ? 'Да' : 'Нет';
-//                },
-//                'filter' => Html::activeDropDownList(
-//                    $searchModel,
-//                    'active',
-//                    [\backend\models\Group::STATUS_INACTIVE => 'Нет', \backend\models\Group::STATUS_ACTIVE => 'Да'],
-//                    ['prompt' => 'Все', 'class' => 'form-control']
-//                )
-//            ],
             [
                 'class' => \yii\grid\ActionColumn::class,
-                'template' => '{update}',
-//                'buttons' => [
-//                    'close' => function ($url, $model, $key) {
-//                        /** @var \backend\models\Group $model */
-//                        if ($model->active == \backend\models\Group::STATUS_ACTIVE)
-//                            return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ban-circle']), ['close', 'id' => $model->id], ['title' => 'Закрыть', 'onclick' => 'return confirm("Группа будет закрыта навсегда. Вы уверены?");']);
-//                        else return '';
-//                    }
-//                ],
+                'template' => $canEdit ? '{update}' : '',
+                'buttonOptions' => ['class' => 'btn btn-default margin-right-10'],
+
             ],
         ],
     ]); ?>

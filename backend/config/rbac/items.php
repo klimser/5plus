@@ -49,6 +49,7 @@ return [
         'type' => 1,
         'children' => [
             'manageSchedule',
+            'viewGroups',
         ],
     ],
     'accountant' => [
@@ -71,6 +72,7 @@ return [
             'manageTeachers',
             'manageSubjectCategories',
             'manageSubjects',
+            'viewGroups',
             'manageGroups',
         ],
     ],
@@ -137,6 +139,10 @@ return [
     'manageTeachers' => [
         'type' => 2,
         'description' => 'Manage teachers',
+    ],
+    'viewGroups' => [
+        'type' => 2,
+        'description' => 'View pupil groups',
     ],
     'manageGroups' => [
         'type' => 2,
