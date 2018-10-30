@@ -206,7 +206,7 @@ class User extends ActiveRecord implements IdentityInterface
     public function getActiveGroups()
     {
         return $this->hasMany(Group::class, ['id' => 'group_id'])
-            ->via('activePupilGroups');
+            ->via('activeGroupPupils');
     }
 
     /**

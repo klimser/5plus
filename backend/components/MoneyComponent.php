@@ -292,8 +292,8 @@ class MoneyComponent extends Component
             $nowDate = new \DateTime('midnight');
 
             foreach ($groupPupilMap as $id => $item) {
-                if (!$item['state'] && (!$item['entity']->date_end || $item['entity']->endDateObject > $nowDate)
-                    && (!$item['entity']->group->date_end || $item['entity']->group->endDateObject > $nowDate)) {
+                if (!$item['state'] && (!$item['entity']->date_end || $item['entity']->endDateObject >= $nowDate)
+                    && (!$item['entity']->group->date_end || $item['entity']->group->endDateObject >= $nowDate)) {
                     $item['entity']->paid_lessons = 0;
                     $groupPupilMap[$id]['param'] = GroupComponent::getGroupParam($item['entity']->group, $nowDate);
                 }

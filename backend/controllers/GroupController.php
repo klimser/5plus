@@ -5,12 +5,14 @@ namespace backend\controllers;
 use backend\components\EventComponent;
 use backend\components\MoneyComponent;
 use backend\models\Group;
+use backend\models\GroupParam;
 use backend\models\GroupPupil;
 use backend\models\GroupSearch;
 use backend\models\GroupType;
 use backend\models\Payment;
 use backend\models\User;
 use backend\components\GroupComponent;
+use common\components\helpers\Money;
 use common\models\Subject;
 use common\models\Teacher;
 use yii;
@@ -434,16 +436,28 @@ class GroupController extends AdminController
                 $pupil = User::findOne($pupilId);
                 if ($pupil) {
                     foreach ($pupil->activeGroupPupils as $groupPupil) {
-                        $elem = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
-                        $elem['startDate'] = $groupPupil->startDateObject->format('d.m.Y');
-                        $elem['endDate'] = $groupPupil->endDateObject ? $groupPupil->endDateObject->format('d.m.Y') : '';
-                        $jsonData[] = $elem;
+                        $groupData = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
+                        $groupData['startDate'] = $groupPupil->startDateObject->format('d.m.Y');
+                        $groupData['endDate'] = $groupPupil->endDateObject ? $groupPupil->endDateObject->format('d.m.Y') : '';
+                        $jsonData[] = $groupData;
                     }
                 }
             } else {
-                $jsonData = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->with(['pupils' => function (yii\db\ActiveQuery $query) {
-                    $query->select('id');
-                }])->asArray()->select(['id', 'subject_id', 'teacher_id', 'name'])->all();
+                /** @var Group[] $groups */
+                $groups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->all();
+                foreach ($groups as $group) {
+                    $groupData = $group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
+                    $groupParam = GroupParam::findByDate($group, new \DateTime());
+                    if (!$groupParam) {
+                        $groupParam = new GroupParam();
+                        $groupParam->lesson_price = $group->lesson_price;
+                        $groupParam->lesson_price_discount = $group->lesson_price_discount;
+                        $groupParam->weekday = $group->weekday;
+                    }
+                    $groupData['month_price'] = Money::roundThousand($groupParam->lesson_price * GroupComponent::getTotalClasses($groupParam->weekday));
+                    $groupData['month_price_discount'] = Money::roundThousand($groupParam->lesson_price_discount * GroupComponent::getTotalClasses($groupParam->weekday));
+                    $jsonData[] = $groupData;
+                }
             }
         }
         return $this->asJson($jsonData);

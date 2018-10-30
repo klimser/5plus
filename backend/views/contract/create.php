@@ -7,6 +7,8 @@ use yii\bootstrap\Html;
 
 $this->registerJs(<<<SCRIPT
     Main.initPhoneFormatted();
+    Contract.loadGroups();
+    Money.className = 'Contract';
 SCRIPT
 );
 $searchValue = '';
@@ -53,6 +55,12 @@ $this->params['breadcrumbs'][] = $this->title;
                         </div>
                         <div class="col-xs-12 col-sm-6">
                             <button class="btn btn-default btn-lg full-width" type="button" id="payment-1" onclick="Contract.setPayment(1);">Со скидкой<br><small><span class="price"></span> в месяц</small></button>
+                        </div>
+                    </div>
+                    <div class="row hidden" id="group_dates">
+                        <div class="col-xs-12"><br>
+                            Занимается с <span class="big-font" id="date_start"></span><br>
+                            Оплачено до <span class="big-font" id="date_charge_till"></span><br>
                         </div>
                     </div>
                 </div>

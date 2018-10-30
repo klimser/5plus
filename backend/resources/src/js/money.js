@@ -1,4 +1,5 @@
 var Money = {
+    className: 'Money',
     pupils: null,
     groups: null,
     pupilId: null,
@@ -25,18 +26,14 @@ var Money = {
                         '<tr><td><b>Сумма</b></td><td><span class="big-font">' + data.amount + '</span>'
                         + (data.discount ? ' <span class="label label-success">со скидкой</span>' : '') + '</td></tr>' +
                         '<tr><td><b>Дата договора</b></td><td>' + data.create_date + '</td></tr>';
+                    var payDateLabel = 'Дата оплаты';
                     if (data.group_pupil_id > 0) {
                         contractForm += '<tr><td><b>Занимается с </b></td><td><span class="big-font">' + data.date_start + '</span></td></tr>'
                             + '<tr><td><b>Оплачено до </b></td><td><span class="big-font">' + data.date_charge_till + '</span></td></tr>';
                     } else {
-                        contractForm += '<tr><td><b>Занимается с </b></td><td>' +
-                            '<div class="input-group date">' +
-                            '<input id="start_date" class="form-control" name="start_date" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
-                            '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
-                            '</div>' +
-                            '</td></tr>';
+                        payDateLabel = 'Начало занятий в группе и дата оплаты';
                     }
-                    contractForm += '<tr><td><b>Дата оплаты</b></td><td>' +
+                    contractForm += '<tr><td><b>' + payDateLabel + '</b></td><td>' +
                         '<div class="input-group date">' +
                         '<input id="contract_paid" class="form-control" name="contract_paid" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
                         '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
@@ -45,7 +42,7 @@ var Money = {
                         '</table>' +
                         '<div class="form-group"><button class="btn btn-success btn-lg" id="contract_button">внести</button></div>';
                     $('#contract_result_block').html(contractForm);
-                    $('#contract_paid').parent().datepicker({
+                    $('#contract_form').find(".date").datepicker({
                         "autoclose": true,
                         "format": "dd.mm.yyyy",
                         "language": "ru",
@@ -79,7 +76,7 @@ var Money = {
                     Money.pupils = {};
                     Money.groups = {};
                     for (var i = 0; i < data.pupils.length; i++) {
-                        pupilList += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="pupil-' + data.pupils[i].id + '" onclick="Money.setPupil(' + data.pupils[i].id + ');">'
+                        pupilList += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="pupil-' + data.pupils[i].id + '" onclick="' + Money.className + '.setPupil(' + data.pupils[i].id + ');">'
                             + data.pupils[i].name
                             + '</button>';
                         var pupil = {name: data.pupils[i].name, groups: []};
