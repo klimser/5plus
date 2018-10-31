@@ -35,21 +35,16 @@ $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
         </select>
     </div>
     <div class="form-group">
-        <?= \dosamigos\datepicker\DateRangePicker::widget([
+        <label for="group_date_from">Начало занятий</label>
+        <?= \dosamigos\datepicker\DatePicker::widget([
             'name' => 'group[date_from]',
             'value' => array_key_exists('date_from', $groupData) ? $groupData['date_from'] : date('d.m.Y'),
-            'options' => ['required' => true, 'disabled' => !$addGroup],
-            'nameTo' => 'group[date_to]',
-            'valueTo' => array_key_exists('date_to', $groupData) ? $groupData['date_to'] : '',
-            'labelTo' => 'до',
-            'language' => 'ru',
+            'options' => ['id' => 'group_date_from', 'required' => true, 'disabled' => !$addGroup],
             'clientOptions' => [
                 'autoclose' => true,
                 'format' => 'dd.mm.yyyy',
                 'language' => 'ru',
-            ],
-            'clientEvents' => [
-                'changeDate' => 'function(e) {if ($(e.target).attr("name") == "group[date_to]" && e.format() == $(e.currentTarget).find("input[name=\'group[date_from]\']").val()) $(e.target).datepicker("clearDates");}',
+                'weekStart' => 1,
             ]
         ]);?>
     </div>

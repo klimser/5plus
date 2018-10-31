@@ -44,6 +44,8 @@ class GroupPupil extends ActiveRecord
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
             [['user_id'], 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
+            ['active', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
+            ['active', 'default', 'value' => self::STATUS_ACTIVE],
         ];
     }
 
@@ -68,7 +70,7 @@ class GroupPupil extends ActiveRecord
      */
     public function getUser()
     {
-        return $this->hasOne(User::class, ['id' => 'user_id']);
+        return $this->hasOne(User::class, ['id' => 'user_id'])->inverseOf('groupPupils');
     }
 
     /**
@@ -76,7 +78,7 @@ class GroupPupil extends ActiveRecord
      */
     public function getGroup()
     {
-        return $this->hasOne(Group::class, ['id' => 'group_id']);
+        return $this->hasOne(Group::class, ['id' => 'group_id'])->inverseOf('groupPupils');
     }
 
     /**

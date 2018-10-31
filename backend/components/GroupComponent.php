@@ -7,6 +7,7 @@ use backend\models\Group;
 use backend\models\GroupParam;
 use backend\models\GroupPupil;
 use backend\models\Payment;
+use backend\models\User;
 use yii\base\Component;
 use yii\db\ActiveQuery;
 use yii\helpers\ArrayHelper;
@@ -106,5 +107,48 @@ class GroupComponent extends Component
             ->andWhere(['or', ['>', 'year', $to->format('Y')], ['and', ['year' => $to->format('Y')], ['>=', 'month', $to->format('n')]]])
             ->all();
         foreach ($overGroupParams as $overGroupParam) $overGroupParam->delete();
+    }
+
+    /**
+     * @param User $pupil
+     * @param Group $group
+     * @param \DateTime $startDate
+     * @param \DateTime|null $endDate
+     * @return GroupPupil
+     * @throws \Exception
+     */
+    public static function addPupilToGroup(User $pupil, Group $group, \DateTime $startDate, ?\DateTime $endDate = null): GroupPupil
+    {
+        if (!$group || !$startDate || ($endDate && $endDate < $startDate)) {
+            throw new \Exception('Ученик не добавлен в группу, введены некорректные значения даты начала и завершения занятий!');
+        } else {
+            $startDate->modify('midnight');
+            if ($group->endDateObject && $startDate > $group->endDateObject) {
+                throw new \Exception('Ученик не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
+            } else {
+                $groupPupil = new GroupPupil();
+                $groupPupil->user_id = $pupil->id;
+                $groupPupil->group_id = $group->id;
+                $groupPupil->date_start = $startDate < $group->startDateObject ? $group->date_start : $startDate->format('Y-m-d');
+                if ($endDate) {
+                    $endDate->modify('midnight');
+                    if ($group->endDateObject && $endDate > $group->endDateObject) $endDate = $group->endDateObject;
+                    if ($endDate < $group->startDateObject) $endDate = $group->startDateObject;
+                    $groupPupil->date_end = $endDate->format('Y-m-d');
+                }
+                if (!$groupPupil->save()) {
+                    \Yii::$app->errorLogger->logError('user/pupil-to-group', $groupPupil->getErrorsAsString(), true);
+                    throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
+                } else {
+                    $pupil->link('groupPupils', $groupPupil);
+                    $group->link('groupPupils', $groupPupil);
+
+                    EventComponent::fillSchedule($group);
+                    GroupComponent::calculateTeacherSalary($group);
+
+                    return $groupPupil;
+                }
+            }
+        }
     }
 }

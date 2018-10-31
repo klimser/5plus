@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use backend\components\GroupComponent;
 use backend\components\MoneyComponent;
 use backend\models\ActionSearch;
 use backend\models\Contract;
@@ -124,9 +125,9 @@ class MoneyController extends AdminController
         if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
 
         $contractId = Yii::$app->request->post('id');
-        $contractPaid = date_create_from_format('d.m.Y', Yii::$app->request->post('contract_paid', ''));
+        $contractPaidDate = date_create_from_format('d.m.Y', Yii::$app->request->post('contract_paid', ''));
         if (!$contractId) $jsonData = self::getJsonErrorResult('No contract ID');
-        elseif (!$contractPaid) $jsonData =self::getJsonErrorResult('Неправильная дата оплаты');
+        elseif (!$contractPaidDate) $jsonData =self::getJsonErrorResult('Неправильная дата оплаты');
         else {
             $contract = Contract::findOne($contractId);
             if (!$contract) $jsonData = self::getJsonErrorResult('Договор не найден');
@@ -139,15 +140,24 @@ class MoneyController extends AdminController
                 $payment->amount = $contract->amount;
                 $payment->discount = $contract->discount;
                 $payment->contract_id = $contract->id;
-                $payment->created_at = $contractPaid->format('Y-m-d H:i:s');
+                $payment->created_at = $contractPaidDate->format('Y-m-d H:i:s');
 
                 $contract->status = Contract::STATUS_PAID;
                 $contract->payment_type = Contract::PAYMENT_TYPE_MANUAL;
                 $contract->paid_admin_id = Yii::$app->user->id;
-                $contract->paid_at = $contractPaid->format('Y-m-d H:i:s');
+                $contract->paid_at = $contractPaidDate->format('Y-m-d H:i:s');
 
+                $transaction = Yii::$app->db->beginTransaction();
                 try {
                     if (!$contract->save()) throw new \Exception('Contract save error: ' . $contract->getErrorsAsString());
+
+                    $groupPupil = GroupPupil::find()
+                        ->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])
+                        ->one();
+                    if (!$groupPupil) {
+                        GroupComponent::addPupilToGroup($contract->user, $contract->group, $contractPaidDate);
+                    }
+
                     $paymentId = MoneyComponent::registerIncome($payment);
                     \Yii::$app->actionLogger->log(
                         $contract->user,
@@ -156,8 +166,10 @@ class MoneyController extends AdminController
                         $contract->group
                     );
                     MoneyComponent::setUserChargeDates($contract->user, $contract->group);
+                    $transaction->commit();
                     $jsonData = self::getJsonOkResult(['paymentId' => $paymentId]);
                 } catch (\Throwable $ex) {
+                    $transaction->rollBack();
                     $jsonData = self::getJsonErrorResult($ex->getMessage());
                 }
             }

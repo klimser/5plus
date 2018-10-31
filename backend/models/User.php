@@ -180,7 +180,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getGroupPupils()
     {
-        return $this->hasMany(GroupPupil::class, ['user_id' => 'id']);
+        return $this->hasMany(GroupPupil::class, ['user_id' => 'id'])->inverseOf('user');
     }
 
     /**

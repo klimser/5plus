@@ -2,7 +2,6 @@
 
 namespace backend\controllers;
 
-use backend\components\EventComponent;
 use backend\components\GroupComponent;
 use backend\components\MoneyComponent;
 use backend\components\UserComponent;
@@ -87,10 +86,6 @@ class UserController extends AdminController
                 }
 
                 if ($pupil->save()) {
-                    $transaction->commit();
-                    Yii::$app->session->addFlash('success', 'Добавлено');
-                    UserComponent::clearSearchCache();
-
                     $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
                     $addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
                     $addContract = array_key_exists('add', $contractData) && $contractData['add'];
@@ -107,6 +102,10 @@ class UserController extends AdminController
                     if (!$addPayment && $addContract) {
                         $this->addPupilContract($pupil, $groupPupil, $contractData);
                     }
+
+                    $transaction->commit();
+                    Yii::$app->session->addFlash('success', 'Добавлено');
+                    UserComponent::clearSearchCache();
 
                     return $this->redirect(['index']);
                 } else {
@@ -168,41 +167,16 @@ class UserController extends AdminController
      */
     private function addPupilToGroup(User $pupil, array $groupData): GroupPupil
     {
-        $group = Group::findOne($groupData['id']);
+        /** @var Group $group */
+        $group = Group::find()->andWhere(['id' => $groupData['id'], 'active' => Group::STATUS_ACTIVE])->one();
+        if (!$group) throw new \Exception('Группа не найдена');
         $startDate = date_create_from_format('d.m.Y', $groupData['date_from']);
-        /** @var \DateTime $endDate */
-        $endDate = date_create_from_format('d.m.Y', $groupData['date_to']) ?: null;
-        if (!$group || !$startDate || ($endDate && $endDate < $startDate)) {
-            throw new \Exception('Ученик не добавлен в группу, введены некорректные значения даты начала и завершения занятий!');
-        } else {
-            $startDate->modify('midnight');
-            if ($group->endDateObject && $startDate > $group->endDateObject) {
-                throw new \Exception('Ученик не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
-            } else {
-                $groupPupil = new GroupPupil();
-                $groupPupil->user_id = $pupil->id;
-                $groupPupil->group_id = $group->id;
-                $groupPupil->date_start = $startDate < $group->startDateObject ? $group->date_start : $startDate->format('Y-m-d');
-                if ($endDate) {
-                    $endDate->modify('midnight');
-                    if ($group->endDateObject && $endDate > $group->endDateObject) $endDate = $group->endDateObject;
-                    if ($endDate < $group->startDateObject) $endDate = $group->startDateObject;
-                    $groupPupil->date_end = $endDate->format('Y-m-d');
-                }
-                if (!$groupPupil->save()) {
-                    Yii::$app->errorLogger->logError('user/pupil-to-group', $groupPupil->getErrorsAsString(), true);
-                    throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
-                } else {
-                    $group->link('groupPupils', $groupPupil);
+        if (!$startDate) throw new \Exception('Неверная дата начала занятий');
 
-                    EventComponent::fillSchedule($group);
-                    GroupComponent::calculateTeacherSalary($group);
+        $groupPupil = GroupComponent::addPupilToGroup($pupil, $group, $startDate);
 
-                    Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
-                    return $groupPupil;
-                }
-            }
-        }
+        Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
+        return $groupPupil;
     }
 
     /**
@@ -323,6 +297,38 @@ class UserController extends AdminController
             $contract->group
         );
         return $contract;
+    }
+
+    public function actionAddToGroup($userId)
+    {
+        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        /** @var User $pupil */
+        $pupil = User::find()
+            ->andWhere(['id' => $userId, 'role' => User::ROLE_PUPIL])
+            ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
+            ->one();
+        if (!$pupil) throw new NotFoundHttpException('Pupil not found');
+
+        $groupData = [];
+        if (Yii::$app->request->isPost) {
+            $groupData = Yii::$app->request->post('group', []);
+
+            $transaction = \Yii::$app->db->beginTransaction();
+            try {
+                $this->addPupilToGroup($pupil, $groupData);
+                $transaction->commit();
+                Yii::$app->session->addFlash('success', 'Добавлено');
+            } catch (\Throwable $e) {
+                $transaction->rollBack();
+                \Yii::$app->session->addFlash('error', $e->getMessage());
+            }
+        }
+
+        return $this->render('add-to-group', [
+            'pupil' => $pupil,
+            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
+            'groupData' => $groupData,
+        ]);
     }
 
     /**
@@ -592,7 +598,11 @@ class UserController extends AdminController
     public function actionPupils() {
         $jsonData = [];
         if (Yii::$app->request->isAjax) {
-            $jsonData = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_PUPIL])->orderBy('name')->select(['id', 'name'])->asArray()->all();
+            $jsonData = User::find()
+                ->andWhere(['role' => User::ROLE_PUPIL])
+                ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
+                ->orderBy('name')->select(['id', 'name'])
+                ->asArray()->all();
         }
         return $this->asJson($jsonData);
     }

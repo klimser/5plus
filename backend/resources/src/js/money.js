@@ -109,7 +109,7 @@ var Money = {
         for (var i = 0; i < pupil.groups.length; i++) {
             blockHtml += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="group-' + pupil.groups[i] + '" onclick="Money.setGroup(' + pupil.groups[i] + ');">' + this.groups[pupil.groups[i]].name + '</button>';
         }
-        blockHtml += '<a href="/user/add-to-group?user_id=' + this.pupilId + '" target="_blank" class="btn btn-default btn-lg">Добавить в новую группу <span class="glyphicon glyphicon-new-window"></span></a>';
+        blockHtml += '<a href="/user/add-to-group?userId=' + this.pupilId + '" target="_blank" class="btn btn-default btn-lg">Добавить в новую группу <span class="glyphicon glyphicon-new-window"></span></a>';
         blockHtml += '</div></div>';
         $("#groups_block").html(blockHtml);
         if (pupil.groups.length === 1) $("#groups_block").find('button:first').click();
