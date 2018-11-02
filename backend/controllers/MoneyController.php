@@ -2,7 +2,6 @@
 
 namespace backend\controllers;
 
-use backend\components\GroupComponent;
 use backend\components\MoneyComponent;
 use backend\models\ActionSearch;
 use backend\models\Contract;
@@ -14,7 +13,6 @@ use common\components\Action;
 use backend\models\Debt;
 use backend\models\DebtSearch;
 use backend\models\Group;
-use backend\models\Payment;
 use backend\models\PaymentSearch;
 use backend\models\User;
 use common\components\helpers\Calendar;
@@ -63,7 +61,7 @@ class MoneyController extends AdminController
         $groupId = Yii::$app->request->post('group');
         $amount = intval(Yii::$app->request->post('amount', 0));
         $discount = Yii::$app->request->post('discount');
-        $comment = Yii::$app->request->post('comment');
+        $comment = Yii::$app->request->post('comment', '');
         $paymentDate = date_create_from_format('d.m.Y', Yii::$app->request->post('date'));
         $contractNum = Yii::$app->request->post('contract');
 
@@ -77,35 +75,28 @@ class MoneyController extends AdminController
             elseif (!$paymentDate) $jsonData = self::getJsonErrorResult('Указана некорректная дата платежа');
             elseif (!$group) $jsonData = self::getJsonErrorResult('Группа не найдена');
             else {
-                $payment = new Payment();
-                $payment->admin_id = Yii::$app->user->id;
-                $payment->user_id = $user->id;
-                $payment->group_id = $group->id;
-                $payment->amount = $amount;
-                $payment->discount = $discount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
-                $payment->comment = $comment ?: null;
-                $payment->created_at = $paymentDate->format('Y-m-d H:i:s');
-
-                $contract = new Contract();
-                $contract->number = $contractNum;
-                $contract->user_id = $user->id;
-                $contract->group_id = $group->id;
-                $contract->amount = $amount;
-                $contract->discount = $discount ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
-                $contract->status = Contract::STATUS_PAID;
-                $contract->payment_type = Contract::PAYMENT_TYPE_MANUAL;
-                $contract->created_at = $payment->created_at;
-                $contract->created_admin_id = Yii::$app->user->id;
-                $contract->paid_at = $payment->created_at;
-                $contract->paid_admin_id = Yii::$app->user->id;
-
+                $transaction = \Yii::$app->db->beginTransaction();
                 try {
-                    if (!$contract->save()) throw new \Exception('Contract save error: ' . $contract->getErrorsAsString());
-                    $contract->link('payments', $payment);
-                    $paymentId = MoneyComponent::registerIncome($payment);
-                    MoneyComponent::setUserChargeDates($user, $group);
+                    $contract = MoneyComponent::addPupilContract(
+                        $user,
+                        $amount,
+                        $discount > 0,
+                        $contractNum != 'auto' ? $contractNum : null,
+                        null,
+                        $group
+                    );
+
+                    $paymentId = MoneyComponent::payContract(
+                        $contract,
+                        $paymentDate,
+                        Contract::PAYMENT_TYPE_MANUAL,
+                        $comment
+                    );
+
+                    $transaction->commit();
                     $jsonData = self::getJsonOkResult(['paymentId' => $paymentId, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
                 } catch (\Throwable $ex) {
+                    $transaction->rollBack();
                     $jsonData = self::getJsonErrorResult($ex->getMessage());
                 }
             }
@@ -131,41 +122,10 @@ class MoneyController extends AdminController
         else {
             $contract = Contract::findOne($contractId);
             if (!$contract) $jsonData = self::getJsonErrorResult('Договор не найден');
-            elseif ($contract->status != Contract::STATUS_NEW) $jsonData = self::getJsonErrorResult('Договор уже оплачен!');
             else {
-                $payment = new Payment();
-                $payment->admin_id = Yii::$app->user->id;
-                $payment->user_id = $contract->user_id;
-                $payment->group_id = $contract->group_id;
-                $payment->amount = $contract->amount;
-                $payment->discount = $contract->discount;
-                $payment->contract_id = $contract->id;
-                $payment->created_at = $contractPaidDate->format('Y-m-d H:i:s');
-
-                $contract->status = Contract::STATUS_PAID;
-                $contract->payment_type = Contract::PAYMENT_TYPE_MANUAL;
-                $contract->paid_admin_id = Yii::$app->user->id;
-                $contract->paid_at = $contractPaidDate->format('Y-m-d H:i:s');
-
                 $transaction = Yii::$app->db->beginTransaction();
                 try {
-                    if (!$contract->save()) throw new \Exception('Contract save error: ' . $contract->getErrorsAsString());
-
-                    $groupPupil = GroupPupil::find()
-                        ->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])
-                        ->one();
-                    if (!$groupPupil) {
-                        GroupComponent::addPupilToGroup($contract->user, $contract->group, $contractPaidDate);
-                    }
-
-                    $paymentId = MoneyComponent::registerIncome($payment);
-                    \Yii::$app->actionLogger->log(
-                        $contract->user,
-                        Action::TYPE_CONTRACT_PAID,
-                        $contract->amount,
-                        $contract->group
-                    );
-                    MoneyComponent::setUserChargeDates($contract->user, $contract->group);
+                    $paymentId = MoneyComponent::payContract($contract, $contractPaidDate, Contract::PAYMENT_TYPE_MANUAL);
                     $transaction->commit();
                     $jsonData = self::getJsonOkResult(['paymentId' => $paymentId]);
                 } catch (\Throwable $ex) {

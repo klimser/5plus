@@ -100,7 +100,20 @@ class UserController extends AdminController
                         }
                     }
                     if (!$addPayment && $addContract) {
-                        $this->addPupilContract($pupil, $groupPupil, $contractData);
+                        $contract = MoneyComponent::addPupilContract(
+                            $pupil,
+                            intval($contractData['amount']),
+                            array_key_exists('discount', $contractData) && $contractData['discount'],
+                            null,
+                            $groupPupil,
+                            Group::findOne($contractData['group'])
+                        );
+
+                        Yii::$app->session->addFlash(
+                            'success',
+                            'Договор ' . $contract->number . ' зарегистрирован '
+                            . '<a target="_blank" href="' . yii\helpers\Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
+                        );
                     }
 
                     $transaction->commit();
@@ -187,116 +200,30 @@ class UserController extends AdminController
      */
     private function addPupilMoneyIncome(GroupPupil $groupPupil, array $paymentData)
     {
-        $amount = intval($paymentData['amount']);
-        $isDiscount = array_key_exists('discount', $paymentData) && $paymentData['discount'];
-        if ($amount > 0) {
-            $payment = new Payment();
-            $payment->admin_id = Yii::$app->user->id;
-            $payment->user_id = $groupPupil->user_id;
-            $payment->group_id = $groupPupil->group_id;
-            $payment->amount = $amount;
-            $payment->discount = $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
-            $payment->comment = $paymentData['comment'] ?: null;
-            $payment->created_at = $groupPupil->startDateObject->format('Y-m-d') . ' ' . date('H:i:s');
-
-            if ($paymentData['contract']) {
-                $contract = $this->addPupilContract(
-                    $groupPupil->user,
-                    $groupPupil,
-                    [
-                        'number' => $paymentData['contract'],
-                        'amount' => $payment->amount,
-                        'discount' => $isDiscount,
-                        'group' => $groupPupil->group_id
-                    ]
-                );
-                $contract->paid_at = $payment->created_at;
-                $contract->paid_admin_id = $payment->admin_id;
-                $contract->status = Contract::STATUS_PAID;
-                $contract->payment_type = Contract::PAYMENT_TYPE_MANUAL;
-                if (!$contract->save()) throw new \Exception('Не удалось создать договор: ' . $contract->getErrorsAsString());
-                $contract->link('payments', $payment);
-
-                \Yii::$app->actionLogger->log(
-                    $contract->user,
-                    Action::TYPE_CONTRACT_PAID,
-                    $contract->amount,
-                    $contract->group,
-                    null
-                );
-            }
-
-            try {
-                $paymentId = MoneyComponent::registerIncome($payment);
-                Yii::$app->session->addFlash('success', 'Внесение денег зарегистрировано, номер транзакции: ' . $paymentId);
-                return $paymentId;
-            } catch (\Throwable $ex) {
-                throw new \Exception('Ошибка при регистрации платежа: ' . $ex->getMessage());
-            }
-        } else throw new \Exception('Сумма платежа не может быть отрицательной');
-    }
-
-    /**
-     * @param User $pupil
-     * @param GroupPupil|null $groupPupil
-     * @param array $contractData
-     * @return Contract
-     * @throws \Exception
-     */
-    private function addPupilContract(User $pupil, ?GroupPupil $groupPupil, array $contractData)
-    {
-        $amount = intval($contractData['amount']);
-        if ($amount <= 0) throw new \Exception('Сумма договора не может быть отрицательной');
-
-        $contract = new Contract();
-        $contract->created_admin_id = Yii::$app->user->id;
-        $contract->user_id = $pupil->id;
-        $contract->amount = $amount;
-        $contract->discount = array_key_exists('discount', $contractData) && $contractData['discount'] ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
-        $contract->created_at = date('Y-m-d H:i:s');
-
-        $groupParam = null;
-        $group = null;
-        if ($groupPupil) {
-            $contract->created_at = $groupPupil->date_start;
-            $group = $groupPupil->group;
-            if ($groupPupil->startDateObject->format('Y-m') <= date('Y-m')) {
-                $groupParam = GroupComponent::getGroupParam($groupPupil->group, $groupPupil->startDateObject);
-            }
-        } else {
-            $group = Group::findOne($contractData['group']);
-        }
-        $contract->group_id = $group->id;
-        if ($contract->discount == Contract::STATUS_ACTIVE
-            && (($groupParam && $amount < $groupParam->price3Month) || (!$groupParam && $amount < $group->price3Month))) {
-            throw new \Exception('Договор по скидочной цене может быть не менее чем за 3 месяца');
-        }
-
-        if (array_key_exists('number', $contractData) && $contractData['number']) {
-            $contract->number = strval($contractData['number']);
-        } else {
-            $numberPrefix = $contract->createDate->format('Ymd') . $pupil->id;
-            $numberAffix = 1;
-            while (Contract::find()->andWhere(['number' => $numberPrefix . $numberAffix])->select('COUNT(id)')->scalar() > 0) {
-                $numberAffix++;
-            }
-            $contract->number = $numberPrefix . $numberAffix;
-        }
-
-        if (!$contract->save()) throw new \Exception('Не удалось создать договор: ' . $contract->getErrorsAsString());
+        $contract = MoneyComponent::addPupilContract(
+            $groupPupil->user,
+            intval($paymentData['amount']),
+            array_key_exists('discount', $paymentData) && $paymentData['discount'],
+            $paymentData['contractType'] == 'manual' ? $paymentData['contract'] : null,
+            $groupPupil,
+            null
+        );
 
         Yii::$app->session->addFlash(
             'success',
             'Договор ' . $contract->number . ' зарегистрирован '
             . '<a target="_blank" href="' . yii\helpers\Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
         );
-        \Yii::$app->actionLogger->log(
-            $pupil,
-            Action::TYPE_CONTRACT_ADDED,
-            $contract->amount,
-            $contract->group
+
+        $paymentId = MoneyComponent::payContract(
+            $contract,
+            new \DateTime($groupPupil->startDateObject->format('Y-m-d') . ' ' . date('H:i:s')),
+            Contract::PAYMENT_TYPE_MANUAL,
+            $paymentData['comment']
         );
-        return $contract;
+
+        Yii::$app->session->addFlash('success', 'Внесение денег зарегистрировано, номер транзакции: ' . $paymentId);
+        return $paymentId;
     }
 
     public function actionAddToGroup($userId)

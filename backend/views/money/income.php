@@ -29,12 +29,12 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <div class="col-xs-12">
         <ul class="nav nav-tabs" role="tablist">
-            <li role="presentation" <?= $searchValue ? '' : 'class="active"'; ?>><a href="#contract" aria-controls="contract" role="tab" data-toggle="tab">Номер договора</a></li>
-            <li role="presentation" <?= $searchValue ? 'class="active"' : ''; ?>><a href="#phone" aria-controls="phone" role="tab" data-toggle="tab">Телефон</a></li>
+            <li role="presentation" <?= $searchValue ? '' : 'class="active"'; ?>><a href="#tab_contract" aria-controls="tab_contract" role="tab" data-toggle="tab">Номер договора</a></li>
+            <li role="presentation" <?= $searchValue ? 'class="active"' : ''; ?>><a href="#tab_phone" aria-controls="tab_phone" role="tab" data-toggle="tab">Телефон</a></li>
         </ul>
 
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane <?= $searchValue ? '' : 'active'; ?>" id="contract">
+            <div role="tabpanel" class="tab-pane <?= $searchValue ? '' : 'active'; ?>" id="tab_contract">
                 <form onsubmit="Money.findContract(); return false;">
                     <div class="input-group input-group-lg">
                         <input id="search_contract" class="form-control" placeholder="Номер договора" required pattern="\d+" <?= $searchValue ? '' : 'autofocus'; ?>>
@@ -46,7 +46,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <hr>
                 <div id="contract_result_block"></div>
             </div>
-            <div role="tabpanel" class="tab-pane <?= $searchValue ? 'active' : ''; ?>" id="phone">
+            <div role="tabpanel" class="tab-pane <?= $searchValue ? 'active' : ''; ?>" id="tab_phone">
                 <div class="row">
                     <div class="col-xs-12">
                         <form onsubmit="Money.findPupils(); return false;">
@@ -105,9 +105,19 @@ $this->params['breadcrumbs'][] = $this->title;
                             </div>
                         </div>
                         <div class="col-xs-12">
-                            <div class="form-group">
-                                <label for="payment_contract">Номер договора</label>
-                                <input id="payment_contract" class="form-control" required>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="payment[contractType]" id="payment_type_auto" value="auto" onchange="User.checkContractType(this);" checked>
+                                    Создать договор автоматически
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-xs-12">
+                            <div class="radio">
+                                <label class="form-inline">
+                                    <input type="radio" name="payment[contractType]" id="payment_type_manual" value="manual" onchange="User.checkContractType(this);">
+                                    Старый договор, номер: <input id="contract" class="form-control" required disabled>
+                                </label>
                             </div>
                         </div>
                         <div id="income_form" class="col-xs-12 hidden">

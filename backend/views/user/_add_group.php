@@ -72,20 +72,35 @@ $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
 <div id="add_payment" <?= $addPayment ? '' : 'class="hidden"'; ?>>
     <div class="form-group">
         <label for="amount">Сумма</label>
-        <input id="amount" class="form-control" name="payment[amount]" type="number" step="1" min="1" required <?= array_key_exists('amount', $paymentData) ? 'value="' . $paymentData['amount'] . '"' : 'disabled'; ?>>
+        <input id="amount" class="form-control" name="payment[amount]" type="number" step="1" min="1" required
+            <?= array_key_exists('amount', $paymentData) ? 'value="' . $paymentData['amount'] . '"' : 'disabled'; ?>>
     </div>
     <div class="checkbox">
         <label>
-            <input type="checkbox" class="input-discount" name="payment[discount]" value="1" autocomplete="off" <?= array_key_exists('discount', $paymentData) ? 'checked' : 'disabled'; ?>> Это платёж по скидочной цене
+            <input type="checkbox" class="input-discount" name="payment[discount]" value="1" autocomplete="off"
+                <?= array_key_exists('discount', $paymentData) ? 'checked' : 'disabled'; ?>> Это платёж по скидочной цене
         </label>
     </div>
     <div class="form-group">
         <label for="comment">Комментарий к платежу</label>
-        <input id="comment" class="form-control" name="payment[comment]" <?= array_key_exists('comment', $paymentData) ? 'value="' . $paymentData['comment'] . '"' : ''; ?>>
+        <input id="comment" class="form-control" name="payment[comment]"
+            <?= array_key_exists('comment', $paymentData) ? 'value="' . $paymentData['comment'] . '"' : ''; ?>>
     </div>
-    <div class="form-group">
-        <label for="contract">Номер договора</label>
-        <input id="contract" class="form-control" name="payment[contract]" required <?= array_key_exists('contract', $paymentData) ? 'value="' . $paymentData['contract'] . '"' : 'disabled'; ?>>
+    <div class="radio">
+        <label>
+            <input type="radio" name="payment[contractType]" id="payment_type_auto" value="auto" onchange="User.checkContractType(this);"
+                <?= !array_key_exists('contractType', $paymentData) || $paymentData['contractType'] == 'auto' ? 'checked' : ''; ?>>
+            Создать договор автоматически
+        </label>
+    </div>
+    <div class="radio">
+        <label class="form-inline">
+            <input type="radio" name="payment[contractType]" id="payment_type_manual" value="manual" onchange="User.checkContractType(this);"
+                <?= array_key_exists('contractType', $paymentData) && $paymentData['contractType'] == 'manual' ? 'checked' : ''; ?>>
+            Старый договор, номер: <input id="contract" class="form-control" name="payment[contract]" required
+                <?= array_key_exists('contractType', $paymentData) && $paymentData['contractType'] == 'manual' ? '' : 'disabled'; ?>
+                <?= array_key_exists('contract', $paymentData) ? 'value="' . $paymentData['contract'] . '"' : ''; ?>>
+        </label>
     </div>
 </div>
 

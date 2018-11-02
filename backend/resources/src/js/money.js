@@ -153,7 +153,7 @@ var Money = {
                 discount: this.paymentType,
                 comment: $('#payment_comment').val(),
                 date: $("#payment_date").val(),
-                contract: $("#payment_contract").val()
+                contract: $("#payment_type_auto").is(":checked") ? "auto" : $("#contract").val()
             },
             success: function(data) {
                 if (data.status === 'ok') {

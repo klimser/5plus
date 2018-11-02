@@ -70,10 +70,14 @@ var User = {
             if ($('#add_contract_switch').is(":checked")) {
                 $('#add_contract_switch').click();
             }
+            this.checkContractType();
         } else {
             $('#add_payment').addClass('hidden');
             $('#add_payment input').prop('disabled', true);
         }
+    },
+    checkContractType: function(e) {
+        $("#contract").prop("disabled", $("input[name='payment[contractType]']:checked").val() === "auto");
     },
     checkAddContract: function(e) {
         if (e.checked) {
