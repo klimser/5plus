@@ -47,5 +47,7 @@ $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
         ]);?>
     </div>
 
+    <button class="btn btn-primary">добавить</button>
+
     <?php ActiveForm::end(); ?>
 </div>

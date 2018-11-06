@@ -89,7 +89,7 @@ var Money = {
                     $('#pupils_block').html('<div class="panel panel-default"><div class="panel-body">' + pupilList + '</div></div>');
                     if (data.pupils.length === 1) $("#pupils_block").find('button:first').click();
                 } else {
-                    Main.throwFlashMessage('#pupils_block', '<div class="panel panel-default"><div class="panel-body">Не найдено учеников<br><a href="/user/create-pupil" target="_blank" class="btn btn-success btn-lg">Добавить <span class="glyphicon glyphicon-new-window"></span></a></div></div>', 'alert-warning');
+                    Main.throwFlashMessage('#pupils_block', '<div class="panel panel-default"><div class="panel-body">Не найдено студентов<br><a href="/user/create-pupil" target="_blank" class="btn btn-success btn-lg">Добавить <span class="glyphicon glyphicon-new-window"></span></a></div></div>', 'alert-warning');
                 }
             },
             error: function (xhr, textStatus, errorThrown) {

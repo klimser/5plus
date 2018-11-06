@@ -32,34 +32,30 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        /** @var User[] $users */
-//        $users = User::find()->andWhere(['role' => User::ROLE_PUPIL])->all();
-//
-//        foreach ($users as $user) MoneyComponent::setUserChargeDates($user);
-
-//        $user = User::findOne(2704);
+//        $user = User::findOne(3488);
 //        /** @var GroupPupil[] $groupPupils */
 //        $groupPupils = GroupPupil::find()->andWhere(['user_id' => $user->id])->all();
 //        foreach ($groupPupils as $groupPupil) {
-//            MoneyComponent::setUserChargeDates($user, $groupPupil->group);
+//            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
+//            MoneyComponent::recalculateDebt($groupPupil->user, $groupPupil->group);
+//            MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
+//            GroupComponent::calculateTeacherSalary($groupPupil->group);
 //        }
 
-//        $groupPupil = GroupPupil::findOne(885);
-//        GroupComponent::rechargeGroupPupil($groupPupil);
-//        MoneyComponent::recalculateDebt($groupPupil->user);
-//        MoneyComponent::setUserChargeDates($groupPupil->user);
+//        $groupPupil = GroupPupil::findOne(1169);
+//        MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
+//        MoneyComponent::recalculateDebt($groupPupil->user, $groupPupil->group);
+//        MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
 //        GroupComponent::calculateTeacherSalary($groupPupil->group);
 
 //        $group = Group::findOne(54);
 //        EventComponent::fillSchedule($group);
 //        foreach ($group->groupPupils as $groupPupil) {
-//            GroupComponent::rechargeGroupPupil($groupPupil);
-//            MoneyComponent::recalculateDebt($groupPupil->user);
-//            MoneyComponent::setUserChargeDates($groupPupil->user);
+//            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
+//            MoneyComponent::recalculateDebt($groupPupil->user, $groupPupil->group);
+//            MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
 //        }
 //        GroupComponent::calculateTeacherSalary($group);
-
-
 
 
         return $this->renderList(['active' => Group::STATUS_ACTIVE]);

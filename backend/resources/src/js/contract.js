@@ -35,7 +35,7 @@ var Contract = {
             }
         }
         blockHtml += '</select><br>' +
-            '<button type="button" class="btn btn-default" onclick="Contract.setGroup(parseInt($(\'#new_group\').val()));">Выбрать</button></div>';
+            '<button type="button" class="btn btn-default" id="new_group_button" onclick="Contract.setGroup(parseInt($(\'#new_group\').val()));">Выбрать</button></div>';
         blockHtml += '</div></div>';
         $("#groups_block").html(blockHtml);
         if (pupil.groups.length === 1) $("#groups_block").find('button:first').click();
@@ -57,7 +57,11 @@ var Contract = {
     setGroup: function (groupId) {
         Money.groupId = groupId;
         $("#groups_block").find("button").removeClass("btn-primary");
-        $("#group-" + groupId).addClass('btn-primary');
+        if ($("#group-" + groupId).length > 0) {
+            $("#group-" + groupId).addClass('btn-primary');
+        } else {
+            $("#new_group_button").addClass('btn-primary');
+        }
 
         var group = this.getGroup(groupId);
         if (group.hasOwnProperty("date_start")) {
@@ -70,6 +74,7 @@ var Contract = {
         $("#payment-0").find(".price").text(group.month_price);
         $("#payment-1").find(".price").text(group.month_price_discount);
         $("#payment_type_block").removeClass("hidden").find("button").removeClass("btn-primary");
+        $("#income_form").addClass('hidden');
     },
     setPayment: function(paymentType) {
         $("#payment_type_block").find("button").removeClass("btn-primary");
