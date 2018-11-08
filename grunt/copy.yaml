@@ -12,8 +12,19 @@ fonts:
       expand: true
       flatten: true
       src:
+        - node_modules/bootstrap/fonts/*
+      dest: backend/web/assets/grunt/fonts
+    -
+      expand: true
+      flatten: true
+      src:
         - node_modules/@fortawesome/fontawesome-free/webfonts/*
       dest: frontend/web/assets/grunt/webfonts
+    -
+      expand: true
+      flatten: true
+      src:
+        - node_modules/@fortawesome/fontawesome-free/webfonts/*
       dest: backend/web/assets/grunt/webfonts
 images:
   files:
