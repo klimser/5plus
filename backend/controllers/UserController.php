@@ -310,30 +310,45 @@ class UserController extends AdminController
         $isAdmin = Yii::$app->user->can('manageUsers');
         $editACL = Yii::$app->user->can('manageEmployees');
         $auth = Yii::$app->authManager;
+        $parent = new User(['scenario' => User::SCENARIO_USER]);
 
         if (Yii::$app->request->isPost) {
-            if ($user->load(Yii::$app->request->post())) {
-                $fields = null;
-                if (!$isAdmin) $fields = ['username', 'password'];
-                if ($user->save(true, $fields)) {
-                    Yii::$app->session->addFlash('success', 'Успешно обновлено');
-                    if ($editACL) {
-                        $newRules = Yii::$app->request->post('acl', []);
-                        foreach (UserComponent::ACL_RULES as $key => $devNull) {
-                            $role = $auth->getRole($key);
-                            if (array_key_exists($key, $newRules)) {
-                                if (!$auth->getAssignment($role->name, $user->id)) $auth->assign($role, $user->id);
-                            } else {
-                                if ($auth->getAssignment($role->name, $user->id)) $auth->revoke($role, $user->id);
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                if ($user->load(Yii::$app->request->post())) {
+                    $fields = null;
+                    if (!$isAdmin) $fields = ['username', 'password'];
+                    if ($user->save(true, $fields)) {
+                        if ($user->role == User::ROLE_PUPIL && !$user->parent_id) {
+                            $parent->load(Yii::$app->request->post('User', []), 'parent');
+                            $parent = $this->processParent($parent, 'parent', User::ROLE_PARENTS);
+                            $user->parent_id = $parent->id;
+                            $user->save(false, ['parent_id']);
+                        }
+                        if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT)) {
+                            $newRules = Yii::$app->request->post('acl', []);
+                            foreach (UserComponent::ACL_RULES as $key => $devNull) {
+                                $role = $auth->getRole($key);
+                                if (array_key_exists($key, $newRules)) {
+                                    if (!$auth->getAssignment($role->name, $user->id)) $auth->assign($role, $user->id);
+                                } else {
+                                    if ($auth->getAssignment($role->name, $user->id)) $auth->revoke($role, $user->id);
+                                }
                             }
                         }
+                        UserComponent::clearSearchCache();
+                        $transaction->commit();
+                        Yii::$app->session->addFlash('success', 'Успешно обновлено');
+                        return $this->redirect(['update', 'id' => $id]);
+                    } else {
+                        $transaction->rollBack();
+                        $user->moveErrorsToFlash();
                     }
-                    UserComponent::clearSearchCache();
-                    return $this->redirect(['update', 'id' => $id]);
-                } else {
-                    $user->moveErrorsToFlash();
-                }
-            } else Yii::$app->session->addFlash('error', 'Внутренняя ошибка сервера');
+                } else throw new \Exception('Внутренняя ошибка сервера');
+            } catch (\Throwable $exception) {
+                $transaction->rollBack();
+                \Yii::$app->session->addFlash('error', $exception->getMessage());
+            }
         }
 
         return $this->render('update', [
@@ -341,6 +356,8 @@ class UserController extends AdminController
             'isAdmin' => $isAdmin,
             'editACL' => $editACL,
             'authManager' => $auth,
+            'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
+            'parent' => $parent,
         ]);
     }
 
