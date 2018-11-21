@@ -3,6 +3,7 @@ namespace frontend\components;
 
 use common\models\Module;
 use common\models\Webpage;
+use yii\web\Request;
 use yii\web\UrlRule;
 
 class WebpageUrlRule extends UrlRule
@@ -24,6 +25,12 @@ class WebpageUrlRule extends UrlRule
         return false;  // this rule does not apply
     }
 
+    /**
+     * @param \yii\web\UrlManager $manager
+     * @param Request $request
+     * @return array|bool
+     * @throws \yii\base\InvalidConfigException
+     */
     public function parseRequest($manager, $request)
     {
         $pathInfo = $request->getPathInfo();

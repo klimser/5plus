@@ -32,6 +32,9 @@ return [
             'showScriptName' => false,
             'enableStrictParsing' => false,
             //'suffix' => '.html',
+            'normalizer' => [
+                'class' => 'yii\web\UrlNormalizer',
+            ],
             'rules' => [
                 [
                     'class' => 'frontend\components\WebpageUrlRule',

@@ -13,8 +13,8 @@ $this->title = $name;
 
     <?php if ($exception->statusCode == 404): ?>
         <h1>Приносим извинения, но данная страница не существует.</h1>
-
-
+        <hr>
+        <?= \frontend\components\widgets\SubjectListWidget::widget(); ?>
     <?php else: ?>
         <h1><?= Html::encode($this->title) ?></h1>
 

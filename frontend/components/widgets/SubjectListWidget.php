@@ -2,10 +2,11 @@
 
 namespace frontend\components\widgets;
 
+
 use common\models\SubjectCategory;
 use yii\base\Widget;
 
-class SubjectCarouselWidget extends Widget
+class SubjectListWidget extends Widget
 {
     /** @var SubjectCategory */
     public $subjectCategory;
@@ -16,6 +17,10 @@ class SubjectCarouselWidget extends Widget
 
     public function run()
     {
-        return $this->render('subject-carousel', ['subjectCategory' => $this->subjectCategory, 'buttonLeft' => $this->buttonLeft, 'index' => $this->index]);
+        $activeCategories = SubjectCategory::find()
+            ->joinWith('activeSubjects')
+            ->with('activeSubjects.webpage')
+            ->all();
+        return $this->render('subject-list', ['subjectCategories' => $activeCategories]);
     }
 }

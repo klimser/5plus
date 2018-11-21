@@ -54,7 +54,7 @@ $this->render('/grunt-assets');
                 <div class="email-block col-xs-7 col-sm-3 col-md-2 col-lg-2">
                     <?= WidgetHtml::getByName('email'); ?>
                 </div>
-                <div class="address-block col-xs-12 col-sm-3 col-md-2 col-lg-2">
+                <div class="address-block col-xs-7 col-sm-3 col-md-2 col-lg-2">
                     <?= WidgetHtml::getByName('address'); ?>
                 </div>
                 <div class="col-xs-12 col-sm-9 col-lg-10">
