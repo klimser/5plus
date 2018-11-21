@@ -32,6 +32,7 @@ class PageController extends Controller
             ];
             if ($webpage->main) {
                 $params['subjectCategoryCollection'] = SubjectCategory::find()
+                    ->joinWith('activeSubjects')
                     ->with('activeSubjects.webpage')
                     ->all();
                 $params['reviews'] = Review::find()->where(['status' => Review::STATUS_APPROVED])->orderBy('rand()')->limit(10)->all();

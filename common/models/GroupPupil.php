@@ -1,7 +1,8 @@
 <?php
 
-namespace backend\models;
+namespace common\models;
 
+use backend\models\EventMember;
 use common\components\extended\ActiveRecord;
 
 /**

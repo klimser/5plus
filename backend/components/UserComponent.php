@@ -2,7 +2,7 @@
 
 namespace backend\components;
 
-use backend\models\User;
+use common\models\User;
 use yii\base\Component;
 
 class UserComponent extends Component

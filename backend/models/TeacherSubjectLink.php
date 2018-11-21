@@ -5,7 +5,6 @@ namespace backend\models;
 use common\components\extended\ActiveRecord;
 use common\models\Subject;
 use common\models\Teacher;
-use yii;
 
 /**
  * This is the model class for table "{{%teacher_subject}}".

@@ -2,12 +2,12 @@
 
 namespace backend\controllers;
 
-use backend\models\Contract;
-use backend\models\ContractSearch;
-use backend\models\Group;
-use backend\models\GroupParam;
-use backend\models\GroupPupil;
-use backend\models\User;
+use common\models\Contract;
+use common\models\ContractSearch;
+use common\models\Group;
+use common\models\GroupParam;
+use common\models\GroupPupil;
+use common\models\User;
 use common\components\Action;
 use yii;
 use yii\web\NotFoundHttpException;

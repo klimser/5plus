@@ -5,15 +5,15 @@ use common\components\helpers\Calendar;
 
 /* @var $this yii\web\View */
 /* @var $eventMonth \DateTime */
-/* @var $user \backend\models\User */
+/* @var $user \common\models\User */
 /* @var $eventMap \backend\models\EventMember[][] */
 /* @var $groupMap array */
 
 $this->title = 'Дневник';
-if (Yii::$app->user->identity->role == \backend\models\User::ROLE_ROOT) {
+if (Yii::$app->user->identity->role == \common\models\User::ROLE_ROOT) {
     $this->params['breadcrumbs'][] = ['label' => 'Студенты', 'url' => ['schedule']];
     $this->params['breadcrumbs'][] = $user->name;
-} elseif (Yii::$app->user->identity->role == \backend\models\User::ROLE_PARENTS && count(Yii::$app->user->identity->children) > 1) {
+} elseif (Yii::$app->user->identity->role == \common\models\User::ROLE_PARENTS && count(Yii::$app->user->identity->children) > 1) {
     $this->params['breadcrumbs'][] = ['label' => 'Мои дети', 'url' => ['schedule']];
     $this->params['breadcrumbs'][] = $this->title . ': ' . $user->name;
 } else {
@@ -53,13 +53,13 @@ $intervalMonth = new \DateInterval('P1M');
             <div class="col-xs-12">
                 <hr><h4>Занятия в группах:</h4>
                 <?php foreach ($groupMap as $groupId => $groupData):
-                    /** @var \backend\models\Group $groupInfo */
+                    /** @var \common\models\Group $groupInfo */
                     $groupInfo = $groupData['group'];
-                    /** @var \backend\models\Payment[] $payments */
+                    /** @var \common\models\Payment[] $payments */
                     $payments = $groupData['payments'];
                     ?>
-                    <div class="well well-sm<?= $groupInfo->active == \backend\models\Group::STATUS_INACTIVE ? ' text-muted' : ''; ?>">
-                        <?php if ($groupInfo->active == \backend\models\Group::STATUS_INACTIVE): ?>
+                    <div class="well well-sm<?= $groupInfo->active == \common\models\Group::STATUS_INACTIVE ? ' text-muted' : ''; ?>">
+                        <?php if ($groupInfo->active == \common\models\Group::STATUS_INACTIVE): ?>
                             <div class="row">
                                 <div class="col-xs-12"><small>Занятия в этой группе больше не проводятся.</small></div>
                             </div>
@@ -129,8 +129,7 @@ $intervalMonth = new \DateInterval('P1M');
                     foreach ($eventMap[$key] as $eventMember): ?>
                         <div class="row event_<?= $eventMember->event->id; ?> input-group">
                             <div class="input-group-addon"><small><?= $eventMember->event->eventTime; ?></small></div>
-                            <?php $eventName = $eventMember->event->type == \backend\models\Event::TYPE_GROUP && $eventMember->event->group_id
-                                ? $eventMember->event->group->name : $eventMember->event->name; ?>
+                            <?php $eventName = $eventMember->event->group->name; ?>
                             <div class="form-control input-sm" title="<?= $eventName; ?>">
                                 <?= mb_strlen($eventName, 'UTF-8') > 12
                                     ? mb_substr($eventName, 0, 12, 'UTF-8') . '...'
@@ -140,8 +139,8 @@ $intervalMonth = new \DateInterval('P1M');
                         <div class="row input-group">
                             <span class="input-group-addon"><span class="icon icon-book"></span></span>
                             <span class="form-control input-sm" title="<?= $eventMember->event->subject->name; ?>">
-                                <?= mb_strlen($eventMember->event->subject->name, 'UTF-8') > 15
-                                    ? mb_substr($eventMember->event->subject->name, 0, 15, 'UTF-8') . '...'
+                                <?= mb_strlen($eventMember->event->group->subject->name, 'UTF-8') > 15
+                                    ? mb_substr($eventMember->event->group->subject->name, 0, 15, 'UTF-8') . '...'
                                     : $eventMember->event->subject->name; ?>
                             </span>
                         </div>

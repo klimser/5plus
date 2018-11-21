@@ -1,5 +1,5 @@
 <?php
-/* @var $groups \backend\models\Group[] */
+/* @var $groups \common\models\Group[] */
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */

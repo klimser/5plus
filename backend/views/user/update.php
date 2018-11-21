@@ -4,12 +4,12 @@ use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $user backend\models\User */
+/* @var $user common\models\User */
 /* @var $isAdmin bool */
 /* @var $editACL bool */
 /* @var $authManager \yii\rbac\ManagerInterface*/
-/* @var $existedParents \backend\models\User[] */
-/* @var $parent \backend\models\User */
+/* @var $existedParents \common\models\User[] */
+/* @var $parent \common\models\User */
 
 $this->registerJs(<<<SCRIPT
     Main.initPhoneFormatted();
@@ -52,7 +52,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?= $form->field($user, 'phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
 
-                <?php if ($editACL && ($user->role == \backend\models\User::ROLE_MANAGER || $user->role == \backend\models\User::ROLE_ROOT)): ?>
+                <?php if ($editACL && ($user->role == \common\models\User::ROLE_MANAGER || $user->role == \common\models\User::ROLE_ROOT)): ?>
                     <div class="panel panel-default">
                         <div class="panel-heading">Права</div>
                         <div class="panel-body">
@@ -75,7 +75,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php endif; ?>
         </div>
 
-        <?php if ($isAdmin && $user->role == \backend\models\User::ROLE_PUPIL && !$user->parent_id): ?>
+        <?php if ($isAdmin && $user->role == \common\models\User::ROLE_PUPIL && !$user->parent_id): ?>
             <div class="col-xs-12 col-md-6">
                 <h2>Родители</h2>
 

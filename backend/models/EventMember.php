@@ -3,6 +3,8 @@
 namespace backend\models;
 
 use common\components\extended\ActiveRecord;
+use common\models\GroupPupil;
+use common\models\Payment;
 use yii;
 
 /**

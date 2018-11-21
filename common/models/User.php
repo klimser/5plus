@@ -1,6 +1,8 @@
 <?php
-namespace backend\models;
+namespace common\models;
 
+use backend\models\Action;
+use backend\models\EventMember;
 use common\models\traits\InsertedUpdated;
 use common\models\traits\Phone;
 use common\models\traits\Phone2;
@@ -53,9 +55,6 @@ class User extends ActiveRecord implements IdentityInterface
     const ROLE_MANAGER = 10;
 
     public $password;
-
-    /** @var  int */
-    private $_balance;
 
     const SCENARIO_ADMIN = 'admin';
     const SCENARIO_USER = 'user';

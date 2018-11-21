@@ -5,12 +5,12 @@ use yii\bootstrap\ActiveForm;
 
 
 /* @var $this yii\web\View */
-/* @var $parent \backend\models\User */
-/* @var $company \backend\models\User */
-/* @var $pupil \backend\models\User */
-/* @var $groups \backend\models\Group[] */
-/* @var $existedParents \backend\models\User[] */
-/* @var $existedCompanies \backend\models\User[] */
+/* @var $parent \common\models\User */
+/* @var $company \common\models\User */
+/* @var $pupil \common\models\User */
+/* @var $groups \common\models\Group[] */
+/* @var $existedParents \common\models\User[] */
+/* @var $existedCompanies \common\models\User[] */
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */
@@ -35,10 +35,10 @@ SCRIPT
                 <h2>Студент</h2>
                 <?= Html::radioList(
                     'person_type',
-                    $company->name ? \backend\models\User::ROLE_COMPANY : \backend\models\User::ROLE_PARENTS,
+                    $company->name ? \common\models\User::ROLE_COMPANY : \common\models\User::ROLE_PARENTS,
                     [
-                        \backend\models\User::ROLE_PARENTS => 'Физ. лицо',
-                        \backend\models\User::ROLE_COMPANY => 'Юр. лицо',
+                        \common\models\User::ROLE_PARENTS => 'Физ. лицо',
+                        \common\models\User::ROLE_COMPANY => 'Юр. лицо',
                     ],
                     ['itemOptions' => ['onchange' => 'User.changePersonType();', 'class' => 'person_type']]
                 ); ?>

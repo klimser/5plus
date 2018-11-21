@@ -1,7 +1,7 @@
 <?php
 namespace backend\components;
 
-use backend\models\User;
+use common\models\User;
 use common\components\helpers\Calendar;
 use common\components\helpers\Money;
 use yii\base\Widget;

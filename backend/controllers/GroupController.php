@@ -3,15 +3,15 @@
 namespace backend\controllers;
 
 use backend\components\EventComponent;
-use backend\components\MoneyComponent;
-use backend\models\Group;
-use backend\models\GroupParam;
-use backend\models\GroupPupil;
-use backend\models\GroupSearch;
-use backend\models\GroupType;
-use backend\models\Payment;
-use backend\models\User;
-use backend\components\GroupComponent;
+use common\components\MoneyComponent;
+use common\models\Group;
+use common\models\GroupParam;
+use common\models\GroupPupil;
+use common\models\GroupSearch;
+use common\models\GroupType;
+use common\models\Payment;
+use common\models\User;
+use common\components\GroupComponent;
 use common\components\helpers\Money;
 use common\models\Subject;
 use common\models\Teacher;
@@ -32,7 +32,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3314);
+//        $user = User::findOne(3097);
 //        /** @var GroupPupil[] $groupPupils */
 //        $groupPupils = GroupPupil::find()->andWhere(['user_id' => $user->id])->all();
 //        foreach ($groupPupils as $groupPupil) {

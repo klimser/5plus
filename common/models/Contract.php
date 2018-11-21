@@ -1,11 +1,10 @@
 <?php
 
-namespace backend\models;
+namespace common\models;
 
 use backend\components\GroupComponent;
-use \common\components\extended\ActiveRecord;
+use common\components\extended\ActiveRecord;
 use common\components\helpers\Money;
-use common\models\traits\Inserted;
 
 /**
  * This is the model class for table "{{%contract}}".

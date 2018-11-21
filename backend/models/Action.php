@@ -2,8 +2,10 @@
 
 namespace backend\models;
 
+use common\models\Group;
 use common\models\traits\Inserted;
 use common\components\extended\ActiveRecord;
+use common\models\User;
 
 /**
  * This is the model class for table "{{%action}}".

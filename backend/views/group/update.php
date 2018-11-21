@@ -5,8 +5,8 @@ use yii\bootstrap\ActiveForm;
 use common\components\helpers\Calendar;
 
 /* @var $this yii\web\View */
-/* @var $group backend\models\Group */
-/* @var $groupTypes \backend\models\GroupType[] */
+/* @var $group common\models\Group */
+/* @var $groupTypes \common\models\GroupType[] */
 /* @var $subjects \common\models\Subject[] */
 
 $this->title = $group->id ? $group->name : 'Добавить группу';

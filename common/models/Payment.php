@@ -1,8 +1,9 @@
 <?php
 
-namespace backend\models;
+namespace common\models;
 
-use \common\components\extended\ActiveRecord;
+use backend\models\EventMember;
+use common\components\extended\ActiveRecord;
 
 /**
  * This is the model class for table "{{%payment}}".

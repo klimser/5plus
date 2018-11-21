@@ -1,17 +1,16 @@
 <?php
 
-namespace backend\components;
+namespace common\components;
 
-use backend\models\Contract;
-use backend\models\Debt;
+use common\models\Contract;
+use common\models\Debt;
 use backend\models\Event;
 use backend\models\EventMember;
-use backend\models\Group;
-use backend\models\GroupParam;
-use backend\models\GroupPupil;
-use backend\models\Payment;
-use backend\models\User;
-use common\components\Action;
+use common\models\Group;
+use common\models\GroupParam;
+use common\models\GroupPupil;
+use common\models\Payment;
+use common\models\User;
 use yii\base\Component;
 use yii\db\ActiveQuery;
 

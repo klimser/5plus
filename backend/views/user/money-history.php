@@ -1,18 +1,17 @@
 <?php
 
 use yii\helpers\Html;
-use common\components\helpers\Calendar;
 
 /* @var $this yii\web\View */
-/* @var $payments \backend\models\Payment[] */
-/* @var $user \backend\models\User */
+/* @var $payments \common\models\Payment[] */
+/* @var $user \common\models\User */
 /* @var $pager \yii\data\Pagination */
 
 $this->title = 'История платежей';
-if (Yii::$app->user->identity->role == \backend\models\User::ROLE_ROOT) {
+if (Yii::$app->user->identity->role == \common\models\User::ROLE_ROOT) {
     $this->params['breadcrumbs'][] = ['label' => 'Студенты', 'url' => ['money-history']];
     $this->params['breadcrumbs'][] = $user->name;
-} elseif (Yii::$app->user->identity->role == \backend\models\User::ROLE_PARENTS && count(Yii::$app->user->identity->children) > 1) {
+} elseif (Yii::$app->user->identity->role == \common\models\User::ROLE_PARENTS && count(Yii::$app->user->identity->children) > 1) {
     $this->params['breadcrumbs'][] = ['label' => 'Мои дети', 'url' => ['money-history']];
     $this->params['breadcrumbs'][] = $this->title . ': ' . $user->name;
 } else {

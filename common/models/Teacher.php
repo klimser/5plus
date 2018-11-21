@@ -3,7 +3,6 @@
 namespace common\models;
 
 use backend\models\Event;
-use backend\models\Group;
 use backend\models\TeacherSubjectLink;
 use common\components\extended\ActiveRecord;
 use common\models\traits\UploadImage;

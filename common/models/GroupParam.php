@@ -1,9 +1,8 @@
 <?php
 
-namespace backend\models;
+namespace common\models;
 
 use backend\components\GroupComponent;
-use common\models\Teacher;
 use \common\components\extended\ActiveRecord;
 
 /**

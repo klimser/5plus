@@ -3,8 +3,8 @@
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $pupilCollection \backend\models\User[] */
-/* @var $user \backend\models\User */
+/* @var $pupilCollection \common\models\User[] */
+/* @var $user \common\models\User */
 
 $this->title = 'Мои дети';
 $this->params['breadcrumbs'][] = $this->title;
