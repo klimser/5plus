@@ -91,6 +91,11 @@ $this->render('/grunt-assets');
         </div>
     </div>
     <?= $content ?>
+    <div class="row">
+        <div class="col-xs-12">
+            <?= YII_ENV == 'prod' ? WidgetHtml::getByName('social_share') : ''; ?>
+        </div>
+    </div>
 </div>
 
 <footer class="footer">

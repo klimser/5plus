@@ -98,4 +98,4 @@ unset($this->params['h1']);
         </div>
     </div>
 </div>
-<div>
+<div class="container">
