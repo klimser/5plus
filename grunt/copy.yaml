@@ -7,7 +7,6 @@ fonts:
         - frontend/resources/src/fonts/*
         - node_modules/bootstrap/fonts/*
       dest: frontend/web/assets/grunt/fonts
-      dest: backend/web/assets/grunt/fonts
     -
       expand: true
       flatten: true

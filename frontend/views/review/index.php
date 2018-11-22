@@ -59,4 +59,4 @@ $this->registerJs('Review.init();');
         </div>
     </div>
 </div>
-<div>
+<div class="container">

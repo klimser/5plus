@@ -27,5 +27,45 @@ var Main = {
             });
         }
         return false;
+    },
+
+    scaleCaptcha: function() {
+        var captchaElements = $('.g-recaptcha');
+        if (captchaElements.length > 0) {
+            captchaElements.each(function() {
+                if ($(this).children().length > 0) {
+                    var reCaptchaDiv = $(this).children().first();
+                    var reCaptchaWidth = 304;
+                    var containerWidth = $(this).width();
+
+                    if (containerWidth > 0 && reCaptchaWidth > containerWidth) {
+                        var captchaScale = containerWidth / reCaptchaWidth;
+                        $(reCaptchaDiv).css({
+                            'transform': 'scale(' + captchaScale + ')'
+                        });
+                    }
+                }
+            });
+        }
     }
 };
+
+$(function() {
+    var captchaElements = $('.g-recaptcha');
+    if (captchaElements.length > 0) {
+        captchaElements.each(function() {
+            if ($(this).children().length > 0) {
+                Main.scaleCaptcha();
+            } else {
+                $(this).on('DOMSubtreeModified', function () {
+                    Main.scaleCaptcha();
+                });
+            }
+        });
+    }
+
+    $('.modal').on('shown.bs.modal', function () {
+        Main.scaleCaptcha();
+    });
+    // $(window).resize(function() { Main.scaleCaptcha(); });
+});
