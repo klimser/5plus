@@ -38,11 +38,11 @@ var Main = {
                     var reCaptchaWidth = 304;
                     var containerWidth = $(this).width();
 
-                    if (containerWidth > 0 && reCaptchaWidth > containerWidth) {
-                        var captchaScale = containerWidth / reCaptchaWidth;
-                        $(reCaptchaDiv).css({
-                            'transform': 'scale(' + captchaScale + ')'
-                        });
+                    if (containerWidth > 0) {
+                        $(reCaptchaDiv).css(
+                            'transform',
+                            reCaptchaWidth > containerWidth ? 'scale(' + (containerWidth / reCaptchaWidth) + ')' : ''
+                        );
                     }
                 }
             });
@@ -67,5 +67,5 @@ $(function() {
     $('.modal').on('shown.bs.modal', function () {
         Main.scaleCaptcha();
     });
-    // $(window).resize(function() { Main.scaleCaptcha(); });
+    $(window).resize(function() { Main.scaleCaptcha(); });
 });
