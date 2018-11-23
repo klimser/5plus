@@ -312,6 +312,7 @@ class MoneyComponent extends Component
      */
     public static function savePayment(Payment $payment, $actionType = Action::TYPE_CHARGE, bool $logEvent = true)
     {
+        if ($payment->used_payment_id !== null) $payment->discount = Payment::STATUS_ACTIVE;
         if (!$payment->save()) throw new \Exception('Error adding payment to DB: ' . $payment->getErrorsAsString());
         self::addPupilMoney($payment->user, $payment->amount, $payment->group);
         $paymentComment = 'Списание за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->group->name . '"';
