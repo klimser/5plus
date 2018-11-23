@@ -43,9 +43,6 @@ use common\components\extended\ActiveRecord;
  */
 class Group extends ActiveRecord
 {
-    const STATUS_ACTIVE = 1;
-    const STATUS_INACTIVE = 0;
-    
     /**
      * {@inheritdoc}
      */

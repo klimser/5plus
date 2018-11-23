@@ -3,8 +3,10 @@
 namespace frontend\controllers;
 
 use common\components\extended\Controller;
+use common\models\Group;
 use common\models\User;
 use himiklab\yii2\recaptcha\ReCaptchaValidator;
+use yii\web\BadRequestHttpException;
 
 class PaymentController extends Controller
 {
@@ -44,5 +46,26 @@ class PaymentController extends Controller
                 return $this->render('find', $params);
             }
         }
+    }
+
+    public function actionCreate()
+    {
+        if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
+
+        $pupilId = \Yii::$app->request->post('pupil');
+        $groupId = \Yii::$app->request->post('group');
+        $amount = intval(\Yii::$app->request->post('amount'));
+
+        if (!$pupilId) return self::getJsonErrorResult('No pupil ID');
+        if (!$groupId) return self::getJsonErrorResult('No pupil ID');
+        if ($amount < 1000) return self::getJsonErrorResult('Wrong payment amount');
+
+        $pupil = User::find()->andWhere(['id' => $pupilId, 'role' => User::ROLE_PUPIL, 'status' => User::STATUS_ACTIVE])->one();
+        $group = Group::find()->andWhere(['id' => $groupId, 'active' => Group::STATUS_ACTIVE])->one();
+
+        if (!$pupil) return self::getJsonErrorResult('Pupil not found');
+        if (!$group) return self::getJsonErrorResult('Group not found');
+
+
     }
 }

@@ -56,6 +56,7 @@ $getPupilButton = function(\common\models\User $pupil, bool $label = false) use 
 
     </div>
 </div>
+</div>
 
 <div id="payment_form" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -96,5 +97,6 @@ $getPupilButton = function(\common\models\User $pupil, bool $label = false) use 
         </div>
     </div>
 </div>
+<div class="container"></div>
 
 <?php $this->registerJs($script, \yii\web\View::POS_END); ?>
