@@ -33,6 +33,7 @@ $this->render('/grunt-assets');
     <title><?= Html::encode($this->title); ?></title>
     <?php $this->head() ?>
     <?= YII_ENV == 'prod' ? WidgetHtml::getByName('google_analytics') : ''; ?>
+    <?= YII_ENV == 'prod' ? WidgetHtml::getByName('facebook_pixel') : ''; ?>
 </head>
 <body>
 <?php $this->beginBody() ?>
