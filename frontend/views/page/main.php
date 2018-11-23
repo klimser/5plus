@@ -5,9 +5,7 @@ use \himiklab\yii2\recaptcha\ReCaptcha;
 
 /* @var $this \yii\web\View */
 /* @var $page common\models\Page */
-/* @var $webpage common\models\Webpage */
 /* @var $subjectCategoryCollection \common\models\SubjectCategory[] */
-/* @var $reviews array */
 /* @var $webpage \common\models\Webpage */
 
 $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');

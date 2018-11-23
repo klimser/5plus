@@ -257,6 +257,18 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
+     * @param Group $group
+     * @return Debt|null
+     */
+    public function getDebt(Group $group): ?Debt
+    {
+        foreach ($this->debts as $debt) {
+            if ($debt->group_id == $group->id) return $debt;
+        }
+        return null;
+    }
+
+    /**
      * @param array $data
      * @param null $formName
      * @return bool

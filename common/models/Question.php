@@ -3,7 +3,6 @@
 namespace common\models;
 
 use common\components\extended\ActiveRecord;
-use yii;
 
 /**
  * This is the model class for table "{{%question}}".

@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use backend\models\Event;
 use backend\models\EventMember;
 use common\components\extended\ActiveRecord;
 

@@ -1,7 +1,7 @@
 <?php
 namespace backend\controllers;
 
-use backend\models\User;
+use common\models\User;
 use common\models\Feedback;
 use common\models\Order;
 use common\models\Review;

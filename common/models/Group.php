@@ -2,7 +2,7 @@
 
 namespace common\models;
 
-use backend\components\GroupComponent;
+use common\components\GroupComponent;
 use backend\models\Event;
 use common\components\extended\ActiveRecord;
 

@@ -3,18 +3,13 @@
 use yii\bootstrap\Html;
 
 /* @var $this \frontend\components\extended\View */
-/* @var $page common\models\Page */
-/* @var $webpage common\models\Webpage */
-/* @var $feedback \common\models\Feedback */
-/* @var $subjectCategoryCollection array */
-/* @var $reviews array */
 
 $this->registerJs(<<<SCRIPT
 $("#pupil-phone").inputmask({"mask": "99 999-9999"});
 SCRIPT
 );
 
-$this->params['breadcrumbs'][] =  'Онлайн оплата'; ?>
+$this->params['breadcrumbs'][] = 'Онлайн оплата'; ?>
 
 <?= Html::beginForm(\yii\helpers\Url::to(['payment/find']), 'post', ['onsubmit' => 'var gToken = grecaptcha.getResponse(); if (gToken.length === 0) return false;']); ?>
     <div class="form-group">

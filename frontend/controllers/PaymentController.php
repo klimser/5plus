@@ -21,7 +21,8 @@ class PaymentController extends Controller
             \Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
             return $this->render('index');
         } else {
-            $phoneFull = '+998' . substr(preg_replace('#\D#', '', \Yii::$app->request->post('pupil-phone')), -9);
+            $phoneFull = '+998' . substr(preg_replace('#\D#', '', \Yii::$app->request->post('phoneFormatted')), -9);
+            /** @var User[] $users */
             $users = User::find()
                 ->andWhere(['or', ['phone' => $phoneFull], ['phone2' => $phoneFull]])
                 ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY, User::ROLE_PUPIL]])
@@ -29,10 +30,18 @@ class PaymentController extends Controller
             if (count($users) == 0) {
                 \Yii::$app->session->addFlash('error', 'По данному номеру студенты не найдены');
                 return $this->render('index');
-            } elseif (count($users) == 1) {
-                return $this->render('find', ['user' => reset($users)]);
             } else {
-                return $this->render('find', ['users' => $users]);
+                $params = ['user' => null, 'users' => []];
+                if (count($users) == 1) {
+                    $user = reset($users);
+                    if ($user->role == User::ROLE_PUPIL) $params['user'] = $user;
+                    else {
+                        if (count($user->children) == 1) $params['user'] = reset($user->children);
+                        else $params['users'] = $user->children;
+                    }
+                } else $params['users'] = $users;
+
+                return $this->render('find', $params);
             }
         }
     }

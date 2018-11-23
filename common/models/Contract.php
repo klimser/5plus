@@ -2,7 +2,7 @@
 
 namespace common\models;
 
-use backend\components\GroupComponent;
+use common\components\GroupComponent;
 use common\components\extended\ActiveRecord;
 use common\components\helpers\Money;
 
