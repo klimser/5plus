@@ -61,7 +61,39 @@ var Payment = {
         $("#amount").val(sum);
         $("#payment_form").modal();
     },
+    lockPayButton: function() {
+        $("#pay_button").prop("disabled", true);
+    },
+    unlockPayButton: function() {
+        $("#pay_button").prop("disabled", false);
+    },
     completePayment: function(form) {
+        if (!$("#pupil").data("val") || !$("#group").data("val") || $("#amount").val() < 1000) return false;
 
+        this.lockPayButton();
+        $.ajax({
+            url: $(form).attr('action'),
+            type: 'post',
+            dataType: 'json',
+            data: {
+                pupil: $("#pupil").data("val"),
+                group: $("#group").data("val"),
+                amount: $("#amount").val()
+            },
+            success: function(data) {
+                if (data.status === 'error') {
+                    Main.throwFlashMessage('#message_board', "Ошибка: " + data.message, 'alert-danger');
+                    Payment.unlockPayButton();
+                } else {
+                    location.assign('https://test.checkout.pays.uz/invoice/get?storeId=' + data.store_id + '&transactionId=' + data.payment_id + '&redirectLink=' + data.redirect_link);
+                }
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#message_board', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+                Payment.unlockPayButton();
+            }
+        });
+
+        return false;
     }
 };

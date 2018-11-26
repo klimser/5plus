@@ -94,14 +94,7 @@ class MoneyComponent extends Component
         }
 
         if ($number) $contract->number = $number;
-        else {
-            $numberPrefix = $contract->createDate->format('Ymd') . $pupil->id;
-            $numberAffix = 1;
-            while (Contract::find()->andWhere(['number' => $numberPrefix . $numberAffix])->select('COUNT(id)')->scalar() > 0) {
-                $numberAffix++;
-            }
-            $contract->number = $numberPrefix . $numberAffix;
-        }
+        else $contract = ContractComponent::generateContractNumber($contract);
 
         if (!$contract->save()) throw new \Exception('Не удалось создать договор: ' . $contract->getErrorsAsString());
 

@@ -13,4 +13,7 @@ return [
 
     'reCaptcha-siteKey' => '-',
     'reCaptcha-secret' => '-',
+
+    'paymo-storeId' => '',
+    'paymo-key' => '',
 ];

@@ -2,10 +2,15 @@
 
 namespace frontend\controllers;
 
+use common\components\ContractComponent;
 use common\components\extended\Controller;
+use common\components\paymo\PaymoApiException;
+use common\models\Contract;
 use common\models\Group;
+use common\models\GroupPupil;
 use common\models\User;
 use himiklab\yii2\recaptcha\ReCaptchaValidator;
+use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
 
 class PaymentController extends Controller
@@ -60,12 +65,54 @@ class PaymentController extends Controller
         if (!$groupId) return self::getJsonErrorResult('No pupil ID');
         if ($amount < 1000) return self::getJsonErrorResult('Wrong payment amount');
 
+        /** @var User $pupil */
         $pupil = User::find()->andWhere(['id' => $pupilId, 'role' => User::ROLE_PUPIL, 'status' => User::STATUS_ACTIVE])->one();
+        /** @var Group $group */
         $group = Group::find()->andWhere(['id' => $groupId, 'active' => Group::STATUS_ACTIVE])->one();
 
         if (!$pupil) return self::getJsonErrorResult('Pupil not found');
         if (!$group) return self::getJsonErrorResult('Group not found');
 
+        $groupPupil = GroupPupil::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
+        if (!$groupPupil) return self::getJsonErrorResult('Wrong pupil and group selection');
+
+        $transaction = \Yii::$app->db->beginTransaction();
+        $contract = new Contract();
+        $contract->user_id = $pupil->id;
+        $contract->group_id = $group->id;
+        $contract->amount = $amount;
+        $contract->discount = $amount >= $group->price3Month ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
+        $contract->created_at = date('Y-m-d H:i:s');
+        $contract->status = Contract::STATUS_PROCESS;
+        $contract->payment_type = Contract::PAYMENT_TYPE_PAYMO;
+        $contract = ContractComponent::generateContractNumber($contract);
+
+        try {
+            $paymoId = \Yii::$app->paymoApi->payCreate($contract->amount * 100, $contract->number, [
+                'студент' => $pupil->name,
+                'группа' => $group->name,
+                'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price))),
+            ]);
+            $contract->external_id = $paymoId;
+            if (!$contract->save()) {
+                $transaction->rollBack();
+                \Yii::$app->errorLogger->logError('payment/create', print_r($contract->getErrors(), true), true);
+                return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
+            }
+            return self::getJsonOkResult([
+                'payment_id' => $contract->external_id,
+                'store_id' => \Yii::$app->paymoApi->storeId,
+                'redirect_link' => urlencode(Url::to(['payment/complete'], true)),
+            ]);
+        } catch (PaymoApiException $exception) {
+            $transaction->rollBack();
+            \Yii::$app->errorLogger->logError('payment/create', $exception->getMessage(), true);
+            return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
+        }
+    }
+
+    public function actionComplete()
+    {
 
     }
 }
