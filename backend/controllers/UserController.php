@@ -2,17 +2,16 @@
 
 namespace backend\controllers;
 
-use backend\components\GroupComponent;
-use backend\components\MoneyComponent;
+use common\components\GroupComponent;
+use common\components\MoneyComponent;
 use backend\components\UserComponent;
-use backend\models\Contract;
+use common\models\Contract;
 use backend\models\EventMember;
-use backend\models\Group;
-use backend\models\GroupPupil;
-use backend\models\Payment;
-use backend\models\User;
-use backend\models\UserSearch;
-use common\components\Action;
+use common\models\Group;
+use common\models\GroupPupil;
+use common\models\Payment;
+use common\models\User;
+use common\models\UserSearch;
 use common\components\helpers\Money;
 use yii;
 use yii\web\ForbiddenHttpException;

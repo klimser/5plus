@@ -3,6 +3,9 @@
 namespace backend\models;
 
 use common\components\extended\ActiveRecord;
+use common\models\Group;
+use common\models\GroupParam;
+use common\models\GroupPupil;
 use common\models\Teacher;
 use yii;
 

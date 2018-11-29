@@ -1,7 +1,7 @@
 <?php
 namespace backend\components\acl;
 
-use backend\models\User;
+use common\models\User;
 use yii;
 use yii\rbac\Rule;
 

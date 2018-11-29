@@ -2,12 +2,13 @@
 
 namespace backend\controllers;
 
-use backend\models\Contract;
-use backend\models\ContractSearch;
-use backend\models\Group;
-use backend\models\GroupParam;
-use backend\models\GroupPupil;
-use backend\models\User;
+use common\components\ContractComponent;
+use common\models\Contract;
+use common\models\ContractSearch;
+use common\models\Group;
+use common\models\GroupParam;
+use common\models\GroupPupil;
+use common\models\User;
 use common\components\Action;
 use yii;
 use yii\web\NotFoundHttpException;
@@ -151,14 +152,9 @@ class ContractController extends AdminController
 
                     if ($contract->discount == Contract::STATUS_ACTIVE
                         && (($groupParam && $amount < $groupParam->price3Month) || (!$groupParam && $amount < $group->price3Month))) {
-                        \Yii::$app->session->addFlash('error', 'Wrong pupil');
+                        \Yii::$app->session->addFlash('error', 'Wrong payment amount');
                     } else {
-                        $numberPrefix = $contract->createDate->format('Ymd') . $user->id;
-                        $numberAffix = 1;
-                        while (Contract::find()->andWhere(['number' => $numberPrefix . $numberAffix])->select('COUNT(id)')->scalar() > 0) {
-                            $numberAffix++;
-                        }
-                        $contract->number = $numberPrefix . $numberAffix;
+                        $contract = ContractComponent::generateContractNumber($contract);
 
                         if (!$contract->save()) \Yii::$app->session->addFlash('error', 'Не удалось создать договор: ' . $contract->getErrorsAsString());
                         else {

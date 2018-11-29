@@ -1,11 +1,10 @@
 <?php
 
-namespace backend\models;
+namespace common\models;
 
-use backend\components\GroupComponent;
-use \common\components\extended\ActiveRecord;
+use common\components\GroupComponent;
+use common\components\extended\ActiveRecord;
 use common\components\helpers\Money;
-use common\models\traits\Inserted;
 
 /**
  * This is the model class for table "{{%contract}}".
@@ -45,6 +44,7 @@ class Contract extends ActiveRecord
 
     const PAYMENT_TYPE_MANUAL = 1;
     const PAYMENT_TYPE_PAYME = 2;
+    const PAYMENT_TYPE_PAYMO = 3;
 
     /**
      * {@inheritdoc}
@@ -70,7 +70,7 @@ class Contract extends ActiveRecord
             ['discount', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_NEW, self::STATUS_PROCESS, self::STATUS_PAID]],
             ['status', 'default', 'value' => self::STATUS_NEW],
-            ['payment_type', 'in', 'range' => [self::PAYMENT_TYPE_MANUAL, self::PAYMENT_TYPE_PAYME]],
+            ['payment_type', 'in', 'range' => [self::PAYMENT_TYPE_MANUAL, self::PAYMENT_TYPE_PAYME, self::PAYMENT_TYPE_PAYMO]],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
         ];

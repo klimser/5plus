@@ -3,7 +3,9 @@
 namespace backend\components;
 
 use backend\models\Event;
-use backend\models\Group;
+use common\components\GroupComponent;
+use common\components\MoneyComponent;
+use common\models\Group;
 use yii\base\Component;
 
 class EventComponent extends Component

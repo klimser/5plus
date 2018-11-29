@@ -1,5 +1,5 @@
 <?php
-/* @var $contract \backend\models\Contract */
+/* @var $contract \common\models\Contract */
 /* @var $this yii\web\View */
 ?>
 <td style="width: 50%; padding-right: 1cm; text-align: left; vertical-align: top;">

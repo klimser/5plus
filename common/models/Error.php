@@ -3,7 +3,6 @@
 namespace common\models;
 
 use common\models\traits\Inserted;
-use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
 /**

@@ -1,10 +1,9 @@
 <?php
 
-namespace backend\models;
+namespace common\models;
 
-use backend\components\GroupComponent;
-use common\models\Teacher;
-use \common\components\extended\ActiveRecord;
+use common\components\GroupComponent;
+use common\components\extended\ActiveRecord;
 
 /**
  * This is the model class for table "{{%group_param}}".

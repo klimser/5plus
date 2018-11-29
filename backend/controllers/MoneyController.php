@@ -2,19 +2,19 @@
 
 namespace backend\controllers;
 
-use backend\components\MoneyComponent;
+use common\components\MoneyComponent;
 use backend\models\ActionSearch;
-use backend\models\Contract;
+use common\models\Contract;
 use backend\models\Event;
 use backend\models\EventMember;
-use backend\models\GroupParam;
-use backend\models\GroupPupil;
+use common\models\GroupParam;
+use common\models\GroupPupil;
 use common\components\Action;
-use backend\models\Debt;
-use backend\models\DebtSearch;
-use backend\models\Group;
-use backend\models\PaymentSearch;
-use backend\models\User;
+use common\models\Debt;
+use common\models\DebtSearch;
+use common\models\Group;
+use common\models\PaymentSearch;
+use common\models\User;
 use common\components\helpers\Calendar;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;

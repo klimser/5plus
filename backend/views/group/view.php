@@ -3,7 +3,7 @@
 use common\components\helpers\Calendar;
 
 /* @var $this yii\web\View */
-/* @var $group backend\models\Group */
+/* @var $group common\models\Group */
 
 $this->title = 'Группа: ' . $group->name;
 $this->params['breadcrumbs'][] = ['label' => 'Группы', 'url' => ['index']];

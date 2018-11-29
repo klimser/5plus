@@ -4,8 +4,8 @@ use yii\bootstrap\ActiveForm;
 
 
 /* @var $this yii\web\View */
-/* @var $pupil \backend\models\User */
-/* @var $groups \backend\models\Group[] */
+/* @var $pupil \common\models\User */
+/* @var $groups \common\models\Group[] */
 /* @var $groupData array */
 
 $this->title = 'Добавить студента в группу';

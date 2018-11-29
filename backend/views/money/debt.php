@@ -5,8 +5,9 @@ use yii\grid\GridView;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel \backend\models\DebtSearch */
-/* @var $debtorMap \backend\models\User[] */
+/* @var $searchModel \common\models\DebtSearch */
+/* @var $debtorMap \common\models\User[] */
+/* @var $groups \common\models\Group[] */
 
 $this->title = 'Задолженности';
 $this->params['breadcrumbs'][] = $this->title;

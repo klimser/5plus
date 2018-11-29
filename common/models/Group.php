@@ -1,11 +1,10 @@
 <?php
 
-namespace backend\models;
+namespace common\models;
 
-use backend\components\GroupComponent;
+use common\components\GroupComponent;
+use backend\models\Event;
 use common\components\extended\ActiveRecord;
-use common\models\Subject;
-use common\models\Teacher;
 
 /**
  * This is the model class for table "{{%group}}".
@@ -44,9 +43,6 @@ use common\models\Teacher;
  */
 class Group extends ActiveRecord
 {
-    const STATUS_ACTIVE = 1;
-    const STATUS_INACTIVE = 0;
-    
     /**
      * {@inheritdoc}
      */

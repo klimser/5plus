@@ -5,10 +5,10 @@ use yii\grid\GridView;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel \backend\models\PaymentSearch */
-/* @var $studentMap \backend\models\User[] */
-/* @var $adminMap \backend\models\User[] */
-/* @var $groupMap \backend\models\User[] */
+/* @var $searchModel \common\models\PaymentSearch */
+/* @var $studentMap \common\models\User[] */
+/* @var $adminMap \common\models\User[] */
+/* @var $groupMap \common\models\User[] */
 
 $this->title = 'Платежи';
 $this->params['breadcrumbs'][] = $this->title;
@@ -24,7 +24,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return = [];
             if ($model->amount > 0) {
-                if ($model->discount == \backend\models\Payment::STATUS_ACTIVE) $return['class'] = 'info';
+                if ($model->discount == \common\models\Payment::STATUS_ACTIVE) $return['class'] = 'info';
                 else $return['class'] = 'success';
             } elseif ($model->amount < 0) {
                 if ($model->used_payment_id) $return['class'] = 'warning';

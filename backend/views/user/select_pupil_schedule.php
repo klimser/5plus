@@ -3,11 +3,11 @@
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $pupilCollection \backend\models\User[] */
-/* @var $user \backend\models\User */
+/* @var $pupilCollection \common\models\User[] */
+/* @var $user \common\models\User */
 /* @var $month string */
 
-if (Yii::$app->user->identity->role == \backend\models\User::ROLE_ROOT) $this->title = 'Студенты';
+if (Yii::$app->user->identity->role == \common\models\User::ROLE_ROOT) $this->title = 'Студенты';
 else $this->title = 'Мои дети';
 
 $this->params['breadcrumbs'][] = $this->title;

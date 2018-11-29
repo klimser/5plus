@@ -36,9 +36,8 @@ return [
                 'class' => 'yii\web\UrlNormalizer',
             ],
             'rules' => [
-                [
-                    'class' => 'frontend\components\WebpageUrlRule',
-                ],
+                ['class' => 'frontend\components\WebpageUrlRule'],
+                'pay/<key:[a-z0-9]+>' => 'payment/link',
             ],
         ],
     ],

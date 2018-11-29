@@ -5,7 +5,7 @@ use yii\grid\GridView;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel \backend\models\UserSearch */
+/* @var $searchModel \common\models\UserSearch */
 /* @var $firstLetter string */
 /* @var $selectedYear int */
 /* @var $canManageEmployees bool */
@@ -71,7 +71,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
-        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->status == \backend\models\User::STATUS_LOCKED) ? ['class' => 'inactive'] : [];},
+        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->status == \common\models\User::STATUS_LOCKED) ? ['class' => 'inactive'] : [];},
         'columns' => [
 //            'username',
             'name',
@@ -79,10 +79,10 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'money',
                 'contentOptions' => function ($model, $key, $index, $column) {
-                    return ($model->role == \backend\models\User::ROLE_PUPIL && $model->money < 0) ? ['class' => 'danger'] : [];
+                    return ($model->role == \common\models\User::ROLE_PUPIL && $model->money < 0) ? ['class' => 'danger'] : [];
                 },
                 'content' => function ($model, $key, $index, $column) {
-                    if ($model->role != \backend\models\User::ROLE_PUPIL) return '';
+                    if ($model->role != \common\models\User::ROLE_PUPIL) return '';
                     return $model->money < 0 ? 'Долг ' . ($model->money * (-1)) : $model->money;
                 },
             ],
@@ -102,16 +102,16 @@ $this->params['breadcrumbs'][] = $this->title;
                 'template' => '<nobr>{update}{lock}{money_income}{payment_history}</nobr>',
                 'buttons' => [
                     'lock' => function ($url, $model, $key) {
-                        return $model->status == \backend\models\User::STATUS_ACTIVE
+                        return $model->status == \common\models\User::STATUS_ACTIVE
                             ? Html::button(Html::tag('span', '', ['class' => 'fas fa-lock']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 0);', 'class' => 'btn btn-default margin-right-10', 'type' => 'button', 'title' => 'Заблокировать'])
                             : Html::button(Html::tag('span', '', ['class' => 'fas fa-lock-open']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 1);', 'class' => 'btn btn-default margin-right-10', 'type' => 'button', 'title' => 'Разблокировать']);
                     },
                     'money_income' => function ($url, $model, $key) {
-                        if ($model->role != \backend\models\User::ROLE_PUPIL) return '';
+                        if ($model->role != \common\models\User::ROLE_PUPIL) return '';
                         return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-usd']), \yii\helpers\Url::to(['money/income', 'user' => $model->id]), ['class' => 'btn btn-default margin-right-10', 'title' => 'Внести деньги']);
                     },
                     'payment_history' => function ($url, $model, $key) {
-                        if ($model->role != \backend\models\User::ROLE_PUPIL) return '';
+                        if ($model->role != \common\models\User::ROLE_PUPIL) return '';
                         return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-list-alt']), \yii\helpers\Url::to(['money/payment', 'PaymentSearch' => ['user_id' => $model->id]]), ['class' => 'btn btn-default margin-right-10', 'title' => 'История платежей']);
                     },
                 ],

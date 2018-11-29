@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
-/* @var $searchModel backend\models\GroupSearch */
+/* @var $searchModel common\models\GroupSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $subjectMap \common\models\Subject[] */
 /* @var $teacherMap \common\models\Teacher[] */
@@ -24,7 +24,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == \backend\models\Group::STATUS_INACTIVE) ? ['class' => 'inactive'] : [];},
+        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == \common\models\Group::STATUS_INACTIVE) ? ['class' => 'inactive'] : [];},
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             [

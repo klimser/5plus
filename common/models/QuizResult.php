@@ -4,7 +4,6 @@ namespace common\models;
 
 use common\models\traits\Inserted;
 use common\components\extended\ActiveRecord;
-use yii;
 
 /**
  * This is the model class for table "{{%quiz_result}}".

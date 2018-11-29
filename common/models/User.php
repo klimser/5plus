@@ -1,6 +1,8 @@
 <?php
-namespace backend\models;
+namespace common\models;
 
+use backend\models\Action;
+use backend\models\EventMember;
 use common\models\traits\InsertedUpdated;
 use common\models\traits\Phone;
 use common\models\traits\Phone2;
@@ -53,9 +55,6 @@ class User extends ActiveRecord implements IdentityInterface
     const ROLE_MANAGER = 10;
 
     public $password;
-
-    /** @var  int */
-    private $_balance;
 
     const SCENARIO_ADMIN = 'admin';
     const SCENARIO_USER = 'user';
@@ -255,6 +254,18 @@ class User extends ActiveRecord implements IdentityInterface
     public function getPaymentsAsAdmin()
     {
         return $this->hasMany(Payment::class, ['admin_id' => 'id']);
+    }
+
+    /**
+     * @param Group $group
+     * @return Debt|null
+     */
+    public function getDebt(Group $group): ?Debt
+    {
+        foreach ($this->debts as $debt) {
+            if ($debt->group_id == $group->id) return $debt;
+        }
+        return null;
     }
 
     /**

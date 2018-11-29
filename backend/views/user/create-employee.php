@@ -2,10 +2,10 @@
 
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
-use backend\models\User;
+use common\models\User;
 
 /* @var $this yii\web\View */
-/* @var $user backend\models\User */
+/* @var $user common\models\User */
 
 $this->title = 'Добавить сотрудника';
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];

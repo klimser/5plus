@@ -2,13 +2,13 @@
 
 use yii\helpers\Html;
 use yii\grid\GridView;
-use \backend\models\Contract;
+use \common\models\Contract;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel \backend\models\ContractSearch */
-/* @var $studentMap \backend\models\User[] */
-/* @var $groupMap \backend\models\User[] */
+/* @var $searchModel \common\models\ContractSearch */
+/* @var $studentMap \common\models\User[] */
+/* @var $groupMap \common\models\User[] */
 
 $this->title = 'Договоры';
 $this->params['breadcrumbs'][] = $this->title;

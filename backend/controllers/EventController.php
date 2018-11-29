@@ -2,8 +2,8 @@
 
 namespace backend\controllers;
 
-use backend\components\GroupComponent;
-use backend\components\MoneyComponent;
+use common\components\GroupComponent;
+use common\components\MoneyComponent;
 use backend\models\Event;
 use backend\models\EventMember;
 use yii;

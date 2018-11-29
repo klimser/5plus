@@ -3,7 +3,7 @@
 use yii\bootstrap\Html;
 
 /* @var $this yii\web\View */
-/* @var $user \backend\models\User */
+/* @var $user \common\models\User */
 
 $this->registerJs(<<<SCRIPT
     Main.initPhoneFormatted();

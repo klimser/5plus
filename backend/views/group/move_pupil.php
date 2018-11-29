@@ -5,7 +5,7 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $userId int */
 /* @var $groupId int */
-/* @var $groupList \backend\models\Group[] */
+/* @var $groupList \common\models\Group[] */
 
 $this->registerJs(<<<SCRIPT
     Group.loadPupils();
