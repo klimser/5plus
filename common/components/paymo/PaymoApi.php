@@ -13,8 +13,16 @@ class PaymoApi extends BaseObject
 {
     const API_URL = 'https://api.pays.uz:8243';
 
+    /** @var string */
     protected $storeId;
+    /** @var string */
     protected $apiKey;
+    /** @var string */
+    protected $login;
+    /** @var string */
+    protected $password;
+    /** @var string */
+    private $token;
 
     /**
      * @param mixed $storeId
@@ -35,7 +43,7 @@ class PaymoApi extends BaseObject
     /**
      * @param mixed $apiKey
      */
-    public function setApiKey($apiKey)
+    public function setApiKey(string $apiKey)
     {
         $this->apiKey = $apiKey;
     }
@@ -49,21 +57,49 @@ class PaymoApi extends BaseObject
     }
 
     /**
+     * @param string $login
+     */
+    public function setLogin(string $login)
+    {
+        $this->login = $login;
+    }
+
+    /**
+     * @param string $password
+     */
+    public function setPassword(string $password)
+    {
+        $this->password = $password;
+    }
+
+    /**
      * Выполнить запрос
      * @param string $urlAddon
+     * @param bool $json
      * @param array $params
+     * @param array $headers
      * @return mixed
-     * @throws \Exception
+     * @throws PaymoApiException
      */
-    private function execute(string $urlAddon, array $params = [])
+    private function execute(string $urlAddon, bool $json = true, array $params = [], array $headers = [])
     {
         $curl = curl_init(self::API_URL . $urlAddon);
-        $params['lang'] = 'ru';
+        if ($json) {
+            $params['lang'] = 'ru';
+            $postParams = json_encode($params);
+            $headers[] = 'Content-Type: application/json';
+            $headers[] = 'Authorization: Bearer ' . $this->getToken();
+        } else {
+            $postParams = http_build_query($params);
+        }
+
+        file_put_contents('D:/req.txt', $postParams);
+
         curl_setopt_array($curl, [
             CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($params),
+            CURLOPT_POSTFIELDS => $postParams,
             CURLOPT_HEADER => false,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_HTTPHEADER => $headers,
             CURLOPT_TIMEOUT => 60,
             CURLOPT_RETURNTRANSFER => true,
         ]);
@@ -77,10 +113,12 @@ class PaymoApi extends BaseObject
             throw new PaymoApiException($ex->getMessage(), $ex->getCode(), $ex);
         }
 
-        if (!$response) throw new PaymoApiException("Paymo API error: $err");
+        if (!$response) throw new PaymoApiException("Error: $err");
+
+        file_put_contents('D:/test.txt', $response);
 
         $data = json_decode($response, true);
-        if ($data === false) throw new PaymoApiException("Paymo API wrong response: $response");
+        if ($data === false) throw new PaymoApiException("Wrong response: $response");
 
         if (array_key_exists('result', $data)
             && array_key_exists('code', $data['result'])
@@ -92,23 +130,41 @@ class PaymoApi extends BaseObject
     }
 
     /**
+     * @return string
+     * @throws PaymoApiException
+     */
+    public function getToken(): string
+    {
+        if (!$this->token) {
+            $response = $this->execute('/token', false, ['grant_type' => 'client_credentials'], ['Authorization: Basic ' . base64_encode("$this->login:$this->password")]);
+            if ($response && array_key_exists('access_token', $response) && $response['access_token']) {
+                $this->token = $response['access_token'];
+            } else {
+                throw new PaymoApiException('Unable to get access token');
+            }
+        }
+
+        return $this->token;
+    }
+
+    /**
      * @param int $amount
      * @param string $paymentId
      * @param array $details
      * @return mixed
      * @throws PaymoApiException
      */
-    public function payCreate(int $amount, string $paymentId, array $details = [])
+    public function payCreate(int $amount, string $paymentId, array $details = []): string
     {
-        $response = $this->execute('/merchant/pay/create', [
+        $response = $this->execute('/merchant/pay/create', true, [
             'amount' => $amount,
             'account' => $paymentId,
             'store_id' => $this->storeId,
-            'details' => $details,
+            'details' => json_encode($details),
         ]);
 
-        if (array_key_exists('transaction_id', $response)) return $response['transaction_id'];
+        if (array_key_exists('transaction_id', $response)) return strval($response['transaction_id']);
 
-        throw new PaymoApiException('Paymo API wrong response');
+        throw new PaymoApiException('Wrong response: ' . print_r($response, true));
     }
 }

@@ -12,6 +12,7 @@ use common\models\User;
 use himiklab\yii2\recaptcha\ReCaptchaValidator;
 use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
+use yii\web\Response;
 
 class PaymentController extends Controller
 {
@@ -53,9 +54,15 @@ class PaymentController extends Controller
         }
     }
 
+    public function actionLink($key)
+    {
+
+    }
+
     public function actionCreate()
     {
         if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
+        \Yii::$app->response->format = Response::FORMAT_JSON;
 
         $pupilId = \Yii::$app->request->post('pupil');
         $groupId = \Yii::$app->request->post('group');
@@ -106,13 +113,13 @@ class PaymentController extends Controller
             ]);
         } catch (PaymoApiException $exception) {
             $transaction->rollBack();
-            \Yii::$app->errorLogger->logError('payment/create', $exception->getMessage(), true);
+            \Yii::$app->errorLogger->logError('payment/create', 'Paymo: ' . $exception->getMessage(), true);
             return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
         }
     }
 
     public function actionComplete()
     {
-
+        return $this->render('complete');
     }
 }

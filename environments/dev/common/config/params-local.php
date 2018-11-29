@@ -16,4 +16,6 @@ return [
 
     'paymo-storeId' => '',
     'paymo-key' => '',
+    'paymo-login' => '',
+    'paymo-password' => '',
 ];

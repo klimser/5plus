@@ -34,6 +34,7 @@ class ApiController extends Controller
 
     public function actionPaymoComplete()
     {
+//        file_put_contents(\Yii::$app->runtimePath . '/paymo' . time() . '.log', print_r(\Yii::$app->request, true));
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         \Yii::$app->response->statusCode = 400;
 
@@ -87,7 +88,7 @@ class ApiController extends Controller
 
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            $paymentId = MoneyComponent::payContract(
+            MoneyComponent::payContract(
                 $contract,
                 new \DateTime(array_key_exists('transaction_time', $params) ? $params['transaction_time'] : 'now'),
                 Contract::PAYMENT_TYPE_PAYMO,

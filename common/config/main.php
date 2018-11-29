@@ -71,6 +71,8 @@ return [
             'class' => 'common\components\paymo\PaymoApi',
             'storeId' => $params['paymo-storeId'],
             'apiKey' => $params['paymo-key'],
+            'login' => $params['paymo-login'],
+            'password' => $params['paymo-password'],
         ]
     ],
     'aliases' => [
