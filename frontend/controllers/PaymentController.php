@@ -88,7 +88,9 @@ class PaymentController extends Controller
         $contract->user_id = $pupil->id;
         $contract->group_id = $group->id;
         $contract->amount = $amount;
-        $contract->discount = $amount >= $group->price3Month ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
+        if ($group->lesson_price_discount) {
+            $contract->discount = $amount >= $group->price3Month ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
+        }
         $contract->created_at = date('Y-m-d H:i:s');
         $contract->status = Contract::STATUS_PROCESS;
         $contract->payment_type = Contract::PAYMENT_TYPE_PAYMO;
@@ -106,6 +108,7 @@ class PaymentController extends Controller
                 \Yii::$app->errorLogger->logError('payment/create', print_r($contract->getErrors(), true), true);
                 return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
             }
+            $transaction->commit();
             return self::getJsonOkResult([
                 'payment_id' => $contract->external_id,
                 'store_id' => \Yii::$app->paymoApi->storeId,

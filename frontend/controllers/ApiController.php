@@ -34,7 +34,6 @@ class ApiController extends Controller
 
     public function actionPaymoComplete()
     {
-//        file_put_contents(\Yii::$app->runtimePath . '/paymo' . time() . '.log', print_r(\Yii::$app->request, true));
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         \Yii::$app->response->statusCode = 400;
 
@@ -71,14 +70,10 @@ class ApiController extends Controller
         }
 
         /** @var Contract $contract */
-        $contract = Contract::find()->andWhere(['external_id' => $params['transaction_id']])->one();
+        $contract = Contract::find()->andWhere(['number' => $params['invoice']])->one();
 
         if (!$contract) {
             $jsonData['message'] = 'Invoice not found';
-            return $jsonData;
-        }
-        if ($contract->number != $params['invoice']) {
-            $jsonData['message'] = 'Wrong invoice number';
             return $jsonData;
         }
         if ($contract->amount * 100 != $params['amount']) {
@@ -97,7 +92,7 @@ class ApiController extends Controller
             $transaction->commit();
         } catch (\Throwable $exception) {
             $transaction->rollBack();
-            $jsonData['message'] = 'Server error';
+            $jsonData['message'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
             return $jsonData;
         }
 

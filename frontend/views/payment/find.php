@@ -25,7 +25,7 @@ $getPupilButton = function(\common\models\User $pupil, bool $label = false) use 
                 price: {$monthPrice},
                 priceDiscount: {$groupPupil->group->price3Month},
                 debt: {$debt},
-                paid: '{$groupPupil->chargeDateObject->format('d.m.Y')}'
+                paid: '" . ($groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '') . "'
             });\n";
     }
     if ($label) {

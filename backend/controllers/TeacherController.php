@@ -198,10 +198,15 @@ class TeacherController extends AdminController
     public function actionListJson($subject = null) {
         $jsonData = [];
         if (Yii::$app->request->isAjax) {
-            $query = Teacher::find()->where(['active' => Teacher::STATUS_ACTIVE]);
+            $query = Teacher::find()->andWhere(['active' => Teacher::STATUS_ACTIVE]);
             if ($subject) {
                 $jsonData['subjectId'] = $subject;
-                $jsonData['teachers'] = $query->innerJoinWith('teacherSubjects')->where(['subject_id' => $subject])->orderBy('{{%teacher}}.name')->select('{{%teacher}}.id')->column();
+                $jsonData['teachers'] = $query
+                    ->innerJoinWith('teacherSubjects')
+                    ->andWhere(['subject_id' => $subject])
+                    ->orderBy('{{%teacher}}.name')
+                    ->select('{{%teacher}}.id')
+                    ->column();
             } else {
                 $jsonData = $query->select(['id', 'name'])->asArray()->all();
             }

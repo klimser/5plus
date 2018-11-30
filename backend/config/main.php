@@ -13,10 +13,6 @@ return [
     'bootstrap' => ['log'],
     'modules' => [],
     'components' => [
-        'user' => [
-            'identityClass' => 'common\models\User',
-            'enableAutoLogin' => true,
-        ],
         'authManager' => [
             'class' => 'yii\rbac\PhpManager',
             'ruleFile' => '@backend/config/rbac/rules.php',

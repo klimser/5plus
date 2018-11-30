@@ -22,7 +22,7 @@ return [
         ],
         'user' => [
             'class' => 'console\components\User',
-            'identityClass' => 'backend\models\User',
+            'identityClass' => 'common\models\User',
         ],
     ],
     'params' => $params,

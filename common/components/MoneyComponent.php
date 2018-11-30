@@ -40,7 +40,7 @@ class MoneyComponent extends Component
     {
         $transaction = \Yii::$app->getDb()->beginTransaction();
         try {
-            self::savePayment($payment, Action::TYPE_INCOME);
+            self::savePayment($payment, Action::TYPE_INCOME, !empty(\Yii::$app->user->id));
             if ($payment->discount == Payment::STATUS_ACTIVE) {
                 self::rechargePupil($payment->user, $payment->group);
                 if (!self::recalculateDebt($payment->user, $payment->group)) throw new \Exception('Error on pupil\'s debt calculation');

@@ -2,8 +2,8 @@
 
 namespace common\components;
 
-use backend\models\Group;
-use backend\models\User;
+use common\models\Group;
+use common\models\User;
 use yii\base\BaseObject;
 
 class Action extends BaseObject

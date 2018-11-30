@@ -7,6 +7,10 @@ $params = array_merge(
 return [
     'vendorPath' => dirname(dirname(__DIR__)) . '/vendor',
     'components' => [
+        'user' => [
+            'identityClass' => 'common\models\User',
+            'enableAutoLogin' => true,
+        ],
         'db' => [
             'class' => 'yii\db\Connection',
             'charset' => 'utf8',

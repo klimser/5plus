@@ -38,7 +38,7 @@ class Webpage extends ActiveRecord
     public function rules()
     {
         return [
-            [['url', 'module_id', 'record_id'], 'required'],
+            [['url', 'module_id'], 'required'],
             [['main', 'active', 'module_id', 'record_id', 'inrobots'], 'integer'],
             [['description', 'keywords'], 'string'],
             [['url', 'title'], 'string', 'max' => 255],

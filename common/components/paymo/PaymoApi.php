@@ -93,8 +93,6 @@ class PaymoApi extends BaseObject
             $postParams = http_build_query($params);
         }
 
-        file_put_contents('D:/req.txt', $postParams);
-
         curl_setopt_array($curl, [
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $postParams,
@@ -114,8 +112,6 @@ class PaymoApi extends BaseObject
         }
 
         if (!$response) throw new PaymoApiException("Error: $err");
-
-        file_put_contents('D:/test.txt', $response);
 
         $data = json_decode($response, true);
         if ($data === false) throw new PaymoApiException("Wrong response: $response");
