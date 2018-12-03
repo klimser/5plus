@@ -8,6 +8,7 @@ use common\components\paymo\PaymoApiException;
 use common\models\Contract;
 use common\models\Group;
 use common\models\GroupPupil;
+use common\models\PaymentLink;
 use common\models\User;
 use himiklab\yii2\recaptcha\ReCaptchaValidator;
 use yii\helpers\Url;
@@ -56,7 +57,13 @@ class PaymentController extends Controller
 
     public function actionLink($key)
     {
+        $paymentLink = PaymentLink::findOne(['hash_key' => $key]);
+        $groupPupils = [];
+        if ($paymentLink) {
+            $groupPupils = GroupPupil::findAll(['group_id' => $paymentLink->group_id, 'user_id' => $paymentLink->user_id]);
+        }
 
+        return $this->render('link', ['paymentLink' => $paymentLink, 'groupPupils' => $groupPupils]);
     }
 
     public function actionCreate()

@@ -18,4 +18,7 @@ return [
     'paymo-key' => '',
     'paymo-login' => '',
     'paymo-password' => '',
+
+    'paygram-login' => '',
+    'paygram-password' => '',
 ];

@@ -72,11 +72,16 @@ return [
             'apiKey' => $params['tinifyKey'],
         ],
         'paymoApi' => [
-            'class' => 'common\components\paymo\PaymoApi',
+            'class' => \common\components\paymo\PaymoApi::class,
             'storeId' => $params['paymo-storeId'],
             'apiKey' => $params['paymo-key'],
             'login' => $params['paymo-login'],
             'password' => $params['paymo-password'],
+        ],
+        'paygramApi' => [
+            'class' => \common\components\paygram\PaygramApi::class,
+            'login' => $params['paygram-login'],
+            'password' => $params['paygram-password'],
         ]
     ],
     'aliases' => [

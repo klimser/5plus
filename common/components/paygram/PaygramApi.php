@@ -1,61 +1,23 @@
 <?php
 
-namespace common\components\paymo;
+namespace common\components\paygram;
 
 use yii\base\BaseObject;
 
 /**
- * Class PaymoApi
+ * Class PaygramApi
  * @package common\components
- * @property string $storeId
- * @property string $apiKey
  */
-class PaymoApi extends BaseObject
+class PaygramApi extends BaseObject
 {
-    const API_URL = 'https://api.pays.uz:8243';
+    const API_URL = 'https://api.paygram.uz:8243';
 
-    /** @var string */
-    protected $storeId;
-    /** @var string */
-    protected $apiKey;
     /** @var string */
     protected $login;
     /** @var string */
     protected $password;
     /** @var string */
     private $token;
-
-    /**
-     * @param mixed $storeId
-     */
-    public function setStoreId($storeId)
-    {
-        $this->storeId = $storeId;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getStoreId()
-    {
-        return $this->storeId;
-    }
-
-    /**
-     * @param mixed $apiKey
-     */
-    public function setApiKey(string $apiKey)
-    {
-        $this->apiKey = $apiKey;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getApiKey()
-    {
-        return $this->apiKey;
-    }
 
     /**
      * @param string $login
@@ -80,7 +42,7 @@ class PaymoApi extends BaseObject
      * @param array $params
      * @param array $headers
      * @return mixed
-     * @throws PaymoApiException
+     * @throws PaygramApiException
      */
     private function execute(string $urlAddon, bool $json = true, array $params = [], array $headers = [])
     {
@@ -109,18 +71,18 @@ class PaymoApi extends BaseObject
             curl_close($curl);
         } catch (\Throwable $ex) {
             if (is_resource($curl)) curl_close($curl);
-            throw new PaymoApiException($ex->getMessage(), $ex->getCode(), $ex);
+            throw new PaygramApiException($ex->getMessage(), $ex->getCode(), $ex);
         }
 
-        if (!$response) throw new PaymoApiException("Error: $err");
+        if (!$response) throw new PaygramApiException("Error: $err");
 
         $data = json_decode($response, true);
-        if ($data === false) throw new PaymoApiException("Wrong response: $response");
+        if ($data === false) throw new PaygramApiException("Wrong response: $response");
 
         if (array_key_exists('result', $data)
             && array_key_exists('code', $data['result'])
             && $data['result']['code'] != 'OK') {
-            throw new PaymoApiException($data['result']['description']);
+            throw new PaygramApiException($data['result']['description']);
         }
 
         return $data;
@@ -128,7 +90,7 @@ class PaymoApi extends BaseObject
 
     /**
      * @return string
-     * @throws PaymoApiException
+     * @throws PaygramApiException
      */
     public function getToken(): string
     {
@@ -137,7 +99,7 @@ class PaymoApi extends BaseObject
             if ($response && array_key_exists('access_token', $response) && $response['access_token']) {
                 $this->token = $response['access_token'];
             } else {
-                throw new PaymoApiException('Unable to get access token');
+                throw new PaygramApiException('Unable to get access token');
             }
         }
 
@@ -145,23 +107,24 @@ class PaymoApi extends BaseObject
     }
 
     /**
-     * @param int $amount
-     * @param string $paymentId
-     * @param array $details
-     * @return string
-     * @throws PaymoApiException
+     * @param int $id
+     * @param string $phone
+     * @param array $params
+     * @return bool
+     * @throws PaygramApiException
      */
-    public function payCreate(int $amount, string $paymentId, array $details = []): string
+    public function sendSms(int $id, string $phone, array $params = []): bool
     {
         $response = $this->execute('/merchant/pay/create', true, [
-            'amount' => $amount,
-            'account' => $paymentId,
-            'store_id' => $this->storeId,
-            'details' => json_encode($details),
+            'id' => $id,
+            'phone' => $phone,
+            'params' => $params,
         ]);
 
-        if (array_key_exists('transaction_id', $response)) return strval($response['transaction_id']);
+        if (!array_key_exists('status', $response) || $response['status'] != 'OK') {
+            throw new PaygramApiException($response['description'], $response['status']);
+        }
 
-        throw new PaymoApiException('Wrong response: ' . print_r($response, true));
+        return true;
     }
 }

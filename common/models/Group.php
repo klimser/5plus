@@ -20,6 +20,7 @@ use common\components\extended\ActiveRecord;
  * @property string $weekday
  * @property int $lesson_price
  * @property int $lesson_price_discount
+ * @property int $priceMonth
  * @property int $price3Month
  * @property double $teacher_rate
  * @property string $room_number
@@ -225,6 +226,11 @@ class Group extends ActiveRecord
     public function getChargeDateObject()
     {
         return empty($this->date_charge_till) ? null : new \DateTime($this->date_charge_till);
+    }
+
+    public function getPriceMonth()
+    {
+        return $this->lesson_price * GroupComponent::getTotalClasses($this->weekday);
     }
 
     public function getPrice3Month()

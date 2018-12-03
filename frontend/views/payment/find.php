@@ -16,13 +16,12 @@ $getPupilButton = function(\common\models\User $pupil, bool $label = false) use 
         groups: []
     };\n";
     foreach ($pupil->activeGroupPupils as $groupPupil) {
-        $monthPrice = $groupPupil->group->lesson_price * \common\components\GroupComponent::getTotalClasses($groupPupil->group->weekday);
         $debt = $pupil->getDebt($groupPupil->group);
         $debt = $debt ? $debt->amount : 0;
         $script .= "Payment.users[{$pupil->id}].groups.push({
                 id: {$groupPupil->group_id},
                 name: '{$groupPupil->group->name}',
-                price: {$monthPrice},
+                price: {$groupPupil->group->priceMonth},
                 priceDiscount: {$groupPupil->group->price3Month},
                 debt: {$debt},
                 paid: '" . ($groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '') . "'
