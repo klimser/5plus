@@ -24,6 +24,7 @@ use yii\web\IdentityInterface;
  * @property int $money
  * @property int $role
  * @property int $parent_id
+ * @property int $tg_chat_id
  * @property string $password write-only password
  * @property User $parent
  * @property User[] $children

@@ -35,8 +35,8 @@ class PaymentLink extends ActiveRecord
             [['user_id', 'group_id'], 'integer'],
             [['hash_key'], 'string', 'max' => 25],
             [['hash_key'], 'unique'],
-            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['user_id' => 'id']],
-            [['group_id'], 'exist', 'skipOnError' => true, 'targetClass' => Group::class, 'targetAttribute' => ['group_id' => 'id']],
+            [['user_id'], 'exist', 'targetRelation' => 'user'],
+            [['group_id'], 'exist', 'targetRelation' => 'group'],
         ];
     }
 
