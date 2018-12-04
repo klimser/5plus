@@ -16,12 +16,12 @@ var Payment = {
                 if (this.users[this.user].groups[i].debt > 0) {
                     addonClass = 'danger';
                     addonText = 'задолженность ' + this.users[this.user].groups[i].debt + ' сум';
-                } else {
+                } else if (this.users[this.user].groups[i].paid.length > 0) {
                     addonText = 'оплачено до ' + this.users[this.user].groups[i].paid;
                 }
                 htmlData += '<button class="btn btn-lg full-width btn-' + addonClass + '" type="button" data-id="' + this.users[this.user].groups[i].id + '" onclick="Payment.toggleGroup(this);">' +
                         this.users[this.user].groups[i].name +
-                        '<br><small>' + addonText + '</small>' +
+                        (addonText.length > 0 ? '<br><small>' + addonText + '</small>' : '') +
                     '</button><div id="payment-' + this.users[this.user].groups[i].id + '" class="group-payments hidden" data-groupid="' + this.users[this.user].groups[i].id + '" data-groupname="' + this.users[this.user].groups[i].name + '"><br><div class="row">';
                 if (this.users[this.user].groups[i].debt > 0) {
                     htmlData += '<div class="col-xs-12 col-sm-6 col-md-4"><button class="btn btn-primary full-width" data-sum="' + this.users[this.user].groups[i].debt + '" onclick="Payment.selectSum(this);">' +

@@ -336,7 +336,7 @@ class MoneyController extends AdminController
                 ->andWhere(['<', 'date_start', $nextMonth->format('Y-m-d')])
                 ->andWhere(['or', 'date_end IS NULL', ['>=', 'date_end', $date->format('Y-m-d')]])
                 ->joinWith('user')
-                ->orderBy(['{{%user}}.name' => SORT_ASC])
+                ->orderBy([User::tableName() . '.name' => SORT_ASC])
                 ->all();
             $row = 8;
             foreach ($groupPupils as $groupPupil) {

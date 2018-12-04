@@ -41,11 +41,7 @@ class MoneyComponent extends Component
         $transaction = \Yii::$app->getDb()->beginTransaction();
         try {
             self::savePayment($payment, Action::TYPE_INCOME, !empty(\Yii::$app->user->id));
-            if ($payment->discount == Payment::STATUS_ACTIVE) {
-                self::rechargePupil($payment->user, $payment->group);
-                if (!self::recalculateDebt($payment->user, $payment->group)) throw new \Exception('Error on pupil\'s debt calculation');
-            }
-
+            self::rechargePupil($payment->user, $payment->group);
             $transaction->commit();
             return $payment->id;
         } catch (\Throwable $ex) {
@@ -165,7 +161,7 @@ class MoneyComponent extends Component
     public static function recalculateDebt(User $user, Group $group): bool
     {
         $balance = Payment::find()
-            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_INACTIVE])
+            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id])
             ->select('SUM(amount)')
             ->scalar();
         $newDebt = $balance * (-1);
@@ -201,51 +197,50 @@ class MoneyComponent extends Component
                 $paymentStub->admin_id = \Yii::$app->user->id;
                 $paymentStub->group_id = $event->group_id;
                 $paymentStub->created_at = $event->event_date;
-                $limitDate = clone $event->eventDateTime;
-                $limitDate->modify('+1 day midnight');
 
                 foreach ($event->members as $eventMember) {
                     if (!$eventMember->payments) {
                         $rate = 1;
                         $groupParam = GroupComponent::getGroupParam($event->group, $event->eventDateTime);
-                        if ($groupParam->lesson_price_discount) {
-                            /** @var Payment[] $discountPayments */
-                            $discountPayments = Payment::find()
-                                ->andWhere([
-                                    'discount' => Payment::STATUS_ACTIVE,
-                                    'user_id' => $eventMember->groupPupil->user_id,
-                                    'group_id' => $event->group_id,
-                                ])
-                                ->andWhere(['<', 'created_at', $limitDate->format('Y-m-d H:i:s')])
-                                ->orderBy(['created_at' => SORT_ASC])
-                                ->all();
 
-                            foreach ($discountPayments as $discountPayment) {
-                                $left = $discountPayment->amount - $discountPayment->paymentsSum;
-                                if ($left > 0) {
-                                    $amount = round($groupParam->lesson_price_discount * $rate);
-                                    if ($left < $amount) {
-                                        $amount = $left;
-                                        $rate -= $amount / $groupParam->lesson_price_discount;
-                                    } else $rate = 0;
-
-                                    $payment = clone $paymentStub;
-                                    $payment->user_id = $eventMember->groupPupil->user_id;
-                                    $payment->event_member_id = $eventMember->id;
-                                    $payment->used_payment_id = $discountPayment->id;
-                                    $payment->amount = $amount * (-1);
-
-                                    self::savePayment($payment);
-                                }
-                                if ($rate == 0) break;
-                            }
-                        }
-                        if ($rate > 0) {
+                        while ($rate > 0) {
                             $payment = clone $paymentStub;
                             $payment->user_id = $eventMember->groupPupil->user_id;
                             $payment->event_member_id = $eventMember->id;
-                            $payment->amount = round($groupParam->lesson_price * $rate) * (-1);
 
+                            /** @var Payment $parentPayment */
+                            $parentPayment = Payment::find()
+                                ->alias('p')
+                                ->andWhere(['p.user_id' => $eventMember->groupPupil->user_id, 'p.group_id' => $event->group_id])
+                                ->andWhere(['>', 'p.amount', 0])
+                                ->joinWith('payments ch')
+                                ->select(['p.id', 'p.amount', 'SUM(ch.amount) as spent'])
+                                ->groupBy(['p.id', 'p.amount'])
+                                ->orderBy(['p.created_at' => SORT_ASC])
+                                ->having('spent IS NULL OR p.amount > (spent * -1)')
+                                ->one();
+
+                            if ($parentPayment) {
+                                $isDiscount = $groupParam->lesson_price_discount && $parentPayment->discount;
+                                $lessonPrice = $isDiscount ? $groupParam->lesson_price_discount : $groupParam->lesson_price;
+                                $toPay = round($rate * $lessonPrice);
+
+                                if ($parentPayment->paymentsSum >= $toPay) {
+                                    $payment->amount = $toPay * (-1);
+                                    $payment->discount = $isDiscount;
+                                    $rate = 0;
+                                } else {
+                                    $payment->amount = ($parentPayment->amount - $parentPayment->paymentsSum) * (-1);
+                                    $payment->discount = $isDiscount;
+                                    $rate -= ($payment->amount * (-1)) / $lessonPrice;
+                                }
+                                $payment->used_payment_id = $parentPayment->id;
+                            } else {
+                                $toPay = round($rate * $groupParam->lesson_price);
+                                $payment->amount = $toPay * (-1);
+                                $payment->discount = 0;
+                                $rate = 0;
+                            }
                             self::savePayment($payment);
                         }
                     }
@@ -304,9 +299,6 @@ class MoneyComponent extends Component
      */
     public static function savePayment(Payment $payment, $actionType = Action::TYPE_CHARGE, bool $logEvent = true)
     {
-        if ($payment->amount < 0) {
-            $payment->discount = $payment->used_payment_id !== null ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
-        }
         if (!$payment->save()) throw new \Exception('Error adding payment to DB: ' . $payment->getErrorsAsString());
         self::addPupilMoney($payment->user, $payment->amount, $payment->group);
         $paymentComment = 'Списание за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->group->name . '"';
@@ -368,7 +360,7 @@ class MoneyComponent extends Component
             foreach ($event->members as $member) {
                 foreach ($member->payments as $payment) {
                     $toCharge = $payment->amount * (-1);
-                    if ($payment->used_payment_id && $moneyDiscount > 0) {
+                    if ($payment->discount && $moneyDiscount > 0) {
                         $moneyDiscount -= $toCharge;
                     } else {
                         $money -= $toCharge;
@@ -472,7 +464,7 @@ class MoneyComponent extends Component
         /** @var GroupPupil[] $groupPupils */
         $groupPupils = GroupPupil::find()
             ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id])
-            ->orderBy('date_start')
+            ->orderBy(['active' => SORT_ASC, 'date_start' => SORT_ASC])
             ->with(['eventMembers' => function (ActiveQuery $query) {
                     $query
                         ->joinWith('event')
@@ -482,57 +474,22 @@ class MoneyComponent extends Component
             ->all();
         if (!$groupPupils) return;
 
-        /** @var Payment[] $payments */
+        /** @var array $payments */
         $payments = Payment::find()
-            ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_ACTIVE])
+            ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id])
             ->andWhere(['>', 'amount', 0])
             ->orderBy(['created_at' => SORT_ASC, 'id' => SORT_ASC])
+            ->select(['id', 'amount', 'discount'])
+            ->asArray()
             ->all();
-        $paymentMap = [];
-        foreach ($payments as $payment) {
-            $from = clone $payment->createDate;
-            $from->modify('midnight');
-            $paymentMap[] = ['id' => $payment->id, 'from' => $from, 'amount' => $payment->amount];
-        }
 
         /** @var GroupParam[] $groupParams */
         $groupParams = GroupParam::find()->andWhere(['group_id' => $group->id])->all();
+        /** @var GroupParam[] $groupParamMap */
         $groupParamMap = [];
         foreach ($groupParams as $groupParam) {
             $groupParamMap["{$groupParam->year}-{$groupParam->month}"] = $groupParam;
         }
-
-        $getChargeList = function(Group $group, Event $event) use (&$paymentMap, &$groupParamMap) {
-            $key = $event->eventDateTime->format('Y') . '-' . $event->eventDateTime->format('n');
-            if (!array_key_exists($key, $groupParamMap)) {
-                $groupParamMap[$key] = GroupComponent::getGroupParam($group, $event->eventDateTime);
-            }
-
-            $rate = 1;
-            $payments = [];
-            if (!empty($paymentMap)) {
-                foreach ($paymentMap as &$payment) {
-                    if ($payment['amount'] > 0 && $payment['from'] <= $event->eventDateTime) {
-                        $amount = round($groupParamMap[$key]->lesson_price_discount * $rate);
-                        if ($payment['amount'] < $amount) {
-                            $amount = $payment['amount'];
-                            $rate -= $amount / $groupParamMap[$key]->lesson_price_discount;
-                        } else $rate = 0;
-                        $payments[] = [
-                            'id' => $payment['id'],
-                            'amount' => $amount,
-                        ];
-                        $payment['amount'] -= $amount;
-                        if ($rate == 0) break;
-                    }
-                }
-            }
-            if ($rate > 0) {
-                $payments[] = ['id' => null, 'amount' => round($groupParamMap[$key]->lesson_price * $rate)];
-            }
-
-            return $payments;
-        };
 
         $sortPayments = function($a, $b) {
             if ($a['id'] > $b['id']) return -1;
@@ -540,14 +497,40 @@ class MoneyComponent extends Component
             return $a['amount'] - $b['amount'];
         };
 
-        $activePayment = null;
         foreach ($groupPupils as $groupPupil) {
             foreach ($groupPupil->eventMembers as $eventMember) {
-                $toCharge = $getChargeList($group, $eventMember->event);
+                $key = $eventMember->event->eventDateTime->format('Y') . '-' . $eventMember->event->eventDateTime->format('n');
+                if (!array_key_exists($key, $groupParamMap)) {
+                    $groupParamMap[$key] = GroupComponent::getGroupParam($group, $eventMember->event->eventDateTime);
+                }
+
+                $rate = 1;
+                $toCharge = [];
+                while ($rate > 0) {
+                    if (!empty($payments)) {
+                        $lessonPrice = $payments[0]['discount'] ? $groupParamMap[$key]->lesson_price_discount : $groupParamMap[$key]->lesson_price;
+
+                        $toPay = round($rate * $lessonPrice);
+                        if ($payments[0]['amount'] >= $toPay) {
+                            $toCharge[] = ['id' => $payments[0]['id'], 'discount' => $payments[0]['discount'], 'amount' => $toPay];
+                            $payments[0]['amount'] -= $toPay;
+                            $rate = 0;
+                        } else {
+                            $toCharge[] = ['id' => $payments[0]['id'], 'discount' => $payments[0]['discount'], 'amount' => $payments[0]['amount']];
+                            $rate -= $payments[0]['amount'] / $lessonPrice;
+                            $payments[0]['amount'] = 0;
+                        }
+
+                        if ($payments[0]['amount'] <= 0) array_shift($payments);
+                    } else {
+                        $toCharge[] = ['id' => null, 'discount' => 0, 'amount' => round($rate * $groupParamMap[$key]->lesson_price)];
+                    }
+                }
+
                 usort($toCharge, $sortPayments);
                 $charged = [];
                 foreach ($eventMember->payments as $payment) {
-                    $charged[] = ['id' => $payment->used_payment_id, 'amount' => $payment->amount * (-1)];
+                    $charged[] = ['id' => $payment->used_payment_id, 'discount' => $payment->discount, 'amount' => $payment->amount * (-1)];
                 }
                 usort($charged, $sortPayments);
                 if ($toCharge != $charged) {
@@ -562,6 +545,7 @@ class MoneyComponent extends Component
                         $payment->event_member_id = $eventMember->id;
                         $payment->created_at = $eventMember->event->event_date;
                         $payment->used_payment_id = $paymentData['id'];
+                        $payment->discount = $paymentData['discount'];
                         $payment->amount = $paymentData['amount'] * (-1);
                         self::savePayment($payment);
                     }

@@ -54,10 +54,7 @@ class GroupComponent extends Component
      */
     public static function getTotalClasses(string $scheduleString): int
     {
-        if (!preg_match('#^[01]{6}$#', $scheduleString)) throw new \InvalidArgumentException('Wrong schedule string');
-
-        $classPerWeek = substr_count($scheduleString, '1');
-        return $classPerWeek * 4;
+        return self::getWeekClasses($scheduleString) * 4;
     }
 
     /**

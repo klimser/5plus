@@ -204,8 +204,8 @@ class TeacherController extends AdminController
                 $jsonData['teachers'] = $query
                     ->innerJoinWith('teacherSubjects')
                     ->andWhere(['subject_id' => $subject])
-                    ->orderBy('{{%teacher}}.name')
-                    ->select('{{%teacher}}.id')
+                    ->orderBy(Teacher::tableName() . '.name')
+                    ->select(Teacher::tableName() . '.id')
                     ->column();
             } else {
                 $jsonData = $query->select(['id', 'name'])->asArray()->all();

@@ -235,6 +235,6 @@ class Group extends ActiveRecord
 
     public function getPrice3Month()
     {
-        return $this->lesson_price_discount * GroupComponent::getTotalClasses($this->weekday) * 3;
+        return ($this->lesson_price_discount ?: $this->lesson_price) * GroupComponent::getTotalClasses($this->weekday) * 3;
     }
 }
