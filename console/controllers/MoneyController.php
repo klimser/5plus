@@ -3,9 +3,9 @@
 namespace console\controllers;
 
 use backend\components\EventComponent;
-use backend\models\Group;
-use backend\models\GroupPupil;
-use backend\models\User;
+use common\models\Group;
+use common\models\GroupPupil;
+use common\models\User;
 use yii;
 use yii\console\Controller;
 

@@ -17,6 +17,8 @@ class User extends Component
      */
     public $identityClass;
 
+    public $enableAutoLogin = false;
+
     /**
      * Initializes the application component.
      */

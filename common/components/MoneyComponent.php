@@ -524,6 +524,7 @@ class MoneyComponent extends Component
                         if ($payments[0]['amount'] <= 0) array_shift($payments);
                     } else {
                         $toCharge[] = ['id' => null, 'discount' => 0, 'amount' => round($rate * $groupParamMap[$key]->lesson_price)];
+                        $rate = 0;
                     }
                 }
 
