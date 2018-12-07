@@ -13,13 +13,18 @@ use common\components\Action;
 use common\models\Debt;
 use common\models\DebtSearch;
 use common\models\Group;
+use common\models\Payment;
 use common\models\PaymentSearch;
 use common\models\User;
 use common\components\helpers\Calendar;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use yii;
 use yii\web\ForbiddenHttpException;
@@ -309,8 +314,8 @@ class MoneyController extends AdminController
         $spreadsheet->getActiveSheet()->mergeCells("B4:{$lastColumn}4");
         $spreadsheet->getActiveSheet()->mergeCells("B5:{$lastColumn}5");
         $spreadsheet->getActiveSheet()->setCellValue('B3', $groupParam->teacher->name);
-        $spreadsheet->getActiveSheet()->setCellValue('B4', $groupParam->lesson_price);
-        $spreadsheet->getActiveSheet()->setCellValue('B5', $groupParam->lesson_price_discount);
+        $spreadsheet->getActiveSheet()->setCellValueExplicit('B4', $groupParam->lesson_price, DataType::TYPE_NUMERIC);
+        $spreadsheet->getActiveSheet()->setCellValueExplicit('B5', $groupParam->lesson_price_discount, DataType::TYPE_NUMERIC);
         $spreadsheet->getActiveSheet()->getStyle('B3:B5')->getFont()->setBold(true);
 
         $nextMonth = clone $date;
@@ -352,7 +357,8 @@ class MoneyController extends AdminController
             }
 
             for ($i = 1; $i <= $daysCount; $i++) {
-                $spreadsheet->getActiveSheet()->setCellValue(\common\components\helpers\Spreadsheet::getColumnByNumber($i + 1) . '7', $i);
+                $spreadsheet->getActiveSheet()
+                    ->setCellValueExplicit(\common\components\helpers\Spreadsheet::getColumnByNumber($i + 1) . '7', $i, DataType::TYPE_NUMERIC);
             }
             $spreadsheet->getActiveSheet()->setCellValue("{$lastColumn}7", 'Итого');
             $spreadsheet->getActiveSheet()->getStyle("B7:{$lastColumn}7")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -365,7 +371,7 @@ class MoneyController extends AdminController
 
                 if ($event->status == Event::STATUS_CANCELED) {
                     $spreadsheet->getActiveSheet()->getStyle("{$column}7")
-                        ->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getFill()->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setRGB($redColor);
                 } else {
                     $totalSum = 0;
@@ -377,24 +383,26 @@ class MoneyController extends AdminController
                                 $userChargeMap[$payment->user_id] += $payment->amount;
                                 $totalSum += $payment->amount;
                             }
-                            $spreadsheet->getActiveSheet()->setCellValue($column . $groupPupilMap[$member->group_pupil_id], $paymentSum * -1);
+                            $spreadsheet->getActiveSheet()
+                                ->setCellValueExplicit($column . $groupPupilMap[$member->group_pupil_id], $paymentSum * -1, DataType::TYPE_NUMERIC);
                         }
 
                         if ($member->status == EventMember::STATUS_MISS) {
                             $spreadsheet->getActiveSheet()->getStyle($column . $groupPupilMap[$member->group_pupil_id])
-                                ->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                                ->getFill()->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()->setRGB($redColor);
                         }
                     }
 
-                    $spreadsheet->getActiveSheet()->setCellValue($column . $row, round($totalSum * (-1) / 100 * $groupParam->teacher_rate));
+                    $spreadsheet->getActiveSheet()
+                        ->setCellValueExplicit($column . $row, round($totalSum * (-1) / 100 * $groupParam->teacher_rate), DataType::TYPE_NUMERIC);
                 }
             }
 
             foreach ($userChargeMap as $userId => $chargeAmount) {
-                $spreadsheet->getActiveSheet()->setCellValue($lastColumn . $userMap[$userId], $chargeAmount * (-1));
+                $spreadsheet->getActiveSheet()->setCellValueExplicit($lastColumn . $userMap[$userId], $chargeAmount * (-1), DataType::TYPE_NUMERIC);
             }
-            $spreadsheet->getActiveSheet()->setCellValue($lastColumn . $row, $groupParam->teacher_salary);
+            $spreadsheet->getActiveSheet()->setCellValueExplicit($lastColumn . $row, $groupParam->teacher_salary, DataType::TYPE_NUMERIC);
             $spreadsheet->getActiveSheet()->getStyle("A$row:$lastColumn$row")->getFont()->setBold(true);
             $spreadsheet->getActiveSheet()->getStyle("A7:$lastColumn$row")->applyFromArray([
                 'borders' => [
@@ -410,16 +418,132 @@ class MoneyController extends AdminController
             $spreadsheet->getActiveSheet()->getColumnDimension(\common\components\helpers\Spreadsheet::getColumnByNumber($i))->setAutoSize(true);
         }
 
-        $response = new yii\web\Response();
         ob_start();
         $objWriter = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $objWriter->save('php://output');
-        $response->sendContentAsFile(
+        return \Yii::$app->response->sendContentAsFile(
             ob_get_clean(),
             "$group->name $month-$year.xlsx",
             ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         );
+    }
 
-        return $response;
+    /**
+     * @param int $userId
+     * @param int $groupId
+     * @return yii\web\Response
+     * @throws yii\web\BadRequestHttpException
+     */
+    public function actionPupilReport(int $userId, int $groupId)
+    {
+        $pupil = User::findOne($userId);
+        $group = Group::findOne($groupId);
+
+        if (!$pupil || $pupil->role != User::ROLE_PUPIL) throw new yii\web\BadRequestHttpException('Pupil not found');
+        if (!$group) throw new yii\web\BadRequestHttpException('Group not found');
+
+        $groupPupil = GroupPupil::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
+        if (!$groupPupil) throw new yii\web\BadRequestHttpException('Wrong pupil and group selection');
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+        $spreadsheet->getActiveSheet()->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+        $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
+        $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
+
+        $greenColor = '9FF298';
+        $spreadsheet->getActiveSheet()->mergeCells('A1:H1');
+        $spreadsheet->getActiveSheet()->setCellValue('A1', $pupil->name);
+        $spreadsheet->getActiveSheet()->getStyle("A1")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $spreadsheet->getActiveSheet()->getStyle("A1")->getFont()->setBold(true)->setSize(16);
+
+        $spreadsheet->getActiveSheet()->setCellValue('H3', date('d.m.Y'));
+        $spreadsheet->getActiveSheet()->mergeCells('A4:H4');
+        $spreadsheet->getActiveSheet()->setCellValue('A4', 'Табель оплат');
+        $spreadsheet->getActiveSheet()->getStyle("A4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $spreadsheet->getActiveSheet()->setCellValue('A5', '№');
+        $spreadsheet->getActiveSheet()->setCellValue('B5', 'Предмет');
+        $spreadsheet->getActiveSheet()->setCellValue('C5', 'Договор №');
+        $spreadsheet->getActiveSheet()->setCellValue('D5', 'Дата');
+        $spreadsheet->getActiveSheet()->setCellValue('E5', 'Сумма');
+        $spreadsheet->getActiveSheet()->setCellValue('F5', 'С');
+        $spreadsheet->getActiveSheet()->setCellValue('G5', 'По');
+        $spreadsheet->getActiveSheet()->setCellValue('H5', 'Остаток');
+
+        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(5);
+        $spreadsheet->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+        $spreadsheet->getActiveSheet()->getColumnDimension('C')->setWidth(16);
+        $spreadsheet->getActiveSheet()->getColumnDimension('D')->setWidth(13);
+        $spreadsheet->getActiveSheet()->getColumnDimension('E')->setWidth(15);
+        $spreadsheet->getActiveSheet()->getColumnDimension('F')->setWidth(13);
+        $spreadsheet->getActiveSheet()->getColumnDimension('G')->setWidth(13);
+        $spreadsheet->getActiveSheet()->getColumnDimension('H')->setWidth(15);
+
+        $row = 6;
+        /** @var Payment[] $payments */
+        $payments = Payment::find()
+            ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id])
+            ->andWhere(['>', 'amount', 0])
+            ->orderBy(['created_at' => SORT_ASC])
+            ->with('payments')
+            ->all();
+
+        $num = 1;
+        foreach ($payments as $payment) {
+            $spreadsheet->getActiveSheet()->setCellValueExplicit("A$row", $num, DataType::TYPE_NUMERIC);
+            $spreadsheet->getActiveSheet()->setCellValue("B$row", $payment->group->name);
+            if ($payment->contract) {
+                $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $payment->contract->number, DataType::TYPE_STRING);
+            }
+            $spreadsheet->getActiveSheet()->setCellValue("D$row", Date::PHPToExcel($payment->createDate));
+            $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $payment->amount, DataType::TYPE_NUMERIC);
+
+            if ($payment->discount == Payment::STATUS_ACTIVE) {
+                $spreadsheet->getActiveSheet()->getStyle("E$row")->getFill()
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setRGB($greenColor);
+            }
+
+            $minDate = $maxDate = null;
+            foreach ($payment->payments as $childPayment) {
+                if (!$minDate || $childPayment->createDate < $minDate) $minDate = $childPayment->createDate;
+                if (!$maxDate || $childPayment->createDate > $maxDate) $maxDate = $childPayment->createDate;
+            }
+            if ($minDate) {
+                $spreadsheet->getActiveSheet()->setCellValue("F$row", Date::PHPToExcel($minDate));
+            }
+            if ($maxDate && $payment->amount == $payment->paymentsSum) {
+                $spreadsheet->getActiveSheet()->setCellValue("G$row", Date::PHPToExcel($maxDate));
+            }
+            $spreadsheet->getActiveSheet()->setCellValueExplicit("H$row", $payment->amount - $payment->paymentsSum, DataType::TYPE_NUMERIC);
+
+            $num++;
+            $row++;
+        }
+        $row--;
+
+        $spreadsheet->getActiveSheet()->getStyle("A4:H$row")->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => 'FF000000'],
+                ],
+            ],
+        ]);
+        $spreadsheet->getActiveSheet()->getStyle("A4:H5")->getFont()->setItalic(true);
+        $spreadsheet->getActiveSheet()->getStyle("D6:D$row")->getNumberFormat()
+            ->setFormatCode(NumberFormat::FORMAT_DATE_DMYMINUS);
+        $spreadsheet->getActiveSheet()->getStyle("F6:G$row")->getNumberFormat()
+            ->setFormatCode(NumberFormat::FORMAT_DATE_DMYMINUS);
+
+        ob_start();
+        $objWriter = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $objWriter->save('php://output');
+        return \Yii::$app->response->sendContentAsFile(
+            ob_get_clean(),
+            "$pupil->name $group->name.xlsx",
+            ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        );
     }
 }

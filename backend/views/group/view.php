@@ -80,7 +80,13 @@ $this->params['breadcrumbs'][] = $group->name;
                     <?php $i = 0; $nowDate = new \DateTime(); foreach ($group->activeGroupPupils as $groupPupil): $i++; ?>
                         <tr>
                             <td><?= $i; ?></td>
-                            <td><?= $groupPupil->user->name; ?></td>
+                            <td>
+                                <a href="<?= \yii\helpers\Url::to(['money/pupil-report', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>"
+                                   target="_blank" class="hidden-print">
+                                    <span class="fas fa-file-invoice-dollar"></span>
+                                </a>
+                                <?= $groupPupil->user->name; ?>
+                            </td>
                             <td>
                                 <?= $groupPupil->user->phone; ?>
                                 <?php if($groupPupil->user->phone2): ?><br> <?= $groupPupil->user->phone2; ?><?php endif; ?>

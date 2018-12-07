@@ -214,8 +214,8 @@ class MoneyComponent extends Component
                                 ->andWhere(['p.user_id' => $eventMember->groupPupil->user_id, 'p.group_id' => $event->group_id])
                                 ->andWhere(['>', 'p.amount', 0])
                                 ->joinWith('payments ch')
-                                ->select(['p.id', 'p.amount', 'SUM(ch.amount) as spent'])
-                                ->groupBy(['p.id', 'p.amount'])
+                                ->select(['p.id', 'p.amount', 'p.discount', 'SUM(ch.amount) as spent'])
+                                ->groupBy(['p.id', 'p.amount', 'p.discount'])
                                 ->orderBy(['p.created_at' => SORT_ASC])
                                 ->having('spent IS NULL OR p.amount > (spent * -1)')
                                 ->one();
@@ -225,13 +225,13 @@ class MoneyComponent extends Component
                                 $lessonPrice = $isDiscount ? $groupParam->lesson_price_discount : $groupParam->lesson_price;
                                 $toPay = round($rate * $lessonPrice);
 
-                                if ($parentPayment->paymentsSum >= $toPay) {
+                                if ($parentPayment->moneyLeft >= $toPay) {
                                     $payment->amount = $toPay * (-1);
-                                    $payment->discount = $isDiscount;
+                                    $payment->discount = $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
                                     $rate = 0;
                                 } else {
-                                    $payment->amount = ($parentPayment->amount - $parentPayment->paymentsSum) * (-1);
-                                    $payment->discount = $isDiscount;
+                                    $payment->amount = $parentPayment->moneyLeft * (-1);
+                                    $payment->discount = $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
                                     $rate -= ($payment->amount * (-1)) / $lessonPrice;
                                 }
                                 $payment->used_payment_id = $parentPayment->id;

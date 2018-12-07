@@ -16,13 +16,13 @@ use common\components\extended\ActiveRecord;
  * @property int $amount
  * @property int $discount Скидочный платёж
  * @property string $comment
- * @property string $contract
  * @property int $contract_id
  * @property int $used_payment_id
  * @property int $event_member_id
  * @property string $created_at
  * @property \DateTime|null $createDate
  *
+ * @property Contract $contract
  * @property User $user
  * @property Group $group
  * @property User $admin
@@ -31,6 +31,7 @@ use common\components\extended\ActiveRecord;
  * @property EventMember $eventMember
  * @property Payment[] $payments
  * @property int $paymentsSum
+ * @property int $moneyLeft
  */
 class Payment extends ActiveRecord
 {
@@ -51,12 +52,12 @@ class Payment extends ActiveRecord
             [['user_id', 'group_id', 'amount'], 'required'],
             [['user_id', 'group_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id'], 'integer'],
             [['comment'], 'string'],
-            [['contract'], 'string', 'max' => 50],
             ['discount', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
             ['discount', 'default', 'value' => self::STATUS_INACTIVE],
             [['user_id'], 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
             [['admin_id'], 'exist', 'targetRelation' => 'admin'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
+            [['contract_id'], 'exist', 'targetRelation' => 'contract'],
             [['used_payment_id'], 'exist', 'targetRelation' => 'usedPayment'],
             [['event_member_id'], 'exist', 'targetRelation' => 'eventMember'],
         ];
@@ -99,6 +100,14 @@ class Payment extends ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getContract()
+    {
+        return $this->hasOne(Contract::class, ['id' => 'contract_id']);
     }
 
     /**
@@ -155,6 +164,14 @@ class Payment extends ActiveRecord
     public function getPaymentsSum()
     {
         return Payment::find()->andWhere(['used_payment_id' => $this->id])->select('SUM(amount)')->scalar() * (-1);
+    }
+
+    /**
+     * @return int
+     */
+    public function getMoneyLeft()
+    {
+        return $this->amount - $this->paymentsSum;
     }
 
     /**
