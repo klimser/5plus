@@ -3,6 +3,7 @@
 namespace common\models;
 
 use common\components\extended\ActiveRecord;
+use yii\helpers\Url;
 
 /**
  * This is the model class for table "{{%payment_link}}".
@@ -11,6 +12,7 @@ use common\components\extended\ActiveRecord;
  * @property string $hash_key ключ
  * @property int $user_id Студент
  * @property int $group_id Группа
+ * @property string $url
  *
  * @property User $user
  * @property Group $group
@@ -35,6 +37,7 @@ class PaymentLink extends ActiveRecord
             [['user_id', 'group_id'], 'integer'],
             [['hash_key'], 'string', 'max' => 25],
             [['hash_key'], 'unique'],
+            [['user_id', 'group_id'], 'unique', 'targetAttribute' => ['user_id', 'group_id']],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
         ];
@@ -67,5 +70,13 @@ class PaymentLink extends ActiveRecord
     public function getGroup()
     {
         return $this->hasOne(Group::class, ['id' => 'group_id']);
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrl(): string
+    {
+        return Url::to(['/payment/link', 'key' => $this->hash_key], true);
     }
 }

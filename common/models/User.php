@@ -189,7 +189,7 @@ class User extends ActiveRecord implements IdentityInterface
     public function getGroups()
     {
         return $this->hasMany(Group::class, ['id' => 'group_id'])
-            ->via('pupilGroups');
+            ->via('groupPupils');
     }
 
     /**

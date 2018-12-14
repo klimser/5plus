@@ -11,7 +11,7 @@ use yii\db\ActiveRecord;
  * @property int $id ID
  * @property int $user_id ID студента
  * @property int $template_id ID шаблона
- * @property string $params Параметры для сообщения
+ * @property array|null $params Параметры для сообщения
  * @property int $status Статус отправки сообщения
  * @property string $created_at Дата создания
  * @property string $sent_at Дата успешной отправки
@@ -24,8 +24,9 @@ class Notify extends ActiveRecord
     use Inserted;
 
     const STATUS_NEW = 0;
-    const STATUS_SENT = 1;
-    const STATUS_ERROR = 2;
+    const STATUS_SENDING = 1;
+    const STATUS_SENT = 2;
+    const STATUS_ERROR = 3;
 
     /**
      * {@inheritdoc}
@@ -74,5 +75,21 @@ class Notify extends ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getParams(): ?array
+    {
+        return $this->getAttribute('params') ? json_decode($this->getAttribute('params')) : null;
+    }
+
+    /**
+     * @param array|null|string $params
+     */
+    public function setParams(?array $params)
+    {
+        $this->setAttribute('params', $params ? json_encode($params) : null);
     }
 }

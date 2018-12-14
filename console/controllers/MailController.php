@@ -21,8 +21,6 @@ class MailController extends Controller
     {
         $condition = ['state' => EmailQueue::STATUS_NEW];
         
-        $toSend = EmailQueue::findOne($condition);
-
         $tryTelegram = false;
         if (array_key_exists('telegramAdminNotifier', \Yii::$app->components)) {
             \Yii::$app->telegramAdminNotifier->telegram;
@@ -30,7 +28,10 @@ class MailController extends Controller
             if (!empty($subscribed)) $tryTelegram = true;
         }
         
-        while ($toSend) {
+        while (true) {
+            $toSend = EmailQueue::findOne($condition);
+            if (!$toSend) break;
+
             $toSend->state = EmailQueue::STATUS_SENDING;
             $toSend->save();
 
@@ -86,8 +87,6 @@ class MailController extends Controller
                 else $toSend->state = EmailQueue::STATUS_ERROR;
                 $toSend->save();
             }
-
-            $toSend = EmailQueue::findOne($condition);
         }
         return yii\console\ExitCode::OK;
     }

@@ -24,6 +24,19 @@ return [
             'class' => 'console\components\User',
             'identityClass' => 'common\models\User',
         ],
+        'urlManager' => [
+            'scriptUrl' => 'https://5plus.uz',
+            'baseUrl' => 'https://5plus.uz',
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'enableStrictParsing' => false,
+            'normalizer' => [
+                'class' => 'yii\web\UrlNormalizer',
+            ],
+            'rules' => [
+                'pay/<key:[a-z0-9]+>' => 'payment/link',
+            ],
+        ],
     ],
     'params' => $params,
 ];
