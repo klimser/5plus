@@ -24,17 +24,13 @@ use \common\components\extended\ActiveRecord;
  */
 class Webpage extends ActiveRecord
 {
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%webpage}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -50,9 +46,7 @@ class Webpage extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

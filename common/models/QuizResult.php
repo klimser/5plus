@@ -30,17 +30,13 @@ class QuizResult extends ActiveRecord
     private $_questionsArray = null;
     private $_answersArray = null;
     
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%quiz_result}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -51,9 +47,7 @@ class QuizResult extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

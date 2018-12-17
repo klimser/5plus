@@ -78,9 +78,7 @@ class LoginFormTest extends DbTestCase
         });
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function fixtures()
     {
         return [

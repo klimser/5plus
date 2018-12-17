@@ -9,9 +9,7 @@ use yii\data\ActiveDataProvider;
  */
 class OrderSearch extends Order
 {
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [

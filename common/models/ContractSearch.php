@@ -12,9 +12,7 @@ class ContractSearch extends Contract
 {
     public $amountFrom;
     public $amountTo;
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -24,9 +22,7 @@ class ContractSearch extends Contract
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function scenarios()
     {
         // bypass scenarios() implementation in the parent class

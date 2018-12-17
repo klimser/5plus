@@ -26,17 +26,13 @@ class Action extends ActiveRecord
 {
     use Inserted;
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%action}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -49,9 +45,7 @@ class Action extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

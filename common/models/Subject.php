@@ -47,17 +47,13 @@ class Subject extends ActiveRecord
     /** @var UploadedFile */
     public $imageFile;
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%module_subject}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -78,9 +74,7 @@ class Subject extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

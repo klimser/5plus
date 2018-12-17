@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use backend\controllers\traits\Sortable;
 use common\models\Module;
 use common\models\Question;
 use common\models\Quiz;
@@ -17,6 +18,8 @@ use yii\web\Response;
  */
 class QuizController extends AdminController
 {
+    use Sortable;
+
     protected $accessRule = 'manageQuiz';
 
     /**
@@ -116,18 +119,13 @@ class QuizController extends AdminController
             } elseif (!$webpage->save()) {
                 $webpage->moveErrorsToFlash();
             } else {
-                $sortOrder = Yii::$app->request->post('sorted-list');
-                if ($sortOrder) {
-                    $data = explode(',', $sortOrder);
-                    for ($i = 1; $i <= count($data); $i++) {
-                        $quizId = str_replace($prefix, '', $data[$i - 1]);
-                        $quiz = $this->findModel($quizId);
-                        $quiz->page_order = $i;
-                        $quiz->save(true, ['page_order']);
-                    }
+                try {
+                    $this->saveSortedData($prefix);
+                    Yii::$app->session->addFlash('success', 'Изменения сохранены');
+                    return $this->redirect(['page']);
+                } catch (\Throwable $exception) {
+                    \Yii::$app->session->addFlash('error', $exception->getMessage());
                 }
-                Yii::$app->session->addFlash('success', 'Изменения сохранены');
-                return $this->redirect(['page']);
             }
         }
 

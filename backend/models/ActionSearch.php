@@ -10,9 +10,7 @@ use yii\data\ActiveDataProvider;
  */
 class ActionSearch extends Action
 {
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -22,9 +20,7 @@ class ActionSearch extends Action
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function scenarios()
     {
         // bypass scenarios() implementation in the parent class

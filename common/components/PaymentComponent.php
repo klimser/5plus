@@ -33,6 +33,7 @@ class PaymentComponent
             $paymentLink->group_id = $group->id;
             $paymentLink->hash_key = $hash;
             if ($paymentLink->save()) return $paymentLink;
+            $str .= rand(0, 9);
             $i++;
             if ($i > 10) {
                 $len++;

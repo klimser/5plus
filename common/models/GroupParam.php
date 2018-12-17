@@ -27,17 +27,13 @@ use common\components\extended\ActiveRecord;
  */
 class GroupParam extends ActiveRecord
 {
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%group_param}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -52,9 +48,7 @@ class GroupParam extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use backend\controllers\traits\Sortable;
 use common\models\Module;
 use common\models\SubjectCategory;
 use common\models\Webpage;
@@ -14,6 +15,8 @@ use yii\web\NotFoundHttpException;
  */
 class SubjectCategoryController extends AdminController
 {
+    use Sortable;
+
     protected $accessRule = 'manageSubjectCategories';
 
     /**
@@ -101,6 +104,25 @@ class SubjectCategoryController extends AdminController
         return $this->render('update', [
             'subjectCategory' => $subjectCategory,
             'module' => Module::getModuleByControllerAndAction('subject-category', 'view'),
+        ]);
+    }
+
+    public function actionPage()
+    {
+        $prefix = 'category_';
+        if (Yii::$app->request->isPost) {
+            try {
+                $this->saveSortedData($prefix);
+                Yii::$app->session->addFlash('success', 'Изменения сохранены');
+                return $this->redirect(['page']);
+            } catch (\Throwable $exception) {
+                \Yii::$app->session->addFlash('error', $exception->getMessage());
+            }
+        }
+
+        return $this->render('page', [
+            'categories' => SubjectCategory::find()->orderBy('page_order')->all(),
+            'prefix' => $prefix,
         ]);
     }
 

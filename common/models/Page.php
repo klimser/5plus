@@ -19,17 +19,13 @@ use \common\components\extended\ActiveRecord;
 class Page extends ActiveRecord
 {
     use Inserted;
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%module_page}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -42,9 +38,7 @@ class Page extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

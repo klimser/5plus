@@ -10,9 +10,7 @@ use yii\data\ActiveDataProvider;
  */
 class GroupSearch extends Group
 {
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -21,9 +19,7 @@ class GroupSearch extends Group
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function scenarios()
     {
         // bypass scenarios() implementation in the parent class

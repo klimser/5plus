@@ -28,9 +28,7 @@ class HelpCommand extends UserCommand
      * @var string
      */
     protected $version = '1.3.0';
-    /**
-     * @inheritdoc
-     */
+
     public function execute()
     {
         $message     = $this->getMessage();

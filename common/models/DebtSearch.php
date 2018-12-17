@@ -13,9 +13,7 @@ class DebtSearch extends Debt
     public $amountFrom;
     public $amountTo;
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -24,9 +22,7 @@ class DebtSearch extends Debt
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function scenarios()
     {
         // bypass scenarios() implementation in the parent class

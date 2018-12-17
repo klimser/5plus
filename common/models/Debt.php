@@ -19,17 +19,13 @@ use common\models\traits\Inserted;
 class Debt extends ActiveRecord
 {
     use Inserted;
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%debt}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -42,9 +38,7 @@ class Debt extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

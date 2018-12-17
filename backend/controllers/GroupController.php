@@ -32,7 +32,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3430);
+//        $user = User::findOne(3097);
 //        /** @var GroupPupil[] $groupPupils */
 //        $groupPupils = GroupPupil::find()->andWhere(['user_id' => $user->id])->all();
 //        foreach ($groupPupils as $groupPupil) {

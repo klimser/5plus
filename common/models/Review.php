@@ -43,9 +43,7 @@ class Review extends ActiveRecord
         return $scenarios;
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%module_review}}';
@@ -53,9 +51,7 @@ class Review extends ActiveRecord
 
     public $reCaptcha;
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -69,9 +65,7 @@ class Review extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

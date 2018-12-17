@@ -27,17 +27,13 @@ class Question extends ActiveRecord
     /** @var  Question[] */
     private $_wrongAnswers;
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%question}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -49,9 +45,7 @@ class Question extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

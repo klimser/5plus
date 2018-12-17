@@ -14,17 +14,13 @@ use common\components\extended\ActiveRecord;
  */
 class WidgetHtml extends ActiveRecord
 {
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%widget_html}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -37,9 +33,7 @@ class WidgetHtml extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

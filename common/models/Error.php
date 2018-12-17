@@ -16,17 +16,13 @@ class Error extends ActiveRecord
 {
     use Inserted;
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%errors}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -37,9 +33,7 @@ class Error extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

@@ -7,9 +7,10 @@ use common\components\extended\ActiveRecord;
 /**
  * This is the model class for table "{{%module_subject_category}}".
  *
- * @property int $id
- * @property string $name
- * @property int $webpage_id
+ * @property int $id id
+ * @property string $name Название группы
+ * @property int $webpage_id ID страницы
+ * @property int $page_order Порядок отображения
  *
  * @property Subject[] $subjects
  * @property Subject[] $activeSubjects
@@ -17,17 +18,11 @@ use common\components\extended\ActiveRecord;
  */
 class SubjectCategory extends ActiveRecord
 {
-    /**
-     * @inheritdoc
-     */
     public static function tableName()
     {
         return '{{%module_subject_category}}';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function rules()
     {
         return [
@@ -36,14 +31,13 @@ class SubjectCategory extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => 'Название',
+            'id' => 'id',
+            'name' => 'Название группы',
+            'webpage_id' => 'ID страницы',
+            'page_order' => 'Порядок отображения',
         ];
     }
 

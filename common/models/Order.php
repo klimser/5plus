@@ -51,9 +51,7 @@ class Order extends ActiveRecord
         return $scenarios;
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%module_order}}';
@@ -61,9 +59,7 @@ class Order extends ActiveRecord
 
     public $reCaptcha;
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -81,9 +77,7 @@ class Order extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         $labels = [

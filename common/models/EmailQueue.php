@@ -26,17 +26,13 @@ class EmailQueue extends ActiveRecord
     const STATUS_SENT = 2;
     const STATUS_ERROR = 3;
     
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%email_queue}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -49,9 +45,7 @@ class EmailQueue extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

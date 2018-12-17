@@ -18,17 +18,13 @@ use common\models\Teacher;
  */
 class TeacherSubjectLink extends ActiveRecord
 {
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%teacher_subject}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -39,9 +35,7 @@ class TeacherSubjectLink extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

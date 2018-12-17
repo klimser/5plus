@@ -49,9 +49,7 @@ class Feedback extends ActiveRecord
         return $scenarios;
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%module_feedback}}';
@@ -59,9 +57,7 @@ class Feedback extends ActiveRecord
 
     public $reCaptcha;
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -75,9 +71,7 @@ class Feedback extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

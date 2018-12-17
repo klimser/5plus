@@ -48,17 +48,13 @@ class HighSchool extends ActiveRecord
     /** @var yii\web\UploadedFile */
     public $photoFile;
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%high_school}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -73,9 +69,7 @@ class HighSchool extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

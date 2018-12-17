@@ -47,9 +47,7 @@ class FixtureHelper extends Module
         $this->unloadFixtures();
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function globalFixtures()
     {
         return [
@@ -57,9 +55,7 @@ class FixtureHelper extends Module
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function fixtures()
     {
         return [

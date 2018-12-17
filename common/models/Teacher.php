@@ -62,17 +62,13 @@ class Teacher extends ActiveRecord
     /** @var yii\web\UploadedFile */
     public $photoFile;
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%teacher}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -89,9 +85,7 @@ class Teacher extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

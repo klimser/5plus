@@ -12,9 +12,7 @@ class PaymentSearch extends Payment
 {
     public $amountFrom;
     public $amountTo;
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -23,9 +21,7 @@ class PaymentSearch extends Payment
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function scenarios()
     {
         // bypass scenarios() implementation in the parent class

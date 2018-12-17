@@ -10,9 +10,7 @@ use yii\data\ActiveDataProvider;
  */
 class ReviewSearch extends Review
 {
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -20,9 +18,7 @@ class ReviewSearch extends Review
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function scenarios()
     {
         // bypass scenarios() implementation in the parent class

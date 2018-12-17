@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use backend\controllers\traits\Sortable;
 use common\models\HighSchool;
 use common\models\Module;
 use common\models\Webpage;
@@ -14,6 +15,8 @@ use yii\web\NotFoundHttpException;
  */
 class LyceumController extends AdminController
 {
+    use Sortable;
+
     protected $accessRule = 'manageHighSchools';
 
     /**
@@ -155,18 +158,13 @@ class LyceumController extends AdminController
             } elseif (!$webpage->save()) {
                 $webpage->moveErrorsToFlash();
             } else {
-                $sortOrder = Yii::$app->request->post('sorted-list');
-                if ($sortOrder) {
-                    $data = explode(',', $sortOrder);
-                    for ($i = 1; $i <= count($data); $i++) {
-                        $highSchoolId = str_replace($prefix, '', $data[$i - 1]);
-                        $highSchool = $this->findModel($highSchoolId);
-                        $highSchool->page_order = $i;
-                        $highSchool->save(true, ['page_order']);
-                    }
+                try {
+                    $this->saveSortedData($prefix);
+                    Yii::$app->session->addFlash('success', 'Изменения сохранены');
+                    return $this->redirect(['page']);
+                } catch (\Throwable $exception) {
+                    \Yii::$app->session->addFlash('error', $exception->getMessage());
                 }
-                Yii::$app->session->addFlash('success', 'Изменения сохранены');
-                return $this->redirect(['page']);
             }
         }
 

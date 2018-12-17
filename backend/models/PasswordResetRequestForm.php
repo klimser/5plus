@@ -11,9 +11,7 @@ class PasswordResetRequestForm extends Model
 {
     public $email;
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [

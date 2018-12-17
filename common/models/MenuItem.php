@@ -24,17 +24,13 @@ use common\components\extended\ActiveRecord;
  */
 class MenuItem extends ActiveRecord
 {
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%widget_menu_item}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -49,9 +45,7 @@ class MenuItem extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

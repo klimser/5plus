@@ -27,17 +27,13 @@ use common\components\extended\ActiveRecord;
  */
 class GroupPupil extends ActiveRecord
 {
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%group_pupil}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -51,9 +47,7 @@ class GroupPupil extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

@@ -19,17 +19,13 @@ class Menu extends ActiveRecord
     const MAIN_MENU_ID = 1;
     const BOTTOM_MENU_ID = 3;
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%widget_menu}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -40,9 +36,7 @@ class Menu extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

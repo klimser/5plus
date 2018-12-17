@@ -26,17 +26,13 @@ class EventMember extends ActiveRecord
     const STATUS_ATTEND = 1;
     const STATUS_MISS = 2;
 
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%event_member}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -48,9 +44,7 @@ class EventMember extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [

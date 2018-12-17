@@ -21,17 +21,13 @@ class Quiz extends ActiveRecord
     public static $testTime = 20;
     public static $testQuestionCount = 10;
     
-    /**
-     * @inheritdoc
-     */
+
     public static function tableName()
     {
         return '{{%quiz}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function rules()
     {
         return [
@@ -42,9 +38,7 @@ class Quiz extends ActiveRecord
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+
     public function attributeLabels()
     {
         return [
