@@ -369,9 +369,8 @@ class MoneyComponent extends Component
                                 $groupPupilMap[$member->group_pupil_id]['entity']->date_charge_till = $event->event_date;
                                 $groupPupilMap[$member->group_pupil_id]['entity']->paid_lessons = 0;
                                 $groupPupilMap[$member->group_pupil_id]['state'] = true;
-                            } else {
-                                $groupPupilMap[$member->group_pupil_id]['entity']->paid_lessons--;
                             }
+                            $groupPupilMap[$member->group_pupil_id]['entity']->paid_lessons--;
                         }
                     }
                 }

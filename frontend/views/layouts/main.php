@@ -49,13 +49,13 @@ $this->render('/grunt-assets');
                         <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo.svg" alt="Учебный центр &quot;Пять с плюсом&quot;" title="Учебный центр &quot;Пять с плюсом&quot;">
                     </a>
                 </div>
-                <div class="phone-block col-xs-7 col-sm-3 col-md-5 col-lg-6">
+                <div class="phone-block col-xs-7 col-sm-3 col-md-5 col-lg-5">
                     <?= WidgetHtml::getByName('phones'); ?>
                 </div>
                 <div class="email-block col-xs-7 col-sm-3 col-md-2 col-lg-2">
                     <?= WidgetHtml::getByName('email'); ?>
                 </div>
-                <div class="address-block col-xs-7 col-sm-3 col-md-2 col-lg-2">
+                <div class="address-block col-xs-7 col-sm-3 col-md-2 col-lg-3">
                     <?= WidgetHtml::getByName('address'); ?>
                 </div>
                 <div class="col-xs-12 col-sm-9 col-lg-10">

@@ -191,7 +191,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getActiveGroupPupils()
     {
-        return $this->hasMany(GroupPupil::class, ['user_id' => 'id'])->andWhere(['active' => GroupPupil::STATUS_ACTIVE]);
+        return $this->hasMany(GroupPupil::class, ['user_id' => 'id'])->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE]);
     }
 
     /**

@@ -118,6 +118,7 @@ $this->title = 'Панель управления';
                 <?php endif; ?>
 
                 <?php if ($admin->can('cashier')): ?>
+                    <a class="list-group-item" href="<?= Url::to(['contract/index']); ?>"><span class="fas fa-file-invoice-dollar"></span> Договоры</a>
                     <a class="list-group-item" href="<?= Url::to(['money/payment']); ?>"><span class="fas fa-dollar-sign"></span> Платежи</a>
                     <a class="list-group-item" href="<?= Url::to(['money/debt']); ?>"><span class="fas fa-dollar-sign"></span> Долги</a>
                     <a class="list-group-item" href="<?= Url::to(['money/actions']); ?>"><span class="fas fa-clipboard-list"></span> Действия</a>

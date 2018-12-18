@@ -45,16 +45,22 @@ $this->render('/grunt-assets');
                 'class' => 'navbar-default',
             ],
         ]);
-        $menuItems = [
-            [
-                'label' => Yii::$app->user->identity->name,
-                'url' => ['user/update'],
-            ],
-            [
-                'label' => '<span class="fas fa-sign-out-alt"></span>',
+        $menuItems = [];
+        if (\Yii::$app->user->identity->role == \common\models\User::ROLE_ROOT) {
+            $menuItems[] = [
+                'label' => '<span class="fas fa-broom"></span>',
                 'encode' => false,
-                'url' => ['site/logout'],
-            ],
+                'url' => ['site/clear-cache'],
+            ];
+        }
+        $menuItems[] = [
+            'label' => Yii::$app->user->identity->name,
+            'url' => ['user/update'],
+        ];
+        $menuItems[] = [
+            'label' => '<span class="fas fa-sign-out-alt"></span>',
+            'encode' => false,
+            'url' => ['site/logout'],
         ];
         echo Nav::widget([
             'options' => ['class' => 'navbar-nav navbar-right'],
