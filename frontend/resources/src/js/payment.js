@@ -85,7 +85,7 @@ var Payment = {
                     Main.throwFlashMessage('#message_board', "Ошибка: " + data.message, 'alert-danger');
                     Payment.unlockPayButton();
                 } else {
-                    location.assign('https://test.checkout.pays.uz/invoice/get?storeId=' + data.store_id + '&transactionId=' + data.payment_id + '&redirectLink=' + data.redirect_link);
+                    location.assign(data.payment_url + '/invoice/get?storeId=' + data.store_id + '&transactionId=' + data.payment_id + '&redirectLink=' + data.redirect_link);
                 }
             },
             error: function(xhr, textStatus, errorThrown) {

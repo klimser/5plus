@@ -7,16 +7,19 @@ use yii\base\BaseObject;
 /**
  * Class PaymoApi
  * @package common\components
- * @property string $storeId
- * @property string $apiKey
+ * @property string $paymentUrl
+ * @property int|string $storeId
+ * @property int|string $apiKey
  */
 class PaymoApi extends BaseObject
 {
     const API_URL = 'https://api.pays.uz:8243';
 
     /** @var string */
+    protected $paymentUrl;
+    /** @var int|string */
     protected $storeId;
-    /** @var string */
+    /** @var int|string */
     protected $apiKey;
     /** @var string */
     protected $login;
@@ -25,6 +28,21 @@ class PaymoApi extends BaseObject
     /** @var string */
     private $token;
 
+    /**
+     * @return string
+     */
+    public function getPaymentUrl(): string
+    {
+        return $this->paymentUrl;
+    }
+
+    /**
+     * @param string $paymentUrl
+     */
+    public function setPaymentUrl(string $paymentUrl)
+    {
+        $this->paymentUrl = $paymentUrl;
+    }
     /**
      * @param mixed $storeId
      */

@@ -10,14 +10,17 @@ use yii\db\ActiveRecord;
  *
  * @property int $id ID
  * @property int $user_id ID студента
+ * @property int $group_id Группа
  * @property int $template_id ID шаблона
- * @property array|null $params Параметры для сообщения
+ * @property array|null $parameters Параметры для сообщения
  * @property int $status Статус отправки сообщения
  * @property string $created_at Дата создания
  * @property string $sent_at Дата успешной отправки
  * @property int $attempts Попыток отправки
+ * @property \DateTime|null $sentDate
  *
  * @property User $user
+ * @property Group $group
  */
 class Notify extends ActiveRecord
 {
@@ -27,6 +30,11 @@ class Notify extends ActiveRecord
     const STATUS_SENDING = 1;
     const STATUS_SENT = 2;
     const STATUS_ERROR = 3;
+
+    const TEMPLATE_PUPIL_DEBT = 1;
+    const TEMPLATE_PARENT_DEBT = 2;
+    const TEMPLATE_PUPIL_LOW = 3;
+    const TEMPLATE_PARENT_LOW = 4;
 
     /**
      * {@inheritdoc}
@@ -42,13 +50,14 @@ class Notify extends ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'template_id', 'params', 'created_at'], 'required'],
-            [['user_id', 'template_id', 'status', 'attempts'], 'integer'],
+            [['user_id', 'template_id', 'params'], 'required'],
+            [['user_id', 'group_id' , 'template_id', 'status', 'attempts'], 'integer'],
             [['params'], 'string'],
             ['status', 'in', 'range' => [self::STATUS_NEW, self::STATUS_SENT, self::STATUS_ERROR]],
             ['status', 'default', 'value' => self::STATUS_NEW],
             [['created_at', 'sent_at'], 'safe'],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
+            [['group_id'], 'exist', 'targetRelation' => 'group'],
         ];
     }
 
@@ -60,6 +69,7 @@ class Notify extends ActiveRecord
         return [
             'id' => 'ID',
             'user_id' => 'ID студента',
+            'group_id' => 'Группа',
             'template_id' => 'ID шаблона',
             'params' => 'Параметры для сообщения',
             'status' => 'Статус отправки сообщения',
@@ -78,9 +88,17 @@ class Notify extends ActiveRecord
     }
 
     /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getGroup()
+    {
+        return $this->hasOne(Group::class, ['id' => 'group_id']);
+    }
+
+    /**
      * @return array|null
      */
-    public function getParams(): ?array
+    public function getParameters(): ?array
     {
         return $this->getAttribute('params') ? json_decode($this->getAttribute('params')) : null;
     }
@@ -88,8 +106,16 @@ class Notify extends ActiveRecord
     /**
      * @param array|null|string $params
      */
-    public function setParams(?array $params)
+    public function setParameters(?array $params)
     {
         $this->setAttribute('params', $params ? json_encode($params) : null);
+    }
+
+    /**
+     * @return \DateTime|null
+     */
+    public function getSentDate(): ?\DateTime
+    {
+        return empty($this->sent_at) ? null : new \DateTime($this->sent_at);
     }
 }

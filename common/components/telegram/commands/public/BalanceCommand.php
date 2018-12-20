@@ -2,6 +2,7 @@
 
 namespace Longman\TelegramBot\Commands\UserCommands;
 
+use common\components\helpers\WordForm;
 use common\components\PaymentComponent;
 use common\components\telegram\Request;
 use common\models\User;
@@ -58,14 +59,6 @@ class BalanceCommand extends UserCommand
             }
             return $lineMap;
         };
-        $getWordForm = function(int $num): string {
-            $teen = $num % 100;
-            if ($teen < 10 || $teen > 20) {
-                if ($num % 10 == 1) return 'занятие';
-                if (in_array($num % 10, [2, 3, 4])) return 'занятия';
-            }
-            return 'занятий';
-        };
 
         $user = User::findOne(['tg_chat_id' => $chatId]);
         if (!$user)  {
@@ -95,9 +88,9 @@ class BalanceCommand extends UserCommand
                     if (!$single) $text .= "*{$result['name']}*\n";
                     foreach ($result['lines'] as $groupId => $line) {
                         $text .= $line['name'] . ' - '
-                            . ($line['paid_lessons'] > 0 ? 'осталось' : 'долг') . ' '
+                            . ($line['paid_lessons'] >= 0 ? 'осталось' : 'долг') . ' '
                             . abs($line['paid_lessons']) . ' '
-                            . $getWordForm(abs($line['paid_lessons']));
+                            . WordForm::getLessonsForm(abs($line['paid_lessons']));
                         if ($line['paid_lessons'] <= 1) {
                             $text .= ' [Оплатить онлайн](' . PaymentComponent::getPaymentLink($result['id'], $groupId)->url . ')';
                         }

@@ -106,7 +106,7 @@ class PaymentController extends Controller
         try {
             $paymoId = \Yii::$app->paymoApi->payCreate($contract->amount * 100, $contract->number, [
                 'студент' => $pupil->name,
-                'группа' => $group->name,
+                'группа' => $group->legal_name,
                 'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price))),
             ]);
             $contract->external_id = $paymoId;
@@ -117,9 +117,10 @@ class PaymentController extends Controller
             }
             $transaction->commit();
             return self::getJsonOkResult([
+                'payment_url' => \Yii::$app->paymoApi->paymentUrl,
                 'payment_id' => $contract->external_id,
                 'store_id' => \Yii::$app->paymoApi->storeId,
-                'redirect_link' => urlencode(Url::to(['payment/complete'], true)),
+                'redirect_link' => urlencode(Url::to(['payment/complete', 'payment' => $contract->id], true)),
             ]);
         } catch (PaymoApiException $exception) {
             $transaction->rollBack();
@@ -130,6 +131,17 @@ class PaymentController extends Controller
 
     public function actionComplete()
     {
-        return $this->render('complete');
+        $params = [];
+        if ($contractId = \Yii::$app->request->get('payment')) {
+            $contract = Contract::findOne($contractId);
+            if ($contract) {
+                $params['success'] = $contract->status == Contract::STATUS_PAID;
+                $params['amount'] = $contract->amount;
+                $params['group'] = $contract->group->legal_name;
+                $params['discount'] = $contract->discount == Contract::STATUS_ACTIVE;
+                $params['lessons'] = intval(round($contract->amount / ($contract->discount ? $contract->group->lesson_price_discount : $contract->group->lesson_price)));
+            }
+        }
+        return $this->render('complete', $params);
     }
 }

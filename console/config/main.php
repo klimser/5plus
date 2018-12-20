@@ -15,14 +15,14 @@ return [
         'log' => [
             'targets' => [
                 [
-                    'class' => 'yii\log\FileTarget',
+                    'class' => \yii\log\FileTarget::class,
                     'levels' => ['error', 'warning'],
                 ],
             ],
         ],
         'user' => [
-            'class' => 'console\components\User',
-            'identityClass' => 'common\models\User',
+            'class' => \console\components\User::class,
+            'identityClass' => \common\models\User::class,
         ],
         'urlManager' => [
             'scriptUrl' => 'https://5plus.uz',
@@ -31,7 +31,7 @@ return [
             'showScriptName' => false,
             'enableStrictParsing' => false,
             'normalizer' => [
-                'class' => 'yii\web\UrlNormalizer',
+                'class' => \yii\web\UrlNormalizer::class,
             ],
             'rules' => [
                 'pay/<key:[a-z0-9]+>' => 'payment/link',

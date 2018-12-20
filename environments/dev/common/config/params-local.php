@@ -14,10 +14,11 @@ return [
     'reCaptcha-siteKey' => '-',
     'reCaptcha-secret' => '-',
 
-    'paymo-storeId' => '',
+    'paymo-url' => 'https://test.checkout.pays.uz',
+    'paymo-storeId' => '20',
     'paymo-key' => '',
-    'paymo-login' => '',
-    'paymo-password' => '',
+    'paymo-login' => 'qfeLfE7chea_toM129_0uGDyqJ4a',
+    'paymo-password' => 'dW0hwo8x0e8Y9N8oW1vEbClG5Dca',
 
     'paygram-login' => '',
     'paygram-password' => '',

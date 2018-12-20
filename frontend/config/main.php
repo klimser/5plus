@@ -13,13 +13,13 @@ return [
     'controllerNamespace' => 'frontend\controllers',
     'components' => [
         'view' => [
-            'class' => 'frontend\components\extended\View',
+            'class' => \frontend\components\extended\View::class,
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [
                 [
-                    'class' => 'yii\log\FileTarget',
+                    'class' => \yii\log\FileTarget::class,
                     'levels' => ['error', 'warning'],
                 ],
             ],
@@ -33,10 +33,10 @@ return [
             'enableStrictParsing' => false,
             //'suffix' => '.html',
             'normalizer' => [
-                'class' => 'yii\web\UrlNormalizer',
+                'class' => \yii\web\UrlNormalizer::class,
             ],
             'rules' => [
-                ['class' => 'frontend\components\WebpageUrlRule'],
+                ['class' => \frontend\components\WebpageUrlRule::class],
                 'pay/<key:[a-z0-9]+>' => 'payment/link',
             ],
         ],

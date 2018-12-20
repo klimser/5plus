@@ -78,6 +78,7 @@ return [
         ],
         'paymoApi' => [
             'class' => \common\components\paymo\PaymoApi::class,
+            'paymentUrl' => $params['paymo-url'],
             'storeId' => $params['paymo-storeId'],
             'apiKey' => $params['paymo-key'],
             'login' => $params['paymo-login'],
