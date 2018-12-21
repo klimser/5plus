@@ -5,7 +5,6 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 use common\components\telegram\Request;
 use common\models\User;
 use Longman\TelegramBot\Commands\UserCommand;
-use Longman\TelegramBot\Entities\Keyboard;
 
 /**
  * Unsubscribe command

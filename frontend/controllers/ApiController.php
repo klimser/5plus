@@ -32,6 +32,21 @@ class ApiController extends Controller
         }
     }
 
+    public function actionTgPublicBot()
+    {
+        \Yii::$app->db->open();
+        try {
+            /** @var Telegram $telegram */
+            $telegram = \Yii::$app->telegramPublic;
+
+            if (!$telegram->checkAccess(\Yii::$app->request)) throw new HttpException(403, 'Access denied');
+
+            $telegram->telegram->handle();
+        } catch (TelegramException $e) {
+            TelegramLog::error($e);
+        }
+    }
+
     public function actionPaymoComplete()
     {
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;

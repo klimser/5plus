@@ -3,7 +3,10 @@
 namespace backend\controllers;
 
 use backend\components\EventComponent;
+use common\components\helpers\WordForm;
 use common\components\MoneyComponent;
+use common\components\PaymentComponent;
+use common\components\Telegram;
 use common\models\Group;
 use common\models\GroupParam;
 use common\models\GroupPupil;
@@ -15,6 +18,8 @@ use common\components\GroupComponent;
 use common\components\helpers\Money;
 use common\models\Subject;
 use common\models\Teacher;
+use Longman\TelegramBot\Commands\Command;
+use Longman\TelegramBot\Request;
 use yii;
 use yii\web\NotFoundHttpException;
 use yii\web\ForbiddenHttpException;
@@ -32,8 +37,9 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3097);
+//        $user = User::findOne(3133);
 //        foreach ($user->groupPupils as $groupPupil) {
+//            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
 //            MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
 //            GroupComponent::calculateTeacherSalary($groupPupil->group);

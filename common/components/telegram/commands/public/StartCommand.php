@@ -4,7 +4,6 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use common\components\telegram\Request;
 use Longman\TelegramBot\Commands\SystemCommand;
-use Longman\TelegramBot\Entities\Keyboard;
 
 /**
  * Start command

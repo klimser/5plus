@@ -42,12 +42,9 @@ class BalanceCommand extends UserCommand
     public function execute()
     {
         $chatId = $this->getMessage()->getChat()->getId();
+        $data = ['chat_id' => $chatId];
 
-        $data = [
-            'chat_id' => $chatId,
-        ];
-
-        $getLineMap = function(User $pupil): array {
+        $getLineMap = function (User $pupil): array {
             $lineMap = [];
             foreach ($pupil->groupPupils as $groupPupil) {
                 if ($groupPupil->active || $groupPupil->paid_lessons < 0) {
@@ -61,7 +58,7 @@ class BalanceCommand extends UserCommand
         };
 
         $user = User::findOne(['tg_chat_id' => $chatId]);
-        if (!$user)  {
+        if (!$user) {
             $data = array_merge($data, SubscribeCommand::getSubscribeRequestData());
         } else {
             $resultList = [];
