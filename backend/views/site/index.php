@@ -126,6 +126,7 @@ $this->title = 'Панель управления';
 
                 <?php if ($admin->can('accountant')): ?>
                     <a class="list-group-item" href="<?= Url::to(['money/salary']); ?>"><span class="fas fa-money-bill-wave"></span> Зарплата</a>
+                    <a class="list-group-item" href="<?= Url::to(['report/group-movement']); ?>"><span class="fas fa-walking"></span> Отчет движения</a>
                 <?php endif; ?>
 
                 <?php if ($admin->can('content')): ?>

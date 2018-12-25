@@ -82,14 +82,14 @@ class BalanceCommand extends UserCommand
             $text = '';
             foreach ($resultList as $result) {
                 if (!empty($result['lines'])) {
-                    if (!$single) $text .= "*{$result['name']}*\n";
+                    if (!$single) $text .= '*' . $this->getMessage()->escapeMarkdown($result['name']) . "*\n";
                     foreach ($result['lines'] as $groupId => $line) {
-                        $text .= $line['name'] . ' - '
+                        $text .= $this->getMessage()->escapeMarkdown($line['name']) . ' - '
                             . ($line['paid_lessons'] >= 0 ? 'осталось' : 'долг') . ' '
                             . abs($line['paid_lessons']) . ' '
                             . WordForm::getLessonsForm(abs($line['paid_lessons']));
                         if ($line['paid_lessons'] <= 1) {
-                            $text .= ' [Оплатить онлайн](' . PaymentComponent::getPaymentLink($result['id'], $groupId)->url . ')';
+                            $text .= ' [Оплатить онлайн](' . $this->getMessage()->escapeMarkdown(PaymentComponent::getPaymentLink($result['id'], $groupId)->url) . ')';
                         }
                         $text .= "\n";
                     }

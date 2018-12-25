@@ -74,6 +74,7 @@ return [
             'manageSubjects',
             'viewGroups',
             'manageGroups',
+            'reportGroupMovement',
         ],
     ],
     'content' => [
@@ -151,6 +152,10 @@ return [
     'manageEvents' => [
         'type' => 2,
         'description' => 'Manage events',
+    ],
+    'reportGroupMovement' => [
+        'type' => 2,
+        'description' => 'Get group pupils movement report',
     ],
 
     /* SUPPORT */
