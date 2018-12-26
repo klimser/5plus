@@ -43,6 +43,7 @@ return [
             'manageUsers',
             'editUser',
             'moneyManagement',
+            'reportDebt',
         ],
     ],
     'scheduler' => [
@@ -50,6 +51,7 @@ return [
         'children' => [
             'manageSchedule',
             'viewGroups',
+            'reportDebt',
         ],
     ],
     'accountant' => [
@@ -156,6 +158,10 @@ return [
     'reportGroupMovement' => [
         'type' => 2,
         'description' => 'Get group pupils movement report',
+    ],
+    'reportDebt' => [
+        'type' => 2,
+        'description' => 'Get group pupils debt report',
     ],
 
     /* SUPPORT */

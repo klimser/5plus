@@ -279,8 +279,8 @@ class MoneyComponent extends Component
      */
     public static function cancelPayment(Payment $payment, bool $logEvent = true)
     {
-        self::addPupilMoney($payment->user, $payment->amount * (-1), $payment->group);
         if (!$payment->delete()) throw new \Exception('Error deleting payment from DB: ' . $payment->id);
+        self::addPupilMoney($payment->user, $payment->amount * (-1), $payment->group);
         $paymentComment = 'Отмена списания за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->group->name . '"';
         if ($logEvent && !\Yii::$app->actionLogger->log(
             $payment->user,
@@ -334,6 +334,7 @@ class MoneyComponent extends Component
         $groupPupilMap = [];
         foreach ($groupPupils as $groupPupil) {
             if (!$startDate || $startDate > $groupPupil->startDateObject) $startDate = $groupPupil->startDateObject;
+            $groupPupil->paid_lessons = 0;
             $groupPupilMap[$groupPupil->id] = ['entity' => $groupPupil, 'state' => false];
         }
         $groupPupilIds = array_keys($groupPupilMap);
@@ -359,15 +360,13 @@ class MoneyComponent extends Component
         foreach ($events as $event) {
             foreach ($event->members as $member) {
                 foreach ($member->payments as $payment) {
-                    $toCharge = $payment->amount * (-1);
                     if ($payment->discount && $moneyDiscount > 0) {
-                        $moneyDiscount -= $toCharge;
+                        $moneyDiscount += $payment->amount;
                     } else {
-                        $money -= $toCharge;
+                        $money += $payment->amount;
                         if ($money < 0) {
                             if (!$groupPupilMap[$member->group_pupil_id]['state']) {
                                 $groupPupilMap[$member->group_pupil_id]['entity']->date_charge_till = $event->event_date;
-                                $groupPupilMap[$member->group_pupil_id]['entity']->paid_lessons = 0;
                                 $groupPupilMap[$member->group_pupil_id]['state'] = true;
                             }
                             $groupPupilMap[$member->group_pupil_id]['entity']->paid_lessons--;

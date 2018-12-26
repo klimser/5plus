@@ -129,6 +129,10 @@ $this->title = 'Панель управления';
                     <a class="list-group-item" href="<?= Url::to(['report/group-movement']); ?>"><span class="fas fa-walking"></span> Отчет движения</a>
                 <?php endif; ?>
 
+                <?php if ($admin->can('reportDebt')): ?>
+                    <a class="list-group-item" href="<?= Url::to(['report/debt']); ?>"><span class="fas fa-info"></span> Отчет по должникам</a>
+                <?php endif; ?>
+
                 <?php if ($admin->can('content')): ?>
                     <a class="list-group-item" href="<?= Url::to(['page/index']); ?>"><span class="fas fa-file"></span> Страницы</a>
                     <a class="list-group-item" href="<?= Url::to(['menu/index']); ?>"><span class="fas fa-bars"></span> Меню</a>
