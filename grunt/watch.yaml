@@ -14,8 +14,8 @@ uglify:
     - "backend/resources/src/js/*.js"
     - "grunt/uglify.yaml"
   tasks:
-    - uglify:vendors_front
-    - uglify:vendors_back
+    - babel:main_front
+    - babel:main_back
     - uglify:main_front
     - uglify:main_back
     - assets_versioning:dev_front

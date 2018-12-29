@@ -3,30 +3,7 @@
 /* @var $this yii\web\View */
 ?>
 
-<style>
-    @page {
-        size: portrait;
-        margin: 0;
-    }
-    body {
-        font-size: 3mm;
-        max-width: 20cm;
-    }
-    .page {
-        margin: 0.5cm;
-    }
-    table td {
-        text-align: justify;
-    }
-    table td.number, table th.number {
-        width: 1cm;
-        vertical-align: top;
-    }
-    ul {
-        padding-left: 3mm;
-        margin: 1mm;
-    }
-</style>
+<?= $this->render('_styles'); ?>
 <div class="page">
     <?= $this->render('_header', ['contract' => $contract]); ?>
 

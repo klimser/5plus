@@ -192,3 +192,21 @@
 nav.toc.affix {
   top: 0;
 }
+
+.step-line .step:before {
+  content: ' ';
+  position: absolute;
+  border-top: solid 1px @light-grey;
+  width: 100%;
+  top: @half-gutter-width + 2px;
+  z-index: -1;
+}
+.step-line .step-left:before {
+  left: 50%;
+}
+.step-line .step-right:before {
+  right: 50%;
+}
+.step-line button {
+  opacity: 1 !important;
+}

@@ -7,6 +7,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-assets-versioning');
+    grunt.loadNpmTasks('grunt-babel');
 
     require('load-grunt-config')(grunt, {
         configPath: path.join(process.cwd(), 'grunt'),

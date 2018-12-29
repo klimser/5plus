@@ -192,24 +192,23 @@ class Teacher extends ActiveRecord
         $arr[count($arr) - 1] = 'png';
         $fileName = implode('.', $arr);
 
-//        if (class_exists('\Imagick')) {
-//            $base = new \Imagick($imagePath);
-//            $mask = new \Imagick($maskPath);
-//            $over = new \Imagick($framePath);
-//
-//            $base->setImageFormat('png');
-//            $base->setImageColorspace($over->getImageColorspace());
-//            $base->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
-//
-//            $base->compositeImage($mask, \Imagick::COMPOSITE_DSTIN, 0, 0, \Imagick::CHANNEL_ALPHA);
-//            $base->borderImage(new \ImagickPixel('rgba(0, 0, 0, 0)'), ($over->getImageWidth() - $base->getImageWidth()) / 2,($over->getImageHeight() - $base->getImageHeight()) / 2);
-//            $base->compositeImage($over, \Imagick::COMPOSITE_DEFAULT, 0, 0);
-//            $base->writeImage($fileName);
-//
-//            $source = \Tinify\fromFile($fileName);
-//            $source->toFile($fileName);
-//        } else
-            if (extension_loaded('gd') && function_exists('gd_info')) {
+        if (class_exists('\Imagick')) {
+            $base = new \Imagick($imagePath);
+            $mask = new \Imagick($maskPath);
+            $over = new \Imagick($framePath);
+
+            $base->setImageFormat('png');
+            $base->setImageColorspace($over->getImageColorspace());
+            $base->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
+
+            $base->compositeImage($mask, \Imagick::COMPOSITE_DSTIN, 0, 0, \Imagick::CHANNEL_ALPHA);
+            $base->borderImage(new \ImagickPixel('rgba(0, 0, 0, 0)'), ($over->getImageWidth() - $base->getImageWidth()) / 2,($over->getImageHeight() - $base->getImageHeight()) / 2);
+            $base->compositeImage($over, \Imagick::COMPOSITE_DEFAULT, 0, 0);
+            $base->writeImage($fileName);
+
+            $source = \Tinify\fromFile($fileName);
+            $source->toFile($fileName);
+        } elseif (extension_loaded('gd') && function_exists('gd_info')) {
             $baseInfo = getimagesize($imagePath);
             if ($baseInfo[2] == IMAGETYPE_PNG) $base = imagecreatefrompng($imagePath);
             else $base = imagecreatefromjpeg($imagePath);

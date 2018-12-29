@@ -1,4 +1,41 @@
-var Quiz = {
+let QuizList = {
+    data: new Map(),
+    subject: null,
+    quiz: null,
+    setSubject: function(e) {
+        this.subject = $(e).data("subject");
+        this.quiz = null;
+        $("#selected-subject").text(this.data.get(this.subject).name);
+        $("#selected-quiz").text("");
+        $("#step-button-1").removeClass("btn-default btn-primary").addClass("btn-success");
+        $("#step-button-2").prop("disabled", false).removeClass("btn-default btn-success").addClass("btn-primary");
+        $("#step-button-3").prop("disabled", true).removeClass("btn-primary").addClass("btn-default");
+        let quizList = '';
+        this.data.get(this.subject).quizzes.forEach(function(value, key) {
+            quizList += '<a href="#" data-quiz="' + key + '" class="list-group-item" onclick="QuizList.setQuiz(this);">' + value.name  + '</a>';
+        });
+        $("#quiz-list").html(quizList);
+        $("#step-1").addClass("hidden");
+        $("#step-2").removeClass("hidden");
+    },
+    setQuiz: function(e) {
+        this.quiz = $(e).data("quiz");
+        $('input[name="quiz_id"]').val(this.quiz);
+
+        $("#selected-quiz").text(this.data.get(this.subject).quizzes.get(this.quiz).name);
+        $("#question-count").text(this.data.get(this.subject).quizzes.get(this.quiz).questionCount);
+        $("#step-button-1").removeClass("btn-default btn-primary").addClass("btn-success");
+        $("#step-button-2").prop("disabled", false).removeClass("btn-default btn-primary").addClass("btn-success");
+        $("#step-button-3").prop("disabled", false).removeClass("btn-default").addClass("btn-primary");
+        $("#step-2").addClass("hidden");
+        $("#step-3").removeClass("hidden");
+    },
+    jump: function(button) {
+        $(".step-content").addClass("hidden");
+        $("#" + $(button).data("href")).removeClass("hidden");
+    }
+};
+let Quiz = {
     questionList: [],
     answerList: [],
     timeLeft: 0,
@@ -11,8 +48,8 @@ var Quiz = {
     tickTimer: function() {
         if (this.timeLeft > 0) this.timeLeft--;
         else {window.clearInterval(this.timerId); Quiz.complete();}
-        var minutes = Math.floor(this.timeLeft / 60);
-        var seconds = this.timeLeft % 60;
+        let minutes = Math.floor(this.timeLeft / 60);
+        let seconds = this.timeLeft % 60;
         $("#time_left").text(minutes + ':' + (seconds < 10 ? '0' : '') + seconds).removeClass("hidden");
         if (minutes <= 2) $("#time_left").addClass("bg-danger");
     },
@@ -24,20 +61,17 @@ var Quiz = {
                 window.setTimeout(function(){Quiz.loadQuiz();}, 1000);
             }
         } else {
-            var questionListHtml = '';
-            for (var i = 0; i < this.questionList.length; i++) {
+            let questionListHtml = '', currentQuestion = 0;
+            this.questionList.forEach(function(item, key) {
                 questionListHtml += '<a href="#" class="list-group-item';
-                if (this.answerList[i] >= 0) questionListHtml += ' list-group-item-success';
-                questionListHtml += '" data-question="' + i + '" onclick="Quiz.openQuestion(' + i + '); return false;">Вопрос №' + (i + 1) + '</a>';
-            }
+                if (Quiz.answerList[key] >= 0) questionListHtml += ' list-group-item-success';
+                else currentQuestion = key;
+                questionListHtml += '" data-question="' + key + '" onclick="Quiz.openQuestion(' + key + '); return false;">Вопрос №' + (key + 1) + '</a>';
+            });
             $("#question_list").html(questionListHtml);
-            for (i = 0; i < this.questionList.length; i++) {
-                if (this.answerList[i] < 0) {
-                    this.openQuestion(i);
-                    break;
-                }
-            }
-            if (i === this.questionList.length && !this.checkFinished()) this.openQuestion(this.questionList.length - 1);
+            this.openQuestion(currentQuestion);
+
+            if (currentQuestion === this.questionList.length && !this.checkFinished()) this.openQuestion(this.questionList.length - 1);
 
             this.timerId = window.setInterval(function(){Quiz.tickTimer();}, 1000);
         }
@@ -47,12 +81,12 @@ var Quiz = {
         if (questionNumber !== this.currentQuestion || forceReload) {
             this.currentQuestion = questionNumber;
             $("#question_content").html(this.questionList[questionNumber].question);
-            var answersHtml = '';
-            for (var i = 0; i < this.questionList[questionNumber].answers.length; i++) {
-                answersHtml += '<div class="radio"><label><input type="radio" name="answer" value="' + i + '"'
-                    + (this.answerList[questionNumber] === i ? ' checked' : '') + '> '
-                    + this.questionList[questionNumber].answers[i] + '</label></div>';
-            }
+            let answersHtml = '';
+            this.questionList[questionNumber].answers.forEach(function(answer, index) {
+                answersHtml += '<div class="radio"><label><input type="radio" name="answer" value="' + index + '"'
+                    + (Quiz.answerList[questionNumber] === index ? ' checked' : '') + '> '
+                    + answer + '</label></div>';
+            });
             $("#answer_list").html(answersHtml);
         }
         $("#question_content").removeClass("hidden");
@@ -65,13 +99,11 @@ var Quiz = {
         if (this.currentQuestion >= 0 && $("#answer_list").find("input:checked").length) {
             this.answerList[this.currentQuestion] = parseInt($("#answer_list").find("input:checked").val());
             $("#answer_button").attr('disabled', true).text('Сохранение...');
-            var requestData = {answers: this.answerList};
-            requestData[$('meta[name=csrf-param]').attr('content')] = $('meta[name=csrf-token]').attr('content');
             $.ajax({
                 url: this.answerUrl,
                 type: 'post',
                 dataType: 'json',
-                data: requestData,
+                data: {answers: this.answerList},
                 success: function(data) {
                     if (data.status === 'ok') {
                         $("#msg_place").text("").removeClass("alert").removeClass("alert-danger");
@@ -112,10 +144,7 @@ var Quiz = {
         }
     },
     checkFinished: function() {
-        var isFinished = true;
-        for (var i = 0; i < this.answerList.length; i++) {
-            if (this.answerList[i] < 0) {isFinished = false; break;}
-        }
+        let isFinished = this.answerList.every(function(item) {return item >= 0;});
         if (isFinished) {
             $("#complete_button").removeClass("hidden");
             $("#question_content").addClass("hidden");
@@ -127,17 +156,15 @@ var Quiz = {
     },
     complete: function() {
         $("#complete_button").attr('disabled', true).text('Сохранение...');
-        var requestData = {};
-        requestData[$('meta[name=csrf-param]').attr('content')] = $('meta[name=csrf-token]').attr('content');
         $.ajax({
             url: this.completeUrl,
             type: 'post',
             dataType: 'json',
-            data: requestData,
+            data: {},
             success: function(data) {
                 if (data.status === 'ok') {
                     $("#msg_place").text("").removeClass("alert").removeClass("alert-danger");
-                    var blockHtml = '<div class="col-xs-12"><div class="alert alert-success">' + "\n"
+                    let blockHtml = '<div class="col-xs-12"><div class="alert alert-success">' + "\n"
                         + 'Тест завершён.<br>' + "\n"
                         + 'Ваш результат - <b>' + data.right_answers + ' правильных из ' + data.total_answers + '</b>.<br>' + "\n"
                         + 'Приходите в <a href="/contacts">наш офис</a>, назовите ваше имя <b>' + data.student_name + '</b> и мы подберём вам подходящую группу по результатам теста.' + "\n"

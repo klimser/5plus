@@ -3,6 +3,8 @@ default:
     - clean
     - copy:fonts
     - copy:images
+    - babel:main_front
+    - babel:main_back
     - assets_versioning:dev_front
     - assets_versioning:dev_back
     - watch
@@ -11,6 +13,8 @@ dev:
     - clean
     - copy:fonts
     - copy:images
+    - babel:main_front
+    - babel:main_back
     - assets_versioning:dev_front
     - assets_versioning:dev_back
 prod:
@@ -18,5 +22,7 @@ prod:
     - clean
     - copy:fonts
     - copy:images
+    - babel:main_front
+    - babel:main_back
     - assets_versioning:prod_front
     - assets_versioning:prod_back

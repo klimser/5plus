@@ -22,16 +22,13 @@ class QuizController extends Controller
      */
     public function actionList($webpage, $subjectId = 0)
     {
-        $subject = Subject::findOne($subjectId);
-        if ($subject) {
-            $quizList = Quiz::find()->where(['subject_id' => $subject->id])->orderBy('page_order')->all();
-        } else {
-            $quizList = Quiz::find()->with('subject')->orderBy('page_order')->all();
-        }
+        $subject = $subjectId ? Subject::findOne($subjectId) : null;
         return $this->render('list', [
             'webpage' => $webpage,
             'subject' => $subject,
-            'quizList' => $quizList,
+            'quizList' => Quiz::find()->with('subject')->orderBy('page_order')->all(),
+            'quizResult' => new QuizResult(),
+            'h1' => 'Проверь свой уровень' . ($subject ? " - \"{$subject->name}\"" : ''),
         ]);
     }
 
@@ -40,9 +37,13 @@ class QuizController extends Controller
      * @return string
      * @throws yii\web\NotFoundHttpException
      */
-    public function actionView($quizId)
+    public function actionView($quizId = 0)
     {
-        $quiz = Quiz::findOne($quizId);
+        $quiz = null;
+        if (!$quizId && \Yii::$app->request->isPost) {
+            $quizId = \Yii::$app->request->post('quiz_id');
+        }
+        if ($quizId) $quiz = Quiz::findOne($quizId);
         if (!$quiz) throw new yii\web\NotFoundHttpException('Wrong request.');
 
         $quizResult = new QuizResult();
@@ -157,7 +158,7 @@ class QuizController extends Controller
         $quizResult->finished_at = date('Y-m-d H:i:s');
         if ($quizResult->timeLeft <= 0) {
             $timeLimit = clone $quizResult->createDate;
-            $timeLimit->add(new \DateInterval('PT' . Quiz::$testTime . 'M'));
+            $timeLimit->add(new \DateInterval('PT' . Quiz::TEST_TIME . 'M'));
             $quizResult->finished_at = $timeLimit->format('Y-m-d H:i:s');
         }
         if (!$quizResult->save(true, ['finished_at'])) return false;

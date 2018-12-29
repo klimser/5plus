@@ -51,8 +51,8 @@ vendors_back:
 main_front:
   files:
     "frontend/web/assets/grunt/js/main.js":
-      - "frontend/resources/src/js/*.js"
+      - "frontend/resources/dst/js/*.js"
 main_back:
   files:
     "backend/web/assets/grunt/js/main.js":
-      - "backend/resources/src/js/*.js"
+      - "backend/resources/dst/js/*.js"

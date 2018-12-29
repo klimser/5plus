@@ -18,9 +18,8 @@ use common\components\extended\ActiveRecord;
  */
 class Quiz extends ActiveRecord
 {
-    public static $testTime = 20;
-    public static $testQuestionCount = 10;
-    
+    public const TEST_TIME = 20;
+    public const TEST_QUESTION_COUNT = 10;
 
     public static function tableName()
     {
@@ -62,7 +61,7 @@ class Quiz extends ActiveRecord
      */
     public function getQuestionCount()
     {
-        return min(self::$testQuestionCount, count($this->questions));
+        return min(self::TEST_QUESTION_COUNT, count($this->questions));
     }
 
     /**

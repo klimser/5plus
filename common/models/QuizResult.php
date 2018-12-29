@@ -107,7 +107,7 @@ class QuizResult extends ActiveRecord
      */
     public function getTimeLeft()
     {
-        return max($this->createDate->getTimestamp() + (60 * Quiz::$testTime) - time(), 0);
+        return max($this->createDate->getTimestamp() + (60 * Quiz::TEST_TIME) - time(), 0);
     }
 
     /**
@@ -128,6 +128,6 @@ class QuizResult extends ActiveRecord
             $str = floor($secondsUsed / 60) . ' мин. ';
             if ($secondsUsed % 60 != 0) $str .= ($secondsUsed % 60) . ' сек.';
             return $str;
-        } else return Quiz::$testTime . ' мин.';
+        } else return Quiz::TEST_TIME . ' мин.';
     }
 }

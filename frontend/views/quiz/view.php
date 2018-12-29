@@ -22,7 +22,7 @@ if ($quiz):
         ],
     ]); ?>
         <br>
-        <p>Тест состоит из <?= $quiz->questionCount; ?> вопросов. На решение теста отводится <?= \common\models\Quiz::$testTime; ?> минут. Начиная тест, убедитесь в том, что у вас есть <?= \common\models\Quiz::$testTime; ?> минут времени для его решения, тест нельзя приостановить и продолжить позже.</p><br>
+        <p>Тест состоит из <?= $quiz->questionCount; ?> вопросов. На решение теста отводится <?= \common\models\Quiz::TEST_TIME; ?> минут. Начиная тест, убедитесь в том, что у вас есть <?= \common\models\Quiz::TEST_TIME; ?> минут времени для его решения, тест нельзя приостановить и продолжить позже.</p><br>
 
         <?= $form->field($quizResult, 'student_name')->textInput(['maxlength' => true, 'placeholder' => 'ФИО', 'required' => true])->label('Укажите ваши фамилию, имя, отчество'); ?>
 

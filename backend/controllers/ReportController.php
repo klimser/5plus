@@ -196,7 +196,7 @@ class ReportController extends AdminController
             $spreadsheet->getActiveSheet()->getStyle("A$row")->getFont()->setItalic(true)->setSize(14);
             $row++;
 
-            foreach ($group->groupPupils as $groupPupil) {
+            foreach ($group->activeGroupPupils as $groupPupil) {
                 if ($groupPupil->paid_lessons < 0) {
                     $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupPupil->user->name);
                     $spreadsheet->getActiveSheet()->setCellValue(

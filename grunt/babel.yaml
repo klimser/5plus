@@ -1,0 +1,21 @@
+options:
+  sourceMap: true
+  presets:
+    -
+      - "@babel/preset-env"
+main_front:
+  files:
+    -
+      expand: true
+      flatten: false
+      cwd: frontend/resources/src/js
+      src: '*.js'
+      dest: frontend/resources/dst/js
+main_back:
+  files:
+    -
+      expand: true
+      flatten: false
+      cwd: backend/resources/src/js
+      src: '*.js'
+      dest: backend/resources/dst/js
