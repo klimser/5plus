@@ -14,7 +14,7 @@ $this->params['breadcrumbs'][] = 'Настройки страницы';
 ?>
 <h1><?= Html::encode($this->title) ?></h1>
 
-<?php $form = ActiveForm::begin(); ?>
+<?php $form = ActiveForm::begin(['options' => ['onSubmit' => 'return Main.submitSortableForm(this);']]); ?>
     <div class="row">
         <div class="col-xs-12">
             <?php

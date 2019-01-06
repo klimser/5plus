@@ -3,6 +3,7 @@
 namespace frontend\controllers;
 
 use common\components\extended\Controller;
+use common\models\Module;
 use common\models\Review;
 use common\models\SubjectCategory;
 use common\models\Webpage;
@@ -37,6 +38,9 @@ class PageController extends Controller
                     ->orderBy('page_order')
                     ->all();
                 $params['reviews'] = Review::find()->where(['status' => Review::STATUS_APPROVED])->orderBy('rand()')->limit(10)->all();
+                $params['quizWebpage'] = Webpage::findOne(['module_id' => Module::getModuleIdByControllerAndAction('quiz', 'list')]);
+
+                return $this->render('main', $params);
             }
             return $this->render('view', $params);
         } else {

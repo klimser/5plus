@@ -72,9 +72,12 @@ class QuizController extends Controller
                 if ($quizResult->save()) $this->redirect(yii\helpers\Url::to(['process', 'quizHash' => $quizResult->hash]));
             }
         }
-        return $this->render('view', [
+        return $this->render('list', [
+            'subject' => $quiz->subject,
             'quiz' => $quiz,
+            'quizList' => Quiz::find()->with('subject')->orderBy('page_order')->all(),
             'quizResult' => $quizResult,
+            'h1' => "Проверь свой уровень - \"{$quiz->subject->name}\"",
         ]);
     }
 
@@ -125,6 +128,7 @@ class QuizController extends Controller
     /**
      * @param string $quizHash
      * @return yii\web\Response
+     * @throws \Exception
      */
     public function actionComplete($quizHash)
     {
@@ -152,6 +156,7 @@ class QuizController extends Controller
     /**
      * @param QuizResult $quizResult
      * @return bool
+     * @throws \Exception
      */
     private function completeQuiz($quizResult)
     {

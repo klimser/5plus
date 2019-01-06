@@ -4,10 +4,12 @@ use \yii\bootstrap\ActiveForm;
 
 /* @var $this \frontend\components\extended\View */
 /* @var $webpage common\models\Webpage */
-/* @var $subject common\models\Subject */
+/* @var $subject common\models\Subject|null */
+/* @var $quiz common\models\Quiz|null */
 /* @var $quizList \common\models\Quiz[] */
 /* @var $quizResult \common\models\QuizResult */
 
+$script = '';
 ?>
 
 <div class="row step-line">
@@ -41,20 +43,17 @@ use \yii\bootstrap\ActiveForm;
             <div class="list-group">
                 <?php
                 $subjectSet = [];
-                $script = '';
 
                 foreach ($quizList as $quiz):
                     if (!array_key_exists($quiz->subject_id, $subjectSet)):
                         $script .= "QuizList.data.set({$quiz->subject_id}, {name: \"{$quiz->subject->name}\", quizzes: new Map()});\n";
                         $subjectSet[$quiz->subject_id] = true; ?>
-                            <a href="#" data-subject="<?= $quiz->subject_id; ?>" class="list-group-item" onclick="QuizList.setSubject(this);">
+                            <a href="#" data-subject="<?= $quiz->subject_id; ?>" class="list-group-item" onclick="return QuizList.setSubject(this);">
                                 <?= $quiz->subject->name; ?>
                             </a>
                     <?php endif;
                     $script .= "QuizList.data.get({$quiz->subject_id}).quizzes.set({$quiz->id}, {name: \"{$quiz->name}\", questionCount: {$quiz->questionCount}});\n";
-                endforeach;
-                $this->registerJs($script, \yii\web\View::POS_END);
-                ?>
+                endforeach; ?>
             </div>
         </div>
     </div>
@@ -78,7 +77,14 @@ use \yii\bootstrap\ActiveForm;
     </div>
 <?php ActiveForm::end(); ?>
 
-<?php if ($subject):
-    $this->title .= ' - ' . $subject->name; ?>
+<?php
+if ($subject) {
+    $this->title .= ' - ' . $subject->name;
+    $script .= "QuizList.setSubject($('a[data-subject={$subject->id}]'));\n";
+}
 
-<?php endif;
+if ($quiz) {
+    $script .= "QuizList.setQuiz($('a[data-quiz={$quiz->id}]'));\n";
+}
+
+$this->registerJs($script, \yii\web\View::POS_END);

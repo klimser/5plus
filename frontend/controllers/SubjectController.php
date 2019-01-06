@@ -22,13 +22,12 @@ class SubjectController extends Controller
     public function actionView($id, $webpage)
     {
         $subject = $this->findModel($id);
-        $quizWebpage = Webpage::findOne(['module_id' => Module::getModuleIdByControllerAndAction('quiz', 'list')]);
         return $this->render('view', [
             'subject' => $subject,
             'webpage' => $webpage,
             'h1' => $subject->name,
             'quizCount' => Quiz::find()->where(['subject_id' => $subject->id])->count(),
-            'quizWebpage' => $quizWebpage,
+            'quizWebpage' => Webpage::findOne(['module_id' => Module::getModuleIdByControllerAndAction('quiz', 'list')]),
         ]);
     }
 

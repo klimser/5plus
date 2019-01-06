@@ -7,6 +7,7 @@ use \himiklab\yii2\recaptcha\ReCaptcha;
 /* @var $page common\models\Page */
 /* @var $subjectCategoryCollection \common\models\SubjectCategory[] */
 /* @var $webpage \common\models\Webpage */
+/* @var $quizWebpage \common\models\Webpage */
 
 $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
 
@@ -15,11 +16,21 @@ unset($this->params['h1']);
 ?>
 </div>
 
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <a class="btn btn-lg btn-primary" href="<?= \yii\helpers\Url::to(['webpage', 'id' => $quizWebpage->id]); ?>">
+                Пройти тест
+            </a>
+        </div>
+    </div>
+</div>
+
 <?php
     $i = 0;
     foreach ($subjectCategoryCollection as $subjectCategory):
 ?>
-    <?php if ($i % 2 == 1): ?>
+    <?php if ($i % 2 == 0): ?>
         <div class="clouds-line-bottom"></div>
         <div class="light-block">
     <?php endif; ?>
@@ -31,7 +42,7 @@ unset($this->params['h1']);
             </div>
         </div>
     </div>
-    <?php if ($i % 2 == 1): ?>
+    <?php if ($i % 2 == 0): ?>
         </div>
         <div class="clouds-line-top"></div>
     <?php endif; ?>
