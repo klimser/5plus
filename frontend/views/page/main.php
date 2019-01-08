@@ -20,7 +20,7 @@ unset($this->params['h1']);
     <div class="row">
         <div class="col-xs-12 text-center">
             <a class="btn btn-lg btn-primary" href="<?= \yii\helpers\Url::to(['webpage', 'id' => $quizWebpage->id]); ?>">
-                Пройти тест
+                Проверь свои знания
             </a>
         </div>
     </div>
