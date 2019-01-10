@@ -88,6 +88,7 @@ return [
             'class' => \common\components\paygram\PaygramApi::class,
             'login' => $params['paygram-login'],
             'password' => $params['paygram-password'],
+            'templateMap' => $params['paygram-template-map'],
         ]
     ],
     'aliases' => [

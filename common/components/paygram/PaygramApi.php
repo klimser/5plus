@@ -10,12 +10,14 @@ use yii\base\BaseObject;
  */
 class PaygramApi extends BaseObject
 {
-    const API_URL = 'https://api.paygram.uz:8243';
+    const API_URL = 'https://api.pays.uz:8243';
 
     /** @var string */
     protected $login;
     /** @var string */
     protected $password;
+    /** @var array */
+    protected $templateMap;
     /** @var string */
     private $token;
 
@@ -33,6 +35,14 @@ class PaygramApi extends BaseObject
     public function setPassword(string $password)
     {
         $this->password = $password;
+    }
+
+    /**
+     * @param array $templateMap
+     */
+    public function setTemplateMap(array $templateMap)
+    {
+        $this->templateMap = $templateMap;
     }
 
     /**
@@ -115,8 +125,11 @@ class PaygramApi extends BaseObject
      */
     public function sendSms(int $id, string $phone, array $params = []): bool
     {
-        $response = $this->execute('/merchant/pay/create', true, [
-            'id' => $id,
+        if (!array_key_exists($id, $this->templateMap)) {
+            throw new PaygramApiException('Unknown template');
+        }
+        $response = $this->execute('/utils/sms/send', true, [
+            'id' => $this->templateMap[$id],
             'phone' => $phone,
             'params' => $params,
         ]);

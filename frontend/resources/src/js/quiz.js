@@ -49,7 +49,7 @@ let Quiz = {
     errorCount: 0,
     tickTimer: function() {
         if (this.timeLeft > 0) this.timeLeft--;
-        else {window.clearInterval(this.timerId); Quiz.complete();}
+        else {window.clearInterval(this.timerId); $("#complete_button").click();}
         let minutes = Math.floor(this.timeLeft / 60);
         let seconds = this.timeLeft % 60;
         $("#time_left").text(minutes + ':' + (seconds < 10 ? '0' : '') + seconds).removeClass("hidden");
@@ -66,8 +66,10 @@ let Quiz = {
             let questionListHtml = '', currentQuestion = 0;
             this.questionList.forEach(function(item, key) {
                 questionListHtml += '<a href="#" class="list-group-item';
-                if (Quiz.answerList[key] >= 0) questionListHtml += ' list-group-item-success';
-                else currentQuestion = key;
+                if (Quiz.answerList[key] >= 0) {
+                    questionListHtml += ' list-group-item-success';
+                    if (currentQuestion === key) currentQuestion++;
+                }
                 questionListHtml += '" data-question="' + key + '" onclick="Quiz.openQuestion(' + key + '); return false;">Вопрос №' + (key + 1) + '</a>';
             });
             $("#question_list").html(questionListHtml);

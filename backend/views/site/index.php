@@ -143,6 +143,9 @@ $this->title = 'Панель управления';
                     <li class="list-group-item"></li>
                     <a class="list-group-item" href="<?= Url::to(['quiz/index']); ?>"><span class="fas fa-clipboard"></span> Тесты</a>
                     <a class="list-group-item" href="<?= Url::to(['quiz-result/index']); ?>"><span class="fas fa-clipboard-list"></span> Результаты тестов</a>
+                    <li class="list-group-item"></li>
+                    <a class="list-group-item" href="<?= Url::to(['promotion/index']); ?>"><span class="fas fa-bell"></span> Акции</a>
+                    <a class="list-group-item" href="<?= Url::to(['blog/index']); ?>"><span class="far fa-newspaper"></span> Блог</a>
                 <?php endif; ?>
             </ul>
         </div>

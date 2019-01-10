@@ -99,6 +99,8 @@ $this->render('/grunt-assets');
     </div>
 </div>
 
+<?php // <?= YII_ENV == 'prod' ? WidgetHtml::getByName('fb_chat_plugin') : ''; ?>
+
 <footer class="footer">
     <div class="clouds-line-bottom"></div>
     <div class="content-block">

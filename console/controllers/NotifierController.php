@@ -24,10 +24,11 @@ class NotifierController extends Controller
      */
     public function actionSend()
     {
-        $condition = ['state' => Notify::STATUS_NEW];
+        $condition = ['status' => Notify::STATUS_NEW];
 
         $tryTelegram = false;
         if (array_key_exists('telegramPublic', \Yii::$app->components)) {
+            \Yii::$app->db->open();
             \Yii::$app->telegramPublic->telegram;
             $tryTelegram = true;
         }
@@ -79,16 +80,35 @@ class NotifierController extends Controller
 
             if ($sendSms) {
                 try {
-                    $params = $toSend->parameters;
-                    if (array_key_exists('child_id', $params)) {
-                        $pupil = User::findOne($toSend->parameters['child_id']);
-                    } else $pupil = $toSend->user;
-                    $params['pupil_name'] = $pupil->name;
-                    if ($toSend->group_id) {
-                        $params['pay_link'] = PaymentComponent::getPaymentLink($pupil->id, $toSend->group_id)->url;
-                        $params['group_name'] = $toSend->group->name;
+                    $params = [];
+                    switch ($toSend->template_id) {
+                        case Notify::TEMPLATE_PUPIL_DEBT:
+                            $params['group_name'] = $toSend->group->legal_name;
+                            $params['debt'] = $toSend->parameters['debt'] . ' ' . WordForm::getLessonsForm($toSend->parameters['debt']);
+                            $params['link'] = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url;
+                            break;
+                        case Notify::TEMPLATE_PUPIL_LOW:
+                            $params['group_name'] = $toSend->group->legal_name;
+                            $params['paid_lessons'] = $toSend->parameters['paid_lessons'] . ' ' . WordForm::getLessonsForm($toSend->parameters['paid_lessons']);
+                            $params['link'] = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url;
+                            break;
+                        case Notify::TEMPLATE_PARENT_DEBT:
+                            $child = User::findOne($toSend->parameters['child_id']);
+                            $params['student_name'] = $child->name;
+                            $params['group_name'] = $toSend->group->legal_name;
+                            $params['debt'] = $toSend->parameters['debt'] . ' ' . WordForm::getLessonsForm($toSend->parameters['debt']);
+                            $params['link'] = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url;
+                            break;
+                        case Notify::TEMPLATE_PARENT_LOW:
+                            $child = User::findOne($toSend->parameters['child_id']);
+                            $params['student_name'] = $child->name;
+                            $params['group_name'] = $toSend->group->legal_name;
+                            $params['paid_lessons'] = $toSend->parameters['paid_lessons'] . ' ' . WordForm::getLessonsForm($toSend->parameters['paid_lessons']);
+                            $params['link'] = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url;
+                            break;
                     }
-                    \Yii::$app->paygramApi->sendSms($toSend->template_id, $toSend->user->phoneFull, $params);
+
+                    \Yii::$app->paygramApi->sendSms($toSend->template_id, substr($toSend->user->phone, -12, 12), $params);
                     $toSend->status = Notify::STATUS_SENT;
                 } catch (PaygramApiException $exception) {
                     $toSend->status = Notify::STATUS_ERROR;

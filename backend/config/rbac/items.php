@@ -90,6 +90,8 @@ return [
             'manageSubjects',
             'manageTeachers',
             'manageQuiz',
+            'managePromotions',
+            'manageBlog',
         ],
     ],
     'manageEmployees' => [
@@ -202,6 +204,14 @@ return [
     'manageQuiz' => [
         'type' => 2,
         'description' => 'Manage quizes',
+    ],
+    'managePromotions' => [
+        'type' => 2,
+        'description' => 'Manage promotions',
+    ],
+    'manageBlog' => [
+        'type' => 2,
+        'description' => 'Manage blog',
     ],
 
     'viewMySchedule' => [

@@ -4,8 +4,8 @@ use \yii\bootstrap\ActiveForm;
 
 /* @var $this \frontend\components\extended\View */
 /* @var $webpage common\models\Webpage */
-/* @var $subject common\models\Subject|null */
-/* @var $quiz common\models\Quiz|null */
+/* @var $activeSubject common\models\Subject|null */
+/* @var $activeQuiz common\models\Quiz|null */
 /* @var $quizList \common\models\Quiz[] */
 /* @var $quizResult \common\models\QuizResult */
 
@@ -35,7 +35,7 @@ $script = '';
     </div>
 </div>
 
-<?php $form = ActiveForm::begin(['action' => \yii\helpers\Url::to(['quiz/view'])]); ?>
+<?php $form = ActiveForm::begin(['action' => \yii\helpers\Url::to(['quiz/view']), 'options' => ['onsubmit' => 'if (typeof ym !== \'undefined\') { ym(37380330, \'reachGoal\', \'QUIZ_START\'); } return true;']]); ?>
     <input type="hidden" name="quiz_id" required>
     <div class="row step-content" id="step-1">
         <div class="col-xs-12">
@@ -78,13 +78,13 @@ $script = '';
 <?php ActiveForm::end(); ?>
 
 <?php
-if ($subject) {
-    $this->title .= ' - ' . $subject->name;
-    $script .= "QuizList.setSubject($('a[data-subject={$subject->id}]'));\n";
+if (isset($activeSubject) && $activeSubject) {
+    $this->title .= ' - ' . $activeSubject->name;
+    $script .= "QuizList.setSubject($('a[data-subject={$activeSubject->id}]'));\n";
 }
 
-if ($quiz) {
-    $script .= "QuizList.setQuiz($('a[data-quiz={$quiz->id}]'));\n";
+if (isset($activeQuiz) && $activeQuiz) {
+    $script .= "QuizList.setQuiz($('a[data-quiz={$activeQuiz->id}]'));\n";
 }
 
 $this->registerJs($script, \yii\web\View::POS_END);

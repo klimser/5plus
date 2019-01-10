@@ -25,7 +25,7 @@ class QuizController extends Controller
         $subject = $subjectId ? Subject::findOne($subjectId) : null;
         return $this->render('list', [
             'webpage' => $webpage,
-            'subject' => $subject,
+            'activeSubject' => $subject,
             'quizList' => Quiz::find()->with('subject')->orderBy('page_order')->all(),
             'quizResult' => new QuizResult(),
             'h1' => 'Проверь свой уровень' . ($subject ? " - \"{$subject->name}\"" : ''),
@@ -73,8 +73,8 @@ class QuizController extends Controller
             }
         }
         return $this->render('list', [
-            'subject' => $quiz->subject,
-            'quiz' => $quiz,
+            'activeSubject' => $quiz->subject,
+            'activeQuiz' => $quiz,
             'quizList' => Quiz::find()->with('subject')->orderBy('page_order')->all(),
             'quizResult' => $quizResult,
             'h1' => "Проверь свой уровень - \"{$quiz->subject->name}\"",

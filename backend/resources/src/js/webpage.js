@@ -1,4 +1,4 @@
-var Webpage = {
+let Webpage = {
     urlSelector: null,
     titleSelector: null,
     suggestUrl: function(elem) {

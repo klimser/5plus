@@ -3,6 +3,8 @@ options:
   presets:
     -
       - "@babel/preset-env"
+      -
+        useBuiltIns: "entry"
 main_front:
   files:
     -

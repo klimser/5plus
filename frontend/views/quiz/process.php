@@ -42,7 +42,7 @@ if ($quizResult):
                 <div id="time_left" class="pull-right hidden"></div>
                 <div id="question_content">Загрузка...</div>
                 <fieldset id="answer_list" class="hidden"></fieldset>
-                <button class="btn btn-success pull-left hidden" id="complete_button" onclick="Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
+                <button class="btn btn-success pull-left hidden" id="complete_button" onclick="ym(37380330, 'reachGoal', 'QUIZ_END'); Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
                 <button class="btn btn-success pull-right hidden" id="answer_button" onclick="Quiz.errorCount = 0; return Quiz.saveAnswer();">Ответить</button>
                 <div id="msg_place"></div>
             </div>
