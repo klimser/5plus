@@ -54,16 +54,15 @@ class QuizController extends Controller
                 $quizResult->quiz_name = $quiz->name;
                 $questionsData = [];
                 $answersData = [];
-                $indices = [];
-                for ($i = 0; $i < count($quiz->questions); $i++) $indices[] = $i;
+                $indices = range(0, count($quiz->questions) - 1);
                 shuffle($indices);
                 for ($i = 0; $i < $quiz->questionCount; $i++) {
                     $answersData[] = -1;
                     $questionStruct = [
-                        'question' => $quiz->questions[$i]->content,
+                        'question' => $quiz->questions[$indices[$i]]->content,
                         'answers' => [],
                     ];
-                    foreach ($quiz->questions[$i]->answers as $answer) $questionStruct['answers'][] = [$answer->content, $answer->is_right];
+                    foreach ($quiz->questions[$indices[$i]]->answers as $answer) $questionStruct['answers'][] = [$answer->content, $answer->is_right];
                     shuffle($questionStruct['answers']);
                     $questionsData[] = $questionStruct;
                 }
