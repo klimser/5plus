@@ -23,6 +23,7 @@ class MailController extends Controller
         
         $tryTelegram = false;
         if (array_key_exists('telegramAdminNotifier', \Yii::$app->components)) {
+            \Yii::$app->db->open();
             \Yii::$app->telegramAdminNotifier->telegram;
             $subscribed = DB::selectChats([]);
             if (!empty($subscribed)) $tryTelegram = true;
