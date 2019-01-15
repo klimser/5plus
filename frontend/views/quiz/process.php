@@ -42,7 +42,21 @@ if ($quizResult):
                 <div id="time_left" class="pull-right hidden"></div>
                 <div id="question_content">Загрузка...</div>
                 <fieldset id="answer_list" class="hidden"></fieldset>
-                <button class="btn btn-success pull-left hidden" id="complete_button" onclick="ym(37380330, 'reachGoal', 'QUIZ_END'); Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
+
+                <?php
+                $ymId = \Yii::$app->params['ym_id'];
+                $this->registerJs(<<<SCRIPT
+                    function ymTrackQuizEnd() {
+                        if (typeof ym !== "undefined") { ym({$ymId}, "reachGoal", "QUIZ_END"); }
+                    }
+                    function fbTrackQuizEnd() {
+                        if (typeof fbq !== "undefined") { fbq("trackCustom", "quizEnd", {subject: "{$quizResult->subject_name}"}); }
+                    }
+SCRIPT
+                    , \yii\web\View::POS_HEAD, 'track_quiz_end');
+                ?>
+
+                <button class="btn btn-success pull-left hidden" id="complete_button" onclick="ymTrackQuizEnd(); fbTrackQuizEnd(); Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
                 <button class="btn btn-success pull-right hidden" id="answer_button" onclick="Quiz.errorCount = 0; return Quiz.saveAnswer();">Ответить</button>
                 <div id="msg_place"></div>
             </div>

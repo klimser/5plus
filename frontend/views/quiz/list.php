@@ -35,7 +35,24 @@ $script = '';
     </div>
 </div>
 
-<?php $form = ActiveForm::begin(['action' => \yii\helpers\Url::to(['quiz/view']), 'options' => ['onsubmit' => 'if (typeof ym !== \'undefined\') { ym(37380330, \'reachGoal\', \'QUIZ_START\'); } return true;']]); ?>
+<?php
+$ymId = \Yii::$app->params['ym_id'];
+$this->registerJs(<<<SCRIPT
+function ymTrackQuizStart() {
+    if (typeof ym !== "undefined") { ym({$ymId}, "reachGoal", "QUIZ_START"); }
+}
+function fbTrackQuizStart() {
+    if (typeof fbq !== "undefined") { fbq("trackCustom", "quizStart", {subject: QuizList.data.get(QuizList.subject).name}); }
+}
+SCRIPT
+    , \yii\web\View::POS_HEAD, 'track_quiz_start');
+
+$form = ActiveForm::begin([
+        'action' => \yii\helpers\Url::to(['quiz/view']),
+        'options' => [
+            'onsubmit' => 'ymTrackQuizStart(); fbTrackQuizStart(); return true;']
+        ]
+); ?>
     <input type="hidden" name="quiz_id" required>
     <div class="row step-content" id="step-1">
         <div class="col-xs-12">

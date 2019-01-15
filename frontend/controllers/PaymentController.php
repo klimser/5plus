@@ -88,7 +88,7 @@ class PaymentController extends Controller
         if (!$group) return self::getJsonErrorResult('Group not found');
 
         $groupPupil = GroupPupil::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
-        if (!$groupPupil) return self::getJsonErrorResult('Wrong pupil and group selection');
+        if (!$groupPupil) return self::getJsonErrorResult('Для этого студента внесение оплаты невозможно');
 
         $transaction = \Yii::$app->db->beginTransaction();
         $contract = new Contract();
