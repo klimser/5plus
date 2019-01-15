@@ -1,4 +1,6 @@
 <?php
+use common\components\WidgetHtml;
+
 /* @var $reviews \common\models\Review[] */
 /* @var $reviewsWebpage \common\models\Webpage */
 ?>
@@ -20,6 +22,7 @@
                 <span class="icon icon-reviews"></span>
                 <span class="link-body">Все отзывы</span>
             </a>
+            <?= YII_ENV == 'prod' ? WidgetHtml::getByName('review_link_widget') : ''; ?>
         </div>
     </div>
     <div class="clearfix"></div>

@@ -2,9 +2,7 @@
 
 namespace backend\components;
 
-use yii\base\Component;
-
-class TranslitComponent extends Component
+class TranslitComponent
 {
     protected static $_symbolTable = [
         // RUSSIAN

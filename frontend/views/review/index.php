@@ -1,6 +1,7 @@
 <?php
 
 use yii\bootstrap\Html;
+use common\components\WidgetHtml;
 
 /* @var $this \yii\web\View */
 /* @var $webpage common\models\Webpage */
@@ -10,6 +11,9 @@ use yii\bootstrap\Html;
 $this->params['breadcrumbs'][] = 'Отзывы';
 
 $this->registerJs('Review.init();');
+if (YII_ENV == 'prod') {
+    $this->params['h1'] .= WidgetHtml::getByName('review_link_widget');
+}
 
 ?>
 <div class="row review-index">

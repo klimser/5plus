@@ -17,13 +17,12 @@ $nextMonth->add($monthInterval);
 ?>
 <div class="salary-index">
     <h1>
-        <a href="<?= \yii\helpers\Url::to(['salary', 'year' => $prevMonth->format('Y'), 'month' => $prevMonth->format('n')]); ?>">
-            <span class="glyphicon glyphicon-chevron-left"></span>
-        </a>
+        <a href="<?= \yii\helpers\Url::to(['salary', 'year' => $prevMonth->format('Y'), 'month' => $prevMonth->format('n')]); ?>"
+        ><span class="fas fa-arrow-left"></span></a>
         <?= Html::encode($this->title) ?> <?= Calendar::$monthNames[$date->format('n')]; ?> <?= $date->format('Y'); ?>
-        <a href="<?= \yii\helpers\Url::to(['salary', 'year' => $nextMonth->format('Y'), 'month' => $nextMonth->format('n')]); ?>">
-            <span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
+        <a href="<?= \yii\helpers\Url::to(['salary-details', 'year' => $date->format('Y'), 'month' => $date->format('n')]); ?>"><span class="fas fa-file"></span></a>
+        <a href="<?= \yii\helpers\Url::to(['salary', 'year' => $nextMonth->format('Y'), 'month' => $nextMonth->format('n')]); ?>"
+        ><span class="fas fa-arrow-right"></span></a>
     </h1>
 
     <?php foreach ($salaryMap as $payments): ?>
@@ -41,7 +40,7 @@ $nextMonth->add($monthInterval);
                         <tr>
                             <td><?= $payment['group']; ?></td>
                             <td class="text-right"><?= $payment['amount']; ?></td>
-                            <td><a href="<?= \yii\helpers\Url::to(['salary-details', 'group' => $payment['group_id'], 'year' => $date->format('Y'), 'month' => $date->format('n')]); ?>"><span class="glyphicon glyphicon-file"></span></a></td>
+                            <td><a href="<?= \yii\helpers\Url::to(['salary-details', 'group' => $payment['group_id'], 'year' => $date->format('Y'), 'month' => $date->format('n')]); ?>"><span class="fas fa-file"></span></a></td>
                         </tr>
                     <?php endforeach; ?>
                     <tr><td><b>Итого</b></td><td class="text-right"><?= $totalSalary; ?></td><td></td></tr>
