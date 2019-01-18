@@ -1,13 +1,33 @@
 <?php
 
 /* @var $this \yii\web\View */
-/* @var $post \common\models\Promotion */
-/* @var $grid bool */
+/* @var $post \common\models\Blog */
+/* @var $first bool */
+
+$postUrl = Yii::$app->homeUrl . $post->webpage->url;
 
 ?>
-<div class="news-item <?php if ($grid): ?>col-xs-12 col-sm-6 col-md-3<?php endif; ?>">
-    <a href="<?= Yii::$app->homeUrl . $post->webpage->url; ?>">
-        <img src="<?= $post->imageUrl; ?>" class="max-width-100">
-        <div class="link-body"><?= $post->name; ?></div>
-    </a>
+
+<?php if (!$first): ?><hr><?php endif; ?>
+
+<div class="row">
+    <div class="col-xs-12">
+        <h2>
+            <a href="<?= $postUrl; ?>"><?= $post->name; ?></a>
+        </h2>
+    </div>
+    <?php if ($post->image): ?>
+        <div class="col-xs-12 col-md-3">
+            <a href="<?= $postUrl; ?>">
+                <img src="<?= $post->imageUrl; ?>" class="max-width-100">
+            </a>
+        </div>
+    <?php endif; ?>
+    <div class="col-xs-12 col-md-<?= $post->image ? 9 : 12; ?>">
+        <?= $post->teaser; ?>
+        <?php if ($post->teasered): ?>
+            <br>
+            <a href="<?= $postUrl; ?>">Читать полностью</a>
+        <?php endif; ?>
+    </div>
 </div>

@@ -11,7 +11,7 @@ use \himiklab\yii2\recaptcha\ReCaptcha;
 
 $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
 
-unset($this->params['h1']);
+//unset($this->params['h1']);
 
 ?>
 </div>

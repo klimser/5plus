@@ -18,7 +18,7 @@ class BlogController extends Controller
      */
     public function actionIndex($webpage)
     {
-        $itemsPerPage = 12;
+        $itemsPerPage = 6;
 
         $qB = Blog::getActiveListQuery();
         $pager = new Pagination([

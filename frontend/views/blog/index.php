@@ -7,23 +7,19 @@
 
 $this->params['breadcrumbs'][] = 'Блог';
 ?>
-<div class="row news-index">
+<div class="news-index">
     <?php
-    $i = 0;
-    foreach ($posts as $post):
-        $i++;
-    ?>
-        <?= $this->render('/blog/_block', ['post' => $post, 'grid' => true]); ?>
-
-        <?php if ($i % 4 == 0): ?>
-            <div class="clearfix"></div>
-        <?php endif; ?>
-    <?php endforeach; ?>
+    $first = true;
+    foreach ($posts as $post): ?>
+        <?= $this->render('/blog/_block', ['post' => $post, 'first' => $first]); ?>
+    <?php
+        $first = false;
+    endforeach; ?>
 </div>
 
 <div class="text-center">
     <?= \yii\widgets\LinkPager::widget([
-            'pagination' => $pager,
+        'pagination' => $pager,
         'nextPageLabel' => '<span class="hidden-xs">Следующая страница</span> →',
         'prevPageLabel' => '← <span class="hidden-xs">Предыдущая страница</span>',
     ]); ?>

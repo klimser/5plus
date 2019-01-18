@@ -15,6 +15,8 @@ use yii\web\UploadedFile;
  * @property string $name Заголовок
  * @property string $image Картинка
  * @property string $content Контент
+ * @property string $teaser Тизер
+ * @property bool $teasered Обрезан ли тизер или туда поместился весь контент
  * @property int $webpage_id ID страницы
  * @property int $active Активен
  * @property string $created_at Дата акции
@@ -24,6 +26,8 @@ use yii\web\UploadedFile;
 class Blog extends ActiveRecord
 {
     use Inserted, UploadImage;
+
+    const TEASER_LENGTH = 400;
 
     /**
      * @return array
@@ -61,7 +65,7 @@ class Blog extends ActiveRecord
             [['content'], 'string'],
             [['webpage_id', 'active'], 'integer'],
             [['created_at'], 'safe'],
-            [['name'], 'string', 'max' => 50],
+            [['name'], 'string', 'max' => 100],
             [['image'], 'string', 'max' => 255],
             [['imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg', 'checkExtensionByMimeType' => true],
             [['imageFile'], 'required', 'when' => function ($model, $attribute) {return $model->isNewRecord;}, 'whenClient' => "function (attribute, value) {
@@ -92,6 +96,30 @@ class Blog extends ActiveRecord
     public function getWebpage()
     {
         return $this->hasOne(Webpage::class, ['id' => 'webpage_id']);
+    }
+
+    /**
+     * @return string
+     */
+    public function getTeaser(): string
+    {
+        $teaser = strip_tags($this->content, '<p><br><b><i><strong><em>');
+        if (mb_strlen($teaser) > self::TEASER_LENGTH) {
+            $teaser = mb_substr($teaser, 0, self::TEASER_LENGTH);
+            if (mb_strpos($teaser, '.') !== false) {
+                $teaser = mb_substr($teaser, 0, mb_strrpos($teaser, '.'));
+            } else {
+                $teaser = mb_substr($teaser, 0, mb_strrpos($teaser, ' '));
+            }
+            $teaser .= '...';
+        }
+
+        return $teaser;
+    }
+
+    public function getTeasered(): bool
+    {
+        return mb_strlen($this->content) > self::TEASER_LENGTH;
     }
 
     /**
