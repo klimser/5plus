@@ -92,11 +92,13 @@ $this->render('/grunt-assets');
         </div>
     </div>
     <?= $content ?>
-    <div class="row">
-        <div class="col-xs-12">
-            <?= YII_ENV == 'prod' ? WidgetHtml::getByName('social_share') : ''; ?>
+    <?php if (!array_key_exists('hide_social', $this->params) || !$this->params['hide_social']): ?>
+        <div class="row">
+            <div class="col-xs-12">
+                <?= YII_ENV == 'prod' ? WidgetHtml::getByName('social_share') : ''; ?>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
 
 <?php // <?= YII_ENV == 'prod' ? WidgetHtml::getByName('fb_chat_plugin') : ''; ?>

@@ -19,6 +19,7 @@ use common\components\extended\ActiveRecord;
  * @property int $contract_id
  * @property int $used_payment_id
  * @property int $event_member_id
+ * @property int $cash_received
  * @property string $created_at
  * @property \DateTime|null $createDate
  *
@@ -46,16 +47,17 @@ class Payment extends ActiveRecord
     {
         return [
             [['user_id', 'group_id', 'amount'], 'required'],
-            [['user_id', 'group_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id'], 'integer'],
+            [['user_id', 'group_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id', 'cash_received'], 'integer'],
             [['comment'], 'string'],
             ['discount', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
             ['discount', 'default', 'value' => self::STATUS_INACTIVE],
-            [['user_id'], 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
-            [['admin_id'], 'exist', 'targetRelation' => 'admin'],
-            [['group_id'], 'exist', 'targetRelation' => 'group'],
-            [['contract_id'], 'exist', 'targetRelation' => 'contract'],
-            [['used_payment_id'], 'exist', 'targetRelation' => 'usedPayment'],
-            [['event_member_id'], 'exist', 'targetRelation' => 'eventMember'],
+            ['cash_received', 'default', 'value' => self::STATUS_ACTIVE],
+            ['user_id', 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
+            ['admin_id', 'exist', 'targetRelation' => 'admin'],
+            ['group_id', 'exist', 'targetRelation' => 'group'],
+            ['contract_id', 'exist', 'targetRelation' => 'contract'],
+            ['used_payment_id', 'exist', 'targetRelation' => 'usedPayment'],
+            ['event_member_id', 'exist', 'targetRelation' => 'eventMember'],
         ];
     }
 
@@ -70,6 +72,7 @@ class Payment extends ActiveRecord
             'amount' => 'Сумма',
             'comment' => 'Комментарий',
             'used_payment_id' => 'Использованный при списании платёж',
+            'cash_received' => 'Получены ли физически деньги',
             'created_at' => 'Дата операции',
         ];
     }

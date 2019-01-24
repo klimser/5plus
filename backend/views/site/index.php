@@ -22,7 +22,7 @@ $this->title = 'Панель управления';
             </a>
         </div>
     <?php endif; ?>
-    <?php if ($admin->can('scheduler')): ?>
+    <?php if ($admin->can('manageSchedule')): ?>
         <div class="col-xs-12 col-sm-6 col-md-4">
             <a class="btn btn-default btn-lg full-width" href="<?= Url::to('event/index'); ?>">
                 <span class="far fa-calendar-alt fa-3x"></span><hr>

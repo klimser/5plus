@@ -87,7 +87,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'class' => \yii\grid\ActionColumn::class,
                 'template' => $canEdit ? '{update}' : '',
-                'buttonOptions' => ['class' => 'btn btn-default margin-right-10'],
+                'buttonOptions' => ['class' => 'btn btn-default'],
 
             ],
         ],

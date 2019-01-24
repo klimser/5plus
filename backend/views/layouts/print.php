@@ -49,8 +49,7 @@ $this->beginPage();
     <title>Договор</title>
     <?php $this->head() ?>
 </head>
-<body>
-<!--<body onload="window.print();">-->
+<body onload="window.print();">
 <?php $this->beginBody() ?>
     <?= $content ?>
 <?php $this->endBody() ?>

@@ -121,8 +121,15 @@ $this->params['breadcrumbs'][] = $this->title;
                             </div>
                         </div>
                         <div id="income_form" class="col-xs-12 hidden">
-                            <div class="form-group"><div class="input-group"><input id="amount" name="payment_sum" type="number" min="1000" step="1000" class="form-control input-lg" placeholder="Сумма оплаты" required><div class="input-group-addon">сум</div></div></div>
-                            <div class="form-group"><button class="btn btn-success btn-lg" id="income_button">внести</button></div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input id="amount" name="payment_sum" type="number" min="1000" step="1000" class="form-control input-lg" placeholder="Сумма оплаты" required>
+                                    <div class="input-group-addon">сум</div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-success btn-lg" id="income_button">внести</button>
+                            </div>
                         </div>
                     </form>
                 </div>

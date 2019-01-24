@@ -164,6 +164,7 @@ class MoneyController extends AdminController
             'searchModel' => $searchModel,
             'debtorMap' => $debtorMap,
             'groups' => Group::find()->all(),
+            'canCorrect' => Yii::$app->user->can('moneyCorrection'),
         ]);
     }
 
@@ -426,5 +427,41 @@ class MoneyController extends AdminController
             "$pupil->name $group->name.xlsx",
             ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         );
+    }
+
+    public function actionCorrection(int $userId, int $groupId)
+    {
+        if (!Yii::$app->user->can('moneyCorrection')) throw new ForbiddenHttpException('Access denied!');
+
+        $pupil = User::findOne($userId);
+        $group = Group::findOne($groupId);
+
+        if (!$pupil || $pupil->role != User::ROLE_PUPIL) throw new yii\web\BadRequestHttpException('Pupil not found');
+        if (!$group) throw new yii\web\BadRequestHttpException('Group not found');
+
+        $groupPupil = GroupPupil::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id])->one();
+        if (!$groupPupil) throw new yii\web\BadRequestHttpException('Wrong pupil and group selection');
+
+        if (\Yii::$app->request->isPost) {
+            $paymentSum = \Yii::$app->request->post('payment_sum', 0);
+            if ($paymentSum > 0) {
+                $payment = new Payment();
+                $payment->user_id = $pupil->id;
+                $payment->group_id = $group->id;
+                $payment->admin_id = \Yii::$app->user->getId();
+                $payment->amount = $paymentSum;
+                $payment->created_at = date('Y-m-d H:i:s');
+                $payment->comment = 'Ручная корректировка долга';
+                $payment->cash_received = \Yii::$app->request->post('cash_received', 0) ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
+
+                MoneyComponent::registerIncome($payment);
+            }
+        }
+
+        return $this->render('correction', [
+            'pupil' => $pupil,
+            'group' => $group,
+            'debt' => Debt::findOne(['user_id' => $pupil->id, 'group_id' => $group->id]),
+        ]);
     }
 }

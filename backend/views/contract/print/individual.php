@@ -17,7 +17,7 @@
             <td style="width: 50%; text-align: left; vertical-align: top;">
                 <div style="text-decoration: underline;"><b>Заказчик:</b></div><br>
 
-                ФИО Заказчика: <span style="text-decoration: underline; padding: 0 2mm;"><?= $contract->user->name; ?></span><br>
+                ФИО Заказчика: <span style="text-decoration: underline; padding: 0 2mm;"><?= $contract->user->parent_id ? $contract->user->parent->name : $contract->user->name; ?></span><br>
 
                 <span style="display: inline-block; width: 1.5cm">Адрес: </span><span class="placeholder" style="width: 7.5cm"></span><br>
                 <span class="placeholder" style="width: 9cm"></span><br>
@@ -30,8 +30,8 @@
                 <span style="display: inline-block; width: 2.5cm">Кем выдан: </span><span class="placeholder" style="width: 6.5cm"></span><br>
                 <span class="placeholder" style="width: 9cm"></span><br>
 
-                Тел.: <span class="placeholder" style="width: 3cm;"><?= $contract->user->parent ? $contract->user->parent->phoneFull : $contract->user->phoneFull; ?></span>
-                <span class="placeholder" style="width: 3cm;"><?= $contract->user->parent ? $contract->user->parent->phone2Full : $contract->user->phone2Full; ?></span><br>
+                Тел.: <span class="placeholder" style="width: 3cm;"><?= $contract->user->parent_id ? $contract->user->parent->phoneFull : $contract->user->phoneFull; ?></span>
+                <span class="placeholder" style="width: 3cm;"><?= $contract->user->parent_id ? $contract->user->parent->phone2Full : $contract->user->phone2Full; ?></span><br>
                 Тел. учащегося: <span class="placeholder" style="width: 3cm;"><?= $contract->user->phoneFull; ?></span><br><br><br>
 
                 <div class="text-right"><span class="placeholder" style="width: 4cm;"></span></div>

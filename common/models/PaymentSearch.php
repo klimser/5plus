@@ -37,7 +37,7 @@ class PaymentSearch extends Payment
      */
     public function search($params)
     {
-        $query = Payment::find()->with(['user', 'admin', 'group']);
+        $query = Payment::find()->with(['user', 'admin', 'group', 'contract']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

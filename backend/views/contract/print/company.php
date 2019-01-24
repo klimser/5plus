@@ -20,7 +20,7 @@
                 Наименование компании-заказчика: <span style="text-decoration: underline; padding: 0 2mm;"><?= $contract->user->parent->name; ?></span><br>
 
                 <span style="display: inline-block; width: 3cm">Юридический адрес: </span><span class="placeholder" style="width: 6cm"></span><br>
-                <span style="display: inline-block; width: 0.6cm">тел: </span><span class="placeholder" style="width: 8.4cm"></span><br>
+                <span style="display: inline-block; width: 0.6cm">тел: </span><span class="placeholder" style="width: 8.4cm"><?= $contract->user->parent->phoneFull; ?></span><br>
                 <span style="display: inline-block; width: 0.8cm">ИНН: </span><span class="placeholder" style="width: 8.2cm"></span><br>
                 <span style="display: inline-block; width: 2.2cm">ОКОНХ/ОКЭД: </span><span class="placeholder" style="width: 6.8cm"></span><br>
                 <span style="display: inline-block; width: 0.6cm">р/с: </span><span class="placeholder" style="width: 8.4cm"></span><br>

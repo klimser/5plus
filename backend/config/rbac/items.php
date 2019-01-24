@@ -58,6 +58,7 @@ return [
         'type' => 1,
         'children' => [
             'viewSalary',
+            'moneyCorrection',
         ],
     ],
     'support' => [
@@ -130,6 +131,10 @@ return [
     'viewSalary' => [
         'type' => 2,
         'description' => 'View teacher salary',
+    ],
+    'moneyCorrection' => [
+        'type' => 2,
+        'description' => 'Correct money movements manually',
     ],
 
     /* GROUP MANAGER */

@@ -1,4 +1,4 @@
-var Money = {
+let Money = {
     className: 'Money',
     pupils: null,
     groups: null,
@@ -18,7 +18,7 @@ var Money = {
                 if (data.status !== 'ok') {
                     Main.throwFlashMessage('#contract_result_block', data.message, 'alert-warning');
                 } else {
-                    var contractForm = '<form id="contract_form" onsubmit="return Money.completeContract(this);">' +
+                    let contractForm = '<form id="contract_form" onsubmit="return Money.completeContract(this);">' +
                         '<input type="hidden" name="id" value="' + data.id + '">' +
                         '<table class="table">' +
                         '<tr><td><b>Студент</b></td><td>' + data.user_name + '</td></tr>' +
@@ -26,7 +26,7 @@ var Money = {
                         '<tr><td><b>Сумма</b></td><td><span class="big-font">' + data.amount + '</span>'
                         + (data.discount ? ' <span class="label label-success">со скидкой</span>' : '') + '</td></tr>' +
                         '<tr><td><b>Дата договора</b></td><td>' + data.create_date + '</td></tr>';
-                    var payDateLabel = 'Дата оплаты';
+                    let payDateLabel = 'Дата оплаты';
                     if (data.group_pupil_id > 0) {
                         contractForm += '<tr><td><b>Занимается с </b></td><td><span class="big-font">' + data.date_start + '</span></td></tr>'
                             + '<tr><td><b>Оплачено до </b></td><td><span class="big-font">' + data.date_charge_till + '</span></td></tr>';
@@ -72,20 +72,21 @@ var Money = {
             dataType: 'json',
             success: function (data) {
                 if (data.pupils !== undefined && data.pupils.length > 0) {
-                    var pupilList = '';
+                    let pupilList = '';
                     Money.pupils = {};
                     Money.groups = {};
-                    for (var i = 0; i < data.pupils.length; i++) {
-                        pupilList += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="pupil-' + data.pupils[i].id + '" onclick="' + Money.className + '.setPupil(' + data.pupils[i].id + ');">'
-                            + data.pupils[i].name
+                    data.pupils.forEach(function(pupil) {
+                        pupilList += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="pupil-' + pupil.id + '" onclick="' + Money.className + '.setPupil(' + pupil.id + ');">'
+                            + pupil.name
                             + '</button>';
-                        var pupil = {name: data.pupils[i].name, groups: []};
-                        for (var k = 0; k < data.pupils[i].groups.length; k++) {
-                            Money.groups[data.pupils[i].groups[k].id] = data.pupils[i].groups[k];
-                            pupil.groups.push(data.pupils[i].groups[k].id);
-                        }
-                        Money.pupils[data.pupils[i].id] = pupil;
-                    }
+                        let newPupil = {name: pupil.name, groups: []};
+                        pupil.groups.forEach(function(group) {
+                            Money.groups[group.id] = group;
+                            newPupil.groups.push(group.id);
+                        });
+                        Money.pupils[pupil.id] = newPupil;
+                    });
+
                     $('#pupils_block').html('<div class="panel panel-default"><div class="panel-body">' + pupilList + '</div></div>');
                     if (data.pupils.length === 1) $("#pupils_block").find('button:first').click();
                 } else {
@@ -104,11 +105,11 @@ var Money = {
         this.renderGroupsBlock();
     },
     renderGroupsBlock: function () {
-        var pupil = this.pupils[this.pupilId];
-        var blockHtml = '<div class="panel panel-default"><div class="panel-body">';
-        for (var i = 0; i < pupil.groups.length; i++) {
-            blockHtml += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="group-' + pupil.groups[i] + '" onclick="Money.setGroup(' + pupil.groups[i] + ');">' + this.groups[pupil.groups[i]].name + '</button>';
-        }
+        let pupil = this.pupils[this.pupilId];
+        let blockHtml = '<div class="panel panel-default"><div class="panel-body">';
+        pupil.groups.forEach(function(group) {
+            blockHtml += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="group-' + group + '" onclick="Money.setGroup(' + group + ');">' + this.groups[group].name + '</button>';
+        });
         blockHtml += '<a href="/user/add-to-group?userId=' + this.pupilId + '" target="_blank" class="btn btn-default btn-lg">Добавить в новую группу <span class="glyphicon glyphicon-new-window"></span></a>';
         blockHtml += '</div></div>';
         $("#groups_block").html(blockHtml);
@@ -119,7 +120,7 @@ var Money = {
         $("#groups_block").find("button").removeClass("btn-primary");
         $("#group-" + groupId).addClass('btn-primary');
 
-        var group = this.groups[this.groupId];
+        let group = this.groups[this.groupId];
         $("#payment-0").find(".price").text(group.month_price);
         $("#payment-1").find(".price").text(group.month_price_discount);
         $("#date_start").text(group.date_start);
@@ -131,7 +132,7 @@ var Money = {
         $("#payment-" + paymentType).addClass('btn-primary');
         this.paymentType = paymentType;
 
-        var amountInput = $("#amount");
+        let amountInput = $("#amount");
         if (this.paymentType === 1) {
             $(amountInput).val(this.groups[this.groupId].month_price_discount * 3);
         } else {
@@ -187,7 +188,7 @@ var Money = {
         $("#income_button").prop('disabled', false);
     },
     completeContract: function(form) {
-        var paymentDate = $("#contract_paid").val();
+        let paymentDate = $("#contract_paid").val();
         if (!paymentDate.length) {
             Main.throwFlashMessage('#messages_place', 'Выберите дату платежа', 'alert-danger');
             return false;

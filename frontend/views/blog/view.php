@@ -11,6 +11,9 @@ $this->params['breadcrumbs'][] = $post->name;
 
 <div class="row">
     <div class="col-xs-12 text-content">
+        <?php if ($post->image): ?>
+            <img src=""
+        <?php endif; ?>
         <?= $post->content; ?>
     </div>
 </div>

@@ -32,6 +32,7 @@ class BlogController extends Controller
             'pager' => $pager,
             'webpage' => $webpage,
             'h1' => $webpage->title,
+            'hide_social' => true,
         ]);
     }
 

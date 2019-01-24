@@ -34,7 +34,17 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'admin_id',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->admin ? $model->admin->name : '';
+                    /** @var \common\models\Payment $model */
+                    return
+                    ($model->contract_id && $model->contract->payment_type != \common\models\Contract::PAYMENT_TYPE_MANUAL
+                        ? '<span class="label label-info">online</span> '
+                        : ''
+                    )
+                    . ($model->cash_received == \common\models\Payment::STATUS_INACTIVE
+                        ? '<span class="label label-danger">деньги не получены</span> '
+                        : ''
+                    )
+                    . ($model->admin ? $model->admin->name : '');
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

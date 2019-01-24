@@ -8,6 +8,11 @@ use yii\base\InvalidArgumentException;
 
 abstract class Controller extends \yii\web\Controller
 {
+    public const PROXY_PARAMS = [
+        'h1',
+        'hide_social',
+    ];
+
     /**
      * @param string $message
      * @return array
@@ -60,7 +65,9 @@ abstract class Controller extends \yii\web\Controller
             }
         }
 
-        if (array_key_exists('h1', $params)) $this->view->params['h1'] = $params['h1'];
+        foreach (self::PROXY_PARAMS as $param) {
+            if (array_key_exists($param, $params)) $this->view->params[$param] = $params[$param];
+        }
 
         return parent::render($view, $params);
     }
