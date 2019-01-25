@@ -10,24 +10,24 @@ use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 
 /**
- * Subscribe command
+ * Order command
  */
-class SubscribeCommand extends UserCommand
+class OrderCommand extends UserCommand
 {
     /**
      * @var string
      */
-    protected $name = 'subscribe';
+    protected $name = 'order';
 
     /**
      * @var string
      */
-    protected $description = 'Подписаться на уведомления об оплате';
+    protected $description = 'Оставить заявку на бесплатное занятие';
 
     /**
      * @var string
      */
-    protected $usage = '/subscribe';
+    protected $usage = '/order';
 
     /**
      * @var string
@@ -48,36 +48,30 @@ class SubscribeCommand extends UserCommand
             'chat_id' => $chatId,
         ];
 
-        $user = User::findOne(['tg_chat_id' => $chatId]);
-        if ($user) {
-            $data['text'] = "Вы уже подписаны на уведомления. Чтобы отключить подписку введите /unsubscribe.";
+        //If a conversation is busy, execute the conversation command after handling the message
+        $conversation = new Conversation(
+            $message->getFrom()->getId(),
+            $chatId
+        );
+
+        //Fetch conversation command if it exists and execute it
+        if ($conversation->exists()) {
+            if ($conversation->getCommand() != $this->name) {
+                return $this->telegram->executeCommand($conversation->getCommand());
+            } else {
+
+            }
         } else {
-            //If a conversation is busy, execute the conversation command after handling the message
             $conversation = new Conversation(
                 $message->getFrom()->getId(),
-                $chatId
+                $chatId,
+                $this->name
             );
-
-            //Fetch conversation command if it exists and execute it
-            if ($conversation->exists()) {
-                if ($conversation->getCommand() != $this->name) {
-                    return $this->telegram->executeCommand($conversation->getCommand());
-                } else {
-                    if ($message->getContact() || ($message->getReplyToMessage() && $message->getReplyToMessage()->getContact())) {
-                        return $this->processSubscription();
-                    }
-                }
-            }
-
-            if (!$conversation->exists()) {
-                $conversation = new Conversation(
-                    $message->getFrom()->getId(),
-                    $chatId,
-                    $this->name
-                );
-            }
-            $data = array_merge($data, self::getSubscribeRequestData());
+            $conversation->notes = ['step' => 1];
+            $conversation->update();
         }
+        $data = array_merge($data, self::getSubscribeRequestData());
+
         return Request::sendMessage($data);
     }
 
