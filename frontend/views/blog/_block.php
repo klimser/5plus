@@ -26,8 +26,8 @@ $postUrl = Yii::$app->homeUrl . $post->webpage->url;
     <div class="col-xs-12 col-md-<?= $post->image ? 9 : 12; ?>">
         <?= $post->teaser; ?>
         <?php if ($post->teasered): ?>
-            <br><br>
-            <a href="<?= $postUrl; ?>">Читать полностью</a>
+            <div class="clearfix"></div>
+            <a href="<?= $postUrl; ?>" class="read_more pull-left">Читать полностью</a>
         <?php endif; ?>
     </div>
 </div>
