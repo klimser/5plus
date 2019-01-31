@@ -3,6 +3,7 @@
 namespace backend\controllers;
 
 use common\components\ContractComponent;
+use common\models\Company;
 use common\models\Contract;
 use common\models\ContractSearch;
 use common\models\Group;
@@ -105,6 +106,7 @@ class ContractController extends AdminController
                 $jsonData['amount'] = $contract->amount;
                 $jsonData['discount'] = $contract->discount;
                 $jsonData['create_date'] = $contract->createDate->format('d.m.Y');
+                $jsonData['company_name'] = $contract->company->second_name;
                 /** @var GroupPupil $groupPupil */
                 $groupPupil = GroupPupil::find()->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
                 if (!$groupPupil) $jsonData['group_pupil_id'] = 0;
@@ -128,6 +130,7 @@ class ContractController extends AdminController
         if (\Yii::$app->request->isPost) {
             $userId = Yii::$app->request->post('user_id');
             $groupId = Yii::$app->request->post('group_id');
+            $companyId = Yii::$app->request->post('company_id');
             $amount = Yii::$app->request->post('amount');
             $discount = boolval(Yii::$app->request->post('discount', 0));
 
@@ -137,13 +140,16 @@ class ContractController extends AdminController
             else {
                 $user = User::findOne($userId);
                 $group = Group::findOne($groupId);
+                $company = Company::findOne($companyId);
                 if (!$user || $user->role != User::ROLE_PUPIL) \Yii::$app->session->addFlash('error', 'Wrong pupil');
                 elseif (!$group || $group->active != Group::STATUS_ACTIVE) \Yii::$app->session->addFlash('error', 'Wrong group');
+                elseif (!$company) \Yii::$app->session->addFlash('error', 'Не выбран учебный центр');
                 else {
                     $contract = new Contract();
                     $contract->created_admin_id = Yii::$app->user->id;
                     $contract->user_id = $user->id;
                     $contract->group_id = $group->id;
+                    $contract->company_id = $company->id;
                     $contract->amount = $amount;
                     $contract->discount = $discount ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
                     $contract->created_at = date('Y-m-d H:i:s');
@@ -175,7 +181,9 @@ class ContractController extends AdminController
             }
         }
 
-        $params = [];
+        $params = [
+            'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
+        ];
         $userId = Yii::$app->request->get('user');
         if ($userId) {
             $user = User::findOne($userId);

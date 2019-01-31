@@ -5,6 +5,7 @@ namespace backend\controllers;
 use backend\components\SalaryComponent;
 use common\components\MoneyComponent;
 use backend\models\ActionSearch;
+use common\models\Company;
 use common\models\Contract;
 use common\models\GroupParam;
 use common\models\GroupPupil;
@@ -41,7 +42,9 @@ class MoneyController extends AdminController
     {
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
 
-        $params = [];
+        $params = [
+            'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
+        ];
         $userId = Yii::$app->request->get('user');
         if ($userId) {
             $user = User::findOne($userId);
@@ -62,39 +65,26 @@ class MoneyController extends AdminController
 
         $userId = Yii::$app->request->post('user');
         $groupId = Yii::$app->request->post('group');
+        $companyId = Yii::$app->request->post('company');
         $amount = intval(Yii::$app->request->post('amount', 0));
-        $discount = Yii::$app->request->post('discount');
         $comment = Yii::$app->request->post('comment', '');
-        $paymentDate = date_create_from_format('d.m.Y', Yii::$app->request->post('date'));
         $contractNum = Yii::$app->request->post('contract');
 
-        if (!$userId || !$groupId || !$amount || !$contractNum || !$paymentDate) $jsonData = self::getJsonErrorResult('Wrong request');
+        if (!$userId || !$groupId || !$companyId || !$amount || !$contractNum) $jsonData = self::getJsonErrorResult('Wrong request');
         else {
             $user = User::findOne($userId);
             $group = Group::findOne(['id' => $groupId, 'active' => Group::STATUS_ACTIVE]);
+            $company = Company::findOne($companyId);
 
             if (!$user) $jsonData = self::getJsonErrorResult('Студент не найден');
             elseif ($amount <= 0) $jsonData = self::getJsonErrorResult('Сумма не может быть <= 0');
-            elseif (!$paymentDate) $jsonData = self::getJsonErrorResult('Указана некорректная дата платежа');
             elseif (!$group) $jsonData = self::getJsonErrorResult('Группа не найдена');
+            elseif (!$company) $jsonData = self::getJsonErrorResult('Компания не выбрана');
             else {
                 $transaction = \Yii::$app->db->beginTransaction();
                 try {
-                    $contract = MoneyComponent::addPupilContract(
-                        $user,
-                        $amount,
-                        $discount > 0,
-                        $contractNum != 'auto' ? $contractNum : null,
-                        null,
-                        $group
-                    );
-
-                    $paymentId = MoneyComponent::payContract(
-                        $contract,
-                        $paymentDate,
-                        Contract::PAYMENT_TYPE_MANUAL,
-                        $comment
-                    );
+                    $contract = MoneyComponent::addPupilContract($company, $user, $amount, $contractNum != 'auto' ? $contractNum : null, $group);
+                    $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $comment);
 
                     $transaction->commit();
                     $jsonData = self::getJsonOkResult(['paymentId' => $paymentId, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
@@ -115,20 +105,24 @@ class MoneyController extends AdminController
      */
     public function actionProcessContract()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        if (!\Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        if (!\Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
 
-        $contractId = Yii::$app->request->post('id');
-        $contractPaidDate = date_create_from_format('d.m.Y', Yii::$app->request->post('contract_paid', ''));
+        $contractId = \Yii::$app->request->post('id');
         if (!$contractId) $jsonData = self::getJsonErrorResult('No contract ID');
-        elseif (!$contractPaidDate) $jsonData =self::getJsonErrorResult('Неправильная дата оплаты');
         else {
             $contract = Contract::findOne($contractId);
             if (!$contract) $jsonData = self::getJsonErrorResult('Договор не найден');
             else {
-                $transaction = Yii::$app->db->beginTransaction();
+                /** @var GroupPupil $groupPupil */
+                $groupPupil = GroupPupil::find()->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
+                $pupilStartDate = null;
+                if (!$groupPupil) {
+                    $pupilStartDate = date_create_from_format('d.m.Y', \Yii::$app->request->post('pupil_start_date', ''));
+                }
+                $transaction = \Yii::$app->db->beginTransaction();
                 try {
-                    $paymentId = MoneyComponent::payContract($contract, $contractPaidDate, Contract::PAYMENT_TYPE_MANUAL);
+                    $paymentId = MoneyComponent::payContract($contract, $pupilStartDate, Contract::PAYMENT_TYPE_MANUAL);
                     $transaction->commit();
                     $jsonData = self::getJsonOkResult(['paymentId' => $paymentId]);
                 } catch (\Throwable $ex) {

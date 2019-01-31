@@ -24,6 +24,9 @@ use common\components\extended\ActiveRecord;
  */
 class Company extends ActiveRecord
 {
+    const COMPANY_EXCLUSIVE_ID = 1;
+    const COMPANY_SUPER_ID = 2;
+
     /**
      * {@inheritdoc}
      */

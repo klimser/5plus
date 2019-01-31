@@ -2,6 +2,7 @@
 
 namespace common\components;
 
+use common\models\Company;
 use common\models\Contract;
 use common\models\Debt;
 use backend\models\Event;
@@ -52,42 +53,40 @@ class MoneyComponent extends Component
     }
 
     /**
+     * @param Company $company
      * @param User $pupil
      * @param int $amount
-     * @param bool $isDiscount
      * @param null|string $number
-     * @param GroupPupil|null $groupPupil
-     * @param Group|null $group
+     * @param Group $group
      * @return Contract
      * @throws \Exception
      */
-    public static function addPupilContract(User $pupil, int $amount, bool $isDiscount, ?string $number, ?GroupPupil $groupPupil, ?Group $group): Contract
+    public static function addPupilContract(Company $company, User $pupil, int $amount, ?string $number, Group $group): Contract
     {
         if ($amount <= 0) throw new \Exception('Сумма договора не может быть отрицательной');
         if ($pupil->role != User::ROLE_PUPIL) throw new \Exception('Договор может быть создан только для студента');
-        if ($groupPupil === null && $group === null) throw new \Exception('Не выбрана группа');
-        if ($groupPupil !== null && $groupPupil->user_id != $pupil->id) throw new \Exception('Введены неверные данные: pupil + groupPupil');
 
         $contract = new Contract();
-        $contract->created_admin_id = \Yii::$app->user->id;
+        if (!\Yii::$app->user->isGuest && \Yii::$app->user->id) {
+            $contract->created_admin_id = \Yii::$app->user->id;
+        }
         $contract->user_id = $pupil->id;
+        $contract->company_id = $company->id;
+        $contract->group_id = $group->id;
         $contract->amount = $amount;
-        $contract->discount = $isDiscount ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
         $contract->created_at = date('Y-m-d H:i:s');
 
         $groupParam = null;
-        if ($groupPupil) {
-            $contract->created_at = $groupPupil->date_start;
-            $group = $groupPupil->group;
-            if ($groupPupil->startDateObject->format('Y-m') <= date('Y-m')) {
-                $groupParam = GroupComponent::getGroupParam($groupPupil->group, $groupPupil->startDateObject);
-            }
+        /** @var GroupPupil $groupPupil */
+        $groupPupil = GroupPupil::find()
+            ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])
+            ->one();
+        if ($groupPupil && $groupPupil->startDateObject->format('Y-m') <= date('Y-m')) {
+            $groupParam = GroupComponent::getGroupParam($groupPupil->group, $groupPupil->startDateObject);
         }
-        $contract->group_id = $group->id;
-        if ($isDiscount
-            && (($groupParam && $amount < $groupParam->price3Month) || (!$groupParam && $amount < $group->price3Month))) {
-            throw new \Exception('Договор по скидочной цене может быть не менее чем за 3 месяца');
-        }
+        $contract->discount = ($groupParam && $amount >= $groupParam->price3Month) || (!$groupParam && $amount >= $group->price3Month)
+            ? Contract::STATUS_ACTIVE
+            : Contract::STATUS_INACTIVE;
 
         if ($number) $contract->number = $number;
         else $contract = ContractComponent::generateContractNumber($contract);
@@ -106,13 +105,13 @@ class MoneyComponent extends Component
 
     /**
      * @param Contract $contract
-     * @param \DateTime $payDate
+     * @param \DateTime|null $pupilStartDate
      * @param int $payType
      * @param null|string $paymentComment
      * @return int
      * @throws \Exception
      */
-    public static function payContract(Contract $contract, \DateTime $payDate, int $payType, ?string $paymentComment = null): int
+    public static function payContract(Contract $contract, ?\DateTime $pupilStartDate, int $payType, ?string $paymentComment = null): int
     {
         if ($contract->status == Contract::STATUS_PAID) throw new \Exception('Договор уже оплачен!');
 
@@ -123,21 +122,21 @@ class MoneyComponent extends Component
         $payment->amount = $contract->amount;
         $payment->discount = $contract->discount;
         $payment->contract_id = $contract->id;
-        $payment->created_at = $payDate->format('Y-m-d H:i:s');
+        $payment->created_at = date('Y-m-d H:i:s');
         if ($paymentComment) $payment->comment = $paymentComment;
 
         $contract->status = Contract::STATUS_PAID;
         $contract->payment_type = $payType;
         $contract->paid_admin_id = \Yii::$app->user->id;
-        $contract->paid_at = $payDate->format('Y-m-d H:i:s');
+        $contract->paid_at = date('Y-m-d H:i:s');
 
         if (!$contract->save()) throw new \Exception('Contract save error: ' . $contract->getErrorsAsString());
 
         $groupPupil = GroupPupil::find()
             ->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])
             ->one();
-        if (!$groupPupil) {
-            GroupComponent::addPupilToGroup($contract->user, $contract->group, $payDate);
+        if (!$groupPupil && $pupilStartDate) {
+            GroupComponent::addPupilToGroup($contract->user, $contract->group, $pupilStartDate);
         }
 
         $paymentId = self::registerIncome($payment);

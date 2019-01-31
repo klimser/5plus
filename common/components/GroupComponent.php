@@ -38,26 +38,6 @@ class GroupComponent extends Component
     }
 
     /**
-     * @param string $scheduleString
-     * @return int
-     */
-    public static function getWeekClasses(string $scheduleString): int
-    {
-        if (!preg_match('#^[01]{6}$#', $scheduleString)) throw new \InvalidArgumentException('Wrong schedule string');
-
-        return substr_count($scheduleString, '1');
-    }
-
-    /**
-     * @param string $scheduleString - string of length 6 contains only 0 and 1
-     * @return int
-     */
-    public static function getTotalClasses(string $scheduleString): int
-    {
-        return self::getWeekClasses($scheduleString) * 4;
-    }
-
-    /**
      * @param Group $group
      * @throws \Exception
      */

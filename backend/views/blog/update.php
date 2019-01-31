@@ -8,7 +8,7 @@ use yii\bootstrap\ActiveForm;
 
 $this->title = $blog->isNewRecord ? 'Новый пост' : $blog->name;
 $this->params['breadcrumbs'][] = ['label' => 'Блог', 'url' => ['index']];
-$this->params['breadcrumbs'][] = $blog->name;
+$this->params['breadcrumbs'][] = $this->title;
 
 ?>
 <div class="subject-update">

@@ -1,9 +1,10 @@
 <?php
 
-use yii\helpers\Html;
+use yii\bootstrap\Html;
 
 /* @var $this yii\web\View */
 /* @var $user \common\models\User */
+/* @var $companies \common\models\Company[] */
 
 $this->registerJs(<<<SCRIPT
     Main.initPhoneFormatted();
@@ -70,7 +71,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                             <button class="btn btn-default btn-lg full-width" type="button" id="payment-0" onclick="Money.setPayment(0);">Без скидки<br><small><span class="price"></span> в месяц</small></button>
                                         </div>
                                         <div class="col-xs-12 col-sm-6">
-                                            <button class="btn btn-default btn-lg full-width" type="button" id="payment-1" onclick="Money.setPayment(1);">Со скидкой<br><small><span class="price"></span> в месяц</small></button>
+                                            <button class="btn btn-default btn-lg full-width" type="button" id="payment-1" onclick="Money.setPayment(1);">Со скидкой<br><small><span class="price"></span> за 3 месяца</small></button>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -80,22 +81,6 @@ $this->params['breadcrumbs'][] = $this->title;
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-xs-12 col-sm-6">
-                            <div class="form-group">
-                                <label for="payment_date">Дата платежа</label>
-                                <?= \dosamigos\datepicker\DatePicker::widget([
-                                    'name' => 'payment_date',
-                                    'value' => date('d.m.Y'),
-                                    'options' => ['id' => 'payment_date', 'required' => true, 'pattern' => "\d{2}\.\d{2}\.\d{4}"],
-                                    'clientOptions' => [
-                                        'autoclose' => true,
-                                        'format' => 'dd.mm.yyyy',
-                                        'language' => 'ru',
-                                        'weekStart' => 1,
-                                    ]
-                                ]);?>
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-6">
@@ -119,6 +104,14 @@ $this->params['breadcrumbs'][] = $this->title;
                                     Старый договор, номер: <input id="contract" class="form-control" required disabled>
                                 </label>
                             </div>
+                        </div>
+                        <div class="col-xs-12">
+                            <?= Html::radioList(
+                                'company_id',
+                                null,
+                                \yii\helpers\ArrayHelper::map($companies, 'id', 'second_name'),
+                                ['class' => 'form-group', 'itemOptions' => ['required' => true]]
+                            ); ?>
                         </div>
                         <div id="income_form" class="col-xs-12 hidden">
                             <div class="form-group">

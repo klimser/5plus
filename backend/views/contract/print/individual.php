@@ -7,7 +7,7 @@
 <div class="page">
     <?= $this->render('_header', ['contract' => $contract]); ?>
 
-    <p style="text-align: justify;">Негосударственное образовательное учреждение «EXCLUSIVE EDUCATION» (Учебный центр «Пять с Плюсом» &trade;), осуществляющее образовательную деятельность на основании лицензии <span class="placeholder"><b>NAS UZ 001.MO.0591-05</b></span> в лице директора <span class="placeholder"><b>Климова Александра Сергеевича</b></span>, действующего на основании Устава, именуемое в дальнейшем «Учреждение», с одной стороны, и <span class="placeholder"><?= $contract->user->parent_id ? $contract->user->parent->name : $contract->user->name; ?></span>, именуемый в дальнейшем «Заказчик» и <span class="placeholder"><?= $contract->user->name; ?></span>, именуемый в дальнейшем «Учащийся», с другой стороны, заключили настоящий Договор о нижеследующем:</p>
+    <p style="text-align: justify;"><?= $contract->company->first_name; ?> (<?= $contract->company->second_name; ?>), осуществляющее образовательную деятельность на основании лицензии <span class="placeholder"><b><?= $contract->company->licence; ?></b></span> в лице директора <span class="placeholder"><b><?= $contract->company->head_name; ?></b></span>, действующего на основании Устава, именуемое в дальнейшем «Учреждение», с одной стороны, и <span class="placeholder"><?= $contract->user->parent_id ? $contract->user->parent->name : $contract->user->name; ?></span>, именуемый в дальнейшем «Заказчик» и <span class="placeholder"><?= $contract->user->name; ?></span>, именуемый в дальнейшем «Учащийся», с другой стороны, заключили настоящий Договор о нижеследующем:</p>
 
     <?= $this->render('_body', ['contract' => $contract]); ?>
 
@@ -19,7 +19,7 @@
 
                 ФИО Заказчика: <span style="text-decoration: underline; padding: 0 2mm;"><?= $contract->user->parent_id ? $contract->user->parent->name : $contract->user->name; ?></span><br>
 
-                <span style="display: inline-block; width: 1.5cm">Адрес: </span><span class="placeholder" style="width: 7.5cm"></span><br>
+                <span style="display: inline-block; width: 1.6cm">Адрес: </span><span class="placeholder" style="width: 7.4cm"></span><br>
                 <span class="placeholder" style="width: 9cm"></span><br>
 
                 Паспорт: серия <span class="placeholder" style="width: 1cm"></span> № <span class="placeholder" style="width: 2cm"></span><br>
@@ -27,7 +27,7 @@
                 «<span class="placeholder" style="width: 6mm"></span>»
                 «<span class="placeholder" style="width: 12mm"></span>» г.<br>
 
-                <span style="display: inline-block; width: 2.5cm">Кем выдан: </span><span class="placeholder" style="width: 6.5cm"></span><br>
+                <span style="display: inline-block; width: 2cm">Кем выдан: </span><span class="placeholder" style="width: 7cm"></span><br>
                 <span class="placeholder" style="width: 9cm"></span><br>
 
                 Тел.: <span class="placeholder" style="width: 3cm;"><?= $contract->user->parent_id ? $contract->user->parent->phoneFull : $contract->user->phoneFull; ?></span>

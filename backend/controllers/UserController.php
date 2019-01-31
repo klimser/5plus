@@ -5,6 +5,7 @@ namespace backend\controllers;
 use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use backend\components\UserComponent;
+use common\models\Company;
 use common\models\Contract;
 use backend\models\EventMember;
 use common\models\Group;
@@ -57,21 +58,38 @@ class UserController extends AdminController
         if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
 
         $parent = new User(['scenario' => User::SCENARIO_USER]);
-        $company = new User(['scenario' => User::SCENARIO_USER]);
+        $parentCompany = new User(['scenario' => User::SCENARIO_USER]);
         $pupil = new User(['scenario' => User::SCENARIO_USER]);
         $groupData = [];
         $paymentData = [];
         $contractData = [];
+        $amount = 0;
+        $companyId = null;
 
         if (Yii::$app->request->isPost) {
-            User::loadMultiple(['parent' => $parent, 'company' => $company, 'pupil' => $pupil], Yii::$app->request->post());
+            User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
             $groupData = Yii::$app->request->post('group', []);
             $paymentData = Yii::$app->request->post('payment', []);
             $contractData = Yii::$app->request->post('contract', []);
+            $amount = intval(\Yii::$app->request->post('amount', 0));
+            $companyId = \Yii::$app->request->post('company_id');
 
             $transaction = User::getDb()->beginTransaction();
             try {
+                $qB = User::find()
+                    ->orWhere(['phone' => $pupil->phone])
+                    ->orWhere(['phone2' => $pupil->phone]);
+                if ($pupil->phone2) {
+                    $qB->orWhere(['phone' => $pupil->phone2])
+                        ->orWhere(['phone2' => $pupil->phone2]);
+                }
+                $qB->andWhere(['role' => User::ROLE_PUPIL]);
+                if ($qB->one()) throw new \Exception('Студент с таким номером телефона уже существует!');
+
+                $company = Company::findOne($companyId);
+                if (!$company) throw new \Exception('Не выбран учебный центр!');
+
                 $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
                 switch ($personType) {
                     case User::ROLE_PARENTS:
@@ -79,8 +97,8 @@ class UserController extends AdminController
                         $pupil->parent_id = $parent->id;
                         break;
                     case User::ROLE_COMPANY:
-                        $company = $this->processParent($company, 'company', $personType);
-                        $pupil->parent_id = $company->id;
+                        $parentCompany = $this->processParent($parentCompany, 'company', $personType);
+                        $pupil->parent_id = $parentCompany->id;
                         break;
                 }
 
@@ -94,18 +112,17 @@ class UserController extends AdminController
                         $groupPupil = $this->addPupilToGroup($pupil, $groupData);
 
                         if ($addPayment) {
-                            $this->addPupilMoneyIncome($groupPupil, $paymentData);
+                            $this->addPupilMoneyIncome($company, $groupPupil, $amount, $paymentData);
                             MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                         }
                     }
                     if (!$addPayment && $addContract) {
                         $contract = MoneyComponent::addPupilContract(
+                            $company,
                             $pupil,
-                            intval($contractData['amount']),
-                            array_key_exists('discount', $contractData) && $contractData['discount'],
+                            $amount,
                             null,
-                            $groupPupil,
-                            Group::findOne($contractData['group'])
+                            $groupPupil ? $groupPupil->group : Group::findOne($contractData['group'])
                         );
 
                         Yii::$app->session->addFlash(
@@ -132,14 +149,17 @@ class UserController extends AdminController
 
         return $this->render('create-pupil', [
             'parent' => $parent,
-            'company' => $company,
+            'parentCompany' => $parentCompany,
             'pupil' => $pupil,
             'groupData' => $groupData,
             'paymentData' => $paymentData,
             'contractData' => $contractData,
+            'amount' => $amount,
+            'companyId' => $companyId,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
             'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
             'existedCompanies' => User::find()->andWhere(['role' => User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
+            'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
         ]);
     }
 
@@ -192,20 +212,20 @@ class UserController extends AdminController
     }
 
     /**
+     * @param Company $company
      * @param GroupPupil $groupPupil
+     * @param int $amount
      * @param array $paymentData
      * @return int
-     * @throws \Exception
      */
-    private function addPupilMoneyIncome(GroupPupil $groupPupil, array $paymentData)
+    private function addPupilMoneyIncome(Company $company, GroupPupil $groupPupil, int $amount, array $paymentData)
     {
         $contract = MoneyComponent::addPupilContract(
+            $company,
             $groupPupil->user,
-            intval($paymentData['amount']),
-            array_key_exists('discount', $paymentData) && $paymentData['discount'],
+            $amount,
             $paymentData['contractType'] == 'manual' ? $paymentData['contract'] : null,
-            $groupPupil,
-            null
+            $groupPupil->group
         );
 
         Yii::$app->session->addFlash(
@@ -214,12 +234,7 @@ class UserController extends AdminController
             . '<a target="_blank" href="' . yii\helpers\Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
         );
 
-        $paymentId = MoneyComponent::payContract(
-            $contract,
-            new \DateTime($groupPupil->startDateObject->format('Y-m-d') . ' ' . date('H:i:s')),
-            Contract::PAYMENT_TYPE_MANUAL,
-            $paymentData['comment']
-        );
+        $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $paymentData['comment']);
 
         Yii::$app->session->addFlash('success', 'Внесение денег зарегистрировано, номер транзакции: ' . $paymentId);
         return $paymentId;
@@ -418,8 +433,8 @@ class UserController extends AdminController
                     foreach ($pupil->activeGroupPupils as $groupPupil) {
                         $groupParam = GroupComponent::getGroupParam($groupPupil->group, new \DateTime());
                         $groupData = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
-                        $groupData['month_price'] = Money::roundThousand($groupParam->lesson_price * GroupComponent::getTotalClasses($groupParam->weekday));
-                        $groupData['month_price_discount'] = Money::roundThousand($groupParam->lesson_price_discount * GroupComponent::getTotalClasses($groupParam->weekday));
+                        $groupData['month_price'] = $groupParam->priceMonth;
+                        $groupData['discount_price'] = $groupParam->price3Month;
                         $groupData['date_start'] = $groupPupil->startDateObject->format('d.m.Y');
                         $groupData['date_charge_till'] = $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '';
 

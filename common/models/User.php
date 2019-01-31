@@ -81,7 +81,7 @@ class User extends ActiveRecord implements IdentityInterface
 //            [['username', 'name', 'auth_key', 'password_hash'], 'required'],
             [['name'], 'required', 'whenClient' => "function (attribute, value) {
                 var parentExpr = /\[parent\].*/;
-                var companyExpr = /\[company\].*/;
+                var companyExpr = /\[parentCompany\].*/;
                 if (parentExpr.test(attribute.name)
                     && ($('input[name=\"person_type\"]:checked').val() != \"" . self::ROLE_PARENTS . "\" || $('input[name=\"parent_type\"]:checked').val() != \"new\")) {
                     return false;
@@ -111,7 +111,7 @@ class User extends ActiveRecord implements IdentityInterface
             [['phoneFormatted'], 'required', 'on' => self::SCENARIO_USER,
                 'whenClient' => "function (attribute, value) {
                     var parentExpr = /\[parent\].*/;
-                    var companyExpr = /\[company\].*/;
+                    var companyExpr = /\[parentCompany\].*/;
                     if (parentExpr.test(attribute.name)
                         && ($('input[name=\"person_type\"]:checked').val() != \"" . self::ROLE_PARENTS . "\" || $('input[name=\"parent_type\"]:checked').val() != \"new\")) {
                         return false;

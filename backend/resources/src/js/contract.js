@@ -1,4 +1,4 @@
-var Contract = {
+let Contract = {
     groups: [],
     paymentType: null,
     loadGroups: function () {
@@ -22,8 +22,8 @@ var Contract = {
         this.renderGroupsBlock();
     },
     renderGroupsBlock: function () {
-        var pupil = Money.pupils[Money.pupilId];
-        var blockHtml = '<div class="panel panel-default"><div class="panel-body">';
+        let pupil = Money.pupils[Money.pupilId];
+        let blockHtml = '<div class="panel panel-default"><div class="panel-body">';
         for (var i = 0; i < pupil.groups.length; i++) {
             blockHtml += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="group-' + pupil.groups[i] + '" onclick="Contract.setGroup(' + pupil.groups[i] + ');">' + Money.groups[pupil.groups[i]].name + '</button>';
         }
@@ -41,7 +41,7 @@ var Contract = {
         if (pupil.groups.length === 1) $("#groups_block").find('button:first').click();
     },
     getGroup: function(groupId) {
-        var group = null;
+        let group = null;
         if (groupId in Money.groups) {
             group = Money.groups[groupId];
         } else {
@@ -63,7 +63,7 @@ var Contract = {
             $("#new_group_button").addClass('btn-primary');
         }
 
-        var group = this.getGroup(groupId);
+        let group = this.getGroup(groupId);
         if (group.hasOwnProperty("date_start")) {
             $("#date_start").text(group.date_start);
             $("#date_charge_till").text(group.date_charge_till);
@@ -72,7 +72,7 @@ var Contract = {
             $("#group_dates").addClass("hidden");
         }
         $("#payment-0").find(".price").text(group.month_price);
-        $("#payment-1").find(".price").text(group.month_price_discount);
+        $("#payment-1").find(".price").text(group.discount_price);
         $("#payment_type_block").removeClass("hidden").find("button").removeClass("btn-primary");
         $("#income_form").addClass('hidden');
     },
@@ -81,10 +81,10 @@ var Contract = {
         $("#payment-" + paymentType).addClass('btn-primary');
         this.paymentType = paymentType;
 
-        var amountInput = $("#amount");
-        var group = this.getGroup(Money.groupId);
+        let amountInput = $("#amount");
+        let group = this.getGroup(Money.groupId);
         if (this.paymentType === 1) {
-            $(amountInput).val(group.month_price_discount * 3).attr("min", group.month_price_discount * 3);
+            $(amountInput).val(group.discount_price).attr("min", group.discount_price);
         } else {
             $(amountInput).val(group.month_price).attr("min", 1000);
         }

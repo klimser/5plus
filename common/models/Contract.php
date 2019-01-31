@@ -2,7 +2,6 @@
 
 namespace common\models;
 
-use common\components\GroupComponent;
 use common\components\extended\ActiveRecord;
 use common\components\helpers\Money;
 
@@ -13,6 +12,7 @@ use common\components\helpers\Money;
  * @property string $number Номер договора
  * @property int $user_id ID ученика
  * @property int $group_id ID группы
+ * @property int $company_id ID компании
  * @property int $amount Сумма
  * @property int $discount Скидочный платёж
  * @property string $amountString Сумма прописью
@@ -35,6 +35,7 @@ use common\components\helpers\Money;
  * @property Payment[] $payments
  * @property User $createdAdmin
  * @property User $paidAdmin
+ * @property Company $company
  */
 class Contract extends ActiveRecord
 {
@@ -60,7 +61,7 @@ class Contract extends ActiveRecord
     public function rules()
     {
         return [
-            [['number', 'user_id', 'group_id', 'amount'], 'required'],
+            [['number', 'user_id', 'group_id', 'company_id', 'amount'], 'required'],
             [['user_id', 'amount', 'discount', 'status', 'payment_type'], 'integer'],
             [['created_at', 'paid_at'], 'safe'],
             [['number'], 'string', 'max' => 20],
@@ -73,6 +74,7 @@ class Contract extends ActiveRecord
             ['payment_type', 'in', 'range' => [self::PAYMENT_TYPE_MANUAL, self::PAYMENT_TYPE_PAYME, self::PAYMENT_TYPE_PAYMO]],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
+            [['company_id'], 'exist', 'targetRelation' => 'company'],
         ];
     }
 
@@ -177,7 +179,7 @@ class Contract extends ActiveRecord
      */
     public function getWeeksCount(): int
     {
-        return round($this->lessonsCount / GroupComponent::getWeekClasses($this->groupParam->weekday));
+        return round($this->lessonsCount / $this->groupParam->classesPerWeek);
     }
 
     /**
@@ -218,5 +220,13 @@ class Contract extends ActiveRecord
     public function getPaidAdmin()
     {
         return $this->hasOne(User::class, ['id' => 'paid_admin_id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCompany()
+    {
+        return $this->hasOne(Company::class, ['id' => 'company_id']);
     }
 }

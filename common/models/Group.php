@@ -2,9 +2,9 @@
 
 namespace common\models;
 
-use common\components\GroupComponent;
 use backend\models\Event;
 use common\components\extended\ActiveRecord;
+use common\models\traits\GroupParam as GroupParamTrait;
 
 /**
  * This is the model class for table "{{%group}}".
@@ -20,8 +20,6 @@ use common\components\extended\ActiveRecord;
  * @property string $weekday
  * @property int $lesson_price
  * @property int $lesson_price_discount
- * @property int $priceMonth
- * @property int $price3Month
  * @property double $teacher_rate
  * @property string $room_number
  * @property int $active
@@ -44,6 +42,7 @@ use common\components\extended\ActiveRecord;
  */
 class Group extends ActiveRecord
 {
+    use GroupParamTrait;
     /**
      * {@inheritdoc}
      */
@@ -226,15 +225,5 @@ class Group extends ActiveRecord
     public function getChargeDateObject()
     {
         return empty($this->date_charge_till) ? null : new \DateTime($this->date_charge_till);
-    }
-
-    public function getPriceMonth()
-    {
-        return $this->lesson_price * GroupComponent::getTotalClasses($this->weekday);
-    }
-
-    public function getPrice3Month()
-    {
-        return ($this->lesson_price_discount ?: $this->lesson_price) * GroupComponent::getTotalClasses($this->weekday) * 3;
     }
 }

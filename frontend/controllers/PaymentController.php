@@ -2,9 +2,10 @@
 
 namespace frontend\controllers;
 
-use common\components\ContractComponent;
 use common\components\extended\Controller;
+use common\components\MoneyComponent;
 use common\components\paymo\PaymoApiException;
+use common\models\Company;
 use common\models\Contract;
 use common\models\Group;
 use common\models\GroupPupil;
@@ -91,19 +92,17 @@ class PaymentController extends Controller
         if (!$groupPupil) return self::getJsonErrorResult('Для этого студента внесение оплаты невозможно');
 
         $transaction = \Yii::$app->db->beginTransaction();
-        $contract = new Contract();
-        $contract->user_id = $pupil->id;
-        $contract->group_id = $group->id;
-        $contract->amount = $amount;
-        if ($group->lesson_price_discount) {
-            $contract->discount = $amount >= $group->price3Month ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
-        }
-        $contract->created_at = date('Y-m-d H:i:s');
-        $contract->status = Contract::STATUS_PROCESS;
-        $contract->payment_type = Contract::PAYMENT_TYPE_PAYMO;
-        $contract = ContractComponent::generateContractNumber($contract);
-
         try {
+            $contract = MoneyComponent::addPupilContract(
+                Company::findOne(Company::COMPANY_SUPER_ID),
+                $pupil,
+                $amount,
+                null,
+                $group
+            );
+            $contract->status = Contract::STATUS_PROCESS;
+            $contract->payment_type = Contract::PAYMENT_TYPE_PAYMO;
+
             $paymoId = \Yii::$app->paymoApi->payCreate($contract->amount * 100, $contract->number, [
                 'студент' => $pupil->name,
                 'группа' => $group->legal_name,

@@ -32,7 +32,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3491);
+//        $user = User::findOne(3868);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
@@ -47,7 +47,7 @@ class GroupController extends AdminController
 //        MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
 //        GroupComponent::calculateTeacherSalary($groupPupil->group);
 
-//        $group = Group::findOne(1);
+//        $group = Group::findOne(97);
 //        foreach ($group->groupPupils as $groupPupil) {
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
 //            MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
@@ -293,7 +293,7 @@ class GroupController extends AdminController
         return $this->render('move_pupil', [
             'userId' => Yii::$app->request->get('user', 0),
             'groupId' => Yii::$app->request->get('group', 0),
-            'groupList' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->all(),
+            'groupList' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy('name')->all(),
         ]);
     }
 
@@ -448,8 +448,8 @@ class GroupController extends AdminController
                         $groupParam->lesson_price_discount = $group->lesson_price_discount;
                         $groupParam->weekday = $group->weekday;
                     }
-                    $groupData['month_price'] = Money::roundThousand($groupParam->lesson_price * GroupComponent::getTotalClasses($groupParam->weekday));
-                    $groupData['month_price_discount'] = Money::roundThousand($groupParam->lesson_price_discount * GroupComponent::getTotalClasses($groupParam->weekday));
+                    $groupData['month_price'] = $groupParam->priceMonth;
+                    $groupData['discount_price'] = $groupParam->price3Month;
                     $jsonData[] = $groupData;
                 }
             }

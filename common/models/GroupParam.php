@@ -2,8 +2,8 @@
 
 namespace common\models;
 
-use common\components\GroupComponent;
 use common\components\extended\ActiveRecord;
+use common\models\traits\GroupParam as GroupParamTrait;
 
 /**
  * This is the model class for table "{{%group_param}}".
@@ -14,7 +14,6 @@ use common\components\extended\ActiveRecord;
  * @property int $month
  * @property int $lesson_price
  * @property int $lesson_price_discount
- * @property int $price3Month
  * @property string $schedule
  * @property string[] $scheduleData
  * @property string $weekday
@@ -27,6 +26,7 @@ use common\components\extended\ActiveRecord;
  */
 class GroupParam extends ActiveRecord
 {
+    use GroupParamTrait;
 
     public static function tableName()
     {
@@ -89,11 +89,6 @@ class GroupParam extends ActiveRecord
     public function getTeacher()
     {
         return $this->hasOne(Teacher::class, ['id' => 'teacher_id']);
-    }
-
-    public function getPrice3Month()
-    {
-        return $this->lesson_price_discount * GroupComponent::getTotalClasses($this->weekday) * 3;
     }
 
     /**

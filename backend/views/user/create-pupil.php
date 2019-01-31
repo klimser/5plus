@@ -6,7 +6,7 @@ use yii\bootstrap\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $parent \common\models\User */
-/* @var $company \common\models\User */
+/* @var $parentCompany \common\models\User */
 /* @var $pupil \common\models\User */
 /* @var $groups \common\models\Group[] */
 /* @var $existedParents \common\models\User[] */
@@ -14,6 +14,9 @@ use yii\bootstrap\ActiveForm;
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */
+/* @var $amount int */
+/* @var $companyId int */
+/* @var $companies \common\models\Company[] */
 
 $this->title = 'Добавить студента и родителей';
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
@@ -35,7 +38,7 @@ SCRIPT
                 <h2>Студент</h2>
                 <?= Html::radioList(
                     'person_type',
-                    $company->name ? \common\models\User::ROLE_COMPANY : \common\models\User::ROLE_PARENTS,
+                    $parentCompany->name ? \common\models\User::ROLE_COMPANY : \common\models\User::ROLE_PARENTS,
                     [
                         \common\models\User::ROLE_PARENTS => 'Физ. лицо',
                         \common\models\User::ROLE_COMPANY => 'Юр. лицо',
@@ -56,12 +59,15 @@ SCRIPT
                     'groupData' => $groupData,
                     'paymentData' => $paymentData,
                     'contractData' => $contractData,
+                    'companies' => $companies,
+                    'amount' => $amount,
+                    'companyId' => $companyId,
                 ]) ?>
             </div>
 
             <hr class="visible-xs visible-sm">
 
-            <div id="parents_block" class="col-xs-12 col-md-6 <?= $company->name ? ' hidden' : ''; ?>">
+            <div id="parents_block" class="col-xs-12 col-md-6 <?= $parentCompany->name ? ' hidden' : ''; ?>">
                 <h2>Родители</h2>
 
                 <div class="radio">
@@ -100,7 +106,7 @@ SCRIPT
                 </div>
             </div>
 
-            <div id="company_block" class="col-xs-12 col-md-6 <?= $company->name ? '' : ' hidden'; ?>">
+            <div id="company_block" class="col-xs-12 col-md-6 <?= $parentCompany->name ? '' : ' hidden'; ?>">
                 <h2>Компания</h2>
 
                 <div class="radio">
@@ -108,10 +114,10 @@ SCRIPT
                         <input type="radio" name="company_type" value="exist" onclick="User.changeCompanyType()"> Выбрать компанию из списка
                     </label>
                 </div>
-                <div id="company_select" <?= !$company->id ? ' class="hidden"' : ''; ?>>
+                <div id="company_select" <?= !$parentCompany->id ? ' class="hidden"' : ''; ?>>
                     <select name="company_exists" class="form-control chosen">
                         <?php foreach ($existedCompanies as $existedCompany): ?>
-                            <option value="<?= $existedCompany->getId(); ?>" <?= $company->id == $existedCompany->id ? ' selected' : ''; ?>>
+                            <option value="<?= $existedCompany->getId(); ?>" <?= $parentCompany->id == $existedCompany->id ? ' selected' : ''; ?>>
                                 <?= $existedCompany->name; ?>
                             </option>
                         <?php endforeach; ?>
@@ -123,13 +129,13 @@ SCRIPT
                     </label>
                 </div>
 
-                <div id="company_form" <?= $company->id ? ' class="hidden"' : ''; ?>>
-                    <?= $form->field($company, '[company]name', ['labelOptions' => ['label' => 'Название']])->textInput(['maxlength' => true]); ?>
+                <div id="company_form" <?= $parentCompany->id ? ' class="hidden"' : ''; ?>>
+                    <?= $form->field($parentCompany, '[parentCompany]name', ['labelOptions' => ['label' => 'Название']])->textInput(['maxlength' => true]); ?>
 
-                    <?= $form->field($company, '[company]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                    <?= $form->field($parentCompany, '[parentCompany]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
                         ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
 
-                    <?= $form->field($company, '[company]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                    <?= $form->field($parentCompany, '[parentCompany]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
                         ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
                 </div>
             </div>

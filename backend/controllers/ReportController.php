@@ -90,7 +90,7 @@ class ReportController extends AdminController
                 $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
                 $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
 
-                $spreadsheet->getActiveSheet()->mergeCells('A1:F1');
+                $spreadsheet->getActiveSheet()->mergeCells('A1:G1');
                 $spreadsheet->getActiveSheet()->setCellValue('A1', "Отчёт по студентам $month $year");
                 $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $spreadsheet->getActiveSheet()->getStyle('A1')->getFont()->setBold(true)->setSize(16);
@@ -101,16 +101,23 @@ class ReportController extends AdminController
                 $spreadsheet->getActiveSheet()->setCellValue('D2', "прибыло");
                 $spreadsheet->getActiveSheet()->setCellValue('E2', "убыло");
                 $spreadsheet->getActiveSheet()->setCellValue('F2', "всего занималось");
+                $spreadsheet->getActiveSheet()->setCellValue('G2', "сальдо");
 
                 $i = 1;
                 $row = 3;
-                $total = ['in' => 0, 'out' => 0, 'pupils' => 0];
+                $total = ['in' => 0, 'out' => 0, 'pupils' => 0, 'final' => 0];
                 foreach ($groups as $group) {
                     $groupParam = GroupComponent::getGroupParam($group, $startDate);
                     $totalPupils = GroupPupil::find()
                         ->andWhere(['group_id' => $group->id])
                         ->andWhere(['<=', 'date_start', $endDateString])
                         ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
+                        ->select('COUNT(DISTINCT user_id)')
+                        ->scalar();
+                    $finalPupils = GroupPupil::find()
+                        ->andWhere(['group_id' => $group->id])
+                        ->andWhere(['<=', 'date_start', $endDateString])
+                        ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $endDateString]])
                         ->select('COUNT(DISTINCT user_id)')
                         ->scalar();
 
@@ -120,9 +127,11 @@ class ReportController extends AdminController
                     $spreadsheet->getActiveSheet()->setCellValue("D$row", $dataMap[$group->id]['in']);
                     $spreadsheet->getActiveSheet()->setCellValue("E$row", $dataMap[$group->id]['out']);
                     $spreadsheet->getActiveSheet()->setCellValue("F$row", $totalPupils);
+                    $spreadsheet->getActiveSheet()->setCellValue("G$row", $finalPupils);
                     $total['in'] += $dataMap[$group->id]['in'];
                     $total['out'] += $dataMap[$group->id]['out'];
                     $total['pupils'] += $totalPupils;
+                    $total['final'] += $finalPupils;
                     $i++;
                     $row++;
                 }
@@ -131,9 +140,10 @@ class ReportController extends AdminController
                 $spreadsheet->getActiveSheet()->setCellValue("D$row", $total['in']);
                 $spreadsheet->getActiveSheet()->setCellValue("E$row", $total['out']);
                 $spreadsheet->getActiveSheet()->setCellValue("F$row", $total['pupils']);
-                $spreadsheet->getActiveSheet()->getStyle("A$row:F$row")->getFont()->setBold(true);
+                $spreadsheet->getActiveSheet()->setCellValue("G$row", $total['final']);
+                $spreadsheet->getActiveSheet()->getStyle("A$row:G$row")->getFont()->setBold(true);
 
-                $spreadsheet->getActiveSheet()->getStyle("A2:F$row")->applyFromArray([
+                $spreadsheet->getActiveSheet()->getStyle("A2:G$row")->applyFromArray([
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => Border::BORDER_THIN,
