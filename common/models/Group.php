@@ -16,7 +16,6 @@ use common\models\traits\GroupParam as GroupParamTrait;
  * @property int $subject_id
  * @property int $teacher_id
  * @property string $schedule
- * @property string[] $scheduleData
  * @property string $weekday
  * @property int $lesson_price
  * @property int $lesson_price_discount
@@ -62,7 +61,7 @@ class Group extends ActiveRecord
             [['teacher_rate'], 'number', 'min'=> 0, 'max' => 100],
             [['name', 'legal_name'], 'string', 'max' => 50],
             [['schedule'], 'string', 'max' => 255],
-            [['weekday'], 'string', 'max' => 6],
+            [['weekday'], 'string', 'max' => 7],
             [['room_number'], 'string', 'max' => 25],
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
             [['date_start', 'date_end'], 'safe'],
@@ -95,16 +94,6 @@ class Group extends ActiveRecord
             'date_end' => 'Дата завершения занятий',
             'date_charge_till' => 'Стоимость списана до этой даты',
         ];
-    }
-
-    public function getScheduleData()
-    {
-        return json_decode($this->getAttribute('schedule'), true);
-    }
-    
-    public function setScheduleData($value)
-    {
-        $this->setAttribute('schedule', json_encode($value));
     }
 
     /**

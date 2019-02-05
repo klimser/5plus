@@ -55,14 +55,23 @@ SCRIPT
     <?= $form->field($group, 'room_number', ['options' => ['class' => 'form-group col-xs-12 col-sm-6']])
         ->textInput(['maxlength' => true]); ?>
 
-    <?php for ($i = 0; $i < 6; $i++): ?>
-        <div class="col-xs-4 col-sm-2 form-group">
-            <div class="checkbox"><label>
-                    <input type="checkbox" name="weekday[<?= $i; ?>]" value="1" <?= $group->weekday[$i] == '1' ? 'checked' : ''; ?> onchange="Group.toggleWeekday(this);"> <?= Calendar::$weekDays[$i + 1]; ?>
-                </label></div>
-            <input class="form-control weektime" name="weektime[<?= $i; ?>]" value="<?= $group->scheduleData ? $group->scheduleData[$i] : ''; ?>" placeholder="Время" pattern="\d{2}:\d{2}" maxlength="5" required <?= $group->weekday[$i] == '0' ? 'disabled' : ''; ?>>
-        </div>
-    <?php endfor; ?>
+    <div class="form-group col-xs-12">
+        <table>
+            <tr>
+                <?php for ($i = 0; $i < 7; $i++): ?>
+                    <td>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="weekday[<?= $i; ?>]" value="1" <?= $group->weekday[$i] == '1' ? 'checked' : ''; ?> onchange="Group.toggleWeekday(this);">
+                                <?= Calendar::$weekDays[($i + 1) % 7]; ?>
+                            </label>
+                        </div>
+                        <input class="form-control weektime" name="weektime[<?= $i; ?>]" value="<?= $group->scheduleData[$i]; ?>" placeholder="Время" pattern="\d{2}:\d{2}" maxlength="5" required <?= $group->weekday[$i] == '0' ? 'disabled' : ''; ?>>
+                    </td>
+                <?php endfor; ?>
+            </tr>
+        </table>
+    </div>
 
     <?= $form->field($group, 'lesson_price', ['options' => ['class' => 'form-group col-xs-12 col-sm-6']])
         ->input('number', ['placeholder' => 'Только целое число, например: 24000', 'required' => true]); ?>

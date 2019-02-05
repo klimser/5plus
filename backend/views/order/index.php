@@ -73,11 +73,12 @@ $this->params['breadcrumbs'][] = $this->title;
                     ],
                 ]),
             ],
+            'source',
             [
                 'attribute' => 'status',
                 'format' => 'html',
                 'content' => function ($model, $key, $index, $column) {
-                    return Html::activeDropDownList($model, 'status', \common\models\Order::$statusLabels, ['class' => 'form-control input-sm', 'onchange' => 'Main.changeEntityStatus("order", ' . $model->id . ', $(this).val(), this);', 'id' => 'order-status-' . $key]);
+                    return Html::activeDropDownList($model, 'status', \common\models\Order::$statusLabels, ['class' => 'form-control input-sm', 'onchange' => 'Main.changeEntityStatus("order", ' . $model->id . ', $(this).val(), this);', 'id' => 'order-status-' . $key, 'autocomplete' => 'off']);
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

@@ -23,7 +23,7 @@ class OrderController extends Controller
         if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
 
         $orderData = \Yii::$app->request->post('order');
-        $order = new Order(['scenario' => Order::SCENARIO_USER]);
+        $order = new Order(['scenario' => Order::SCENARIO_FRONTEND]);
         $order->load($orderData, '');
         if (\Yii::$app->request->post('g-recaptcha-response')) $order->reCaptcha = \Yii::$app->request->post('g-recaptcha-response');
         $subject = Subject::findOne($order->subject);

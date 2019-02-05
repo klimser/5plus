@@ -12,7 +12,6 @@ use common\models\GroupType;
 use common\models\Payment;
 use common\models\User;
 use common\components\GroupComponent;
-use common\components\helpers\Money;
 use common\models\Subject;
 use common\models\Teacher;
 use yii;
@@ -32,7 +31,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3868);
+//        $user = User::findOne(3784);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
@@ -160,7 +159,7 @@ class GroupController extends AdminController
             $weektime = Yii::$app->request->post('weektime', []);
             $weekdayString = '';
             $scheduleArray = [];
-            for ($i = 0; $i < 6; $i++) {
+            for ($i = 0; $i < 7; $i++) {
                 $weekdayString .= isset($weekday[$i]) ? '1' : '0';
                 if (isset($weekday[$i]) && !$weektime[$i]) {
                     Yii::$app->session->addFlash('error', 'Не указано время занятий');

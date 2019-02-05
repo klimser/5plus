@@ -116,7 +116,7 @@ class SubscribeCommand extends UserCommand
             }
             $users = $query->all();
             if (count($users) == 1) {
-                $data['text'] = $this->setUserSubscription(reset($users));
+                $data = array_merge($data, $this->setUserSubscription(reset($users)));
             } elseif (empty($users)) {
                 if ($message->getContact()) {
                     $data['text'] = 'Пользователь с таким номером телефона не найден. Если вы занимаетесь в учебном центре обратитесь к менеджерам с просьбой скорректировать ваш номер телефона.';
@@ -137,10 +137,11 @@ class SubscribeCommand extends UserCommand
 
     /**
      * @param User $user
-     * @return string
+     * @return array
      */
-    private function setUserSubscription(User $user): string
+    private function setUserSubscription(User $user): array
     {
+        $data = ['reply_markup' => Keyboard::remove()];
         $user->tg_chat_id = $this->getMessage()->getChat()->getId();
         if ($user->save()) {
             $conversation = new Conversation(
@@ -148,10 +149,11 @@ class SubscribeCommand extends UserCommand
                 $this->getMessage()->getChat()->getId()
             );
             if ($conversation->exists()) $conversation->stop();
-            return 'Подписка на уведомления успешно включена.';
+            $data['text'] = 'Подписка на уведомления успешно включена.';
         } else {
             \Yii::$app->errorLogger->logError('public-bot/subscribe', print_r($user->getErrors(), true), true);
-            return 'Произошла ошибка, не удалось включить подписку, мы уже знаем о случившемся и как можно скорее исправим это.';
+            $data['text'] = 'Произошла ошибка, не удалось включить подписку, мы уже знаем о случившемся и как можно скорее исправим это.';
         }
+        return $data;
     }
 }

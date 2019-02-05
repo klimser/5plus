@@ -95,12 +95,21 @@ class GroupComponent extends Component
     public static function addPupilToGroup(User $pupil, Group $group, \DateTime $startDate, ?\DateTime $endDate = null): GroupPupil
     {
         if (!$group || !$startDate || ($endDate && $endDate < $startDate)) {
-            throw new \Exception('Ученик не добавлен в группу, введены некорректные значения даты начала и завершения занятий!');
+            throw new \Exception('Студент не добавлен в группу, введены некорректные значения даты начала и завершения занятий!');
         } else {
             $startDate->modify('midnight');
             if ($group->endDateObject && $startDate > $group->endDateObject) {
-                throw new \Exception('Ученик не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
+                throw new \Exception('Студент не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
             } else {
+                $existedGroupPupil = GroupPupil::find()
+                    ->andWhere(['group_id' => $group->id, 'user_id' => $pupil->id])
+                    ->andWhere(['<', 'date_start', $startDate->format('Y-m-d')])
+                    ->andWhere(['OR', ['date_end' => null], ['>', 'date_end', $startDate->format('Y-m-d')]])
+                    ->one();
+                if ($existedGroupPupil) {
+                    throw new \Exception('Студент уже был добавлен в группу в выбранном промежутке времени, не добавляйте его дважды, так нельзя!');
+                }
+
                 $groupPupil = new GroupPupil();
                 $groupPupil->user_id = $pupil->id;
                 $groupPupil->group_id = $group->id;

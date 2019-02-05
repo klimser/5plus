@@ -11,6 +11,8 @@ use yii\web\NotFoundHttpException;
  */
 class CompanyController extends AdminController
 {
+    protected $accessRule = 'root';
+
     /**
      * Lists all Company models.
      * @return mixed

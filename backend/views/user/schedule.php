@@ -75,7 +75,7 @@ $intervalMonth = new \DateInterval('P1M');
                                     <i>
                                         <?php foreach ($groupInfo->scheduleData as $day => $time):
                                             if ($time): ?>
-                                                <?= Calendar::$weekDays[$day + 1]; ?> <?= $time; ?>
+                                                <?= Calendar::$weekDays[($day + 1) % 7]; ?> <?= $time; ?>
                                             <?php endif;
                                         endforeach; ?>
                                     </i>

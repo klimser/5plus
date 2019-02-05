@@ -74,11 +74,11 @@ SCRIPT
 
 <div class="form-group">
     <div class="row">
-        <?php for ($i =1; $i < 7; $i++): ?>
+        <?php for ($i = 1; $i <= 7; $i++): ?>
             <div class="col-xs-2">
                 <label>
                     <?= Html::checkbox("weekday[$i]", false, ['data' => ['day' => $i], 'onclick' => 'toggleWeekday(this);']); ?>
-                    <?= Calendar::$weekDays[$i]; ?>
+                    <?= Calendar::$weekDays[$i % 7]; ?>
                 </label>
                 <br>
                 <fieldset id="time_edit_<?= $i; ?>" disabled>

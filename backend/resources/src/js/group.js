@@ -175,9 +175,9 @@ var Group = {
     },
     toggleWeekday: function (e) {
         if ($(e).is(':checked')) {
-            $(e).closest('.form-group').find("input.weektime").prop('disabled', false);
+            $(e).closest('td').find("input.weektime").prop('disabled', false);
         } else {
-            $(e).closest('.form-group').find("input.weektime").prop('disabled', true);
+            $(e).closest('td').find("input.weektime").prop('disabled', true);
         }
     },
     loadPupils: function() {

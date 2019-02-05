@@ -3,11 +3,12 @@
 namespace Longman\TelegramBot\Commands\UserCommands;
 
 use common\components\telegram\Request;
-use common\models\User;
+use common\models\Order;
+use common\models\Subject;
+use common\models\SubjectCategory;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
-use Longman\TelegramBot\Entities\ServerResponse;
 
 /**
  * Order command
@@ -34,6 +35,9 @@ class OrderCommand extends UserCommand
      */
     protected $version = '1.0.0';
 
+    const STEP_BACK_TEXT = 'На предыдущий шаг';
+    const CONFIRM_TEXT = 'Отправить';
+
     /**
      * Command execute method
      *
@@ -59,7 +63,13 @@ class OrderCommand extends UserCommand
             if ($conversation->getCommand() != $this->name) {
                 return $this->telegram->executeCommand($conversation->getCommand());
             } else {
-
+                if ($message->getText() != self::STEP_BACK_TEXT) {
+                    $conversation->notes['step']++;
+                    $conversation->update();
+                } elseif ($conversation->notes['step'] == 1) {
+                    $conversation->stop();
+                    return null;
+                }
             }
         } else {
             $conversation = new Conversation(
@@ -70,82 +80,207 @@ class OrderCommand extends UserCommand
             $conversation->notes = ['step' => 1];
             $conversation->update();
         }
-        $data = array_merge($data, self::getSubscribeRequestData());
-
-        return Request::sendMessage($data);
-    }
-
-    public static function getSubscribeRequestData(): array
-    {
-        $data = [];
-        $data['text'] = "Для получения финансовой информации подтвердите свой телефон.";
-        $keyboard = new Keyboard([
-            ['text' => 'Подтвердить телефон', 'request_contact' => true],
-        ]);
-        $keyboard->setResizeKeyboard(true)
-            ->setOneTimeKeyboard(true)
-            ->setSelective(false);
-        $data['reply_markup'] = $keyboard;
-
-        return $data;
-    }
-
-    private function processSubscription(): ServerResponse
-    {
-        $message = $this->getMessage();
-        $contact = $message->getContact() ?: $message->getReplyToMessage()->getContact();
-        $data = ['chat_id' => $message->getChat()->getId()];
-
-        $query = User::find()
-            ->andWhere(['status' => [User::STATUS_ACTIVE, User::STATUS_INACTIVE]])
-            ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]])
-            ->andWhere(['or', ['phone' => $contact->getPhoneNumber()], ['phone2' => $contact->getPhoneNumber()]]);
-
-
-        if ($message->getFrom()->getId() != $contact->getUserId()) {
-            $data['text'] = 'Подписка на уведомления об оплате возможна только для себя';
-        } else {
-            if (!$message->getContact()) {
-                $query->andWhere(['like', 'name', $message->getText()]);
-            }
-            $users = $query->all();
-            if (count($users) == 1) {
-                $data['text'] = $this->setUserSubscription(reset($users));
-            } elseif (empty($users)) {
-                if ($message->getContact()) {
-                    $data['text'] = 'Пользователь с таким номером телефона не найден. Если вы занимаетесь в учебном центре обратитесь к менеджерам с просьбой скорректировать ваш номер телефона.';
-                } else {
-                    $data['reply_to_message_id'] = $message->getReplyToMessage()->getMessageId();
-                    $data['reply_markup'] = ['force_reply' => true, 'selective' => true];
-                    $data['text'] = 'Не удалось найти пользователя по указанным параметрам, попробуйте ещё раз. Напишите вашу фамилию или имя.';
-                }
-            } else {
-                $data['reply_to_message_id'] = $message->getContact() ? $message->getMessageId() : $message->getReplyToMessage()->getMessageId();
-                $data['reply_markup'] = ['force_reply' => true, 'selective' => true];
-                $data['text'] = 'Найдено несколько пользователей. Напишите, пожалуйста, вашу фамилию или имя.';
-            }
-        }
+        $data = array_merge($data, $this->getOrderRequestData($conversation));
 
         return Request::sendMessage($data);
     }
 
     /**
-     * @param User $user
      * @return string
      */
-    private function setUserSubscription(User $user): string
+    private function getGreetingText(): string
     {
-        $user->tg_chat_id = $this->getMessage()->getChat()->getId();
-        if ($user->save()) {
-            $conversation = new Conversation(
-                $this->getMessage()->getFrom()->getId(),
-                $this->getMessage()->getChat()->getId()
-            );
-            if ($conversation->exists()) $conversation->stop();
-            return 'Подписка на уведомления успешно включена.';
-        } else {
-            \Yii::$app->errorLogger->logError('public-bot/subscribe', print_r($user->getErrors(), true), true);
-            return 'Произошла ошибка, не удалось включить подписку, мы уже знаем о случившемся и как можно скорее исправим это.';
+        return 'Как вас зовут?';
+    }
+
+    private function getPhoneRequestKeyboard(): Keyboard
+    {
+        $buttons = [
+            ['text' => 'Отправить свой телефон', 'request_contact' => true],
+            self::STEP_BACK_TEXT,
+        ];
+        $keyboard = new Keyboard($buttons);
+        $keyboard->setResizeKeyboard(true)
+            ->setOneTimeKeyboard(true)
+            ->setSelective(false);
+        return $keyboard;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getActiveCategoryButtons(): array
+    {
+        /** @var SubjectCategory[] $categories */
+        $categories = SubjectCategory::find()->with('activeSubjects')->all();
+        $buttons = [];
+        foreach ($categories as $category) {
+            if (!empty($category->activeSubjects)) {
+                $buttons[] = [$category->name];
+            }
         }
+        return $buttons;
+    }
+
+    /**
+     * @param SubjectCategory $subjectCategory
+     * @return string[]
+     */
+    private function getSubjectButtons(SubjectCategory $subjectCategory): array
+    {
+        $buttons = [];
+        /** @var Subject[] $subjects */
+        $subjects = Subject::find()
+            ->andWhere(['active' => Subject::STATUS_ACTIVE, 'category_id' => $subjectCategory->id])
+            ->all();
+        foreach ($subjects as $subject) {
+            $buttons[] = [$subject->name];
+        }
+        return $buttons;
+    }
+
+    /**
+     * @param Conversation $conversation
+     * @return array
+     */
+    private function addOrder(Conversation $conversation): array
+    {
+        $order = new Order(['scenario' => Order::SCENARIO_TELEGRAM]);
+        $order->subject = $conversation->notes['category'] . ': ' . $conversation->notes['subject'];
+        $order->name = $conversation->notes['name'];
+        $order->phone = $conversation->notes['phone'];
+        $order->user_comment = $conversation->notes['comment'];
+
+        if (!$order->save(true)) {
+            \Yii::$app->errorLogger->logError('Order.create', $order->getErrorsAsString() , true);
+            $data['text'] = 'К сожалению, не удалось добавить заявку. Наши технические специалисты уже получили уведомление и как можно скорее устранят проблему. Можете позвонить нашим менеджерам и записаться на занятие у них.';
+            $data['contact'] = [
+                'phone_number' => '+998712000350',
+                'first_name' => 'Менеджер',
+                'last_name' => '5 с плюсом',
+            ];
+        } else {
+            $order->notifyAdmin();
+            $data['text'] = 'Ваша заявка принята. Наши менеджеры свяжутся с вами в ближайшее время.';
+            $conversation->stop();
+        }
+        $data['reply_markup'] = Keyboard::remove();
+
+        return $data;
+    }
+
+    private function getOrderRequestData(Conversation $conversation): array
+    {
+        $message = $this->getMessage();
+        $data = [];
+        $keyboard = null;
+        switch ($conversation->notes['step']) {
+            case 1:
+                $data['text'] = $this->getGreetingText();
+                break;
+            case 2:
+                if ($message->getText() == self::STEP_BACK_TEXT) {
+                    $conversation->notes['step']--;
+                    $conversation->update();
+                    $data['text'] = $this->getGreetingText();
+                } else {
+                    $conversation->notes['name'] = $message->getText();
+                    $conversation->update();
+                    $data['text'] = 'Ваш номер телефона для связи?';
+                    $keyboard = $this->getPhoneRequestKeyboard();
+                }
+                break;
+            case 3:
+                if ($message->getText() == self::STEP_BACK_TEXT) {
+                    $data['text'] = 'Ваш номер телефона для связи?';
+                    $keyboard = $this->getPhoneRequestKeyboard();
+                } else {
+                    $phone = $message->getContact() ? $message->getContact()->getPhoneNumber() : $message->getText();
+                    $phoneDigits = preg_replace('#\D#', '', $phone);
+                    if (strlen($phoneDigits) < 9) {
+                        $data['text'] = 'Укажите корректный номер телефона, как минимум код оператора и 7-значный номер';
+                        $keyboard = $this->getPhoneRequestKeyboard();
+                        $conversation->notes['step']--;
+                        $conversation->update();
+                    } elseif (preg_match('#^\+#', $phone) && !preg_match('#^\+998#', $phone)) {
+                        $data['text'] = 'Укажите корректный номер телефона для Узбекистана';
+                        $keyboard = $this->getPhoneRequestKeyboard();
+                        $conversation->notes['step']--;
+                        $conversation->update();
+                    } else {
+                        $conversation->notes['phone'] = '+998' . substr($phoneDigits, -9);
+                        $conversation->update();
+                        $data['text'] = 'Выберите направление';
+
+                        $buttons = $this->getActiveCategoryButtons();
+                        $buttons[] = [self::STEP_BACK_TEXT];
+
+                        $keyboard = new Keyboard(...$buttons);
+                        $keyboard->setResizeKeyboard(true)
+                            ->setOneTimeKeyboard(true)
+                            ->setSelective(false);
+                    }
+                }
+                break;
+            case 4:
+                /** @var SubjectCategory $subjectCategory */
+                $subjectCategory = SubjectCategory::find()->andWhere(['name' => $message->getText()])->one();
+                if (!$subjectCategory) {
+                    $data['text'] = 'Выберите направление';
+                    $buttons = $this->getActiveCategoryButtons();
+                    $conversation->notes['step']--;
+                    $conversation->update();
+                } else {
+                    $conversation->notes['category'] = $subjectCategory->name;
+                    $conversation->update();
+                    $data['text'] = 'Выберите предмет';
+                    $buttons = $this->getSubjectButtons($subjectCategory);
+                }
+                $buttons[] = [self::STEP_BACK_TEXT];
+
+                $keyboard = new Keyboard(...$buttons);
+                $keyboard->setResizeKeyboard(true)
+                    ->setOneTimeKeyboard(true)
+                    ->setSelective(false);
+                break;
+            case 5:
+                /** @var SubjectCategory $subjectCategory */
+                $subjectCategory = SubjectCategory::find()->andWhere(['name' => $conversation->notes['category']])->one();
+                /** @var Subject $subject */
+                $subject = Subject::find()->andWhere(['category_id' => $subjectCategory->id, 'name' => $message->getText()])->one();
+                if (!$subject) {
+                    $data['text'] = 'Выберите предмет';
+
+                    $buttons = $this->getSubjectButtons($subjectCategory);
+                    $buttons[] = [self::STEP_BACK_TEXT];
+
+                    $keyboard = new Keyboard(...$buttons);
+                    $keyboard->setResizeKeyboard(true)
+                        ->setOneTimeKeyboard(true)
+                        ->setSelective(false);
+
+                    $conversation->notes['step']--;
+                    $conversation->update();
+                } else {
+                    $conversation->notes['subject'] = $subject->name;
+                    $conversation->update();
+                    $data['text'] = 'Напишите дополнительную информацию к вашей заявке или нажмите "' . self::CONFIRM_TEXT . '".';
+                    $keyboard = new Keyboard([self::CONFIRM_TEXT, self::STEP_BACK_TEXT]);
+                    $keyboard->setResizeKeyboard(true)
+                        ->setOneTimeKeyboard(true)
+                        ->setSelective(false);
+                }
+                break;
+            case 6:
+                $conversation->notes['comment'] = $message->getText() == self::CONFIRM_TEXT ? null : $message->getText();
+                $conversation->update();
+                $data = $this->addOrder($conversation);
+                break;
+        }
+        if ($keyboard) {
+            $data['reply_markup'] = $keyboard;
+        }
+
+        return $data;
     }
 }

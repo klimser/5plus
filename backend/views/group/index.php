@@ -65,10 +65,12 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'text',
                 'header' => 'Расписание',
                 'content' => function ($model, $key, $index, $column) {
+                    /* @var $model \common\models\Group */
                     $data = [];
-                    $schedule = json_decode($model->schedule);
-                    for ($i = 0; $i < 6; $i++) {
-                        if ($model->weekday[$i] == '1') $data[] = \common\components\helpers\Calendar::$weekDays[$i + 1] . ': ' . $schedule[$i];
+                    for ($i = 0; $i < 7; $i++) {
+                        if ($model->weekday[$i] == '1') {
+                            $data[] = '<nobr>' . \common\components\helpers\Calendar::$weekDaysShort[($i + 1) % 7] . ": {$model->scheduleData[$i]}</nobr>";
+                        }
                     }
                     return implode('<br>', $data);
                 },

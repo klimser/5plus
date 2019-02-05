@@ -12,6 +12,7 @@ use yii;
  * This is the model class for table "{{%module_order}}".
  *
  * @property string $id
+ * @property string $source
  * @property string $subject
  * @property string $name
  * @property string $status
@@ -41,13 +42,15 @@ class Order extends ActiveRecord
     ];
 
     const SCENARIO_ADMIN = 'admin';
-    const SCENARIO_USER = 'user';
+    const SCENARIO_FRONTEND = 'frontend';
+    const SCENARIO_TELEGRAM = 'telegram_bot';
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'phoneFormatted', 'status', 'user_comment', 'admin_comment'];
-        $scenarios[self::SCENARIO_USER] = ['subject', 'name', 'phone', 'phoneFormatted', 'user_comment', 'reCaptcha'];
+        $scenarios[self::SCENARIO_FRONTEND] = ['source', 'subject', 'name', 'phone', 'phoneFormatted', 'user_comment', 'reCaptcha'];
+        $scenarios[self::SCENARIO_TELEGRAM] = ['source', 'subject', 'name', 'phone', 'phoneFormatted', 'user_comment'];
         return $scenarios;
     }
 
@@ -70,10 +73,12 @@ class Order extends ActiveRecord
             [['phone'], 'match', 'pattern' => '#^\+998\d{9}$#'],
             [['phoneFormatted'], 'string', 'min' => 11, 'max' => 11],
             [['phoneFormatted'], 'match', 'pattern' => '#^\d{2} \d{3}-\d{4}$#'],
-            [['name'], 'string', 'max' => 50],
+            [['source', 'name'], 'string', 'max' => 50],
             [['user_comment', 'admin_comment'], 'string', 'max' => 255],
             ['status', 'in', 'range' => self::$statusList],
-            [['reCaptcha'], ReCaptchaValidator::class, 'on' => self::SCENARIO_USER],
+            [['reCaptcha'], ReCaptchaValidator::class, 'on' => self::SCENARIO_FRONTEND],
+            ['source', 'default', 'value' => 'Сайт', 'on' => self::SCENARIO_FRONTEND],
+            ['source', 'default', 'value' => 'Telegram бот', 'on' => self::SCENARIO_TELEGRAM],
         ];
     }
 
@@ -82,6 +87,7 @@ class Order extends ActiveRecord
     {
         $labels = [
             'id' => 'ID',
+            'source' => 'Источник заявки',
             'subject' => 'Предмет',
             'name' => 'Имя',
             'phone' => 'Номер телефона',

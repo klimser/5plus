@@ -21,11 +21,11 @@ class EventComponent extends Component
     {
         $groupParam = GroupComponent::getGroupParam($group, $date);
         if ($date->format('w') > 0) {
-            if ($groupParam->weekday[intval($date->format('w')) - 1] == '1') {
+            if ($groupParam->isHasLesson($date)) {
                 $event = $group->hasEvent($date);
                 if (!$event) {
                     $event = new Event();
-                    $event->event_date = $date->format('Y-m-d') . ' ' . $groupParam->scheduleData[$date->format('w') - 1] . ':00';
+                    $event->event_date = $groupParam->getLessonDateTime($date);
                     $event->group_id = $group->id;
                     $event->status = Event::STATUS_UNKNOWN;
 

@@ -15,7 +15,6 @@ use common\models\traits\GroupParam as GroupParamTrait;
  * @property int $lesson_price
  * @property int $lesson_price_discount
  * @property string $schedule
- * @property string[] $scheduleData
  * @property string $weekday
  * @property int $teacher_id
  * @property double $teacher_rate
@@ -40,7 +39,7 @@ class GroupParam extends ActiveRecord
             [['group_id', 'year', 'month', 'lesson_price', 'weekday', 'teacher_id', 'teacher_rate'], 'required'],
             [['group_id', 'year', 'month', 'lesson_price', 'lesson_price_discount', 'teacher_id'], 'integer'],
             [['teacher_rate'], 'number'],
-            [['weekday'], 'string', 'max' => 6],
+            [['weekday'], 'string', 'max' => 7],
             [['schedule'], 'string', 'max' => 255],
             [['group_id', 'year', 'month'], 'unique', 'targetAttribute' => ['group_id', 'year', 'month'], 'message' => 'The combination of Группа, год and месяц has already been taken.'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
@@ -63,16 +62,6 @@ class GroupParam extends ActiveRecord
             'teacher_rate' => 'Процент учителю',
             'teacher_salary' => 'Зарплата учителя',
         ];
-    }
-
-    public function getScheduleData()
-    {
-        return json_decode($this->getAttribute('schedule'), true);
-    }
-
-    public function setScheduleData($value)
-    {
-        $this->setAttribute('schedule', json_encode($value));
     }
 
     /**

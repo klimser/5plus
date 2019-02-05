@@ -4,6 +4,7 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use common\components\telegram\Request;
 use Longman\TelegramBot\Commands\SystemCommand;
+use Longman\TelegramBot\Commands\UserCommands\OrderCommand;
 
 /**
  * Start command
@@ -38,12 +39,14 @@ class StartCommand extends SystemCommand
      */
     public function execute()
     {
-        $message = $this->getMessage();
-        $chatId = $message->getChat()->getId();
-        $text    = "Учебный центр \"5 с плюсом\" приветствует вас!\nВведите /help чтобы просмотреть доступные команды!";
+        $payload = trim($this->getMessage()->getText(true));
+        if ($payload == 'order') {
+            return $this->telegram->executeCommand('order');
+        }
+
         $data = [
-            'chat_id' => $chatId,
-            'text'    => $text,
+            'chat_id' => $this->getMessage()->getChat()->getId(),
+            'text'    => "Учебный центр \"5 с плюсом\" приветствует вас!\nВведите /help чтобы просмотреть доступные команды!",
         ];
         return Request::sendMessage($data);
     }
