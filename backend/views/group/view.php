@@ -40,19 +40,17 @@ $this->params['breadcrumbs'][] = $group->name;
     </tr>
     <tr>
         <td>
-            <table>
-                <tr>
-                    <?php for ($i = 0; $i < 7; $i++): ?>
-                        <td>
-                            <b>
-                                <span class="visible-xs"><?= Calendar::$weekDaysShort[($i + 1) % 7]; ?></span>
-                                <span class="hidden-xs"><?= Calendar::$weekDays[($i + 1) % 7]; ?></span>
-                            </b><br>
-                            <small><?= $group->scheduleData[$i]; ?></small>
-                        </td>
-                    <?php endfor; ?>
-                </tr>
-            </table>
+            <div style="display: flex">
+                <?php for ($i = 0; $i < 7; $i++): ?>
+                    <div style="flex: auto;">
+                        <b>
+                            <span class="visible-xs"><?= Calendar::$weekDaysShort[($i + 1) % 7]; ?></span>
+                            <span class="hidden-xs"><?= Calendar::$weekDays[($i + 1) % 7]; ?></span>
+                        </b><br>
+                        <small><?= $group->scheduleData[$i]; ?></small>
+                    </div>
+                <?php endfor; ?>
+            </div>
         </td>
     </tr>
     <tr>
