@@ -114,7 +114,6 @@ class ReportController extends AdminController
 
                 $i = 1;
                 $row = 3;
-                $total = ['in' => 0, 'out' => 0, 'pupils' => 0, 'final' => 0];
                 foreach ($groups as $group) {
                     $groupParam = GroupComponent::getGroupParam($group, $startDate);
                     $totalPupils = GroupPupil::find()
@@ -137,21 +136,11 @@ class ReportController extends AdminController
                     $spreadsheet->getActiveSheet()->setCellValue("E$row", $dataMap[$group->id]['out']);
                     $spreadsheet->getActiveSheet()->setCellValue("F$row", $totalPupils);
                     $spreadsheet->getActiveSheet()->setCellValue("G$row", $finalPupils);
-                    $total['in'] += $dataMap[$group->id]['in'];
-                    $total['out'] += $dataMap[$group->id]['out'];
-                    $total['pupils'] += $totalPupils;
-                    $total['final'] += $finalPupils;
                     $i++;
                     $row++;
                 }
 
-                $spreadsheet->getActiveSheet()->setCellValue("C$row", 'Итого');
-                $spreadsheet->getActiveSheet()->setCellValue("D$row", $total['in']);
-                $spreadsheet->getActiveSheet()->setCellValue("E$row", $total['out']);
-                $spreadsheet->getActiveSheet()->setCellValue("F$row", $total['pupils']);
-                $spreadsheet->getActiveSheet()->setCellValue("G$row", $total['final']);
-                $spreadsheet->getActiveSheet()->getStyle("A$row:G$row")->getFont()->setBold(true);
-
+                $row--;
                 $spreadsheet->getActiveSheet()->getStyle("A2:G$row")->applyFromArray([
                     'borders' => [
                         'allBorders' => [
@@ -160,6 +149,70 @@ class ReportController extends AdminController
                         ],
                     ],
                 ]);
+
+                $row += 2;
+
+                $inUsers = GroupPupil::find()
+                    ->andWhere(['BETWEEN', 'date_start', $startDateString, $endDateString])
+                    ->select('user_id')
+                    ->distinct(true)
+                    ->column();
+                $excludeUsers = GroupPupil::find()
+                    ->andWhere(['<', 'date_start', $startDateString])
+                    ->andWhere(['user_id' => $inUsers])
+                    ->select('user_id')
+                    ->distinct(true)
+                    ->column();
+                $totalIn = count(array_diff($inUsers, $excludeUsers));
+
+                $outUsers = GroupPupil::find()
+                    ->andWhere(['BETWEEN', 'date_end', $startDateString, $endDateString])
+                    ->select('user_id')
+                    ->distinct(true)
+                    ->column();
+                $excludeUsers = GroupPupil::find()
+                    ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
+                    ->andWhere(['user_id' => $outUsers])
+                    ->select('user_id')
+                    ->distinct(true)
+                    ->column();
+                $totalOut = count(array_diff($outUsers, $excludeUsers));
+
+                $totalPupils = GroupPupil::find()
+                    ->andWhere(['<=', 'date_start', $endDateString])
+                    ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
+                    ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                    ->scalar();
+                $totalUsers = GroupPupil::find()
+                    ->andWhere(['<=', 'date_start', $endDateString])
+                    ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
+                    ->select('COUNT(DISTINCT user_id)')
+                    ->scalar();
+                $finalPupils = GroupPupil::find()
+                    ->andWhere(['<=', 'date_start', $endDateString])
+                    ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $endDateString]])
+                    ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                    ->scalar();
+                $finalUsers = GroupPupil::find()
+                    ->andWhere(['<=', 'date_start', $endDateString])
+                    ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $endDateString]])
+                    ->select('COUNT(DISTINCT user_id)')
+                    ->scalar();
+
+                $spreadsheet->getActiveSheet()->getStyle("A$row:G" . ($row + 4))->getFont()->setBold(true);
+
+                $spreadsheet->getActiveSheet()->mergeCells("A$row:G$row");
+                $spreadsheet->getActiveSheet()->setCellValue("A$row", "Итого новых студентов: $totalIn");
+                $row++;
+                $spreadsheet->getActiveSheet()->mergeCells("A$row:G$row");
+                $spreadsheet->getActiveSheet()->setCellValue("A$row", "Итого ушли из учебного центра: $totalOut");
+                $row++;
+
+                $spreadsheet->getActiveSheet()->mergeCells("A$row:G$row");
+                $spreadsheet->getActiveSheet()->setCellValue("A$row", "В этом месяце занималось $totalUsers человек - $totalPupils студентов в гуппах");
+                $row++;
+                $spreadsheet->getActiveSheet()->mergeCells("A$row:G$row");
+                $spreadsheet->getActiveSheet()->setCellValue("A$row", "В конце месяца было $finalUsers человек - $finalPupils студентов в гуппах");
 
                 ob_start();
                 $objWriter = IOFactory::createWriter($spreadsheet, 'Xlsx');
