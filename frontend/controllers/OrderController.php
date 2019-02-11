@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\components\ComponentContainer;
 use common\components\extended\Controller;
 use common\models\Order;
 use common\models\Subject;
@@ -34,7 +35,8 @@ class OrderController extends Controller
                 $order->notifyAdmin();
                 $jsonData = self::getJsonOkResult();
             } else {
-                \Yii::$app->errorLogger->logError('Order.create', $order->getErrorsAsString());
+                ComponentContainer::getErrorLogger()
+                    ->logError('Order.create', $order->getErrorsAsString());
                 $jsonData = self::getJsonErrorResult('Server error');
                 $jsonData['errors'] = $order->getErrorsAsString();
             }

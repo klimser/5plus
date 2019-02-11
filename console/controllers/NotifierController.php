@@ -2,6 +2,7 @@
 
 namespace console\controllers;
 
+use common\components\ComponentContainer;
 use common\components\helpers\WordForm;
 use common\components\paygram\PaygramApiException;
 use common\components\PaymentComponent;
@@ -108,11 +109,13 @@ class NotifierController extends Controller
                             break;
                     }
 
-                    \Yii::$app->paygramApi->sendSms($toSend->template_id, substr($toSend->user->phone, -12, 12), $params);
+                    ComponentContainer::getPaygramApi()
+                        ->sendSms($toSend->template_id, substr($toSend->user->phone, -12, 12), $params);
                     $toSend->status = Notify::STATUS_SENT;
                 } catch (PaygramApiException $exception) {
                     $toSend->status = Notify::STATUS_ERROR;
-                    \Yii::$app->errorLogger->logError('notifier/send', $exception->getMessage(), true);
+                    ComponentContainer::getErrorLogger()
+                        ->logError('notifier/send', $exception->getMessage(), true);
                 }
                 $toSend->save();
             }
@@ -163,7 +166,12 @@ class NotifierController extends Controller
                         ->andWhere(['<', 'paid_lessons', 0])
                         ->select('SUM(paid_lessons)')
                         ->scalar();
-                    \Yii::$app->notifyQueue->add($debt->user, Notify::TEMPLATE_PUPIL_DEBT, ['debt' => abs($lessonDebt)], $debt->group);
+                    ComponentContainer::getNotifyQueue()->add(
+                        $debt->user,
+                        Notify::TEMPLATE_PUPIL_DEBT,
+                        ['debt' => abs($lessonDebt)],
+                        $debt->group
+                    );
                 }
             }
             /*----------------------  END TEMPLATE ID 1 ---------------------------*/
@@ -207,7 +215,7 @@ class NotifierController extends Controller
                             ->andWhere(['<', 'paid_lessons', 0])
                             ->select('SUM(paid_lessons)')
                             ->scalar();
-                        \Yii::$app->notifyQueue->add(
+                        ComponentContainer::getNotifyQueue()->add(
                             $parent,
                             Notify::TEMPLATE_PARENT_DEBT,
                             ['debt' => abs($lessonDebt), 'child_id' => $debt->user_id],
@@ -257,7 +265,12 @@ class NotifierController extends Controller
                 }
 
                 if ($needSent) {
-                    \Yii::$app->notifyQueue->add($groupPupil->user, Notify::TEMPLATE_PUPIL_LOW, ['paid_lessons' => $groupPupil->paid_lessons], $groupPupil->group);
+                    ComponentContainer::getNotifyQueue()->add(
+                        $groupPupil->user,
+                        Notify::TEMPLATE_PUPIL_LOW,
+                        ['paid_lessons' => $groupPupil->paid_lessons],
+                        $groupPupil->group
+                    );
                 }
             }
             /*----------------------  END TEMPLATE ID 3 ---------------------------*/
@@ -303,7 +316,7 @@ class NotifierController extends Controller
                     }
 
                     if ($needSent) {
-                        \Yii::$app->notifyQueue->add(
+                        ComponentContainer::getNotifyQueue()->add(
                             $parent,
                             Notify::TEMPLATE_PARENT_LOW,
                             ['paid_lessons' => $groupPupil->paid_lessons, 'child_id' => $groupPupil->user_id],

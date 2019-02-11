@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\components\ComponentContainer;
 use common\models\Feedback;
 use yii;
 use common\components\extended\Controller;
@@ -33,7 +34,8 @@ class FeedbackController extends Controller
 
             $jsonData = self::getJsonOkResult();
         } else {
-            Yii::$app->errorLogger->logError('Feedback.create', $feedback->getErrorsAsString(), true);
+            ComponentContainer::getErrorLogger()
+                ->logError('Feedback.create', $feedback->getErrorsAsString(), true);
             $jsonData = self::getJsonErrorResult('Server error');
             $jsonData['errors'] = $feedback->getErrorsAsString();
         }

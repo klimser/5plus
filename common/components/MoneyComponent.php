@@ -47,7 +47,8 @@ class MoneyComponent extends Component
             return $payment->id;
         } catch (\Throwable $ex) {
             $transaction->rollBack();
-            \Yii::$app->errorLogger->logError('money/income', $ex->getMessage(), true);
+            ComponentContainer::getErrorLogger()
+                ->logError('money/income', $ex->getMessage(), true);
             throw $ex;
         }
     }
@@ -93,9 +94,9 @@ class MoneyComponent extends Component
 
         if (!$contract->save()) throw new \Exception('Не удалось создать договор: ' . $contract->getErrorsAsString());
 
-        \Yii::$app->actionLogger->log(
-            $pupil,
+        ComponentContainer::getActionLogger()->log(
             Action::TYPE_CONTRACT_ADDED,
+            $pupil,
             $contract->amount,
             $contract->group
         );
@@ -141,9 +142,9 @@ class MoneyComponent extends Component
 
         $paymentId = self::registerIncome($payment);
         $contract->link('payments', $payment);
-        \Yii::$app->actionLogger->log(
-            $contract->user,
+        ComponentContainer::getActionLogger()->log(
             Action::TYPE_CONTRACT_PAID,
+            $contract->user,
             $contract->amount,
             $contract->group
         );
@@ -281,9 +282,9 @@ class MoneyComponent extends Component
         if (!$payment->delete()) throw new \Exception('Error deleting payment from DB: ' . $payment->id);
         self::addPupilMoney($payment->user, $payment->amount * (-1), $payment->group);
         $paymentComment = 'Отмена списания за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->group->name . '"';
-        if ($logEvent && !\Yii::$app->actionLogger->log(
-            $payment->user,
+        if ($logEvent && !ComponentContainer::getActionLogger()->log(
             Action::TYPE_CANCEL_AUTO,
+            $payment->user,
             $payment->amount * (-1),
             $payment->group,
             $paymentComment
@@ -301,9 +302,9 @@ class MoneyComponent extends Component
         if (!$payment->save()) throw new \Exception('Error adding payment to DB: ' . $payment->getErrorsAsString());
         self::addPupilMoney($payment->user, $payment->amount, $payment->group);
         $paymentComment = 'Списание за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->group->name . '"';
-        if ($logEvent && !\Yii::$app->actionLogger->log(
-            $payment->user,
+        if ($logEvent && !ComponentContainer::getActionLogger()->log(
             $actionType,
+            $payment->user,
             $payment->amount,
             $payment->group,
             $payment->comment ?: ($actionType == Action::TYPE_INCOME ? null : $paymentComment)

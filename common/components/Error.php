@@ -20,7 +20,13 @@ class Error extends BaseObject
         $error->content = $content;
         $result = $error->save();
         if ($result && $notifyAdmin) {
-            \Yii::$app->mailQueue->add('Error occured on 5plus.uz website', \Yii::$app->params['adminEmail'], 'error-html', 'error-text', ['module' => $module, 'errorText' => $content]);
+            ComponentContainer::getMailQueue()->add(
+                'Error occured on 5plus.uz website',
+                \Yii::$app->params['adminEmail'],
+                'error-html',
+                'error-text',
+                ['module' => $module, 'errorText' => $content]
+            );
         }
         return $result;
     }

@@ -3,6 +3,7 @@
 namespace console\controllers;
 
 use backend\components\EventComponent;
+use common\components\ComponentContainer;
 use common\models\Group;
 use common\models\GroupPupil;
 use common\models\User;
@@ -50,7 +51,8 @@ class MoneyController extends Controller
             }
         } catch (\Throwable $ex) {
             echo $ex->getMessage();
-            Yii::$app->errorLogger->logError('console/money-charge', $ex->getMessage(), true);
+            ComponentContainer::getErrorLogger()
+                ->logError('console/money-charge', $ex->getMessage(), true);
             if ($transaction !== null) $transaction->rollBack();
             return yii\console\ExitCode::UNSPECIFIED_ERROR;
         }

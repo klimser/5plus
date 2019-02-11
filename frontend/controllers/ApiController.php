@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\components\ComponentContainer;
 use common\components\MoneyComponent;
 use common\components\Telegram;
 use common\models\Contract;
@@ -76,7 +77,7 @@ class ApiController extends Controller
             return $jsonData;
         }
 
-        $hash = $params['store_id'] . $params['transaction_id'] . $params['invoice'] . $params['amount'] . \Yii::$app->paymoApi->apiKey;
+        $hash = $params['store_id'] . $params['transaction_id'] . $params['invoice'] . $params['amount'] . ComponentContainer::getPaymoApi()->apiKey;
         $sign = md5($hash);
 
         if ($sign != $params['sign']) {

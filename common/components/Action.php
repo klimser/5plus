@@ -15,6 +15,10 @@ class Action extends BaseObject
     const TYPE_CANCEL_MANUAL = 5;
     const TYPE_CONTRACT_ADDED = 6;
     const TYPE_CONTRACT_PAID = 7;
+    const TYPE_GROUP_ADDED = 11;
+    const TYPE_GROUP_UPDATED = 12;
+    const TYPE_GROUP_PUPIL_ADDED = 13;
+    const TYPE_GROUP_PUPIL_UPDATED = 14;
 
     public static $typeLabels = [
         self::TYPE_INCOME => 'Внесение админом',
@@ -24,17 +28,21 @@ class Action extends BaseObject
         self::TYPE_CANCEL_MANUAL => 'Ручная отмена',
         self::TYPE_CONTRACT_ADDED => 'Создан договор',
         self::TYPE_CONTRACT_PAID => 'Договор оплачен',
+        self::TYPE_GROUP_ADDED => 'Группа добавлена',
+        self::TYPE_GROUP_UPDATED => 'Данные группы изменены',
+        self::TYPE_GROUP_PUPIL_ADDED => 'Студент добавлен в группу',
+        self::TYPE_GROUP_PUPIL_UPDATED => 'Изменены данные студента в группе',
     ];
 
     /**
-     * @param User $user
      * @param int $type
+     * @param User $user
      * @param int $amount
      * @param Group|null $group
      * @param string|null $comment
      * @return bool
      */
-    public function log(User $user, int $type, int $amount, ?Group $group = null, $comment = null)
+    public function log(int $type, ?User $user = null, ?int $amount = null, ?Group $group = null, $comment = null)
     {
         $action = new \backend\models\Action();
         $action->admin_id = \Yii::$app->user->id;

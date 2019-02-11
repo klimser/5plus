@@ -2,6 +2,7 @@
 
 namespace backend\models;
 
+use common\components\ComponentContainer;
 use common\components\extended\ActiveRecord;
 use common\models\Group;
 use common\models\GroupParam;
@@ -129,7 +130,8 @@ class Event extends ActiveRecord
             $eventMember->group_pupil_id = $groupPupil->id;
             if ($this->status == self::STATUS_CANCELED) $eventMember->status = EventMember::STATUS_MISS;
             if (!$eventMember->save()) {
-                Yii::$app->errorLogger->logError('Event.addGroupPupil', $eventMember->getErrorsAsString(), true);
+                ComponentContainer::getErrorLogger()
+                    ->logError('Event.addGroupPupil', $eventMember->getErrorsAsString(), true);
                 throw new \Exception('Server error');
             }
             $this->link('members', $eventMember);

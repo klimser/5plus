@@ -94,4 +94,15 @@ class ActiveRecord extends \yii\db\ActiveRecord
             if (file_exists($filename)) @unlink($filename);
         }
     }
+
+    public function getDiffMap(): array
+    {
+        $diff = [];
+        foreach ($this->attributes as $name => $value) {
+            if ($this->isAttributeChanged($name)) {
+                $diff[$name] = $value;
+            }
+        }
+        return $diff;
+    }
 }

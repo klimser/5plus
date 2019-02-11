@@ -36,9 +36,9 @@ class Action extends ActiveRecord
     public function rules()
     {
         return [
-            [['type', 'admin_id', 'user_id', 'amount'], 'required'],
+            [['type', 'admin_id'], 'required'],
             [['type', 'admin_id', 'user_id', 'group_id', 'amount'], 'integer'],
-            [['comment'], 'string', 'max' => 255],
+            [['comment'], 'string'],
             [['admin_id'], 'exist', 'targetRelation' => 'admin'],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],

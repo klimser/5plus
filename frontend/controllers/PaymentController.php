@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\components\ComponentContainer;
 use common\components\extended\Controller;
 use common\components\MoneyComponent;
 use common\components\paymo\PaymoApiException;
@@ -103,7 +104,7 @@ class PaymentController extends Controller
             $contract->status = Contract::STATUS_PROCESS;
             $contract->payment_type = Contract::PAYMENT_TYPE_PAYMO;
 
-            $paymoId = \Yii::$app->paymoApi->payCreate($contract->amount * 100, $contract->number, [
+            $paymoId = ComponentContainer::getPaymoApi()->payCreate($contract->amount * 100, $contract->number, [
                 'студент' => $pupil->name,
                 'группа' => $group->legal_name,
                 'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price))),
@@ -111,19 +112,21 @@ class PaymentController extends Controller
             $contract->external_id = $paymoId;
             if (!$contract->save()) {
                 $transaction->rollBack();
-                \Yii::$app->errorLogger->logError('payment/create', print_r($contract->getErrors(), true), true);
+                ComponentContainer::getErrorLogger()
+                    ->logError('payment/create', print_r($contract->getErrors(), true), true);
                 return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
             }
             $transaction->commit();
             return self::getJsonOkResult([
-                'payment_url' => \Yii::$app->paymoApi->paymentUrl,
+                'payment_url' => ComponentContainer::getPaymoApi()->paymentUrl,
                 'payment_id' => $contract->external_id,
-                'store_id' => \Yii::$app->paymoApi->storeId,
+                'store_id' => ComponentContainer::getPaymoApi()->storeId,
                 'redirect_link' => urlencode(Url::to(['payment/complete', 'payment' => $contract->id], true)),
             ]);
         } catch (PaymoApiException $exception) {
             $transaction->rollBack();
-            \Yii::$app->errorLogger->logError('payment/create', 'Paymo: ' . $exception->getMessage(), true);
+            ComponentContainer::getErrorLogger()
+                ->logError('payment/create', 'Paymo: ' . $exception->getMessage(), true);
             return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
         }
     }

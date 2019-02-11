@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\components\ComponentContainer;
 use common\components\ContractComponent;
 use common\models\Company;
 use common\models\Contract;
@@ -169,9 +170,9 @@ class ContractController extends AdminController
                                 'Договор ' . $contract->number . ' зарегистрирован '
                                 . '<a target="_blank" href="' . yii\helpers\Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
                             );
-                            \Yii::$app->actionLogger->log(
-                                $user,
+                            ComponentContainer::getActionLogger()->log(
                                 Action::TYPE_CONTRACT_ADDED,
+                                $user,
                                 $contract->amount,
                                 $group
                             );

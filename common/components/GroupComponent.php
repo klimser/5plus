@@ -121,7 +121,8 @@ class GroupComponent extends Component
                     $groupPupil->date_end = $endDate->format('Y-m-d');
                 }
                 if (!$groupPupil->save()) {
-                    \Yii::$app->errorLogger->logError('user/pupil-to-group', $groupPupil->getErrorsAsString(), true);
+                    ComponentContainer::getErrorLogger()
+                        ->logError('user/pupil-to-group', $groupPupil->getErrorsAsString(), true);
                     throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
                 } else {
                     $pupil->link('groupPupils', $groupPupil);

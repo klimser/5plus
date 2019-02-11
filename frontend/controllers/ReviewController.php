@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\components\ComponentContainer;
 use common\models\Review;
 use common\models\Webpage;
 use yii;
@@ -58,7 +59,8 @@ class ReviewController extends Controller
             $review->notifyAdmin();
             $jsonData = self::getJsonOkResult();
         } else {
-            Yii::$app->errorLogger->logError('Order.create', $review->getErrorsAsString(), true);
+            ComponentContainer::getErrorLogger()
+                ->logError('Order.create', $review->getErrorsAsString(), true);
             $jsonData = self::getJsonErrorResult('Server error');
             $jsonData['errors'] = $review->getErrorsAsString();
         }

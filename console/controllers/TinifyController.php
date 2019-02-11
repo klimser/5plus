@@ -3,6 +3,7 @@
 namespace console\controllers;
 
 use backend\models\Tinified;
+use common\components\ComponentContainer;
 use Tinify\Source;
 use yii;
 use yii\console\Controller;
@@ -28,7 +29,7 @@ class TinifyController extends Controller
                 $result = Tinified::findOne($dbKey);
                 if (!$result || $result->checksum != sha1_file($filename)) {
                     /** @var Source|bool $source */
-                    $source = \Yii::$app->tinifier->getFromFile($filename);
+                    $source = ComponentContainer::getTinifier()->getFromFile($filename);
                     if ($source && $source->toFile($filename) !== false) {
                         $tinified = $result ?: new Tinified();
                         $tinified->fileName = $dbKey;
@@ -46,12 +47,13 @@ class TinifyController extends Controller
      */
     public function actionTinify()
     {
-        if (\Yii::$app->tinifier) {
+        if (ComponentContainer::getTinifier()) {
             try {
                 $this->traverseFolder(\Yii::getAlias('@uploads/images'), '');
             } catch (\Throwable $exception) {
                 echo $exception->getMessage();
-                Yii::$app->errorLogger->logError('console/tinify', $exception->getMessage(), true);
+                ComponentContainer::getErrorLogger()
+                    ->logError('console/tinify', $exception->getMessage(), true);
                 return yii\console\ExitCode::UNSPECIFIED_ERROR;
             }
         }

@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use common\components\ComponentContainer;
 use common\components\extended\ActiveRecord;
 use common\models\traits\Inserted;
 use common\models\traits\Phone;
@@ -105,7 +106,13 @@ class Order extends ActiveRecord
     public function notifyAdmin() {
         if ($this->isNewRecord) return false;
 
-        return Yii::$app->mailQueue->add('На сайте 5plus.uz новая заявка!', Yii::$app->params['noticeEmail'], 'order-html', 'order-text', ['userName' => $this->name, 'subjectName' => $this->subject]);
+        return ComponentContainer::getMailQueue()->add(
+            'На сайте 5plus.uz новая заявка!',
+            Yii::$app->params['noticeEmail'],
+            'order-html',
+            'order-text',
+            ['userName' => $this->name, 'subjectName' => $this->subject]
+        );
     }
 
     /**

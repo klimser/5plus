@@ -2,6 +2,7 @@
 
 namespace Longman\TelegramBot\Commands\UserCommands;
 
+use common\components\ComponentContainer;
 use common\components\telegram\Request;
 use common\models\Order;
 use common\models\Subject;
@@ -152,7 +153,8 @@ class OrderCommand extends UserCommand
         $order->user_comment = $conversation->notes['comment'];
 
         if (!$order->save(true)) {
-            \Yii::$app->errorLogger->logError('Order.create', $order->getErrorsAsString() , true);
+            ComponentContainer::getErrorLogger()
+                ->logError('Order.create', $order->getErrorsAsString() , true);
             $data['text'] = 'К сожалению, не удалось добавить заявку. Наши технические специалисты уже получили уведомление и как можно скорее устранят проблему. Можете позвонить нашим менеджерам и записаться на занятие у них.';
             $data['contact'] = [
                 'phone_number' => '+998712000350',

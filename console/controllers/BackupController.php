@@ -2,6 +2,7 @@
 
 namespace console\controllers;
 
+use common\components\ComponentContainer;
 use yii;
 use yii\console\Controller;
 
@@ -78,7 +79,8 @@ class BackupController extends Controller
             if (file_exists($tokenFilename)) {
                 $accessToken = json_decode(file_get_contents($tokenFilename), true);
             } else {
-                Yii::$app->errorLogger->logError('backup/create', 'No google drive credentials', true);
+                ComponentContainer::getErrorLogger()
+                    ->logError('backup/create', 'No google drive credentials', true);
                 return yii\console\ExitCode::OK;
 
 //            $authUrl = $client->createAuthUrl();

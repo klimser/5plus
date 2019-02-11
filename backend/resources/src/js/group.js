@@ -141,6 +141,11 @@ var Group = {
         }
         if (validForm) $("#group_date").removeClass('has-error');
 
+        if ($('input[name^="weekday"]:checked').length === 0) {
+            $("#weekdays").addClass('has-error');
+            validForm = false;
+        } else $("#weekdays").removeClass('has-error');
+
         $("select.pupil-id").each(function () {
             if (!$(this).val().length) {
                 $(this).closest(".form-group").addClass('has-error');
@@ -175,9 +180,9 @@ var Group = {
     },
     toggleWeekday: function (e) {
         if ($(e).is(':checked')) {
-            $(e).closest('td').find("input.weektime").prop('disabled', false);
+            $(e).closest('.one_day_block').find("input.weektime").prop('disabled', false);
         } else {
-            $(e).closest('td').find("input.weektime").prop('disabled', true);
+            $(e).closest('.one_day_block').find("input.weektime").prop('disabled', true);
         }
     },
     loadPupils: function() {

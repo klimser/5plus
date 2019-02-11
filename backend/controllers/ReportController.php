@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\components\ComponentContainer;
 use common\components\GroupComponent;
 use common\models\GroupPupil;
 use common\models\Group;
@@ -68,11 +69,19 @@ class ReportController extends AdminController
                             $dataMap[$value['group']]['in']--;
                             $dataMap[$value['group']]['out']--;
                         } elseif ($pupilMap[$key]['in'] > $pupilMap[$key]['out']) {
-                            \Yii::$app->errorLogger->logError('report/group-movement', "Strange numbers, check: user $value[user] group $value[group]", true);
+                            ComponentContainer::getErrorLogger()->logError(
+                                'report/group-movement',
+                                "Strange numbers, check: user $value[user] group $value[group]",
+                                true
+                            );
                         }
                     } else {
                         if ($pupilMap[$key]['out'] > $pupilMap[$key]['in']) {
-                            \Yii::$app->errorLogger->logError('report/group-movement', "Strange numbers, check: user $value[user] group $value[group]", true);
+                            ComponentContainer::getErrorLogger()->logError(
+                                'report/group-movement',
+                                "Strange numbers, check: user $value[user] group $value[group]",
+                                true
+                            );
                         }
                     }
                     $pupilMap[$key][$value['type']]++;

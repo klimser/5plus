@@ -3,6 +3,8 @@
 namespace backend\controllers;
 
 use backend\components\EventComponent;
+use common\components\Action;
+use common\components\ComponentContainer;
 use common\components\MoneyComponent;
 use common\models\Group;
 use common\models\GroupParam;
@@ -31,7 +33,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3784);
+//        $user = User::findOne(3859);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
@@ -173,7 +175,18 @@ class GroupController extends AdminController
             if (!$error) {
                 $transaction = Yii::$app->db->beginTransaction();
                 try {
+                    $isNew = $group->isNewRecord;
+                    $groupDiff = $group->getDiffMap();
                     if ($group->save()) {
+                        if (!empty($groupDiff)) {
+                            ComponentContainer::getActionLogger()->log(
+                                $isNew ? Action::TYPE_GROUP_ADDED : Action::TYPE_GROUP_UPDATED,
+                                null,
+                                null,
+                                $group,
+                                json_encode($groupDiff)
+                            );
+                        }
                         if (empty($group->groupPupils) && !empty($newPupils)) {
                             $this->fillGroupParams($group);
                         }
@@ -196,7 +209,8 @@ class GroupController extends AdminController
                     }
                 } catch (\Throwable $ex) {
                     $transaction->rollBack();
-                    Yii::$app->errorLogger->logError('group/update', $ex->getMessage(), true);
+                    ComponentContainer::getErrorLogger()
+                        ->logError('group/update', $ex->getMessage(), true);
                     Yii::$app->session->addFlash('error', 'Внутренняя ошибка сервера: ' . $ex->getMessage());
                 }
             }
@@ -262,6 +276,14 @@ class GroupController extends AdminController
                     $groupPupil->date_start = $pupilsMap[$groupPupil->user_id]['startDate']->format('Y-m-d');
                     $groupPupil->date_end = $pupilsMap[$groupPupil->user_id]['endDate'] ? $pupilsMap[$groupPupil->user_id]['endDate']->format('Y-m-d') : null;
 
+                    ComponentContainer::getActionLogger()->log(
+                        Action::TYPE_GROUP_PUPIL_UPDATED,
+                        $groupPupil->user,
+                        null,
+                        $group,
+                        json_encode($groupPupil->getDiffMap())
+                    );
+
                     if (!$groupPupil->save()) throw new \Exception($groupPupil->getErrorsAsString());
 
                     EventComponent::fillSchedule($group);
@@ -277,6 +299,15 @@ class GroupController extends AdminController
             $groupPupil->group_id = $group->id;
             $groupPupil->date_start = $pupilData['startDate']->format('Y-m-d');
             $groupPupil->date_end = $pupilData['endDate'] ? $pupilData['endDate']->format('Y-m-d') : null;
+
+            ComponentContainer::getActionLogger()->log(
+                Action::TYPE_GROUP_PUPIL_ADDED,
+                $groupPupil->user,
+                null,
+                $group,
+                json_encode($groupPupil->getDiffMap())
+            );
+
             if (!$groupPupil->save()) throw new \Exception('Server error: ' . $groupPupil->getErrorsAsString());
             $group->link('groupPupils', $groupPupil);
         }
@@ -411,7 +442,8 @@ class GroupController extends AdminController
             return $this->asJson(self::getJsonOkResult());
         } catch (\Throwable $ex) {
             $transaction->rollBack();
-            Yii::$app->errorLogger->logError('group/move-pupil', $ex->getMessage(), true);
+            ComponentContainer::getErrorLogger()
+                ->logError('group/move-pupil', $ex->getMessage(), true);
             return $this->asJson(self::getJsonErrorResult($ex->getMessage()));
         }
     }

@@ -2,6 +2,7 @@
 
 namespace Longman\TelegramBot\Commands\UserCommands;
 
+use common\components\ComponentContainer;
 use common\components\telegram\Request;
 use common\models\User;
 use Longman\TelegramBot\Commands\UserCommand;
@@ -151,7 +152,8 @@ class SubscribeCommand extends UserCommand
             if ($conversation->exists()) $conversation->stop();
             $data['text'] = 'Подписка на уведомления успешно включена.';
         } else {
-            \Yii::$app->errorLogger->logError('public-bot/subscribe', print_r($user->getErrors(), true), true);
+            ComponentContainer::getErrorLogger()
+                ->logError('public-bot/subscribe', print_r($user->getErrors(), true), true);
             $data['text'] = 'Произошла ошибка, не удалось включить подписку, мы уже знаем о случившемся и как можно скорее исправим это.';
         }
         return $data;

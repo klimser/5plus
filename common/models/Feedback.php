@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use common\components\ComponentContainer;
 use common\components\extended\ActiveRecord;
 use common\models\traits\Inserted;
 use himiklab\yii2\recaptcha\ReCaptchaValidator;
@@ -91,6 +92,12 @@ class Feedback extends ActiveRecord
     public function notifyAdmin() {
         if ($this->isNewRecord) return false;
         
-        return Yii::$app->mailQueue->add('На сайте 5plus.uz отправлено и ожидает ответа сообщение!', Yii::$app->params['noticeEmail'], 'feedback-html', 'feedback-text', ['userName' => $this->name]);
+        return ComponentContainer::getMailQueue()->add(
+            'На сайте 5plus.uz отправлено и ожидает ответа сообщение!',
+            Yii::$app->params['noticeEmail'],
+            'feedback-html',
+            'feedback-text',
+            ['userName' => $this->name]
+        );
     }
 }

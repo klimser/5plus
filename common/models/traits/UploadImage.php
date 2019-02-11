@@ -2,6 +2,7 @@
 
 namespace common\models\traits;
 use backend\components\TranslitComponent;
+use common\components\ComponentContainer;
 use Tinify\Source;
 use yii\base\UnknownPropertyException;
 use yii\web\UploadedFile;
@@ -126,7 +127,7 @@ trait UploadImage
 
             $resizeImage = function(string $sourcePath, string $destPath, int $width, int $height = 0) {
                 /** @var Source $source */
-                $source = \Yii::$app->tinifier->getFromFile($sourcePath);
+                $source = ComponentContainer::getTinifier()->getFromFile($sourcePath);
                 if ($source) {
                     $params = ['method' => 'scale', 'width' => $width];
                     if ($height > 0) {

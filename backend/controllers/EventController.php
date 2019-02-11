@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\components\ComponentContainer;
 use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use backend\models\Event;
@@ -70,7 +71,8 @@ class EventController extends AdminController
                 try {
                     $event->status = $status;
                     if (!$event->save()) {
-                        \Yii::$app->errorLogger->logError('event/change-status', $event->getErrorsAsString(), true);
+                        ComponentContainer::getErrorLogger()
+                            ->logError('event/change-status', $event->getErrorsAsString(), true);
                         throw new \Exception('Server error');
                     } else {
                         switch ($status) {
@@ -98,7 +100,8 @@ class EventController extends AdminController
                     }
                 } catch (\Throwable $ex) {
                     $transaction->rollBack();
-                    \Yii::$app->errorLogger->logError('event/change-status', $ex->getMessage(), true);
+                    ComponentContainer::getErrorLogger()
+                        ->logError('event/change-status', $ex->getMessage(), true);
                     $jsonData = self::getJsonErrorResult($ex->getMessage());
                 }
             }
@@ -132,7 +135,8 @@ class EventController extends AdminController
                         'memberStatus' => $eventMember->status,
                     ]);
                 } else {
-                    \Yii::$app->errorLogger->logError('Event.setPupilStatus', $eventMember->getErrorsAsString(), true);
+                    ComponentContainer::getErrorLogger()
+                        ->logError('Event.setPupilStatus', $eventMember->getErrorsAsString(), true);
                     $jsonData = self::getJsonErrorResult('Server error');
                 }
             }
@@ -164,7 +168,8 @@ class EventController extends AdminController
                     'memberMark' => $eventMember->mark,
                 ]);
             } else {
-                \Yii::$app->errorLogger->logError('Event.setPupilMark', $eventMember->getErrorsAsString(), true);
+                ComponentContainer::getErrorLogger()
+                    ->logError('Event.setPupilMark', $eventMember->getErrorsAsString(), true);
                 $jsonData = self::getJsonErrorResult();
             }
         }

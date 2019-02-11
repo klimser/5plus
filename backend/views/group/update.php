@@ -55,9 +55,9 @@ SCRIPT
     <?= $form->field($group, 'room_number', ['options' => ['class' => 'form-group col-xs-12 col-sm-6']])
         ->textInput(['maxlength' => true]); ?>
 
-    <div class="form-group col-xs-12" style="display: flex;">
+    <div class="form-group col-xs-12" style="display: flex;" id="weekdays">
         <?php for ($i = 0; $i < 7; $i++): ?>
-            <div style="flex: auto;">
+            <div style="flex: auto;" class="one_day_block">
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="weekday[<?= $i; ?>]" value="1" <?= $group->weekday[$i] == '1' ? 'checked' : ''; ?> onchange="Group.toggleWeekday(this);">
