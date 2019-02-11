@@ -46,7 +46,7 @@ class Action extends BaseObject
     {
         $action = new \backend\models\Action();
         $action->admin_id = \Yii::$app->user->id;
-        $action->user_id = $user->id;
+        if ($user) $action->user_id = $user->id;
         $action->type = $type;
         $action->amount = $amount;
         if ($group) $action->group_id = $group->id;

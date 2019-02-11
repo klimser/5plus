@@ -56,7 +56,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'user_id',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->user->name;
+                    return $model->user_id ? $model->user->name : null;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

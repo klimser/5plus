@@ -99,7 +99,12 @@ class ActiveRecord extends \yii\db\ActiveRecord
     {
         $diff = [];
         foreach ($this->attributes as $name => $value) {
-            if ($this->isAttributeChanged($name)) {
+            if (array_key_exists($name, $this->attributes) && array_key_exists($name, $this->oldAttributes)) {
+                $changed = $this->attributes[$name] != $this->oldAttributes[$name];
+            } else {
+                $changed = array_key_exists($name, $this->attributes) || array_key_exists($name, $this->oldAttributes);
+            }
+            if ($changed) {
                 $diff[$name] = $value;
             }
         }

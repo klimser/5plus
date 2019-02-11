@@ -143,7 +143,7 @@ class Teacher extends ActiveRecord
     public function getBirthdayDate()
     {
         $birthdayDate = $this->birthday ? new \DateTime($this->birthday) : null;
-        if ($birthdayDate) $birthdayDate = new \DateTime(date('Y') . $birthdayDate->format('-m-d'));
+        if ($birthdayDate) $birthdayDate->modify(date('Y') . $birthdayDate->format('-m-d'));
         return $birthdayDate;
     }
 
