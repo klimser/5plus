@@ -18,9 +18,14 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
 
 <div class="container">
     <div class="row">
-        <div class="col-xs-12 text-center">
+        <div class="col-xs-12 col-sm-6 text-center">
             <a class="btn btn-lg btn-primary" href="<?= \yii\helpers\Url::to(['webpage', 'id' => $quizWebpage->id]); ?>">
                 Проверь свои знания
+            </a>
+        </div>
+        <div class="col-xs-12 col-sm-6 text-center">
+            <a class="btn btn-lg btn-primary" href="<?= \yii\helpers\Url::to(['payment/index']); ?>">
+                Онлайн-оплата
             </a>
         </div>
     </div>

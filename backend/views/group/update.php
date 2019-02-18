@@ -60,11 +60,11 @@ SCRIPT
             <div style="flex: auto;" class="one_day_block">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" name="weekday[<?= $i; ?>]" value="1" <?= $group->weekday[$i] == '1' ? 'checked' : ''; ?> onchange="Group.toggleWeekday(this);">
+                        <input type="checkbox" name="weekday[<?= $i; ?>]" value="1" <?= empty($group->scheduleData[$i]) ? '' : 'checked'; ?> onchange="Group.toggleWeekday(this);">
                         <?= Calendar::$weekDays[($i + 1) % 7]; ?>
                     </label>
                 </div>
-                <input class="form-control weektime" name="weektime[<?= $i; ?>]" value="<?= $group->scheduleData[$i]; ?>" placeholder="Время" pattern="\d{2}:\d{2}" maxlength="5" required <?= $group->weekday[$i] == '0' ? 'disabled' : ''; ?>>
+                <input class="form-control weektime" name="weektime[<?= $i; ?>]" value="<?= $group->scheduleData[$i]; ?>" placeholder="Время" pattern="\d{2}:\d{2}" maxlength="5" required <?= empty($group->scheduleData[$i]) ? 'disabled' : ''; ?>>
             </div>
         <?php endfor; ?>
     </div>

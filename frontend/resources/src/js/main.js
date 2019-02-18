@@ -39,10 +39,9 @@ var Main = {
                     var containerWidth = $(this).width();
 
                     if (containerWidth > 0) {
-                        $(reCaptchaDiv).css(
-                            'transform',
-                            reCaptchaWidth > containerWidth ? 'scale(' + (containerWidth / reCaptchaWidth) + ')' : ''
-                        );
+                        $(reCaptchaDiv).css({
+                            transform: reCaptchaWidth > containerWidth ? 'scale(' + (containerWidth / reCaptchaWidth) + ')' : ''
+                        });
                     }
                 }
             });

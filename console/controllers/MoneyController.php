@@ -36,6 +36,7 @@ class MoneyController extends Controller
                     if (($groupPupil->date_end && $groupPupil->endDateObject < $nowDate)
                         || ($group->date_end && $group->endDateObject < $nowDate)) {
                         $groupPupil->active = GroupPupil::STATUS_INACTIVE;
+                        if (!$groupPupil->date_end) $groupPupil->date_end = $group->date_end;
                         $groupPupil->save();
                     } else {
                         $isActive = true;

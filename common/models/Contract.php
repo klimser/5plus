@@ -159,7 +159,7 @@ class Contract extends ActiveRecord
         $groupParam = GroupParam::findByDate($this->group, $this->createDate);
         if ($groupParam === null) {
             $groupParam = new GroupParam();
-            $groupParam->weekday = $this->group->weekday;
+            $groupParam->schedule = $this->group->schedule;
             $groupParam->lesson_price = $this->group->lesson_price;
             $groupParam->lesson_price_discount = $this->group->lesson_price_discount;
         };

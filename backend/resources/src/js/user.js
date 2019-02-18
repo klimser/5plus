@@ -99,7 +99,6 @@ let User = {
             $('#amount_block').removeClass('hidden');
             $('#add_contract').removeClass('hidden')
                 .find('input[type!="checkbox"]').prop('disabled', false);
-            this.setAmountHelperButtons($("#contract_group"), true);
             if ($('#add_payment_switch').is(":checked")) {
                 $('#add_payment_switch').click();
             }
@@ -107,7 +106,7 @@ let User = {
             $('#add_contract').addClass('hidden')
                 .find('input[type!="checkbox"]').prop('disabled', true);
         }
-        this.setAmountBlockVisibility();
+        this.checkAddGroup($("#add_group_switch").get(0));
     },
     getHelperButtonHtml(amount, label) {
         return '<button type="button" class="btn btn-default btn-xs" onclick="User.setAmount(' + amount + ');">' + label + '</button>'

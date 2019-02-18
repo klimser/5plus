@@ -15,7 +15,6 @@ use common\models\traits\GroupParam as GroupParamTrait;
  * @property int $lesson_price
  * @property int $lesson_price_discount
  * @property string $schedule
- * @property string $weekday
  * @property int $teacher_id
  * @property double $teacher_rate
  * @property int $teacher_salary
@@ -36,10 +35,9 @@ class GroupParam extends ActiveRecord
     public function rules()
     {
         return [
-            [['group_id', 'year', 'month', 'lesson_price', 'weekday', 'teacher_id', 'teacher_rate'], 'required'],
+            [['group_id', 'year', 'month', 'lesson_price', 'teacher_id', 'teacher_rate'], 'required'],
             [['group_id', 'year', 'month', 'lesson_price', 'lesson_price_discount', 'teacher_id'], 'integer'],
             [['teacher_rate'], 'number'],
-            [['weekday'], 'string', 'max' => 7],
             [['schedule'], 'string', 'max' => 255],
             [['group_id', 'year', 'month'], 'unique', 'targetAttribute' => ['group_id', 'year', 'month'], 'message' => 'The combination of Группа, год and месяц has already been taken.'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
@@ -57,7 +55,7 @@ class GroupParam extends ActiveRecord
             'month' => 'месяц',
             'lesson_price' => 'Стоимость ОДНОГО занятия',
             'lesson_price_discount' => 'Стоимость ОДНОГО занятия со скидкой',
-            'weekday' => 'Расписание',
+            'schedule' => 'График занятий группы',
             'teacher_id' => 'Учитель',
             'teacher_rate' => 'Процент учителю',
             'teacher_salary' => 'Зарплата учителя',

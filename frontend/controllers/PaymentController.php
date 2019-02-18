@@ -10,8 +10,10 @@ use common\models\Company;
 use common\models\Contract;
 use common\models\Group;
 use common\models\GroupPupil;
+use common\models\Module;
 use common\models\PaymentLink;
 use common\models\User;
+use common\models\Webpage;
 use himiklab\yii2\recaptcha\ReCaptchaValidator;
 use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
@@ -19,9 +21,18 @@ use yii\web\Response;
 
 class PaymentController extends Controller
 {
+    private function getPageParams(): array
+    {
+        $moduleId = Module::getModuleIdByControllerAndAction('payment', 'index');
+        return [
+            'webpage' => Webpage::find()->where(['module_id' => $moduleId])->one(),
+            'hide_social' => true,
+        ];
+    }
+
     public function actionIndex()
     {
-        return $this->render('index');
+        return $this->render('index', $this->getPageParams());
     }
 
     public function actionFind()
@@ -30,7 +41,7 @@ class PaymentController extends Controller
 
         if (!$validator->validate(\Yii::$app->request->post('reCaptcha'), $error)) {
             \Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
-            return $this->render('index');
+            return $this->render('index', $this->getPageParams());
         } else {
             $phoneFull = '+998' . substr(preg_replace('#\D#', '', \Yii::$app->request->post('phoneFormatted')), -9);
             /** @var User[] $users */
@@ -40,9 +51,11 @@ class PaymentController extends Controller
                 ->all();
             if (count($users) == 0) {
                 \Yii::$app->session->addFlash('error', 'По данному номеру студенты не найдены');
-                return $this->render('index');
+                return $this->render('index', $this->getPageParams());
             } else {
-                $params = ['user' => null, 'users' => []];
+                $params = $this->getPageParams();
+                $params['user'] = null;
+                $params['users'] = [];
                 if (count($users) == 1) {
                     $user = reset($users);
                     if ($user->role == User::ROLE_PUPIL) $params['user'] = $user;
@@ -64,8 +77,11 @@ class PaymentController extends Controller
         if ($paymentLink) {
             $groupPupils = GroupPupil::findAll(['group_id' => $paymentLink->group_id, 'user_id' => $paymentLink->user_id]);
         }
+        $params = $this->getPageParams();
+        $params['paymentLink'] = $paymentLink;
+        $params['groupPupils'] = $groupPupils;
 
-        return $this->render('link', ['paymentLink' => $paymentLink, 'groupPupils' => $groupPupils]);
+        return $this->render('link', $params);
     }
 
     public function actionCreate()
@@ -133,7 +149,7 @@ class PaymentController extends Controller
 
     public function actionComplete()
     {
-        $params = [];
+        $params = $this->getPageParams();
         if ($contractId = \Yii::$app->request->get('payment')) {
             $contract = Contract::findOne($contractId);
             if ($contract) {

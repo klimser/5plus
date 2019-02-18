@@ -16,7 +16,6 @@ use common\models\traits\GroupParam as GroupParamTrait;
  * @property int $subject_id
  * @property int $teacher_id
  * @property string $schedule
- * @property string $weekday
  * @property int $lesson_price
  * @property int $lesson_price_discount
  * @property double $teacher_rate
@@ -61,7 +60,6 @@ class Group extends ActiveRecord
             [['teacher_rate'], 'number', 'min'=> 0, 'max' => 100],
             [['name', 'legal_name'], 'string', 'max' => 50],
             [['schedule'], 'string', 'max' => 255],
-            [['weekday'], 'string', 'max' => 7],
             [['room_number'], 'string', 'max' => 25],
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
             [['date_start', 'date_end'], 'safe'],
@@ -84,7 +82,6 @@ class Group extends ActiveRecord
             'teacher_id' => 'Учитель',
             'type_id' => 'Тип группы',
             'schedule' => 'График занятий группы',
-            'weekday' => 'В какие дни недели занятия',
             'lesson_price' => 'Стоимость ОДНОГО занятия',
             'lesson_price_discount' => 'Стоимость ОДНОГО занятия со скидкой',
             'teacher_rate' => 'Процент начислений зарплаты учителю',

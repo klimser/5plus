@@ -9,7 +9,6 @@ namespace common\models\traits;
  * @property string[] $scheduleData
  * @property int $lesson_price
  * @property int $lesson_price_discount
- * @property string $weekday
  * @property int $priceMonth
  * @property int $price3Month
  * @property int $classesPerWeek
@@ -64,7 +63,9 @@ trait GroupParam
      */
     public function getClassesPerWeek(): int
     {
-        return substr_count($this->weekday, '1');
+        $count = 0;
+        array_walk($this->scheduleData, function($val) use (&$count) { if (!empty($val)) $count++; });
+        return $count;
     }
 
     /**
@@ -101,6 +102,6 @@ trait GroupParam
      */
     public function isHasLesson(\DateTime $day): bool
     {
-        return $this->weekday[(7 + intval($day->format('w')) - 1) % 7] == '1';
+        return !empty($this->scheduleData[(7 + intval($day->format('w')) - 1) % 7]);
     }
 }

@@ -68,7 +68,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     /* @var $model \common\models\Group */
                     $data = [];
                     for ($i = 0; $i < 7; $i++) {
-                        if ($model->weekday[$i] == '1') {
+                        if (!empty($model->scheduleData[$i])) {
                             $data[] = '<nobr>' . \common\components\helpers\Calendar::$weekDaysShort[($i + 1) % 7] . ": {$model->scheduleData[$i]}</nobr>";
                         }
                     }

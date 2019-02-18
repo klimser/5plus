@@ -18,7 +18,10 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата'; ?>
             <input type="tel" name="phoneFormatted" id="pupil-phone" class="form-control" maxlength="11" pattern="\d{2} \d{3}-\d{4}" required>
         </div>
     </div>
-    <?= \himiklab\yii2\recaptcha\ReCaptcha::widget(['name' => 'reCaptcha']) ?>
-
-    <button class="btn btn-primary">найти</button>
+    <div class="pull-left max-width-100">
+        <?= \himiklab\yii2\recaptcha\ReCaptcha::widget(['name' => 'reCaptcha']) ?>
+    </div>
+    <div class="pull-right max-width-100">
+        <button class="btn btn-primary btn-lg">найти</button>
+    </div>
 <?= Html::endForm(); ?>

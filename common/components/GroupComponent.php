@@ -29,7 +29,6 @@ class GroupComponent extends Component
             $groupParam->lesson_price = $group->lesson_price;
             $groupParam->lesson_price_discount = $group->lesson_price_discount;
             $groupParam->teacher_id = $group->teacher_id;
-            $groupParam->weekday = $group->weekday;
             $groupParam->schedule = $group->schedule;
             $groupParam->teacher_rate = $group->teacher_rate;
             if (!$groupParam->save()) throw new \Exception('Unable to save group param: ' . $groupParam->getErrorsAsString());
@@ -103,8 +102,15 @@ class GroupComponent extends Component
             } else {
                 $existedGroupPupil = GroupPupil::find()
                     ->andWhere(['group_id' => $group->id, 'user_id' => $pupil->id])
-                    ->andWhere(['<', 'date_start', $startDate->format('Y-m-d')])
-                    ->andWhere(['OR', ['date_end' => null], ['>', 'date_end', $startDate->format('Y-m-d')]])
+                    ->andWhere(['OR',
+                        ['AND',
+                            ['<', 'date_start', $startDate->format('Y-m-d')],
+                            ['OR', ['date_end' => null], ['>', 'date_end', $startDate->format('Y-m-d')]]],
+                        ['AND',
+                            ['>=', 'date_start', $startDate->format('Y-m-d')],
+                            ($endDate ? ['<=', 'date_start', $endDate->format('Y-m-d')] : '1'),
+                        ]
+                    ])
                     ->one();
                 if ($existedGroupPupil) {
                     throw new \Exception('Студент уже был добавлен в группу в выбранном промежутке времени, не добавляйте его дважды, так нельзя!');

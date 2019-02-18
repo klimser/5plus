@@ -77,17 +77,15 @@ class MoneyComponent extends Component
         $contract->amount = $amount;
         $contract->created_at = date('Y-m-d H:i:s');
 
-        $groupParam = null;
+        $contract->discount = $amount >= $group->price3Month ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
         /** @var GroupPupil $groupPupil */
         $groupPupil = GroupPupil::find()
             ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])
             ->one();
         if ($groupPupil && $groupPupil->startDateObject->format('Y-m') <= date('Y-m')) {
             $groupParam = GroupComponent::getGroupParam($groupPupil->group, $groupPupil->startDateObject);
+            $contract->discount = $amount >= $groupParam->price3Month ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
         }
-        $contract->discount = ($groupParam && $amount >= $groupParam->price3Month) || (!$groupParam && $amount >= $group->price3Month)
-            ? Contract::STATUS_ACTIVE
-            : Contract::STATUS_INACTIVE;
 
         if ($number) $contract->number = $number;
         else $contract = ContractComponent::generateContractNumber($contract);
@@ -403,7 +401,7 @@ class MoneyComponent extends Component
                             $newParam = new GroupParam();
                             $newParam->lesson_price = $item['entity']->group->lesson_price;
                             $newParam->lesson_price_discount = $item['entity']->group->lesson_price_discount;
-                            $newParam->weekday = $item['entity']->group->weekday;
+                            $newParam->schedule = $item['entity']->group->schedule;
                             $groupPupilMap[$id]['param'] = $newParam;
                         }
                     }
@@ -421,7 +419,7 @@ class MoneyComponent extends Component
                             $item['entity']->date_charge_till = $item['entity']->group->date_end;
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
-                        } elseif ($w > 0 && $item['param']->weekday[$w - 1] == '1') {
+                        } elseif ($w > 0 && !empty($item['param']->scheduleData[($w + 6) % 7])) {
                             if ($item['param']->lesson_price_discount && $moneyDiscount > 0) {
                                 $moneyDiscount -= $item['param']->lesson_price_discount;
                                 $item['entity']->paid_lessons++;

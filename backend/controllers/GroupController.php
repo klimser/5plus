@@ -33,7 +33,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3859);
+//        $user = User::findOne(3397);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
@@ -159,10 +159,8 @@ class GroupController extends AdminController
 
             $weekday = Yii::$app->request->post('weekday', []);
             $weektime = Yii::$app->request->post('weektime', []);
-            $weekdayString = '';
             $scheduleArray = [];
             for ($i = 0; $i < 7; $i++) {
-                $weekdayString .= isset($weekday[$i]) ? '1' : '0';
                 if (isset($weekday[$i]) && !$weektime[$i]) {
                     Yii::$app->session->addFlash('error', 'Не указано время занятий');
                     $error = true;
@@ -170,7 +168,6 @@ class GroupController extends AdminController
                 $scheduleArray[$i] = isset($weekday[$i]) ? $weektime[$i] : '';
             }
             $group->scheduleData = $scheduleArray;
-            $group->weekday = $weekdayString;
 
             if (!$error) {
                 $transaction = Yii::$app->db->beginTransaction();
@@ -184,7 +181,7 @@ class GroupController extends AdminController
                                 null,
                                 null,
                                 $group,
-                                json_encode($groupDiff)
+                                json_encode($groupDiff, JSON_UNESCAPED_UNICODE)
                             );
                         }
                         if (empty($group->groupPupils) && !empty($newPupils)) {
@@ -281,7 +278,7 @@ class GroupController extends AdminController
                         $groupPupil->user,
                         null,
                         $group,
-                        json_encode($groupPupil->getDiffMap())
+                        json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
                     );
 
                     if (!$groupPupil->save()) throw new \Exception($groupPupil->getErrorsAsString());
@@ -305,7 +302,7 @@ class GroupController extends AdminController
                 $groupPupil->user,
                 null,
                 $group,
-                json_encode($groupPupil->getDiffMap())
+                json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
             );
 
             if (!$groupPupil->save()) throw new \Exception('Server error: ' . $groupPupil->getErrorsAsString());
@@ -477,7 +474,7 @@ class GroupController extends AdminController
                         $groupParam = new GroupParam();
                         $groupParam->lesson_price = $group->lesson_price;
                         $groupParam->lesson_price_discount = $group->lesson_price_discount;
-                        $groupParam->weekday = $group->weekday;
+                        $groupParam->schedule = $group->schedule;
                     }
                     $groupData['month_price'] = $groupParam->priceMonth;
                     $groupData['discount_price'] = $groupParam->price3Month;
