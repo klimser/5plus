@@ -2,6 +2,8 @@
 
 namespace common\models\traits;
 
+use common\components\helpers\Money;
+
 /**
  * Trait GroupParam
  * @package common\models\traits
@@ -47,7 +49,7 @@ trait GroupParam
      */
     public function getPriceMonth(): int
     {
-        return round($this->lesson_price * $this->getClassesPerMonth() / 1000) * 1000;
+        return Money::roundThousand($this->lesson_price * $this->getClassesPerMonth());
     }
 
     /**
@@ -55,7 +57,7 @@ trait GroupParam
      */
     public function getPrice3Month(): int
     {
-        return round(($this->lesson_price_discount ?: $this->lesson_price) * $this->getClassesPerMonth() * 3 / 1000) * 1000;
+        return Money::roundThousand(($this->lesson_price_discount ?: $this->lesson_price) * $this->getClassesPerMonth() * 3);
     }
 
     /**
@@ -64,7 +66,9 @@ trait GroupParam
     public function getClassesPerWeek(): int
     {
         $count = 0;
-        array_walk($this->scheduleData, function($val) use (&$count) { if (!empty($val)) $count++; });
+        foreach ($this->scheduleData as $elem) {
+            if (!empty($elem)) $count++;
+        };
         return $count;
     }
 

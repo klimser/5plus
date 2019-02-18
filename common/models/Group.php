@@ -23,10 +23,8 @@ use common\models\traits\GroupParam as GroupParamTrait;
  * @property int $active
  * @property string $date_start
  * @property string $date_end
- * @property string $date_charge_till
  * @property \DateTime $startDateObject
  * @property \DateTime $endDateObject
- * @property \DateTime $chargeDateObject
  *
  * @property User[] $pupils
  * @property GroupPupil[] $groupPupils
@@ -203,13 +201,5 @@ class Group extends ActiveRecord
     public function getEndDateObject()
     {
         return empty($this->date_end) ? null : new \DateTime($this->date_end . ' midnight');
-    }
-
-    /**
-     * @return \DateTime|null
-     */
-    public function getChargeDateObject()
-    {
-        return empty($this->date_charge_till) ? null : new \DateTime($this->date_charge_till);
     }
 }

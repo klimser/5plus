@@ -112,44 +112,139 @@ $this->title = 'Панель управления';
     </div>
     <div class="col-xs-12 col-md-3">
         <div class="panel panel-default">
-            <ul class="list-group">
+            <ul class="nav nav-pills nav-stacked">
                 <?php if ($admin->can('manageUsers')): ?>
-                    <a class="list-group-item" href="<?= Url::to(['user/index']); ?>"><span class="fas fa-user"></span> Пользователи</a>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['user/index']); ?>">
+                            <span class="fas fa-user"></span> Пользователи
+                        </a>
+                    </li>
                 <?php endif; ?>
 
                 <?php if ($admin->can('cashier')): ?>
-                    <a class="list-group-item" href="<?= Url::to(['contract/index']); ?>"><span class="fas fa-file-invoice-dollar"></span> Договоры</a>
-                    <a class="list-group-item" href="<?= Url::to(['money/payment']); ?>"><span class="fas fa-dollar-sign"></span> Платежи</a>
-                    <a class="list-group-item" href="<?= Url::to(['money/debt']); ?>"><span class="fas fa-dollar-sign"></span> Долги</a>
-                    <a class="list-group-item" href="<?= Url::to(['money/actions']); ?>"><span class="fas fa-clipboard-list"></span> Действия</a>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['contract/index']); ?>">
+                            <span class="fas fa-file-invoice-dollar"></span> Договоры
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['money/payment']); ?>">
+                            <span class="fas fa-dollar-sign"></span> Платежи
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['money/debt']); ?>">
+                            <span class="fas fa-dollar-sign"></span> Долги
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['money/actions']); ?>">
+                            <span class="fas fa-clipboard-list"></span> Действия
+                        </a>
+                    </li>
                 <?php endif; ?>
 
-                <?php if ($admin->can('accountant')): ?>
-                    <a class="list-group-item" href="<?= Url::to(['money/salary']); ?>"><span class="fas fa-money-bill-wave"></span> Зарплата</a>
-                    <a class="list-group-item" href="<?= Url::to(['report/group-movement']); ?>"><span class="fas fa-walking"></span> Отчет движения</a>
-                <?php endif; ?>
-
-                <?php if ($admin->can('reportDebt')): ?>
-                    <a class="list-group-item" href="<?= Url::to(['report/debt']); ?>"><span class="fas fa-info"></span> Отчет по должникам</a>
+                <?php if ($admin->can('viewSalary')): ?>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['money/salary']); ?>">
+                            <span class="fas fa-money-bill-wave"></span> Зарплата
+                        </a>
+                    </li>
                 <?php endif; ?>
 
                 <?php if ($admin->can('root')): ?>
-                    <a class="list-group-item" href="<?= Url::to(['company/index']); ?>"><span class="fas fa-building"></span> Компании</a>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['company/index']); ?>">
+                            <span class="fas fa-building"></span> Компании
+                        </a>
+                    </li>
                 <?php endif; ?>
 
+                <li role="presentation" class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                        Отчёты <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <?php if ($admin->can('reportGroupMovement')): ?>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['report/group-movement']); ?>">
+                                    <span class="fas fa-walking"></span> Отчет движения
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($admin->can('reportDebt')): ?>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['report/debt']); ?>">
+                                    <span class="fas fa-info"></span> Отчет по должникам
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($admin->can('reportMoney')): ?>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['report/money']); ?>">
+                                    <span class="fas fa-dollar-sign"></span> Финансовый отчёт
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                    </ul>
+                </li>
+
                 <?php if ($admin->can('content')): ?>
-                    <a class="list-group-item" href="<?= Url::to(['page/index']); ?>"><span class="fas fa-file"></span> Страницы</a>
-                    <a class="list-group-item" href="<?= Url::to(['menu/index']); ?>"><span class="fas fa-bars"></span> Меню</a>
-                    <a class="list-group-item" href="<?= Url::to(['widget-html/index']); ?>"><span class="fas fa-cog"></span> Блоки</a>
-                    <li class="list-group-item"></li>
-                    <a class="list-group-item" href="<?= Url::to(['high-school/index']); ?>"><span class="fas fa-graduation-cap"></span> ВУЗы</a>
-                    <a class="list-group-item" href="<?= Url::to(['lyceum/index']); ?>"><span class="fas fa-landmark"></span> Лицеи</a>
-                    <li class="list-group-item"></li>
-                    <a class="list-group-item" href="<?= Url::to(['quiz/index']); ?>"><span class="fas fa-clipboard"></span> Тесты</a>
-                    <a class="list-group-item" href="<?= Url::to(['quiz-result/index']); ?>"><span class="fas fa-clipboard-list"></span> Результаты тестов</a>
-                    <li class="list-group-item"></li>
-                    <a class="list-group-item" href="<?= Url::to(['promotion/index']); ?>"><span class="fas fa-bell"></span> Акции</a>
-                    <a class="list-group-item" href="<?= Url::to(['blog/index']); ?>"><span class="far fa-newspaper"></span> Блог</a>
+                    <li role="presentation" class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                            Контент <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li role="presentation">
+                                <a href="<?= Url::to(['page/index']); ?>">
+                                    <span class="fas fa-file"></span> Страницы
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['menu/index']); ?>">
+                                    <span class="fas fa-bars"></span> Меню
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['widget-html/index']); ?>">
+                                    <span class="fas fa-cog"></span> Блоки
+                                </a>
+                            </li>
+                            <li class="divider" role="separator"></li>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['high-school/index']); ?>">
+                                    <span class="fas fa-graduation-cap"></span> ВУЗы
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['lyceum/index']); ?>">
+                                    <span class="fas fa-landmark"></span> Лицеи
+                                </a>
+                            </li>
+                            <li class="divider" role="separator"></li>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['promotion/index']); ?>">
+                                    <span class="fas fa-bell"></span> Акции
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['blog/index']); ?>">
+                                    <span class="far fa-newspaper"></span> Блог
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li role="presentation">
+                        <a href="<?= Url::to(['quiz/index']); ?>">
+                            <span class="fas fa-clipboard"></span> Тесты
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['quiz-result/index']); ?>">
+                            <span class="fas fa-clipboard-list"></span> Результаты тестов
+                        </a>
+                    </li>
                 <?php endif; ?>
             </ul>
         </div>

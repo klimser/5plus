@@ -6,6 +6,8 @@ use common\components\ComponentContainer;
 use common\components\GroupComponent;
 use common\models\GroupPupil;
 use common\models\Group;
+use common\models\Payment;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -294,5 +296,114 @@ class ReportController extends AdminController
             'report-debt-' . date('Y-m-d') . '.xlsx',
             ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         );
+    }
+
+    public function actionMoney()
+    {
+        if (!Yii::$app->user->can('reportMoney')) throw new ForbiddenHttpException('Access denied!');
+
+        if (\Yii::$app->request->isPost) {
+            [$month, $year] = explode('.', \Yii::$app->request->post('date', ''));
+            if ($month && $year) {
+                $startDate = new \DateTime("$year-$month-01");
+                $endDate = clone $startDate;
+                $endDate->modify('last day of this month');
+                $startDateString = $startDate->format('Y-m-d');
+                $endDateString = $endDate->format('Y-m-d');
+
+                $spreadsheet = new Spreadsheet();
+                $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+                $spreadsheet->getActiveSheet()->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+                $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
+                $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
+
+
+
+                $groupId = \Yii::$app->request->post('group');
+                if ($groupId == 'all') {
+                    if (!Yii::$app->user->can('reportMoneyTotal')) throw new ForbiddenHttpException('Access denied!');
+
+                    $spreadsheet->getActiveSheet()->setCellValue('A1', 'Группа');
+                    $spreadsheet->getActiveSheet()->setCellValue('B1', 'Со скидкой');
+                    $spreadsheet->getActiveSheet()->setCellValue('C1', 'Без скидки');
+                    $spreadsheet->getActiveSheet()->setCellValue('D1', 'Всего');
+
+                    $groupIds = Payment::find()
+                        ->andWhere(['>=', 'created_at', $startDateString])
+                        ->andWhere(['<', 'created_at', $endDateString])
+                        ->andWhere(['>', 'amount', 0])
+                        ->select('group_id')
+                        ->distinct(true)
+                        ->column();
+                    $total = ['normal' => 0, 'discount' => 0];
+                    $row = 2;
+                    foreach ($groupIds as $groupId) {
+                        $group = Group::findOne($groupId);
+                        $discount = Payment::find()
+                            ->andWhere(['group_id' => $groupId])
+                            ->andWhere(['>', 'amount', 0])
+                            ->andWhere(['discount' => Payment::STATUS_ACTIVE])
+                            ->sum('amount');
+                        $normal = Payment::find()
+                            ->andWhere(['group_id' => $groupId])
+                            ->andWhere(['>', 'amount', 0])
+                            ->andWhere(['discount' => Payment::STATUS_INACTIVE])
+                            ->sum('amount');
+                        $spreadsheet->getActiveSheet()->setCellValue("A$row", $group->name);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $discount, DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $normal, DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $discount + $normal, DataType::TYPE_NUMERIC);
+                        $total['normal'] += $normal;
+                        $total['discount'] += $discount;
+                        $row++;
+                    }
+
+                    $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Итого');
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $total['discount'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $total['normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $total['normal'] + $total['discount'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->getStyle("A$row:D$row")->getFont()->setBold(true);
+                } else {
+                    [$devNull, $groupId] = explode('_', $groupId);
+                    $group = Group::findOne($groupId);
+                    if (!$group) throw new yii\web\NotFoundHttpException('Invalid group!');
+
+                    $discount = Payment::find()
+                        ->andWhere(['group_id' => $groupId])
+                        ->andWhere(['>', 'amount', 0])
+                        ->andWhere(['discount' => Payment::STATUS_ACTIVE])
+                        ->sum('amount');
+                    $normal = Payment::find()
+                        ->andWhere(['group_id' => $groupId])
+                        ->andWhere(['>', 'amount', 0])
+                        ->andWhere(['discount' => Payment::STATUS_INACTIVE])
+                        ->sum('amount');
+
+                    $spreadsheet->getActiveSheet()->setCellValue('A1', 'Группа');
+                    $spreadsheet->getActiveSheet()->setCellValue('A2', 'Собрано денег со скидкой');
+                    $spreadsheet->getActiveSheet()->setCellValue('A3', 'Собрано денег без скидки');
+                    $spreadsheet->getActiveSheet()->setCellValue('A4', 'Собрано всего');
+                    $spreadsheet->getActiveSheet()->setCellValue('B1', $group->name);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B2', $discount, DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B3', $normal, DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B4', $normal + $discount, DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->getStyle("B1:B4")->getFont()->setBold(true);
+                }
+
+                ob_start();
+                $objWriter = IOFactory::createWriter($spreadsheet, 'Xlsx');
+                $objWriter->save('php://output');
+                return \Yii::$app->response->sendContentAsFile(
+                    ob_get_clean(),
+                    "report-$year-$month.xlsx",
+                    ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+                );
+            }
+        }
+
+        return $this->render('money', [
+            'groups' => Group::find()->orderBy('name')->all(),
+            'allowedTotal' => Yii::$app->user->can('reportMoneyTotal')
+        ]);
     }
 }

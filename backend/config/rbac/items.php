@@ -12,6 +12,7 @@ return [
             'manageUsers',
             'manageEmployees',
             'editUser',
+            'reportMoneyTotal',
         ],
     ],
     'manager' => [
@@ -59,6 +60,7 @@ return [
         'children' => [
             'viewSalary',
             'moneyCorrection',
+            'reportMoney',
         ],
     ],
     'support' => [
@@ -169,6 +171,14 @@ return [
     'reportDebt' => [
         'type' => 2,
         'description' => 'Get group pupils debt report',
+    ],
+    'reportMoney' => [
+        'type' => 2,
+        'description' => 'Get money totals report for single group',
+    ],
+    'reportMoneyTotal' => [
+        'type' => 2,
+        'description' => 'Get money totals report for all groups',
     ],
 
     /* SUPPORT */
