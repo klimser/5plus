@@ -25,6 +25,9 @@ class NotifierController extends Controller
      */
     public function actionSend()
     {
+        $currentTime = intval(date('H'));
+        if ($currentTime >= 20 || $currentTime < 9) return yii\console\ExitCode::OK;
+
         $condition = ['status' => Notify::STATUS_NEW];
 
         $tryTelegram = false;
@@ -98,19 +101,21 @@ class NotifierController extends Controller
                             $params['student_name'] = $child->name;
                             $params['group_name'] = $toSend->group->legal_name;
                             $params['debt'] = $toSend->parameters['debt'] . ' ' . WordForm::getLessonsForm($toSend->parameters['debt']);
-                            $params['link'] = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url;
+                            $params['link'] = PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url;
                             break;
                         case Notify::TEMPLATE_PARENT_LOW:
                             $child = User::findOne($toSend->parameters['child_id']);
                             $params['student_name'] = $child->name;
                             $params['group_name'] = $toSend->group->legal_name;
                             $params['paid_lessons'] = $toSend->parameters['paid_lessons'] . ' ' . WordForm::getLessonsForm($toSend->parameters['paid_lessons']);
-                            $params['link'] = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url;
+                            $params['link'] = PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url;
                             break;
                     }
 
-                    ComponentContainer::getPaygramApi()
-                        ->sendSms($toSend->template_id, substr($toSend->user->phone, -12, 12), $params);
+                    if ($toSend->user->phone) {
+                        ComponentContainer::getPaygramApi()
+                            ->sendSms($toSend->template_id, substr($toSend->user->phone, -12, 12), $params);
+                    }
                     $toSend->status = Notify::STATUS_SENT;
                 } catch (PaygramApiException $exception) {
                     $toSend->status = Notify::STATUS_ERROR;

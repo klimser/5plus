@@ -8,7 +8,7 @@ use yii\grid\GridView;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $searchModel \common\models\DebtSearch */
 /* @var $debtorMap \common\models\User[] */
-/* @var $groups \common\models\Group[] */
+/* @var $groupMap \common\models\Group[] */
 
 $this->title = 'Задолженности';
 $this->params['breadcrumbs'][] = $this->title;
@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'group_id',
-                    array_merge([null => 'Любая'], \yii\helpers\ArrayHelper::map($groups, 'id', 'name')),
+                    $groupMap,
                     ['class' => 'form-control']
                 )
             ],

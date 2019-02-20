@@ -153,11 +153,16 @@ class MoneyController extends AdminController
         $debtorMap = [null => 'Все'];
         foreach ($debtors as $debtor) $debtorMap[$debtor->id] = $debtor->name;
 
+        /** @var Group[] $groups */
+        $groups = Group::find()->orderBy('name')->all();
+        $groupMap = [null => 'Все'];
+        foreach ($groups as $group) $groupMap[$group->id] = $group->name;
+
         return $this->render('debt', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
             'debtorMap' => $debtorMap,
-            'groups' => Group::find()->all(),
+            'groupMap' => $groupMap,
             'canCorrect' => Yii::$app->user->can('moneyCorrection'),
         ]);
     }

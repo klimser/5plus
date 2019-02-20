@@ -323,10 +323,32 @@ class ReportController extends AdminController
                 if ($groupId == 'all') {
                     if (!Yii::$app->user->can('reportMoneyTotal')) throw new ForbiddenHttpException('Access denied!');
 
+                    $spreadsheet->getActiveSheet()->mergeCells('A1:A2');
                     $spreadsheet->getActiveSheet()->setCellValue('A1', 'Группа');
-                    $spreadsheet->getActiveSheet()->setCellValue('B1', 'Со скидкой');
-                    $spreadsheet->getActiveSheet()->setCellValue('C1', 'Без скидки');
-                    $spreadsheet->getActiveSheet()->setCellValue('D1', 'Всего');
+                    $spreadsheet->getActiveSheet()->mergeCells('B1:D1');
+                    $spreadsheet->getActiveSheet()->setCellValue('B1', 'Принесли в кассу');
+                    $spreadsheet->getActiveSheet()->setCellValue('B2', 'Со скидкой');
+                    $spreadsheet->getActiveSheet()->setCellValue('C2', 'Без скидки');
+                    $spreadsheet->getActiveSheet()->setCellValue('D2', 'Всего');
+
+                    $spreadsheet->getActiveSheet()->mergeCells('E1:G1');
+                    $spreadsheet->getActiveSheet()->setCellValue('E1', 'Списано за занятия');
+                    $spreadsheet->getActiveSheet()->setCellValue('E2', 'Со скидкой');
+                    $spreadsheet->getActiveSheet()->setCellValue('F2', 'Без скидки');
+                    $spreadsheet->getActiveSheet()->setCellValue('G2', 'Всего');
+
+                    $spreadsheet->getActiveSheet()->getStyle('A1:E1')->getFont()->setBold(true);
+                    $spreadsheet->getActiveSheet()->getStyle('B1:E1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+
+                    $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(30);
+                    $spreadsheet->getActiveSheet()->getColumnDimension('B')->setWidth(15);
+                    $spreadsheet->getActiveSheet()->getColumnDimension('C')->setWidth(15);
+                    $spreadsheet->getActiveSheet()->getColumnDimension('D')->setWidth(15);
+                    $spreadsheet->getActiveSheet()->getColumnDimension('E')->setWidth(15);
+                    $spreadsheet->getActiveSheet()->getColumnDimension('F')->setWidth(15);
+                    $spreadsheet->getActiveSheet()->getColumnDimension('G')->setWidth(15);
 
                     $groupIds = Payment::find()
                         ->andWhere(['>=', 'created_at', $startDateString])
@@ -335,59 +357,118 @@ class ReportController extends AdminController
                         ->select('group_id')
                         ->distinct(true)
                         ->column();
-                    $total = ['normal' => 0, 'discount' => 0];
-                    $row = 2;
-                    foreach ($groupIds as $groupId) {
-                        $group = Group::findOne($groupId);
-                        $discount = Payment::find()
-                            ->andWhere(['group_id' => $groupId])
-                            ->andWhere(['>', 'amount', 0])
-                            ->andWhere(['discount' => Payment::STATUS_ACTIVE])
-                            ->sum('amount');
-                        $normal = Payment::find()
-                            ->andWhere(['group_id' => $groupId])
-                            ->andWhere(['>', 'amount', 0])
-                            ->andWhere(['discount' => Payment::STATUS_INACTIVE])
-                            ->sum('amount');
-                        $spreadsheet->getActiveSheet()->setCellValue("A$row", $group->name);
-                        $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $discount, DataType::TYPE_NUMERIC);
-                        $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $normal, DataType::TYPE_NUMERIC);
-                        $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $discount + $normal, DataType::TYPE_NUMERIC);
-                        $total['normal'] += $normal;
-                        $total['discount'] += $discount;
+                    /** @var Group[] $groups */
+                    $groups = Group::find()
+                        ->andWhere(['id' => $groupIds])
+                        ->orderBy('name')
+                        ->asArray()
+                        ->all();
+                    $groupMap = [];
+                    foreach ($groups as $group) {
+                        $groupMap[$group['id']] = $group;
+                        $groupMap[$group['id']]['in_normal'] = $groupMap[$group['id']]['in_discount']
+                            = $groupMap[$group['id']]['out_normal'] = $groupMap[$group['id']]['out_discount'] = 0;
+                    }
+
+                    $amounts = Payment::find()
+                        ->andWhere(['group_id' => $groupIds])
+                        ->andWhere(['>', 'amount', 0])
+                        ->andWhere(['>=', 'created_at', $startDateString])
+                        ->andWhere(['<', 'created_at', $endDateString])
+                        ->select(['group_id', 'discount', 'SUM(amount) as amount'])
+                        ->groupBy(['group_id', 'discount'])
+                        ->asArray()
+                        ->all();
+                    foreach ($amounts as $record) {
+                        $groupMap[$record['group_id']][$record['discount'] == Payment::STATUS_ACTIVE ? 'in_discount' : 'in_normal'] = $record['amount'];
+                    }
+                    $amounts = Payment::find()
+                        ->andWhere(['group_id' => $groupIds])
+                        ->andWhere(['<', 'amount', 0])
+                        ->andWhere(['>=', 'created_at', $startDateString])
+                        ->andWhere(['<', 'created_at', $endDateString])
+                        ->select(['group_id', 'discount', 'SUM(amount) as amount'])
+                        ->groupBy(['group_id', 'discount'])
+                        ->asArray()
+                        ->all();
+                    foreach ($amounts as $record) {
+                        $groupMap[$record['group_id']][$record['discount'] == Payment::STATUS_ACTIVE ? 'out_discount' : 'out_normal'] = abs($record['amount']);
+                    }
+
+                    $total = ['in_normal' => 0, 'in_discount' => 0, 'out_normal' => 0, 'out_discount' => 0];
+                    $row = 3;
+                    foreach ($groupMap as $groupData) {
+                        $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupData['name']);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $groupData['in_discount'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $groupData['in_normal'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $groupData['in_discount'] + $groupData['in_normal'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $groupData['out_discount'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $groupData['out_normal'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("G$row", $groupData['out_discount'] + $groupData['out_normal'], DataType::TYPE_NUMERIC);
+                        foreach ($total as $key => $value) {
+                            $total[$key] += $groupData[$key];
+                        }
                         $row++;
                     }
 
                     $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Итого');
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $total['discount'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $total['normal'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $total['normal'] + $total['discount'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->getStyle("A$row:D$row")->getFont()->setBold(true);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $total['in_discount'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $total['in_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $total['in_discount'] + $total['in_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $total['out_discount'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $total['out_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("G$row", $total['out_discount'] + $total['out_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->getStyle("A$row:G$row")->getFont()->setBold(true);
+                    $spreadsheet->getActiveSheet()->getStyle("B3:G$row")->getNumberFormat()->setFormatCode('#,##0');
                 } else {
                     [$devNull, $groupId] = explode('_', $groupId);
                     $group = Group::findOne($groupId);
                     if (!$group) throw new yii\web\NotFoundHttpException('Invalid group!');
 
-                    $discount = Payment::find()
-                        ->andWhere(['group_id' => $groupId])
+                    $total = ['in_normal' => 0, 'in_discount' => 0, 'out_normal' => 0, 'out_discount' => 0];
+                    $amounts = Payment::find()
+                        ->andWhere(['group_id' => $group->id])
                         ->andWhere(['>', 'amount', 0])
-                        ->andWhere(['discount' => Payment::STATUS_ACTIVE])
-                        ->sum('amount');
-                    $normal = Payment::find()
-                        ->andWhere(['group_id' => $groupId])
-                        ->andWhere(['>', 'amount', 0])
-                        ->andWhere(['discount' => Payment::STATUS_INACTIVE])
-                        ->sum('amount');
+                        ->andWhere(['>=', 'created_at', $startDateString])
+                        ->andWhere(['<', 'created_at', $endDateString])
+                        ->select(['discount', 'SUM(amount) as amount'])
+                        ->groupBy('discount')
+                        ->asArray()
+                        ->all();
+                    foreach ($amounts as $record) {
+                        $total[$record['discount'] == Payment::STATUS_ACTIVE ? 'in_discount' : 'in_normal'] = $record['amount'];
+                    }
+                    $amounts = Payment::find()
+                        ->andWhere(['group_id' => $group->id])
+                        ->andWhere(['<', 'amount', 0])
+                        ->andWhere(['>=', 'created_at', $startDateString])
+                        ->andWhere(['<', 'created_at', $endDateString])
+                        ->select(['discount', 'SUM(amount) as amount'])
+                        ->groupBy('discount')
+                        ->asArray()
+                        ->all();
+                    foreach ($amounts as $record) {
+                        $total[$record['discount'] == Payment::STATUS_ACTIVE ? 'out_discount' : 'out_normal'] = abs($record['amount']);
+                    }
 
                     $spreadsheet->getActiveSheet()->setCellValue('A1', 'Группа');
                     $spreadsheet->getActiveSheet()->setCellValue('A2', 'Собрано денег со скидкой');
                     $spreadsheet->getActiveSheet()->setCellValue('A3', 'Собрано денег без скидки');
                     $spreadsheet->getActiveSheet()->setCellValue('A4', 'Собрано всего');
+                    $spreadsheet->getActiveSheet()->setCellValue('A5', 'Списано за занятия со скидкой');
+                    $spreadsheet->getActiveSheet()->setCellValue('A6', 'Списано за занятия без скидки');
+                    $spreadsheet->getActiveSheet()->setCellValue('A7', 'Списано за занятия всего');
                     $spreadsheet->getActiveSheet()->setCellValue('B1', $group->name);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B2', $discount, DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B3', $normal, DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B4', $normal + $discount, DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->getStyle("B1:B4")->getFont()->setBold(true);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B2', $total['in_discount'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B3', $total['in_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B4', $total['in_discount'] + $total['in_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B5', $total['out_discount'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B6', $total['out_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B7', $total['out_discount'] + $total['out_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(30);
+                    $spreadsheet->getActiveSheet()->getColumnDimension('B')->setWidth(15);
+                    $spreadsheet->getActiveSheet()->getStyle("B1:B7")->getFont()->setBold(true);
+                    $spreadsheet->getActiveSheet()->getStyle("B2:B7")->getNumberFormat()->setFormatCode('#,##0');
                 }
 
                 ob_start();

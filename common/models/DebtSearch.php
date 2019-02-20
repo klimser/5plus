@@ -73,10 +73,10 @@ class DebtSearch extends Debt
             'group_id' => $this->group_id,
         ]);
 
-        if ($this->amountFrom) {
+        if ($this->amountFrom != 0) {
             $query->andFilterWhere(['>=', 'amount', intval($this->amountFrom)]);
         }
-        if ($this->amountTo) {
+        if ($this->amountTo != 0) {
             $query->andFilterWhere(['<=', 'amount', intval($this->amountTo)]);
         }
 
