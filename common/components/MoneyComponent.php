@@ -423,7 +423,7 @@ class MoneyComponent extends Component
                             $item['entity']->date_charge_till = $item['entity']->group->date_end;
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
-                        } elseif ($w > 0 && !empty($item['param']->scheduleData[($w + 6) % 7])) {
+                        } elseif (!empty($item['param']->scheduleData[($w + 6) % 7])) {
                             if ($item['param']->lesson_price_discount && $moneyDiscount > 0) {
                                 $moneyDiscount -= $item['param']->lesson_price_discount;
                                 $item['entity']->paid_lessons++;

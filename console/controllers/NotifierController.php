@@ -19,6 +19,8 @@ use yii\console\Controller;
  */
 class NotifierController extends Controller
 {
+    const QUANTITY_LIMIT = 40;
+    const TIME_LIMIT = 50;
     /**
      * Search for a not sent notifications and sends it.
      * @return int
@@ -33,10 +35,12 @@ class NotifierController extends Controller
         $tryTelegram = false;
         if (array_key_exists('telegramPublic', \Yii::$app->components)) {
             \Yii::$app->db->open();
-            \Yii::$app->telegramPublic->telegram;
+            ComponentContainer::getTelegramPublic()->telegram;
             $tryTelegram = true;
         }
 
+        $quantity = 0;
+        $startTime = microtime(true);
         while (true) {
             $toSend = Notify::findOne($condition);
             if (!$toSend) break;
@@ -124,6 +128,10 @@ class NotifierController extends Controller
                 }
                 $toSend->save();
             }
+
+            $quantity++;
+            $currentTime = microtime(true);
+            if($quantity >= self::QUANTITY_LIMIT || $currentTime - $startTime > self::TIME_LIMIT) break;
         }
         return yii\console\ExitCode::OK;
     }
