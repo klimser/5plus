@@ -81,6 +81,7 @@ class NotifierController extends Controller
                     if ($response->isOk()) {
                         $sendSms = false;
                         $toSend->status = Notify::STATUS_SENT;
+                        $toSend->sent_at = date('Y-m-d H:i:s');
                         $toSend->save();
                     }
                 }
@@ -240,12 +241,18 @@ class NotifierController extends Controller
             /*----------------------  END TEMPLATE ID 2 ---------------------------*/
         }
 
+        $nextWeek = new \DateTime('+7 days');
         /** @var GroupPupil[] $groupPupils */
         $groupPupils = GroupPupil::find()
             ->joinWith('user')
             ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE])
             ->andWhere(['BETWEEN', GroupPupil::tableName() . '.paid_lessons', 0, 2])
             ->andWhere(['!=', User::tableName() . '.status', User::STATUS_LOCKED])
+            ->andWhere([
+                'or',
+                [GroupPupil::tableName() . '.date_end' => null],
+                ['>', GroupPupil::tableName() . '.date_end', $nextWeek->format('Y-m-d')]
+            ])
             ->with(['user', 'group'])
             ->all();
         foreach ($groupPupils as $groupPupil) {
