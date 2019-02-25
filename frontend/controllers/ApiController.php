@@ -48,11 +48,8 @@ class ApiController extends Controller
         }
     }
 
-    public function actionPaymoComplete()
+    private function processPaymoRequest()
     {
-        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        \Yii::$app->response->statusCode = 400;
-
         $jsonData = ['status' => 0];
         $whiteList = ['185.8.212.47', '185.8.212.48'];
 
@@ -109,12 +106,31 @@ class ApiController extends Controller
         } catch (\Throwable $exception) {
             $transaction->rollBack();
             $jsonData['message'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
+            ComponentContainer::getErrorLogger()->logError('api/paymo', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
             return $jsonData;
         }
 
-        \Yii::$app->response->statusCode = 200;
         $jsonData['status'] = 1;
         $jsonData['message'] = 'Успешно';
+        return $jsonData;
+    }
+
+    public function actionPaymoComplete()
+    {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        $jsonData = $this->processPaymoRequest();
+        if (!array_key_exists('status', $jsonData) || $jsonData['status'] != 1) {
+            \Yii::$app->response->statusCode = 400;
+            ComponentContainer::getErrorLogger()->logError(
+                'api/paymo',
+                \Yii::$app->request->rawBody . "\n" . print_r($jsonData, true),
+                true
+            );
+        } else {
+            \Yii::$app->response->statusCode = 200;
+        }
+
         return $jsonData;
     }
 }
