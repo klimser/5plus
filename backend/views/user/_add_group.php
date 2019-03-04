@@ -122,6 +122,6 @@ $this->registerJs('User.init();');
         'company_id',
         $companyId,
         \yii\helpers\ArrayHelper::map($companies, 'id', 'second_name'),
-        ['class' => 'form-group', 'itemOptions' => ['required' => true]]
+        ['class' => 'form-group', 'itemOptions' => ['required' => true, 'disabled' => !$addPayment && !$addContract]]
     ); ?>
 </div>

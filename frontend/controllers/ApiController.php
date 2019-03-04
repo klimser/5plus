@@ -124,7 +124,7 @@ class ApiController extends Controller
             \Yii::$app->response->statusCode = 400;
             ComponentContainer::getErrorLogger()->logError(
                 'api/paymo',
-                \Yii::$app->request->rawBody . "\n" . print_r($jsonData, true),
+                print_r(\Yii::$app->request, true) . "\n" . print_r($jsonData, true),
                 true
             );
         } else {
@@ -133,4 +133,20 @@ class ApiController extends Controller
 
         return $jsonData;
     }
+
+//    public function actionPaymoCompleteTest()
+//    {
+//        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+//
+//        ComponentContainer::getErrorLogger()->logError(
+//            'api/paymo-test',
+//            print_r($_SERVER, true) . "\n" . print_r(\Yii::$app->request, true) . "\n---" . \Yii::$app->request->rawBody . '---',
+//            false
+//        );
+//
+//        \Yii::$app->response->statusCode = 400;
+//        $jsonData = ['status' => 0, 'message' => 'Method for testing, body length: ' . strlen(\Yii::$app->request->rawBody) . ' bytes'];
+//
+//        return $jsonData;
+//    }
 }

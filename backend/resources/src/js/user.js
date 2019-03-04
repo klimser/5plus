@@ -51,11 +51,9 @@ let User = {
     },
     setAmountBlockVisibility: function() {
         if ($("#add_payment_switch").is(":checked") || $("#add_contract_switch").is(":checked")) {
-            $("#amount_block").removeClass('hidden');
-            $("#amount").prop("disabled", false);
+            $("#amount_block").removeClass('hidden').find("input").prop("disabled", false);
         } else {
-            $("#amount_block").addClass('hidden');
-            $("#amount").prop("disabled", true);
+            $("#amount_block").addClass('hidden').find("input").prop("disabled", true);
         }
     },
     checkAddGroup: function(e) {

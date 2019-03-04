@@ -20,38 +20,36 @@ class EventComponent extends Component
     public static function addEvent(Group $group, \DateTime $date): ?Event
     {
         $groupParam = GroupComponent::getGroupParam($group, $date);
-        if ($date->format('w') > 0) {
-            if ($groupParam->isHasLesson($date)) {
-                $event = $group->hasEvent($date);
-                if (!$event) {
-                    $event = new Event();
-                    $event->event_date = $groupParam->getLessonDateTime($date);
-                    $event->group_id = $group->id;
-                    $event->status = Event::STATUS_UNKNOWN;
+        if ($groupParam->isHasLesson($date)) {
+            $event = $group->hasEvent($date);
+            if (!$event) {
+                $event = new Event();
+                $event->event_date = $groupParam->getLessonDateTime($date);
+                $event->group_id = $group->id;
+                $event->status = Event::STATUS_UNKNOWN;
 
-                    if (!$event->save()) throw new \Exception('Schedule save error: ' . $event->getErrorsAsString());
-                }
-
-                foreach ($group->groupPupils as $groupPupil) {
-                    if ($groupPupil->startDateObject <= $event->eventDateTime && ($groupPupil->date_end == null || $groupPupil->endDateObject >= $event->eventDateTime)) {
-                        $event->addGroupPupil($groupPupil);
-                    } elseif ($eventMember = $event->hasGroupPupil($groupPupil)) {
-                        if ($eventMember->payments) {
-                            foreach ($eventMember->payments as $payment) MoneyComponent::cancelPayment($payment);
-                        }
-                        $event->removeGroupPupil($groupPupil);
-                    }
-                }
-                return $event;
-            } elseif ($event = $group->hasEvent($date)) {
-                foreach ($event->members as $member) {
-                    if ($member->payments) {
-                        foreach ($member->payments as $payment) MoneyComponent::cancelPayment($payment);
-                    }
-                    $event->removeGroupPupil($member->groupPupil);
-                }
-                $event->delete();
+                if (!$event->save()) throw new \Exception('Schedule save error: ' . $event->getErrorsAsString());
             }
+
+            foreach ($group->groupPupils as $groupPupil) {
+                if ($groupPupil->startDateObject <= $event->eventDateTime && ($groupPupil->date_end == null || $groupPupil->endDateObject >= $event->eventDateTime)) {
+                    $event->addGroupPupil($groupPupil);
+                } elseif ($eventMember = $event->hasGroupPupil($groupPupil)) {
+                    if ($eventMember->payments) {
+                        foreach ($eventMember->payments as $payment) MoneyComponent::cancelPayment($payment);
+                    }
+                    $event->removeGroupPupil($groupPupil);
+                }
+            }
+            return $event;
+        } elseif ($event = $group->hasEvent($date)) {
+            foreach ($event->members as $member) {
+                if ($member->payments) {
+                    foreach ($member->payments as $payment) MoneyComponent::cancelPayment($payment);
+                }
+                $event->removeGroupPupil($member->groupPupil);
+            }
+            $event->delete();
         }
         return null;
     }
