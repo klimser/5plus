@@ -16,6 +16,7 @@ use yii\web\IdentityInterface;
  *
  * @property int $id
  * @property string $name
+ * @property string $phone
  * @property string $username
  * @property string $password_hash
  * @property string $password_reset_token

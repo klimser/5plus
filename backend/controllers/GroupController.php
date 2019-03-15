@@ -33,7 +33,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3331);
+//        $user = User::findOne(4081);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
@@ -65,7 +65,7 @@ class GroupController extends AdminController
         return $this->renderList(['active' => Group::STATUS_INACTIVE]);
     }
 
-    private function renderList($filter)
+    private function renderList(array $filter)
     {
         $searchModel = new GroupSearch();
         $searchParams = array_key_exists('GroupSearch', Yii::$app->request->queryParams) ? Yii::$app->request->queryParams['GroupSearch'] : [];
@@ -74,8 +74,19 @@ class GroupController extends AdminController
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'subjectMap' => yii\helpers\ArrayHelper::map(Subject::find()->select(['id', 'name'])->asArray()->all(), 'id', 'name'),
-            'teacherMap' => yii\helpers\ArrayHelper::map(Teacher::find()->select(['id', 'name'])->asArray()->all(), 'id', 'name'),
+            'subjectMap' => yii\helpers\ArrayHelper::map(
+                Subject::find()->orderBy('name')->select(['id', 'name'])->asArray()->all(),
+                'id',
+                'name'
+            ),
+            'teacherMap' => yii\helpers\ArrayHelper::map(
+                Teacher::find()
+                    ->andWhere(['active' => Teacher::STATUS_ACTIVE])
+                    ->orderBy('name')
+                    ->select(['id', 'name'])->asArray()->all(),
+                'id',
+                'name'
+            ),
             'canEdit' => Yii::$app->user->can('manageGroups'),
         ]);
     }
@@ -291,27 +302,13 @@ class GroupController extends AdminController
         }
 
         foreach ($pupilsMap as $pupilId => $pupilData) {
-            $groupPupil = new GroupPupil();
-            $groupPupil->user_id = $pupilId;
-            $groupPupil->group_id = $group->id;
-            $groupPupil->date_start = $pupilData['startDate']->format('Y-m-d');
-            $groupPupil->date_end = $pupilData['endDate'] ? $pupilData['endDate']->format('Y-m-d') : null;
-
-            ComponentContainer::getActionLogger()->log(
-                Action::TYPE_GROUP_PUPIL_ADDED,
-                $groupPupil->user,
-                null,
-                $group,
-                json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
-            );
-
-            if (!$groupPupil->save()) throw new \Exception('Server error: ' . $groupPupil->getErrorsAsString());
-            $group->link('groupPupils', $groupPupil);
+            GroupComponent::addPupilToGroup(User::findOne($pupilId), $group, $pupilData['startDate'], $pupilData['endDate'], false);
         }
     }
 
     /**
      * @return string|yii\web\Response
+     * @throws ForbiddenHttpException
      */
     public function actionMovePupil()
     {
@@ -326,6 +323,7 @@ class GroupController extends AdminController
 
     /**
      * @return yii\web\Response
+     * @throws ForbiddenHttpException
      * @throws yii\web\BadRequestHttpException
      */
     public function actionProcessMovePupil()

@@ -84,11 +84,19 @@ class MoneyComponent extends Component
         $groupPupil = GroupPupil::find()
             ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])
             ->one();
-        if ($groupPupil && $groupPupil->startDateObject->format('Y-m') <= date('Y-m')) {
-            $groupParam = GroupComponent::getGroupParam($groupPupil->group, $groupPupil->startDateObject);
-            $contract->discount = $groupParam->lesson_price_discount && $amount >= $groupParam->price3Month
-                ? Contract::STATUS_ACTIVE
-                : Contract::STATUS_INACTIVE;
+        if ($groupPupil) {
+            if ($groupPupil->startDateObject->format('Y-m') == date('Y-m')) {
+                $groupParam = GroupComponent::getGroupParam($groupPupil->group, $groupPupil->startDateObject);
+            } elseif ($groupPupil->startDateObject->format('Y-m') < date('Y-m')) {
+                $groupParam1 = GroupComponent::getGroupParam($groupPupil->group, new \DateTime('-1 month'));
+                $groupParam2 = GroupComponent::getGroupParam($groupPupil->group, new \DateTime());
+                $groupParam = $groupParam1->price3Month < $groupParam2->price3Month ? $groupParam1 : $groupParam2;
+            }
+            if (isset($groupParam)) {
+                $contract->discount = $groupParam->lesson_price_discount && $amount >= $groupParam->price3Month
+                    ? Contract::STATUS_ACTIVE
+                    : Contract::STATUS_INACTIVE;
+            }
         }
 
         if ($number) $contract->number = $number;

@@ -80,6 +80,7 @@ return [
             'viewGroups',
             'manageGroups',
             'reportGroupMovement',
+            'manageGiftCardTypes',
         ],
     ],
     'content' => [
@@ -179,6 +180,10 @@ return [
     'reportMoneyTotal' => [
         'type' => 2,
         'description' => 'Get money totals report for all groups',
+    ],
+    'manageGiftCardTypes' => [
+        'type' => 2,
+        'description' => 'Manage prepaid gift card types',
     ],
 
     /* SUPPORT */

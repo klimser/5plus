@@ -6,6 +6,7 @@
 /* @var $group string */
 /* @var $discount bool */
 /* @var $lessons int */
+/* @var $giftCard \common\models\GiftCard */
 
 $this->params['breadcrumbs'][] = ['url' => \yii\helpers\Url::to(['payment/index']), 'label' => 'Онлайн оплата'];
 $this->params['breadcrumbs'][] = 'Завершение оплаты';
@@ -25,21 +26,25 @@ $this->params['breadcrumbs'][] = 'Завершение оплаты';
                         </tr>
                     <?php endif; ?>
                     <tr>
-                        <th>Группа</th>
-                        <td><?= $group; ?></td>
-                    </tr>
-                    <tr>
                         <th>Сумма</th>
                         <td><?= $amount; ?></td>
                     </tr>
-                    <tr>
-                        <th>Оплата со скидкой</th>
-                        <td><?= $discount ? 'Да' : 'Нет'; ?></td>
-                    </tr>
-                    <tr>
-                        <th>Занятий</th>
-                        <td><?= $lessons; ?></td>
-                    </tr>
+                    <?php if (isset($giftCard)): ?>
+                        <?= $this->render('gift-card', ['giftCard' => $giftCard]); ?>
+                    <?php else: ?>
+                        <tr>
+                            <th>Группа</th>
+                            <td><?= $group; ?></td>
+                        </tr>
+                        <tr>
+                            <th>Оплата со скидкой</th>
+                            <td><?= $discount ? 'Да' : 'Нет'; ?></td>
+                        </tr>
+                        <tr>
+                            <th>Занятий</th>
+                            <td><?= $lessons; ?></td>
+                        </tr>
+                    <?php endif; ?>
                 </table>
             </div>
         <?php endif; ?>

@@ -62,10 +62,10 @@ var Payment = {
         $("#payment_form").modal();
     },
     lockPayButton: function() {
-        $("#pay_button").prop("disabled", true);
+        $(".pay_button").prop("disabled", true);
     },
     unlockPayButton: function() {
-        $("#pay_button").prop("disabled", false);
+        $(".pay_button").prop("disabled", false);
     },
     completePayment: function(form) {
         if (!$("#pupil").data("val") || !$("#group").data("val") || $("#amount").val() < 1000) return false;
@@ -80,6 +80,29 @@ var Payment = {
                 group: $("#group").data("val"),
                 amount: $("#amount").val()
             },
+            success: function(data) {
+                if (data.status === 'error') {
+                    Main.throwFlashMessage('#message_board', "Ошибка: " + data.message, 'alert-danger');
+                    Payment.unlockPayButton();
+                } else {
+                    location.assign(data.payment_url + '/invoice/get?storeId=' + data.store_id + '&transactionId=' + data.payment_id + '&redirectLink=' + data.redirect_link);
+                }
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#message_board', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+                Payment.unlockPayButton();
+            }
+        });
+
+        return false;
+    },
+    completeNewPayment: function(form) {
+        this.lockPayButton();
+        $.ajax({
+            url: $(form).attr('action'),
+            type: 'post',
+            dataType: 'json',
+            data: $(form).serialize(),
             success: function(data) {
                 if (data.status === 'error') {
                     Main.throwFlashMessage('#message_board', "Ошибка: " + data.message, 'alert-danger');

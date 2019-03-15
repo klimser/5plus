@@ -122,6 +122,7 @@ class NotifierController extends Controller
                             ->sendSms($toSend->template_id, substr($toSend->user->phone, -12, 12), $params);
                     }
                     $toSend->status = Notify::STATUS_SENT;
+                    $toSend->sent_at = date('Y-m-d H:i:s');
                 } catch (PaygramApiException $exception) {
                     $toSend->status = Notify::STATUS_ERROR;
                     ComponentContainer::getErrorLogger()

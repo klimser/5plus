@@ -30,7 +30,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'admin_id',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->admin->name;
+                    return $model->admin ? $model->admin->name : '';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

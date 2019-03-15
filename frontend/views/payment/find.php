@@ -88,7 +88,7 @@ $getPupilButton = function(\common\models\User $pupil, bool $label = false) use 
                     </div>
                     <div class="form-group">
                         <div class="col-xs-12 text-center">
-                            <button class="btn btn-primary" id="pay_button">Подтвердить и перейти к оплате</button>
+                            <button class="btn btn-primary pay_button">Подтвердить и перейти к оплате</button>
                         </div>
                     </div>
                 </div>

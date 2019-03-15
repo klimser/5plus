@@ -122,7 +122,7 @@ SCRIPT
     </div>
 
     <div class="col-xs-12">
-        <label><b>Ученики:</b></label>
+        <label><b>Студенты:</b></label>
         <div id="group_pupils">
             <?php
             $script = 'Group.isNew = ' . (count($group->pupils) ? 'false' : 'true') . ";\n";

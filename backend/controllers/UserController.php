@@ -13,7 +13,6 @@ use common\models\GroupPupil;
 use common\models\Payment;
 use common\models\User;
 use common\models\UserSearch;
-use common\components\helpers\Money;
 use yii;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;

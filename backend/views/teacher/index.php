@@ -47,7 +47,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'html',
                 'content' => function ($model, $key, $index, $column) {
                     return Html::button(
-                            $model->active ? '<span class="glyphicon glyphicon-ban-circle"></span>' : '<span class="glyphicon glyphicon-leaf"></span>',
+                        $model->active ? '<span class="fas fa-minus-circle"></span>' : '<span class="fas fa-plus-circle"></span>',
                             [
                                 'class' => 'btn btn-default',
                                 'onclick' => 'Main.changeEntityActive("teacher", ' . $model->id . ', this, ' . ($model->active ? 0 : 1) . ');',

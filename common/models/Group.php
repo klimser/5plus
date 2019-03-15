@@ -202,4 +202,12 @@ class Group extends ActiveRecord
     {
         return empty($this->date_end) ? null : new \DateTime($this->date_end . ' midnight');
     }
+
+    /**
+     * @return bool
+     */
+    public function isKids(): bool
+    {
+        return preg_match('#kids#i', $this->name) || preg_match('#кидс#i', $this->name);
+    }
 }

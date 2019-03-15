@@ -77,7 +77,7 @@ $this->params['breadcrumbs'][] = $group->name;
                     <td><?= $i; ?></td>
                     <td>
                         <a href="<?= \yii\helpers\Url::to(['money/pupil-report', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>"
-                           target="_blank" class="hidden-print">
+                           target="_blank" class="hidden-print hidden-xs hidden-sm">
                             <span class="fas fa-file-invoice-dollar"></span>
                         </a>
                         <?= $groupPupil->user->name; ?>

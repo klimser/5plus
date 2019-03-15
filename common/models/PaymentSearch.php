@@ -17,7 +17,7 @@ class PaymentSearch extends Payment
     {
         return [
             [['user_id', 'admin_id', 'group_id', 'amount'], 'integer'],
-            [['comment', 'amountFrom', 'amountTo'], 'safe'],
+            [['comment', 'amountFrom', 'amountTo', 'created_at'], 'safe'],
         ];
     }
 

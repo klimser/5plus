@@ -4,6 +4,7 @@ namespace console\controllers;
 
 use common\components\telegram\Request;
 use common\models\EmailQueue;
+use common\models\GiftCard;
 use Longman\TelegramBot\DB;
 use yii;
 use yii\console\Controller;
@@ -79,13 +80,18 @@ class MailController extends Controller
             }
 
             if ($sendEmail) {
-                if (Yii::$app->mailer->compose(['html' => $toSend->template_html, 'text' => $toSend->template_text], $params)
+                $message = Yii::$app->mailer->compose(['html' => $toSend->template_html, 'text' => $toSend->template_text], $params)
                     ->setFrom(json_decode($toSend->sender, true))
                     ->setTo(json_decode($toSend->recipient, true))
-                    ->setSubject($toSend->subject)
-                    ->send()
-                ) $toSend->state = EmailQueue::STATUS_SENT;
-                else $toSend->state = EmailQueue::STATUS_ERROR;
+                    ->setSubject($toSend->subject);
+                if ($toSend->template_html === 'gift-card-html') {
+                    $giftCard = GiftCard::findOne($params['id']);
+                    if ($giftCard) {
+                        $giftCardDoc = new \common\resources\documents\GiftCard($giftCard);
+                        $message->attachContent($giftCardDoc->save(), ['fileName' => 'flyer.pdf', 'contentType' => 'application/pdf']);
+                    }
+                }
+                $toSend->state = $message->send() ? EmailQueue::STATUS_SENT : EmailQueue::STATUS_ERROR;
                 $toSend->save();
             }
         }

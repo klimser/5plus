@@ -7,6 +7,7 @@ use common\components\MoneyComponent;
 use backend\models\ActionSearch;
 use common\models\Company;
 use common\models\Contract;
+use common\models\GiftCard;
 use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\components\Action;
@@ -27,6 +28,7 @@ use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use yii;
 use yii\web\ForbiddenHttpException;
+use yii\web\Response;
 
 /**
  * MoneyController implements money management.
@@ -44,6 +46,7 @@ class MoneyController extends AdminController
 
         $params = [
             'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
+            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy('name')->with('teacher')->all(),
         ];
         $userId = Yii::$app->request->get('user');
         if ($userId) {
@@ -54,7 +57,7 @@ class MoneyController extends AdminController
     }
 
     /**
-     * @return yii\web\Response
+     * @return Response
      * @throws ForbiddenHttpException
      * @throws yii\web\BadRequestHttpException
      */
@@ -99,7 +102,7 @@ class MoneyController extends AdminController
     }
 
     /**
-     * @return yii\web\Response
+     * @return Response
      * @throws ForbiddenHttpException
      * @throws yii\web\BadRequestHttpException
      */
@@ -133,6 +136,88 @@ class MoneyController extends AdminController
         }
 
         return $this->asJson($jsonData);
+    }
+
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws yii\web\BadRequestHttpException
+     */
+    public function actionProcessGiftCard()
+    {
+        if (!\Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        if (!\Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+
+        \Yii::$app->response->format = Response::FORMAT_JSON;
+        $giftCardId = \Yii::$app->request->post('gift_card_id');
+        if (!$giftCardId) return self::getJsonErrorResult('No gift card ID');
+        else {
+            $giftCard = GiftCard::findOne($giftCardId);
+            if (!$giftCard) return self::getJsonErrorResult('Карта не найдена');
+            elseif ($giftCard->status == GiftCard::STATUS_NEW) return self::getJsonErrorResult('Карта не оплачена!');
+            elseif ($giftCard->status == GiftCard::STATUS_USED) return self::getJsonErrorResult('Карта уже использована!');
+            else {
+                $formData = \Yii::$app->request->post();
+                $pupil = null;
+                if (isset($formData['pupil']['id'])) {
+                    $pupil = User::find()->andWhere(['role' => User::ROLE_PUPIL, 'id' => $formData['pupil']['id']])->one();
+                }
+                if (!$pupil) {
+                    $pupil = new User();
+                    $pupil->role = User::ROLE_PUPIL;
+                    $pupil->load($formData, 'pupil');
+                    if (!$pupil->save()) return self::getJsonErrorResult($pupil->getErrorsAsString());
+                }
+                if (!$pupil->parent_id) {
+                    if ($formData['parents']['name'] && $formData['parents']['phoneFormatted']) {
+                        $parent = new User();
+                        $parent->role = User::ROLE_PARENTS;
+                        $parent->load($formData, 'parents');
+                        if (!$parent->save()) return self::getJsonErrorResult($parent->getErrorsAsString());
+                        $pupil->link('parent', $parent);
+                    }
+                }
+
+                $groupPupil = null;
+                if ($formData['group']['existing']) {
+                    /** @var GroupPupil $groupPupil */
+                    $groupPupil = GroupPupil::findOne(['id' => $formData['group']['existing'], 'active' => GroupPupil::STATUS_ACTIVE, 'user_id' => $pupil->id]);
+                }
+                $transaction = \Yii::$app->db->beginTransaction();
+                try {
+                    $startDate = date_create_from_format('d.m.Y', $formData['group']['date']);
+                    if (!$startDate) throw new \Exception('Неверная дата начала занятий');
+                    if (!$groupPupil) {
+                        /** @var Group $group */
+                        $group = Group::find()->andWhere(['id' => $formData['group']['id'], 'active' => Group::STATUS_ACTIVE])->one();
+                        if (!$group) throw new \Exception('Группа не найдена');
+                    } else {
+                        $group = $groupPupil->group;
+                    }
+
+                    $contract = MoneyComponent::addPupilContract(
+                        Company::findOne(Company::COMPANY_SUPER_ID),
+                        $pupil,
+                        $giftCard->amount,
+                        null,
+                        $group
+                    );
+
+                    $paymentId = MoneyComponent::payContract($contract, $startDate, Contract::PAYMENT_TYPE_MANUAL);
+                    $giftCard->status = GiftCard::STATUS_USED;
+                    $giftCard->used_at = date('Y-m-d H:i:s');
+                    $giftCard->save();
+                    $transaction->commit();
+                    return self::getJsonOkResult([
+                        'paymentId' => $paymentId,
+                        'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])
+                    ]);
+                } catch (\Throwable $exception) {
+                    $transaction->rollBack();
+                    return self::getJsonErrorResult($exception->getMessage());
+                }
+            }
+        }
     }
 
     /**
@@ -274,7 +359,7 @@ class MoneyController extends AdminController
      * @param int $year
      * @param int $month
      * @param int $group
-     * @return yii\web\Response
+     * @return Response
      * @throws ForbiddenHttpException
      * @throws yii\web\NotFoundHttpException
      */
@@ -312,7 +397,7 @@ class MoneyController extends AdminController
     /**
      * @param int $userId
      * @param int $groupId
-     * @return yii\web\Response
+     * @return Response
      * @throws yii\web\BadRequestHttpException
      */
     public function actionPupilReport(int $userId, int $groupId)

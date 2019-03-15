@@ -16,6 +16,7 @@ use yii;
  * @property string $source
  * @property string $subject
  * @property string $name
+ * @property string $phone
  * @property string $status
  * @property string $user_comment
  * @property string $admin_comment

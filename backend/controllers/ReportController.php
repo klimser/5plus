@@ -103,19 +103,26 @@ class ReportController extends AdminController
 
                 $spreadsheet->getActiveSheet()->mergeCells('A1:G1');
                 $spreadsheet->getActiveSheet()->setCellValue('A1', "Отчёт по студентам $month $year");
-                $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $spreadsheet->getActiveSheet()->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+                $spreadsheet->getActiveSheet()->mergeCells('I1:O1');
+                $spreadsheet->getActiveSheet()->setCellValue('I1', "KIDS");
+                $spreadsheet->getActiveSheet()->getStyle('A1:I1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $spreadsheet->getActiveSheet()->getStyle('A1:I1')->getFont()->setBold(true)->setSize(16);
 
-                $spreadsheet->getActiveSheet()->setCellValue('A2', "№");
-                $spreadsheet->getActiveSheet()->setCellValue('B2', "группа");
-                $spreadsheet->getActiveSheet()->setCellValue('C2', "учитель");
-                $spreadsheet->getActiveSheet()->setCellValue('D2', "прибыло");
-                $spreadsheet->getActiveSheet()->setCellValue('E2', "убыло");
-                $spreadsheet->getActiveSheet()->setCellValue('F2', "всего занималось");
-                $spreadsheet->getActiveSheet()->setCellValue('G2', "сальдо");
+                for ($i = 0; $i < 2; $i++) {
+                    $offset = $i * 8;
+                    $spreadsheet->getActiveSheet()
+                        ->setCellValueByColumnAndRow($offset + 1, 2, "№")
+                        ->setCellValueByColumnAndRow($offset + 2, 2, "группа")
+                        ->setCellValueByColumnAndRow($offset + 3, 2, "учитель")
+                        ->setCellValueByColumnAndRow($offset + 4, 2, "прибыло")
+                        ->setCellValueByColumnAndRow($offset + 5, 2, "убыло")
+                        ->setCellValueByColumnAndRow($offset + 6, 2, "всего занималось")
+                        ->setCellValueByColumnAndRow($offset + 7, 2, "сальдо");
+                }
 
-                $i = 1;
-                $row = 3;
+                $nums = [0 => 1, 1 => 1];
+                $rows = [0 => 3, 1 => 3];
+                $groupCollections = [];
                 foreach ($groups as $group) {
                     $groupParam = GroupComponent::getGroupParam($group, $startDate);
                     $totalPupils = GroupPupil::find()
@@ -131,90 +138,123 @@ class ReportController extends AdminController
                         ->select('COUNT(DISTINCT user_id)')
                         ->scalar();
 
-                    $spreadsheet->getActiveSheet()->setCellValue("A$row", $i);
-                    $spreadsheet->getActiveSheet()->setCellValue("B$row", $group->name);
-                    $spreadsheet->getActiveSheet()->setCellValue("C$row", $groupParam->teacher->name);
-                    $spreadsheet->getActiveSheet()->setCellValue("D$row", $dataMap[$group->id]['in']);
-                    $spreadsheet->getActiveSheet()->setCellValue("E$row", $dataMap[$group->id]['out']);
-                    $spreadsheet->getActiveSheet()->setCellValue("F$row", $totalPupils);
-                    $spreadsheet->getActiveSheet()->setCellValue("G$row", $finalPupils);
-                    $i++;
-                    $row++;
+                    $index = $group->isKids() ? 1 : 0;
+                    if (!array_key_exists($index, $groupCollections)) $groupCollections[$index] = [];
+                    $groupCollections[$index][] = $group->id;
+                    $offset = $index * 8;
+                    $spreadsheet->getActiveSheet()
+                        ->setCellValueByColumnAndRow($offset + 1, $rows[$index], $nums[$index])
+                        ->setCellValueByColumnAndRow($offset + 2, $rows[$index], $group->name)
+                        ->setCellValueByColumnAndRow($offset + 3, $rows[$index], $groupParam->teacher->name)
+                        ->setCellValueByColumnAndRow($offset + 4, $rows[$index], $dataMap[$group->id]['in'])
+                        ->setCellValueByColumnAndRow($offset + 5, $rows[$index], $dataMap[$group->id]['out'])
+                        ->setCellValueByColumnAndRow($offset + 6, $rows[$index], $totalPupils)
+                        ->setCellValueByColumnAndRow($offset + 7, $rows[$index], $finalPupils);
+                    $nums[$index]++;
+                    $rows[$index]++;
                 }
 
-                $row--;
-                $spreadsheet->getActiveSheet()->getStyle("A2:G$row")->applyFromArray([
-                    'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => Border::BORDER_THIN,
-                            'color' => ['argb' => 'FF000000'],
+                foreach ($groupCollections as $index => $groupIds) {
+                    $offset = $index * 8;
+                    $row = $rows[$index] - 1;
+
+                    $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($offset + 1, 2, $offset + 7, $row)->applyFromArray([
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => Border::BORDER_THIN,
+                                'color' => ['argb' => 'FF000000'],
+                            ],
                         ],
-                    ],
-                ]);
+                    ]);
+                    $row += 2;
 
-                $row += 2;
+                    $inUsers = GroupPupil::find()
+                        ->andWhere(['BETWEEN', 'date_start', $startDateString, $endDateString])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->select('user_id')
+                        ->distinct(true)
+                        ->column();
+                    $excludeUsersCount = GroupPupil::find()
+                        ->andWhere(['<', 'date_start', $startDateString])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->andWhere(['user_id' => $inUsers])
+                        ->count('DISTINCT user_id');
+                    $totalIn = count($inUsers) - $excludeUsersCount;
 
-                $inUsers = GroupPupil::find()
-                    ->andWhere(['BETWEEN', 'date_start', $startDateString, $endDateString])
-                    ->select('user_id')
-                    ->distinct(true)
-                    ->column();
-                $excludeUsers = GroupPupil::find()
-                    ->andWhere(['<', 'date_start', $startDateString])
-                    ->andWhere(['user_id' => $inUsers])
-                    ->select('user_id')
-                    ->distinct(true)
-                    ->column();
-                $totalIn = count(array_diff($inUsers, $excludeUsers));
+                    $outUsers = GroupPupil::find()
+                        ->andWhere(['BETWEEN', 'date_end', $startDateString, $endDateString])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->select('user_id')
+                        ->distinct(true)
+                        ->column();
+                    $excludeUsersCount = GroupPupil::find()
+                        ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->andWhere(['user_id' => $outUsers])
+                        ->count('DISTINCT user_id');
+                    $totalOut = count($outUsers) - $excludeUsersCount;
 
-                $outUsers = GroupPupil::find()
-                    ->andWhere(['BETWEEN', 'date_end', $startDateString, $endDateString])
-                    ->select('user_id')
-                    ->distinct(true)
-                    ->column();
-                $excludeUsers = GroupPupil::find()
-                    ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
-                    ->andWhere(['user_id' => $outUsers])
-                    ->select('user_id')
-                    ->distinct(true)
-                    ->column();
-                $totalOut = count(array_diff($outUsers, $excludeUsers));
+                    $startPupils = GroupPupil::find()
+                        ->andWhere(['<', 'date_start', $startDateString])
+                        ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                        ->scalar();
+                    $startUsers = GroupPupil::find()
+                        ->andWhere(['<', 'date_start', $startDateString])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
+                        ->select('COUNT(DISTINCT user_id)')
+                        ->scalar();
+                    $totalPupils = GroupPupil::find()
+                        ->andWhere(['<=', 'date_start', $endDateString])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
+                        ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                        ->scalar();
+                    $totalUsers = GroupPupil::find()
+                        ->andWhere(['<=', 'date_start', $endDateString])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
+                        ->select('COUNT(DISTINCT user_id)')
+                        ->scalar();
+                    $finalPupils = GroupPupil::find()
+                        ->andWhere(['<=', 'date_start', $endDateString])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
+                        ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                        ->scalar();
+                    $finalUsers = GroupPupil::find()
+                        ->andWhere(['<=', 'date_start', $endDateString])
+                        ->andWhere(['group_id' => $groupIds])
+                        ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
+                        ->select('COUNT(DISTINCT user_id)')
+                        ->scalar();
 
-                $totalPupils = GroupPupil::find()
-                    ->andWhere(['<=', 'date_start', $endDateString])
-                    ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
-                    ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
-                    ->scalar();
-                $totalUsers = GroupPupil::find()
-                    ->andWhere(['<=', 'date_start', $endDateString])
-                    ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
-                    ->select('COUNT(DISTINCT user_id)')
-                    ->scalar();
-                $finalPupils = GroupPupil::find()
-                    ->andWhere(['<=', 'date_start', $endDateString])
-                    ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $endDateString]])
-                    ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
-                    ->scalar();
-                $finalUsers = GroupPupil::find()
-                    ->andWhere(['<=', 'date_start', $endDateString])
-                    ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $endDateString]])
-                    ->select('COUNT(DISTINCT user_id)')
-                    ->scalar();
+                    $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($offset + 1, $row, $offset + 7, $row + 4)
+                        ->getFont()->setBold(true);
 
-                $spreadsheet->getActiveSheet()->getStyle("A$row:G" . ($row + 4))->getFont()->setBold(true);
+                    $spreadsheet->getActiveSheet()
+                        ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
+                        ->setCellValueByColumnAndRow($offset + 1, $row, "Итого новых студентов: $totalIn");
+                    $row++;
+                    $spreadsheet->getActiveSheet()
+                        ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
+                        ->setCellValueByColumnAndRow($offset + 1, $row, "Итого ушли из учебного центра: $totalOut");
+                    $row++;
 
-                $spreadsheet->getActiveSheet()->mergeCells("A$row:G$row");
-                $spreadsheet->getActiveSheet()->setCellValue("A$row", "Итого новых студентов: $totalIn");
-                $row++;
-                $spreadsheet->getActiveSheet()->mergeCells("A$row:G$row");
-                $spreadsheet->getActiveSheet()->setCellValue("A$row", "Итого ушли из учебного центра: $totalOut");
-                $row++;
-
-                $spreadsheet->getActiveSheet()->mergeCells("A$row:G$row");
-                $spreadsheet->getActiveSheet()->setCellValue("A$row", "В этом месяце занималось $totalUsers человек - $totalPupils студентов в гуппах");
-                $row++;
-                $spreadsheet->getActiveSheet()->mergeCells("A$row:G$row");
-                $spreadsheet->getActiveSheet()->setCellValue("A$row", "В конце месяца было $finalUsers человек - $finalPupils студентов в гуппах");
+                    $spreadsheet->getActiveSheet()
+                        ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
+                        ->setCellValueByColumnAndRow($offset + 1, $row, "В начале месяца было $startUsers человек - $startPupils студентов в гуппах");
+                    $row++;
+                    $spreadsheet->getActiveSheet()
+                        ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
+                        ->setCellValueByColumnAndRow($offset + 1, $row, "В этом месяце занималось $totalUsers человек - $totalPupils студентов в гуппах");
+                    $row++;
+                    $spreadsheet->getActiveSheet()
+                        ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
+                        ->setCellValueByColumnAndRow($offset + 1, $row, "В конце месяца было $finalUsers человек - $finalPupils студентов в гуппах");
+                }
 
                 ob_start();
                 $objWriter = IOFactory::createWriter($spreadsheet, 'Xlsx');
@@ -323,19 +363,21 @@ class ReportController extends AdminController
                 if ($groupId == 'all') {
                     if (!Yii::$app->user->can('reportMoneyTotal')) throw new ForbiddenHttpException('Access denied!');
 
-                    $spreadsheet->getActiveSheet()->mergeCells('A1:A2');
-                    $spreadsheet->getActiveSheet()->setCellValue('A1', 'Группа');
-                    $spreadsheet->getActiveSheet()->mergeCells('B1:D1');
-                    $spreadsheet->getActiveSheet()->setCellValue('B1', 'Принесли в кассу');
-                    $spreadsheet->getActiveSheet()->setCellValue('B2', 'Со скидкой');
-                    $spreadsheet->getActiveSheet()->setCellValue('C2', 'Без скидки');
-                    $spreadsheet->getActiveSheet()->setCellValue('D2', 'Всего');
+                    $spreadsheet->getActiveSheet()
+                        ->mergeCells('A1:A2')
+                        ->setCellValue('A1', 'Группа')
+                        ->mergeCells('B1:D1')
+                        ->setCellValue('B1', 'Принесли в кассу')
+                        ->setCellValue('B2', 'Со скидкой')
+                        ->setCellValue('C2', 'Без скидки')
+                        ->setCellValue('D2', 'Всего');
 
-                    $spreadsheet->getActiveSheet()->mergeCells('E1:G1');
-                    $spreadsheet->getActiveSheet()->setCellValue('E1', 'Списано за занятия');
-                    $spreadsheet->getActiveSheet()->setCellValue('E2', 'Со скидкой');
-                    $spreadsheet->getActiveSheet()->setCellValue('F2', 'Без скидки');
-                    $spreadsheet->getActiveSheet()->setCellValue('G2', 'Всего');
+                    $spreadsheet->getActiveSheet()
+                        ->mergeCells('E1:G1')
+                        ->setCellValue('E1', 'Списано за занятия')
+                        ->setCellValue('E2', 'Со скидкой')
+                        ->setCellValue('F2', 'Без скидки')
+                        ->setCellValue('G2', 'Всего');
 
                     $spreadsheet->getActiveSheet()->getStyle('A1:E1')->getFont()->setBold(true);
                     $spreadsheet->getActiveSheet()->getStyle('B1:E1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -361,11 +403,11 @@ class ReportController extends AdminController
                     $groups = Group::find()
                         ->andWhere(['id' => $groupIds])
                         ->orderBy('name')
-                        ->asArray()
                         ->all();
                     $groupMap = [];
                     foreach ($groups as $group) {
-                        $groupMap[$group['id']] = $group;
+                        $groupMap[$group['id']] = $group->toArray();
+                        $groupMap[$group['id']]['kids'] = $group->isKids();
                         $groupMap[$group['id']]['in_normal'] = $groupMap[$group['id']]['in_discount']
                             = $groupMap[$group['id']]['out_normal'] = $groupMap[$group['id']]['out_discount'] = 0;
                     }
@@ -395,31 +437,38 @@ class ReportController extends AdminController
                         $groupMap[$record['group_id']][$record['discount'] == Payment::STATUS_ACTIVE ? 'out_discount' : 'out_normal'] = abs($record['amount']);
                     }
 
-                    $total = ['in_normal' => 0, 'in_discount' => 0, 'out_normal' => 0, 'out_discount' => 0];
-                    $row = 3;
-                    foreach ($groupMap as $groupData) {
-                        $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupData['name']);
-                        $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $groupData['in_discount'], DataType::TYPE_NUMERIC);
-                        $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $groupData['in_normal'], DataType::TYPE_NUMERIC);
-                        $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $groupData['in_discount'] + $groupData['in_normal'], DataType::TYPE_NUMERIC);
-                        $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $groupData['out_discount'], DataType::TYPE_NUMERIC);
-                        $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $groupData['out_normal'], DataType::TYPE_NUMERIC);
-                        $spreadsheet->getActiveSheet()->setCellValueExplicit("G$row", $groupData['out_discount'] + $groupData['out_normal'], DataType::TYPE_NUMERIC);
-                        foreach ($total as $key => $value) {
-                            $total[$key] += $groupData[$key];
+                    $renderTable = function(bool $kids, int $row) use ($spreadsheet, $groupMap) {
+                        $total = ['in_normal' => 0, 'in_discount' => 0, 'out_normal' => 0, 'out_discount' => 0];
+                        foreach ($groupMap as $groupData) {
+                            if ($groupData['kids'] != $kids) continue;
+                            $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupData['name']);
+                            $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $groupData['in_discount'], DataType::TYPE_NUMERIC);
+                            $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $groupData['in_normal'], DataType::TYPE_NUMERIC);
+                            $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $groupData['in_discount'] + $groupData['in_normal'], DataType::TYPE_NUMERIC);
+                            $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $groupData['out_discount'], DataType::TYPE_NUMERIC);
+                            $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $groupData['out_normal'], DataType::TYPE_NUMERIC);
+                            $spreadsheet->getActiveSheet()->setCellValueExplicit("G$row", $groupData['out_discount'] + $groupData['out_normal'], DataType::TYPE_NUMERIC);
+                            foreach ($total as $key => $value) {
+                                $total[$key] += $groupData[$key];
+                            }
+                            $row++;
                         }
-                        $row++;
-                    }
 
-                    $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Итого');
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $total['in_discount'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $total['in_normal'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $total['in_discount'] + $total['in_normal'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $total['out_discount'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $total['out_normal'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit("G$row", $total['out_discount'] + $total['out_normal'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->getStyle("A$row:G$row")->getFont()->setBold(true);
-                    $spreadsheet->getActiveSheet()->getStyle("B3:G$row")->getNumberFormat()->setFormatCode('#,##0');
+                        $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Итого');
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $total['in_discount'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $total['in_normal'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $total['in_discount'] + $total['in_normal'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $total['out_discount'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $total['out_normal'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->setCellValueExplicit("G$row", $total['out_discount'] + $total['out_normal'], DataType::TYPE_NUMERIC);
+                        $spreadsheet->getActiveSheet()->getStyle("A$row:G$row")->getFont()->setBold(true);
+                        $spreadsheet->getActiveSheet()->getStyle("B3:G$row")->getNumberFormat()->setFormatCode('#,##0');
+
+                        return $row;
+                    };
+                    $nextRow = $renderTable(false, 3);
+                    $nextRow += 3;
+                    $renderTable(true, $nextRow);
                 } else {
                     [$devNull, $groupId] = explode('_', $groupId);
                     $group = Group::findOne($groupId);
@@ -451,20 +500,21 @@ class ReportController extends AdminController
                         $total[$record['discount'] == Payment::STATUS_ACTIVE ? 'out_discount' : 'out_normal'] = abs($record['amount']);
                     }
 
-                    $spreadsheet->getActiveSheet()->setCellValue('A1', 'Группа');
-                    $spreadsheet->getActiveSheet()->setCellValue('A2', 'Собрано денег со скидкой');
-                    $spreadsheet->getActiveSheet()->setCellValue('A3', 'Собрано денег без скидки');
-                    $spreadsheet->getActiveSheet()->setCellValue('A4', 'Собрано всего');
-                    $spreadsheet->getActiveSheet()->setCellValue('A5', 'Списано за занятия со скидкой');
-                    $spreadsheet->getActiveSheet()->setCellValue('A6', 'Списано за занятия без скидки');
-                    $spreadsheet->getActiveSheet()->setCellValue('A7', 'Списано за занятия всего');
-                    $spreadsheet->getActiveSheet()->setCellValue('B1', $group->name);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B2', $total['in_discount'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B3', $total['in_normal'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B4', $total['in_discount'] + $total['in_normal'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B5', $total['out_discount'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B6', $total['out_normal'], DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValueExplicit('B7', $total['out_discount'] + $total['out_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()
+                        ->setCellValue('A1', 'Группа')
+                        ->setCellValue('A2', 'Собрано денег со скидкой')
+                        ->setCellValue('A3', 'Собрано денег без скидки')
+                        ->setCellValue('A4', 'Собрано всего')
+                        ->setCellValue('A5', 'Списано за занятия со скидкой')
+                        ->setCellValue('A6', 'Списано за занятия без скидки')
+                        ->setCellValue('A7', 'Списано за занятия всего')
+                        ->setCellValue('B1', $group->name)
+                        ->setCellValueExplicit('B2', $total['in_discount'], DataType::TYPE_NUMERIC)
+                        ->setCellValueExplicit('B3', $total['in_normal'], DataType::TYPE_NUMERIC)
+                        ->setCellValueExplicit('B4', $total['in_discount'] + $total['in_normal'], DataType::TYPE_NUMERIC)
+                        ->setCellValueExplicit('B5', $total['out_discount'], DataType::TYPE_NUMERIC)
+                        ->setCellValueExplicit('B6', $total['out_normal'], DataType::TYPE_NUMERIC)
+                        ->setCellValueExplicit('B7', $total['out_discount'] + $total['out_normal'], DataType::TYPE_NUMERIC);
                     $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(30);
                     $spreadsheet->getActiveSheet()->getColumnDimension('B')->setWidth(15);
                     $spreadsheet->getActiveSheet()->getStyle("B1:B7")->getFont()->setBold(true);

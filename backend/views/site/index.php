@@ -162,6 +162,28 @@ $this->title = 'Панель управления';
 
                 <li role="presentation" class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                        Предоплаченные карты <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <?php if ($admin->can('moneyManagement')): ?>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['gift-card/index']); ?>">
+                                    <span class="fas fa-file-invoice"></span> Список карт
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($admin->can('manageGiftCardTypes')): ?>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['gift-card-type/index']); ?>">
+                                    <span class="fas fa-cog"></span> Типы карт
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                    </ul>
+                </li>
+
+                <li role="presentation" class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
                         Отчёты <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">

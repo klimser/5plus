@@ -9,6 +9,8 @@
 
 @import "nestedSortable";
 
+@half-gutter-width: floor((@grid-gutter-width / 2));
+
 html,
 body {
   height: 100%;
@@ -156,6 +158,10 @@ tr.inactive {
   background-color: #e5e5e5;
 }
 
+.event_details .teacher-block {
+  padding-top: @half-gutter-width;
+  padding-bottom: @half-gutter-width;
+}
 .event_members {
   word-wrap: break-word;
 }

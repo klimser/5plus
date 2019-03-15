@@ -35,7 +35,7 @@ class GroupSearch extends Group
      */
     public function search($params)
     {
-        $query = Group::find()->with('pupils');
+        $query = Group::find()->with(['pupils', 'teacher']);
 
         $providerParams = [
             'query' => $query,

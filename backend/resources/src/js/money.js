@@ -54,6 +54,56 @@ let Money = {
             }
         });
     },
+    findGiftCard: function () {
+        $('#messages_place').html('');
+        $('#gift_card_messages').html('');
+        $.ajax({
+            url: '/gift-card/find',
+            type: 'post',
+            data: {
+                code: $("#search_gift_card").val()
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status !== 'ok') {
+                    Main.throwFlashMessage('#gift_card_messages', data.message, 'alert-warning');
+                } else {
+                    $("#gift_card_id").val(data.id);
+                    $("#gift_card_type").text(data.type);
+                    $("#gift_card_amount").text(data.amount);
+                    if (data.hasOwnProperty('existing_pupil')) {
+                        $("#existing_pupil_id").val(data.existing_pupil.id);
+                        $("#pupil_name").val(data.existing_pupil.name).prop('readonly', true);
+                        $("#pupil_phone").val(data.existing_pupil.phone).prop('readonly', true);
+                        $("#parents_name").val(data.existing_pupil.parents_name).prop('readonly', data.existing_pupil.parents_name.length > 0);
+                        $("#parents_phone").val(data.existing_pupil.parents_phone).prop('readonly', data.existing_pupil.parents_phone.length > 0);
+
+                        let groupList = "";
+                        data.existing_pupil.group_pupils.forEach(function(groupPupil) {
+                            groupList += '<button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button" data-group="' + groupPupil.id + '" onclick="Money.setGiftGroup(this);">'
+                                + groupPupil.group
+                                + ' с ' + groupPupil.from + '</button><br>';
+                        });
+
+                        $('#predefined_groups').html(groupList);
+                    } else {
+                        $("#existing_pupil_id").val("");
+                        $("#existing_group_id").val("");
+                        $("#pupil_name").val(data.pupil_name).prop('readonly', false);
+                        $("#pupil_phone").val(data.pupil_phone).prop('readonly', false);
+                        $("#parents_name").val(data.parents_name).prop('readonly', false);
+                        $("#parents_phone").val(data.parents_phone).prop('readonly', false);
+                        $("#predefined_groups").html("");
+                    }
+
+                    $("#gift_card_result_block").removeClass("hidden");
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#gift_card_messages', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+            }
+        });
+    },
     findPupils: function () {
         this.pupilId = null;
         this.groupId = null;
@@ -212,5 +262,44 @@ let Money = {
     },
     unlockContractButton: function() {
         $("#contract_button").prop('disabled', false);
-    }
+    },
+    setGiftGroup: function(e) {
+        $(".gift-card-existing-group").removeClass("btn-primary");
+        let existingElem = $("#existing_group_id");
+        if (parseInt(existingElem.val()) === $(e).data("group")) {
+            existingElem.val('');
+        } else {
+            existingElem.val($(e).data("group"));
+            $(e).addClass("btn-primary");
+        }
+    },
+    completeGiftCard: function(form) {
+        this.lockGiftButton();
+        $.ajax({
+            url: '/money/process-gift-card',
+            type: 'post',
+            dataType: 'json',
+            data: $(form).serialize(),
+            success: function(data) {
+                if (data.status === 'ok') {
+                    Main.throwFlashMessage('#gift_card_messages', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
+                    Main.throwFlashMessage('#gift_card_messages', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
+                    $("#search_gift_card").val('');
+                }
+                else Main.throwFlashMessage('#gift_card_messages', 'Ошибка: ' + data.message, 'alert-danger');
+                Money.unlockGiftButton();
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#gift_card_messages', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+                Money.unlockGiftButton();
+            }
+        });
+        return false;
+    },
+    lockGiftButton: function() {
+        $("#gift_button").prop('disabled', true);
+    },
+    unlockGiftButton: function() {
+        $("#gift_button").prop('disabled', false);
+    },
 };

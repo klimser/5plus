@@ -184,7 +184,7 @@ class Payment extends ActiveRecord
      */
     public function getCreateDateString(): string
     {
-        $createDate = $this->getCreateDate();
+        $createDate = $this->createDate;
         return $createDate ? $createDate->format('Y-m-d') : '';
     }
 }

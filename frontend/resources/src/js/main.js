@@ -28,7 +28,6 @@ var Main = {
         }
         return false;
     },
-
     scaleCaptcha: function() {
         var captchaElements = $('.g-recaptcha');
         if (captchaElements.length > 0) {
@@ -46,6 +45,10 @@ var Main = {
                 }
             });
         }
+    },
+    initPhoneFormatted: function(selector) {
+        if (selector === undefined) selector = ".phone-formatted";
+        $(selector).inputmask({"mask": "99 999-9999"});
     }
 };
 

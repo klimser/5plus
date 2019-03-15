@@ -47,8 +47,11 @@ class Calendar
         if (!array_key_exists($month, self::$monthNames)) throw new \Exception('Wrong month: ' . $month);
         $monthName = mb_strtolower(self::$monthNames[$month], 'UTF-8');
         $lastLetter = mb_substr($monthName, mb_strlen($monthName, 'UTF-8') - 1, 1, 'UTF-8');
-        $monthName = mb_substr($monthName, 0, mb_strlen($monthName, 'UTF-8') - 1, 'UTF-8');
-        $monthName .= ($lastLetter == 'ь' || $lastLetter == 'й') ? 'я' : 'а';
+        if ($lastLetter == 'ь' || $lastLetter == 'й') {
+            $monthName = mb_substr($monthName, 0, mb_strlen($monthName, 'UTF-8') - 1, 'UTF-8') . 'я';
+        } else {
+            $monthName .= 'а';
+        }
 
         return $monthName;
     }

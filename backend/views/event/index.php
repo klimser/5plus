@@ -81,11 +81,19 @@ $nextDate->modify('+1 day');
                         </div>
                     </div>
                     <div class="event_details hidden" id="event_details_<?= $event->id; ?>">
-                        <div class="row">
-                            <div class="col-xs-2">
+                        <div class="row teacher-block">
+                            <div class="col-xs-8 col-sm-9 col-md-8 col-lg-9">
                                 <span class="fas fa-user-tie"></span>
+                                <?= $event->teacher->name; ?>
                             </div>
-                            <div class="col-xs-8"><?= $event->teacher->name; ?></div>
+                            <div class="col-xs-4 col-sm-3 col-md-4 col-lg-3">
+                                <a href="<?= \yii\helpers\Url::to(['group/view', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
+                                    <span class="fas fa-dollar-sign"></span>
+                                </a>
+                                <a href="<?= \yii\helpers\Url::to(['group/update', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
+                                    <span class="fas fa-pencil-alt"></span>
+                                </a>
+                            </div>
                         </div>
                         <?php if ($event->status == Event::STATUS_UNKNOWN && $event->eventDateTime <= $limitDate): ?>
                             <div class="row status_block">

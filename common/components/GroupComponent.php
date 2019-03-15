@@ -91,7 +91,7 @@ class GroupComponent extends Component
      * @return GroupPupil
      * @throws \Exception
      */
-    public static function addPupilToGroup(User $pupil, Group $group, \DateTime $startDate, ?\DateTime $endDate = null): GroupPupil
+    public static function addPupilToGroup(User $pupil, Group $group, \DateTime $startDate, ?\DateTime $endDate = null, bool $fillSchedule = true): GroupPupil
     {
         if (!$group || !$startDate || ($endDate && $endDate < $startDate)) {
             throw new \Exception('Студент не добавлен в группу, введены некорректные значения даты начала и завершения занятий!');
@@ -134,8 +134,18 @@ class GroupComponent extends Component
                     $pupil->link('groupPupils', $groupPupil);
                     $group->link('groupPupils', $groupPupil);
 
-                    EventComponent::fillSchedule($group);
-                    GroupComponent::calculateTeacherSalary($group);
+                    if ($fillSchedule) {
+                        EventComponent::fillSchedule($group);
+                        GroupComponent::calculateTeacherSalary($group);
+                    }
+
+                    ComponentContainer::getActionLogger()->log(
+                        Action::TYPE_GROUP_PUPIL_ADDED,
+                        $groupPupil->user,
+                        null,
+                        $group,
+                        json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
+                    );
 
                     return $groupPupil;
                 }

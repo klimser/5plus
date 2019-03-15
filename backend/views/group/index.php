@@ -51,7 +51,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'teacher_id',
                 'format' => 'text',
                 'content' => function ($model, $key, $index, $column) use ($teacherMap) {
-                    return array_key_exists($model->teacher_id, $teacherMap) ? $teacherMap[$model->teacher_id] : '<span class="not-set">(не задано)</span>';
+                    return $model->teacher_id ? $model->teacher->name : '<span class="not-set">(не задано)</span>';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

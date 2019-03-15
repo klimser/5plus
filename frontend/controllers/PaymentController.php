@@ -8,6 +8,8 @@ use common\components\MoneyComponent;
 use common\components\paymo\PaymoApiException;
 use common\models\Company;
 use common\models\Contract;
+use common\models\GiftCard;
+use common\models\GiftCardType;
 use common\models\Group;
 use common\models\GroupPupil;
 use common\models\Module;
@@ -17,6 +19,7 @@ use common\models\Webpage;
 use himiklab\yii2\recaptcha\ReCaptchaValidator;
 use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 class PaymentController extends Controller
@@ -25,6 +28,7 @@ class PaymentController extends Controller
     {
         $moduleId = Module::getModuleIdByControllerAndAction('payment', 'index');
         return [
+            'giftCardTypes' => GiftCardType::find()->andWhere(['active' => GiftCardType::STATUS_ACTIVE])->orderBy('name')->all(),
             'webpage' => Webpage::find()->where(['module_id' => $moduleId])->one(),
             'hide_social' => true,
         ];
@@ -39,7 +43,7 @@ class PaymentController extends Controller
     {
         $validator = new ReCaptchaValidator();
 
-        if (!$validator->validate(\Yii::$app->request->post('reCaptcha'), $error)) {
+        if (!$validator->validate(\Yii::$app->request->post('reCaptcha'))) {
             \Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
             return $this->render('index', $this->getPageParams());
         } else {
@@ -147,10 +151,74 @@ class PaymentController extends Controller
         }
     }
 
+    public function actionCreateNew()
+    {
+        if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
+        \Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $giftCardData = \Yii::$app->request->post('giftcard', []);
+
+        if (!isset($giftCardData['pupil_name'])) return self::getJsonErrorResult('No pupil name');
+        if (!isset($giftCardData['pupil_phone'])) return self::getJsonErrorResult('No pupil phone');
+        if (!isset($giftCardData['type'])) return self::getJsonErrorResult('No payment type selected');
+        if (!isset($giftCardData['email'])) return self::getJsonErrorResult('No email');
+        $giftCardType = GiftCardType::findOne(['id' => $giftCardData['type'], 'active' => GiftCardType::STATUS_ACTIVE]);
+        if (!$giftCardType) return self::getJsonErrorResult('Unknown type');
+
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $giftCard = new GiftCard();
+            $giftCard->name = $giftCardType->name;
+            $giftCard->amount = $giftCardType->amount;
+            $giftCard->status = GiftCard::STATUS_NEW;
+            $giftCard->customer_name = $giftCardData['pupil_name'];
+            $giftCard->phoneFormatted = $giftCardData['pupil_phone'];
+            $giftCard->customer_email = $giftCardData['email'];
+            if ($giftCardData['parents_name'] && $giftCardData['parents_phone']) {
+                $giftCard->additionalData = [
+                    'parents_name' => $giftCardData['parents_name'],
+                    'parents_phone' => $giftCardData['parents_phone'],
+                ];
+            }
+
+            if (!$giftCard->save()) {
+                $transaction->rollBack();
+                ComponentContainer::getErrorLogger()
+                    ->logError('payment/create-new', print_r($giftCard->getErrors(), true), true);
+                return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
+            }
+
+            $paymoId = ComponentContainer::getPaymoApi()->payCreate($giftCard->amount * 100, "gc-{$giftCard->id}", [
+                'студент' => $giftCard->customer_name,
+                'предмет' => $giftCard->name,
+            ]);
+
+            $transaction->commit();
+            return self::getJsonOkResult([
+                'payment_url' => ComponentContainer::getPaymoApi()->paymentUrl,
+                'payment_id' => $paymoId,
+                'store_id' => ComponentContainer::getPaymoApi()->storeId,
+                'redirect_link' => urlencode(Url::to(['payment/complete', 'gc' => $giftCard->code], true)),
+            ]);
+        } catch (PaymoApiException $exception) {
+            $transaction->rollBack();
+            ComponentContainer::getErrorLogger()
+                ->logError('payment/create-new', 'Paymo: ' . $exception->getMessage(), true);
+            return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
+        }
+    }
+
     public function actionComplete()
     {
         $params = $this->getPageParams();
-        if ($contractId = \Yii::$app->request->get('payment')) {
+        if ($giftCardCode = \Yii::$app->request->get('gc')) {
+            $giftCard = GiftCard::findOne(['code' => $giftCardCode]);
+            if ($giftCard) {
+                $params['success'] = $giftCard->status == GiftCard::STATUS_PAID;
+                $params['amount'] = $giftCard->amount;
+                $params['giftCard'] = $giftCard;
+            }
+        } elseif ($contractId = \Yii::$app->request->get('payment')) {
             $contract = Contract::findOne($contractId);
             if ($contract) {
                 $params['success'] = $contract->status == Contract::STATUS_PAID;
@@ -161,5 +229,22 @@ class PaymentController extends Controller
             }
         }
         return $this->render('complete', $params);
+    }
+
+    public function actionPrint()
+    {
+        if ($giftCardCode = \Yii::$app->request->get('gc')) {
+            $giftCard = GiftCard::findOne(['code' => $giftCardCode]);
+            if ($giftCard && $giftCard->status == GiftCard::STATUS_PAID) {
+                $giftCardDoc = new \common\resources\documents\GiftCard($giftCard);
+                return \Yii::$app->response->sendContentAsFile(
+                    $giftCardDoc->save(),
+                    'flyer.pdf',
+                    ['inline' => true, 'mimeType' => 'application/pdf']
+                );
+            }
+        }
+
+        throw new NotFoundHttpException('Wrong URL');
     }
 }
