@@ -21,7 +21,7 @@ use yii\web\BadRequestHttpException;
  */
 class ContractController extends AdminController
 {
-    protected $accessRule = 'moneyManagement';
+    protected $accessRule = 'contractManagement';
 
      /**
      * Print Contract.

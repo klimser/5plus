@@ -16,6 +16,7 @@ class UserComponent extends Component
     ];
 
     public const ACL_RULES = [
+        'registrator' => 'Регистрация договоров',
         'cashier' => 'Кассир (приём денег)',
         'groupManager' => 'Редактор групп',
         'scheduler' => 'Расписание',

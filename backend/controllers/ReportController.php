@@ -15,6 +15,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use yii;
 use yii\web\ForbiddenHttpException;
+use yii\helpers\ArrayHelper;
 
 /**
  * ReportController implements vary reports.
@@ -34,66 +35,44 @@ class ReportController extends AdminController
                 $startDateString = $startDate->format('Y-m-d');
                 $endDateString = $endDate->format('Y-m-d');
 
-                /** @var GroupPupil[] $groupPupils */
-                $groupPupils = GroupPupil::find()
-                    ->andWhere(['BETWEEN', 'date_start', $startDateString, $endDateString])
-                    ->orWhere(['BETWEEN', 'date_end', $startDateString, $endDateString])
-                    ->all();
-                $timeLine = [];
-                foreach ($groupPupils as $groupPupil) {
-                    if ($groupPupil->date_start >= $startDateString && $groupPupil->date_start <= $endDateString) {
-                        $timeLine[] = ['type' => 'in', 'date' => $groupPupil->date_start, 'user' => $groupPupil->user_id, 'group' => $groupPupil->group_id];
-                    }
-                    if ($groupPupil->date_end >= $startDateString && $groupPupil->date_end <= $endDateString) {
-                        $timeLine[] = ['type' => 'out', 'date' => $groupPupil->date_end, 'user' => $groupPupil->user_id, 'group' => $groupPupil->group_id];
-                    }
-                }
-
-                usort($timeLine, function($a, $b) {
-                    if ($a['date'] < $b['date']) return -1;
-                    elseif ($a['date'] > $b['date']) return 1;
-                    else return $a['type'] < $b['type'] ? -1 : 1;
-                });
-
-                $dataMap = [];
-                $pupilMap = [];
-                foreach ($timeLine as $value) {
-                    if (!array_key_exists($value['group'], $dataMap)) $dataMap[$value['group']] = ['in' => 0, 'out' => 0];
-                    $dataMap[$value['group']][$value['type']]++;
-
-                    $key = $value['user'] . '|' . $value['group'];
-                    if (!array_key_exists($key, $pupilMap)) {
-                        $pupilMap[$key] = ['in' => 0, 'out' => 0];
-                    }
-                    if ($value['type'] == 'in') {
-                        if ($pupilMap[$key]['out'] > $pupilMap[$key]['in']
-                            || ($pupilMap[$key]['out'] > 0 && $pupilMap[$key]['out'] == $pupilMap[$key]['in'])) {
-                            $dataMap[$value['group']]['in']--;
-                            $dataMap[$value['group']]['out']--;
-                        } elseif ($pupilMap[$key]['in'] > $pupilMap[$key]['out']) {
-                            ComponentContainer::getErrorLogger()->logError(
-                                'report/group-movement',
-                                "Strange numbers, check: user $value[user] group $value[group]",
-                                true
-                            );
-                        }
-                    } else {
-                        if ($pupilMap[$key]['out'] > $pupilMap[$key]['in']) {
-                            ComponentContainer::getErrorLogger()->logError(
-                                'report/group-movement',
-                                "Strange numbers, check: user $value[user] group $value[group]",
-                                true
-                            );
-                        }
-                    }
-                    $pupilMap[$key][$value['type']]++;
-                }
-
                 /** @var Group[] $groups */
                 $groups = Group::find()
-                    ->andWhere(['id' => array_keys($dataMap)])
-                    ->orderBy(['subject_id' => 'ASC', 'teacher_id' => 'ASC'])
+                    ->andWhere([
+                        'AND',
+                        ['<=', 'date_start', $endDateString],
+                        ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]]
+                    ])
+                    ->orderBy(['name' => SORT_ASC])
                     ->all();
+
+                $groupPupilCount = function($condition): array {
+                    return ArrayHelper::map(
+                        GroupPupil::find()
+                            ->andWhere($condition)
+                            ->select(['group_id', 'COUNT(DISTINCT user_id) as cnt'])
+                            ->groupBy(['group_id'])
+                            ->asArray(true)->all(),
+                        'group_id',
+                        'cnt'
+                    );
+                };
+                $inPupilsCount = $groupPupilCount(['BETWEEN', 'date_start', $startDateString, $endDateString]);
+                $outPupilsCount = $groupPupilCount(['BETWEEN', 'date_end', $startDateString, $endDateString]);
+                $totalPupilsCount = $groupPupilCount([
+                    'AND',
+                    ['<=', 'date_start', $endDateString],
+                    ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]]
+                ]);
+                $startPupilsCount = $groupPupilCount([
+                    'AND',
+                    ['<', 'date_start', $startDateString],
+                    ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]]
+                ]);
+                $endPupilsCount = $groupPupilCount([
+                    'AND',
+                    ['<=', 'date_start', $endDateString],
+                    ['OR', ['>', 'date_end', $endDateString], ['date_end' => null]]
+                ]);
 
                 $spreadsheet = new Spreadsheet();
                 $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
@@ -109,15 +88,16 @@ class ReportController extends AdminController
                 $spreadsheet->getActiveSheet()->getStyle('A1:I1')->getFont()->setBold(true)->setSize(16);
 
                 for ($i = 0; $i < 2; $i++) {
-                    $offset = $i * 8;
+                    $offset = $i * 9;
                     $spreadsheet->getActiveSheet()
                         ->setCellValueByColumnAndRow($offset + 1, 2, "№")
                         ->setCellValueByColumnAndRow($offset + 2, 2, "группа")
                         ->setCellValueByColumnAndRow($offset + 3, 2, "учитель")
-                        ->setCellValueByColumnAndRow($offset + 4, 2, "прибыло")
-                        ->setCellValueByColumnAndRow($offset + 5, 2, "убыло")
-                        ->setCellValueByColumnAndRow($offset + 6, 2, "всего занималось")
-                        ->setCellValueByColumnAndRow($offset + 7, 2, "сальдо");
+                        ->setCellValueByColumnAndRow($offset + 4, 2, "в начале месяца")
+                        ->setCellValueByColumnAndRow($offset + 5, 2, "прибыло")
+                        ->setCellValueByColumnAndRow($offset + 6, 2, "убыло")
+                        ->setCellValueByColumnAndRow($offset + 7, 2, "всего занималось")
+                        ->setCellValueByColumnAndRow($offset + 8, 2, "в конце месяца");
                 }
 
                 $nums = [0 => 1, 1 => 1];
@@ -125,40 +105,29 @@ class ReportController extends AdminController
                 $groupCollections = [];
                 foreach ($groups as $group) {
                     $groupParam = GroupComponent::getGroupParam($group, $startDate);
-                    $totalPupils = GroupPupil::find()
-                        ->andWhere(['group_id' => $group->id])
-                        ->andWhere(['<=', 'date_start', $endDateString])
-                        ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
-                        ->select('COUNT(DISTINCT user_id)')
-                        ->scalar();
-                    $finalPupils = GroupPupil::find()
-                        ->andWhere(['group_id' => $group->id])
-                        ->andWhere(['<=', 'date_start', $endDateString])
-                        ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $endDateString]])
-                        ->select('COUNT(DISTINCT user_id)')
-                        ->scalar();
 
                     $index = $group->isKids() ? 1 : 0;
                     if (!array_key_exists($index, $groupCollections)) $groupCollections[$index] = [];
                     $groupCollections[$index][] = $group->id;
-                    $offset = $index * 8;
+                    $offset = $index * 9;
                     $spreadsheet->getActiveSheet()
                         ->setCellValueByColumnAndRow($offset + 1, $rows[$index], $nums[$index])
                         ->setCellValueByColumnAndRow($offset + 2, $rows[$index], $group->name)
                         ->setCellValueByColumnAndRow($offset + 3, $rows[$index], $groupParam->teacher->name)
-                        ->setCellValueByColumnAndRow($offset + 4, $rows[$index], $dataMap[$group->id]['in'])
-                        ->setCellValueByColumnAndRow($offset + 5, $rows[$index], $dataMap[$group->id]['out'])
-                        ->setCellValueByColumnAndRow($offset + 6, $rows[$index], $totalPupils)
-                        ->setCellValueByColumnAndRow($offset + 7, $rows[$index], $finalPupils);
+                        ->setCellValueByColumnAndRow($offset + 4, $rows[$index], array_key_exists($group->id, $startPupilsCount) ? $startPupilsCount[$group->id] : 0)
+                        ->setCellValueByColumnAndRow($offset + 5, $rows[$index], array_key_exists($group->id, $inPupilsCount) ? $inPupilsCount[$group->id] : 0)
+                        ->setCellValueByColumnAndRow($offset + 6, $rows[$index], array_key_exists($group->id, $outPupilsCount) ? $outPupilsCount[$group->id] : 0)
+                        ->setCellValueByColumnAndRow($offset + 7, $rows[$index], array_key_exists($group->id, $totalPupilsCount) ? $totalPupilsCount[$group->id] : 0)
+                        ->setCellValueByColumnAndRow($offset + 8, $rows[$index], array_key_exists($group->id, $endPupilsCount) ? $endPupilsCount[$group->id] : 0);
                     $nums[$index]++;
                     $rows[$index]++;
                 }
 
                 foreach ($groupCollections as $index => $groupIds) {
-                    $offset = $index * 8;
+                    $offset = $index * 9;
                     $row = $rows[$index] - 1;
 
-                    $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($offset + 1, 2, $offset + 7, $row)->applyFromArray([
+                    $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($offset + 1, 2, $offset + 8, $row)->applyFromArray([
                         'borders' => [
                             'allBorders' => [
                                 'borderStyle' => Border::BORDER_THIN,

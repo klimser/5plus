@@ -38,6 +38,14 @@ return [
             'viewMySchedule',
         ],
     ],
+    'registrator' => [
+        'type' => 1,
+        'children' => [
+            'manageUsers',
+            'editUser',
+            'contractManagement',
+        ],
+    ],
     'cashier' => [
         'type' => 1,
         'children' => [
@@ -108,6 +116,12 @@ return [
         'children' => [
             'editUser',
         ],
+    ],
+
+    /* REGISTRATOR */
+    'contractManagement' => [
+        'type' => 2,
+        'description' => 'Manage contracts',
     ],
 
     /* CASHIER */

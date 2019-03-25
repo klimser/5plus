@@ -57,30 +57,45 @@ let User = {
         }
     },
     checkAddGroup: function(e) {
+        let paymentSwitch = $("#add_payment_switch");
+        let contractSwitch = $("#add_contract_switch");
         if (e.checked) {
             $('#add_group').removeClass("hidden")
                 .find("input").prop("disabled", false);
-            $("#add_payment_switch").prop("disabled", false);
-            $("#contract_group_block").addClass("hidden");
+            if (paymentSwitch.length > 0) {
+                paymentSwitch.prop("disabled", false);
+            }
+            if (contractSwitch.length > 0) {
+                $("#contract_group_block").addClass("hidden");
+            }
             this.setAmountHelperButtons($("#group"), true);
         } else {
             $('#add_group').addClass("hidden")
                 .find("input").prop("disabled", true);
-            $("#contract_group_block").removeClass("hidden");
-            if ($("#add_contract_switch").is(":checked")) this.setAmountHelperButtons($("#contract_group"), true);
-            let paymentSwitch = $("#add_payment_switch");
-            if (paymentSwitch.is(":checked")) paymentSwitch.click();
-            paymentSwitch.prop("disabled", true);
+            if (contractSwitch.length > 0) {
+                $("#contract_group_block").removeClass("hidden");
+                if (contractSwitch.is(":checked")) {
+                    this.setAmountHelperButtons($("#contract_group"), true);
+                }
+            }
+
+            if (paymentSwitch.length > 0) {
+                if (paymentSwitch.is(":checked")) {
+                    paymentSwitch.click();
+                }
+                paymentSwitch.prop("disabled", true);
+            }
         }
         this.setAmountBlockVisibility();
     },
     checkAddPayment: function(e) {
+        let contractSwitch = $("#add_contract_switch");
         if (e.checked) {
             $('#amount_block').removeClass('hidden');
             $('#add_payment').removeClass('hidden')
                 .find("input").prop('disabled', false);
-            if ($('#add_contract_switch').is(":checked")) {
-                $('#add_contract_switch').click();
+            if (contractSwitch.length > 0 && contractSwitch.is(":checked")) {
+                contractSwitch.click();
             }
             this.checkContractType();
         } else {
@@ -93,12 +108,13 @@ let User = {
         $("#contract").prop("disabled", $("input[name='payment[contractType]']:checked").val() === "auto");
     },
     checkAddContract: function(e) {
+        let paymentSwitch = $("#add_payment_switch");
         if (e.checked) {
             $('#amount_block').removeClass('hidden');
             $('#add_contract').removeClass('hidden')
                 .find('input[type!="checkbox"]').prop('disabled', false);
-            if ($('#add_payment_switch').is(":checked")) {
-                $('#add_payment_switch').click();
+            if (paymentSwitch.length > 0 && paymentSwitch.is(":checked")) {
+                paymentSwitch.click();
             }
         } else {
             $('#add_contract').addClass('hidden')

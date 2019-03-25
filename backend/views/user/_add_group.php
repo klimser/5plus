@@ -10,6 +10,8 @@ use yii\bootstrap\Html;
 /* @var $companies \common\models\Company[] */
 /* @var $amount int */
 /* @var $companyId int */
+/* @var $incomeAllowed bool */
+/* @var $contractAllowed bool */
 
 /** @var bool $addGroup */
 $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
@@ -60,22 +62,26 @@ $this->registerJs('User.init();');
 </div>
 
 <div class="row">
-    <div class="col-xs-12 col-sm-6">
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" value="1" name="payment[add]" id="add_payment_switch" onchange="User.checkAddPayment(this);" <?= $addPayment ? 'checked' : ($addGroup ? '' :  'disabled'); ?> autocomplete="off">
-                Внести платёж
-            </label>
+    <?php if ($incomeAllowed): ?>
+        <div class="col-xs-12 col-sm-6">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" value="1" name="payment[add]" id="add_payment_switch" onchange="User.checkAddPayment(this);" <?= $addPayment ? 'checked' : ($addGroup ? '' :  'disabled'); ?> autocomplete="off">
+                    Внести платёж
+                </label>
+            </div>
         </div>
-    </div>
-    <div class="col-xs-12 col-sm-6">
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" value="1" name="contract[add]" id="add_contract_switch" onchange="User.checkAddContract(this);" <?= $addContract ? 'checked' : ''; ?> autocomplete="off">
-                Добавить договор
-            </label>
+    <?php endif; ?>
+    <?php if ($contractAllowed): ?>
+        <div class="col-xs-12 col-sm-6">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" value="1" name="contract[add]" id="add_contract_switch" onchange="User.checkAddContract(this);" <?= $addContract ? 'checked' : ''; ?> autocomplete="off">
+                    Добавить договор
+                </label>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
 
 <div id="add_payment" <?= $addPayment ? '' : 'class="hidden"'; ?>>

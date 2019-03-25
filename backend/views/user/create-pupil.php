@@ -17,6 +17,8 @@ use yii\bootstrap\ActiveForm;
 /* @var $amount int */
 /* @var $companyId int */
 /* @var $companies \common\models\Company[] */
+/* @var $incomeAllowed bool */
+/* @var $contractAllowed bool */
 
 $this->title = 'Добавить студента и родителей';
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
@@ -62,6 +64,8 @@ SCRIPT
                     'companies' => $companies,
                     'amount' => $amount,
                     'companyId' => $companyId,
+                    'incomeAllowed' => $incomeAllowed,
+                    'contractAllowed' => $contractAllowed,
                 ]) ?>
             </div>
 

@@ -8,13 +8,15 @@ use \yii\helpers\Url;
 $this->title = 'Панель управления';
 ?>
 <div class="row">
-    <?php if ($admin->can('cashier')): ?>
+    <?php if ($admin->can('moneyManagement')): ?>
         <div class="col-xs-12 col-sm-6 col-md-4">
             <a class="btn btn-default btn-lg full-width" href="<?= Url::to('money/income'); ?>">
                 <span class="fas fa-hand-holding-usd fa-3x"></span><hr>
                 Принять оплату
             </a>
         </div>
+    <?php endif; ?>
+    <?php if ($admin->can('contractManagement')): ?>
         <div class="col-xs-12 col-sm-6 col-md-4">
             <a class="btn btn-default btn-lg full-width" href="<?= Url::to('contract/create'); ?>">
                 <span class="fas fa-file-invoice-dollar fa-3x"></span><hr>

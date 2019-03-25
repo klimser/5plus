@@ -13,7 +13,8 @@ use common\models\GroupPupil;
 use common\models\Payment;
 use common\models\User;
 use common\models\UserSearch;
-use yii;
+use yii\data\Pagination;
+use yii\helpers\Url;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
@@ -30,17 +31,17 @@ class UserController extends AdminController
      */
     public function actionIndex()
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
 
         $searchModel = new UserSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider = $searchModel->search(\Yii::$app->request->queryParams);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'firstLetter' => mb_strtoupper(Yii::$app->request->get('letter', 'all'), 'UTF-8'),
-            'selectedYear' => Yii::$app->request->get('year', -1),
-            'canManageEmployees' => Yii::$app->user->can('manageEmployees'),
+            'firstLetter' => mb_strtoupper(\Yii::$app->request->get('letter', 'all'), 'UTF-8'),
+            'selectedYear' => \Yii::$app->request->get('year', -1),
+            'canManageEmployees' => \Yii::$app->user->can('manageEmployees'),
         ]);
     }
 
@@ -50,11 +51,11 @@ class UserController extends AdminController
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws \Throwable
-     * @throws yii\db\Exception
+     * @throws \yii\db\Exception
      */
     public function actionCreatePupil()
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
 
         $parent = new User(['scenario' => User::SCENARIO_USER]);
         $parentCompany = new User(['scenario' => User::SCENARIO_USER]);
@@ -65,12 +66,12 @@ class UserController extends AdminController
         $amount = 0;
         $companyId = null;
 
-        if (Yii::$app->request->isPost) {
-            User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
+        if (\Yii::$app->request->isPost) {
+            User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], \Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
-            $groupData = Yii::$app->request->post('group', []);
-            $paymentData = Yii::$app->request->post('payment', []);
-            $contractData = Yii::$app->request->post('contract', []);
+            $groupData = \Yii::$app->request->post('group', []);
+            $paymentData = \Yii::$app->request->post('payment', []);
+            $contractData = \Yii::$app->request->post('contract', []);
             $amount = intval(\Yii::$app->request->post('amount', 0));
             $companyId = \Yii::$app->request->post('company_id');
 
@@ -89,7 +90,7 @@ class UserController extends AdminController
                 $company = Company::findOne($companyId);
                 if (!$company) throw new \Exception('Не выбран учебный центр!');
 
-                $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
+                $personType = \Yii::$app->request->post('person_type', User::ROLE_PARENTS);
                 switch ($personType) {
                     case User::ROLE_PARENTS:
                         $parent = $this->processParent($parent, 'parent', $personType);
@@ -110,7 +111,7 @@ class UserController extends AdminController
                     if ($addGroup) {
                         $groupPupil = $this->addPupilToGroup($pupil, $groupData);
 
-                        if ($addPayment) {
+                        if (\Yii::$app->user->can('moneyManagement') && $addPayment) {
                             $this->addPupilMoneyIncome($company, $groupPupil, $amount, $paymentData);
                             MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                         }
@@ -124,15 +125,15 @@ class UserController extends AdminController
                             $groupPupil ? $groupPupil->group : Group::findOne($contractData['group'])
                         );
 
-                        Yii::$app->session->addFlash(
+                        \Yii::$app->session->addFlash(
                             'success',
                             'Договор ' . $contract->number . ' зарегистрирован '
-                            . '<a target="_blank" href="' . yii\helpers\Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
+                            . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
                         );
                     }
 
                     $transaction->commit();
-                    Yii::$app->session->addFlash('success', 'Добавлено');
+                    \Yii::$app->session->addFlash('success', 'Добавлено');
                     UserComponent::clearSearchCache();
 
                     return $this->redirect(['index']);
@@ -154,6 +155,8 @@ class UserController extends AdminController
             'paymentData' => $paymentData,
             'contractData' => $contractData,
             'amount' => $amount,
+            'incomeAllowed' => \Yii::$app->user->can('moneyManagement'),
+            'contractAllowed' => \Yii::$app->user->can('contractManagement'),
             'companyId' => $companyId,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
             'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
@@ -171,10 +174,10 @@ class UserController extends AdminController
      */
     private function processParent(User $parent, string $prefix, int $personType): User
     {
-        $parentType = Yii::$app->request->post($prefix . '_type', 'new');
+        $parentType = \Yii::$app->request->post($prefix . '_type', 'new');
         switch ($parentType) {
             case 'exist':
-                $parentId = Yii::$app->request->post($prefix . '_exists');
+                $parentId = \Yii::$app->request->post($prefix . '_exists');
                 if (!$parentId) throw new \Exception("Choose $prefix from the list");
                 $parent = $this->findModel($parentId);
                 if ($parent->role != $personType || $parent->status == User::STATUS_LOCKED) throw new \Exception('Parents not found');
@@ -206,7 +209,7 @@ class UserController extends AdminController
 
         $groupPupil = GroupComponent::addPupilToGroup($pupil, $group, $startDate);
 
-        Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
+        \Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
         return $groupPupil;
     }
 
@@ -227,21 +230,21 @@ class UserController extends AdminController
             $groupPupil->group
         );
 
-        Yii::$app->session->addFlash(
+        \Yii::$app->session->addFlash(
             'success',
             'Договор ' . $contract->number . ' зарегистрирован '
-            . '<a target="_blank" href="' . yii\helpers\Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
+            . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
         );
 
         $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $paymentData['comment']);
 
-        Yii::$app->session->addFlash('success', 'Внесение денег зарегистрировано, номер транзакции: ' . $paymentId);
+        \Yii::$app->session->addFlash('success', 'Внесение денег зарегистрировано, номер транзакции: ' . $paymentId);
         return $paymentId;
     }
 
     public function actionAddToGroup($userId)
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
         /** @var User $pupil */
         $pupil = User::find()
             ->andWhere(['id' => $userId, 'role' => User::ROLE_PUPIL])
@@ -250,14 +253,14 @@ class UserController extends AdminController
         if (!$pupil) throw new NotFoundHttpException('Pupil not found');
 
         $groupData = [];
-        if (Yii::$app->request->isPost) {
-            $groupData = Yii::$app->request->post('group', []);
+        if (\Yii::$app->request->isPost) {
+            $groupData = \Yii::$app->request->post('group', []);
 
             $transaction = \Yii::$app->db->beginTransaction();
             try {
                 $this->addPupilToGroup($pupil, $groupData);
                 $transaction->commit();
-                Yii::$app->session->addFlash('success', 'Добавлено');
+                \Yii::$app->session->addFlash('success', 'Добавлено');
             } catch (\Throwable $e) {
                 $transaction->rollBack();
                 \Yii::$app->session->addFlash('error', $e->getMessage());
@@ -277,21 +280,21 @@ class UserController extends AdminController
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws \Exception
-     * @throws yii\db\Exception
+     * @throws \yii\db\Exception
      */
     public function actionCreateEmployee()
     {
-        if (!Yii::$app->user->can('manageEmployees')) throw new ForbiddenHttpException('Access denied!');
+        if (!\Yii::$app->user->can('manageEmployees')) throw new ForbiddenHttpException('Access denied!');
 
         $employee = new User(['scenario' => User::SCENARIO_ADMIN]);
 
-        if (Yii::$app->request->isPost) {
-            $employee->load(Yii::$app->request->post());
+        if (\Yii::$app->request->isPost) {
+            $employee->load(\Yii::$app->request->post());
             $employee->setPassword($employee->password);
             $employee->generateAuthKey();
 
             if ($employee->save()) {
-                Yii::$app->session->addFlash('success', 'Сотрудник добавлен');
+                \Yii::$app->session->addFlash('success', 'Сотрудник добавлен');
                 UserComponent::clearSearchCache();
 
                 return $this->redirect(['update', 'id' => $employee->id]);
@@ -315,31 +318,31 @@ class UserController extends AdminController
      */
     public function actionUpdate($id = null)
     {
-        $userToEdit = $id ?: Yii::$app->user->id;
-        if (!Yii::$app->user->can('editUser', ['user' => $userToEdit])) throw new ForbiddenHttpException('Access denied!');
+        $userToEdit = $id ?: \Yii::$app->user->id;
+        if (!\Yii::$app->user->can('editUser', ['user' => $userToEdit])) throw new ForbiddenHttpException('Access denied!');
 
         $user = $this->findModel($userToEdit);
         $user->setScenario(in_array($user->role, [User::ROLE_PUPIL, User::ROLE_PARENTS]) ? User::SCENARIO_USER : User::SCENARIO_ADMIN);
-        $isAdmin = Yii::$app->user->can('manageUsers');
-        $editACL = Yii::$app->user->can('manageEmployees');
-        $auth = Yii::$app->authManager;
+        $isAdmin = \Yii::$app->user->can('manageUsers');
+        $editACL = \Yii::$app->user->can('manageEmployees');
+        $auth = \Yii::$app->authManager;
         $parent = new User(['scenario' => User::SCENARIO_USER]);
 
-        if (Yii::$app->request->isPost) {
-            $transaction = Yii::$app->db->beginTransaction();
+        if (\Yii::$app->request->isPost) {
+            $transaction = \Yii::$app->db->beginTransaction();
             try {
-                if ($user->load(Yii::$app->request->post())) {
+                if ($user->load(\Yii::$app->request->post())) {
                     $fields = null;
                     if (!$isAdmin) $fields = ['username', 'password'];
                     if ($user->save(true, $fields)) {
                         if ($user->role == User::ROLE_PUPIL && !$user->parent_id) {
-                            $parent->load(Yii::$app->request->post('User', []), 'parent');
+                            $parent->load(\Yii::$app->request->post('User', []), 'parent');
                             $parent = $this->processParent($parent, 'parent', User::ROLE_PARENTS);
                             $user->parent_id = $parent->id;
                             $user->save(false, ['parent_id']);
                         }
                         if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT)) {
-                            $newRules = Yii::$app->request->post('acl', []);
+                            $newRules = \Yii::$app->request->post('acl', []);
                             foreach (UserComponent::ACL_RULES as $key => $devNull) {
                                 $role = $auth->getRole($key);
                                 if (array_key_exists($key, $newRules)) {
@@ -351,7 +354,7 @@ class UserController extends AdminController
                         }
                         UserComponent::clearSearchCache();
                         $transaction->commit();
-                        Yii::$app->session->addFlash('success', 'Успешно обновлено');
+                        \Yii::$app->session->addFlash('success', 'Успешно обновлено');
                         return $this->redirect(['update', 'id' => $id]);
                     } else {
                         $transaction->rollBack();
@@ -382,11 +385,11 @@ class UserController extends AdminController
     {
         $jsonData = [];
         if (\Yii::$app->request->isAjax) {
-            if (!Yii::$app->user->can('manageUsers')) $jsonData = self::getJsonErrorResult('Access denied!');
+            if (!\Yii::$app->user->can('manageUsers')) $jsonData = self::getJsonErrorResult('Access denied!');
             else {
                 $user = $this->findModel($id);
 
-                $activeState = Yii::$app->request->post('active');
+                $activeState = \Yii::$app->request->post('active');
                 $jsonData = self::getJsonOkResult(['id' => $user->id]);
                 if (($user->status == User::STATUS_ACTIVE) != $activeState) {
                     $user->status = $activeState ? User::STATUS_ACTIVE : User::STATUS_LOCKED;
@@ -400,11 +403,11 @@ class UserController extends AdminController
 
     public function actionFindByPhone()
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
+        if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
 
         $jsonData = self::getJsonOkResult();
-        $phone = preg_replace('#\D#', '', Yii::$app->request->post('phone', ''));
+        $phone = preg_replace('#\D#', '', \Yii::$app->request->post('phone', ''));
 
         if (!empty($phone) && strlen($phone) == 9) {
             $searchString = "+998$phone";
@@ -456,8 +459,8 @@ class UserController extends AdminController
      */
     public function actionSchedule($id = null, $month = null)
     {
-        $userToWatch = $id ?: Yii::$app->user->id;
-        if (!Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
+        $userToWatch = $id ?: \Yii::$app->user->id;
+        if (!\Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
 
         $user = $this->findModel($userToWatch);
         if ($user->role != User::ROLE_PUPIL) {
@@ -521,8 +524,8 @@ class UserController extends AdminController
      */
     public function actionMoneyHistory($id = null)
     {
-        $userToWatch = $id ?: Yii::$app->user->id;
-        if (!Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
+        $userToWatch = $id ?: \Yii::$app->user->id;
+        if (!\Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
         $user = $this->findModel($userToWatch);
 
         if ($user->role != User::ROLE_PUPIL) {
@@ -539,7 +542,7 @@ class UserController extends AdminController
             }
         }
 
-        $pager = new yii\data\Pagination(['pageSize' => 30, 'totalCount' => Payment::find()->andWhere(['user_id' => $userToWatch])->count()]);
+        $pager = new Pagination(['pageSize' => 30, 'totalCount' => Payment::find()->andWhere(['user_id' => $userToWatch])->count()]);
 
         return $this->render('money-history', [
             'user' => $user,
@@ -550,11 +553,11 @@ class UserController extends AdminController
 
 
     /**
-     * @return yii\web\Response
+     * @return \yii\web\Response
      */
     public function actionPupils() {
         $jsonData = [];
-        if (Yii::$app->request->isAjax) {
+        if (\Yii::$app->request->isAjax) {
             $jsonData = User::find()
                 ->andWhere(['role' => User::ROLE_PUPIL])
                 ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
