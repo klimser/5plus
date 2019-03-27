@@ -4,6 +4,7 @@ namespace common\models;
 
 use backend\models\Event;
 use backend\models\TeacherSubjectLink;
+use common\components\ComponentContainer;
 use common\components\extended\ActiveRecord;
 use common\models\traits\UploadImage;
 use yii;
@@ -52,6 +53,7 @@ class Teacher extends ActiveRecord
             'imageDBField' => 'photo',
             'imageFilenameBase' => 'name',
             'imageFilenameAppendix' => 'id',
+            'skipTinify' => true,
         ];
     }
 
@@ -206,7 +208,7 @@ class Teacher extends ActiveRecord
             $base->compositeImage($over, \Imagick::COMPOSITE_DEFAULT, 0, 0);
             $base->writeImage($fileName);
 
-            $source = \Tinify\fromFile($fileName);
+            $source = ComponentContainer::getTinifier()->getFromFile($fileName);
             $source->toFile($fileName);
         } elseif (extension_loaded('gd') && function_exists('gd_info')) {
             $baseInfo = getimagesize($imagePath);

@@ -125,10 +125,8 @@ trait UploadImage
             $fileName2x = $fileName . '@2x.' . $this->$uploadedField->extension;
             $fileName .= '.' . $this->$uploadedField->extension;
 
-            $resizeImage = function(string $sourcePath, string $destPath, int $width, int $height = 0) {
-                /** @var Source $source */
-                $source = ComponentContainer::getTinifier()->getFromFile($sourcePath);
-                if ($source) {
+            $resizeImage = function(string $sourcePath, string $destPath, int $width, int $height = 0) use ($config) {
+                if ((!array_key_exists('skipTinify', $config) || !$config['skipTinify']) && $source = ComponentContainer::getTinifier()->getFromFile($sourcePath)) {
                     $params = ['method' => 'scale', 'width' => $width];
                     if ($height > 0) {
                         $params['height'] = $height * 2;
