@@ -131,6 +131,6 @@ class GroupPupil extends ActiveRecord
         return Payment::find()
             ->andWhere(['user_id' => $this->user_id, 'group_id' => $this->group_id])
             ->select('SUM(amount)')
-            ->scalar();
+            ->scalar() ?? 0;
     }
 }

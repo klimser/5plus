@@ -73,9 +73,13 @@ class PaymentSearch extends Payment
         }
         if (!array_key_exists('created_at', $params['PaymentSearch'])) $this->created_at = null;
         // grid filtering conditions
+        if ($this->admin_id == -1) {
+            $query->andWhere(['admin_id' => null]);
+        } else {
+            $query->andFilterWhere(['admin_id' => $this->admin_id]);
+        }
         $query->andFilterWhere([
             'user_id' => $this->user_id,
-            'admin_id' => $this->admin_id,
             'group_id' => $this->group_id,
         ]);
 

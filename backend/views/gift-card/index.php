@@ -6,12 +6,29 @@ use yii\grid\GridView;
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $searchModel \common\models\GiftCardSearch */
+/* @var $status string */
 
 $this->title = 'Предоплаченные карты';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="gift-card-type-index">
     <h1><?= Html::encode($this->title) ?></h1>
+
+    <ul class="nav nav-pills">
+        <li role="presentation" <?= $status === null ? 'class="active"' : ''; ?>>
+            <a href="<?= \yii\helpers\Url::to(['gift-card/index']); ?>">Все</a>
+        </li>
+        <li role="presentation" <?= $status === \common\models\GiftCard::STATUS_NEW ? 'class="active"' : ''; ?>>
+            <a href="<?= \yii\helpers\Url::to(['gift-card/index', 'status' => \common\models\GiftCard::STATUS_NEW]); ?>">Не оплаченные</a>
+        </li>
+        <li role="presentation" <?= $status == \common\models\GiftCard::STATUS_PAID ? 'class="active"' : ''; ?>>
+            <a href="<?= \yii\helpers\Url::to(['gift-card/index', 'status' => \common\models\GiftCard::STATUS_PAID]); ?>">Оплаченные</a>
+        </li>
+        <li role="presentation" <?= $status == \common\models\GiftCard::STATUS_USED ? 'class="active"' : ''; ?>>
+            <a href="<?= \yii\helpers\Url::to(['gift-card/index', 'status' => \common\models\GiftCard::STATUS_USED]); ?>">Активированные</a>
+        </li>
+    </ul>
+    <hr>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,

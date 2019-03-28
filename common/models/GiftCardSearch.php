@@ -14,7 +14,7 @@ class GiftCardSearch extends GiftCard
     {
         return [
             [ [ 'amount' ], 'integer' ],
-            [ [ 'name', 'customer_name', 'customer_phone', 'created_at', 'paid_at', 'used_at' ], 'string' ],
+            [ [ 'name', 'customer_name', 'customer_phone', 'created_at', 'paid_at', 'used_at', 'status' ], 'string' ],
             [ [ 'created_at', 'paid_at', 'used_at' ], 'safe' ],
         ];
     }
@@ -35,7 +35,7 @@ class GiftCardSearch extends GiftCard
      */
     public function search($params)
     {
-        $query =GiftCard::find();
+        $query = GiftCard::find();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

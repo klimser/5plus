@@ -83,6 +83,10 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата'; ?>
                     <label for="giftcard-email">E-mail для отправки квитанции об оплате</label>
                     <input type="email" name="giftcard[email]" id="giftcard-email" class="form-control" maxlength="255" required>
                 </div>
+                <div class="alert alert-info">
+                    Квитанция об оплате со штрих-кодом будет выслана на указанный вами e-mail. Вам необходимо будет показать квитанцию на телефоне или в распечатанном виде Вашим заботливым менеджерам в администрации «Пять с Плюсом» для допуска к занятиям.<br>
+                    Желаем вам хорошего настроения и шикарной учебы!
+                </div>
                 <div id="message_board"></div>
                 <div class="text-right max-width-100">
                     <button class="btn btn-primary btn-lg pay_button">оплатить</button>

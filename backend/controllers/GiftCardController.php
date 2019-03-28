@@ -21,16 +21,22 @@ class GiftCardController extends AdminController
 
     /**
      * Lists all GiftCard models.
+     * @param string $status
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex($status = null)
     {
         $searchModel = new GiftCardSearch();
         $dataProvider = $searchModel->search(\Yii::$app->request->queryParams);
+        if ($status !== null) {
+            $status = intval($status);
+            $dataProvider->query->andFilterWhere([ 'status' => $status ]);
+        }
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
+            'status' => $status,
         ]);
     }
 

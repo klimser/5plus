@@ -34,7 +34,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <tr>
                     <td><label for="group_to">Куда переносим</label></td>
                     <td>
-                        <select id="group_to" name="group_to" class="form-control">
+                        <select id="group_to" name="group_to" class="form-control" required>
                             <?php foreach ($groupList as $group): ?>
                                 <option value="<?= $group->id; ?>"><?= $group->name; ?></option>
                             <?php endforeach; ?>

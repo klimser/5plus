@@ -266,7 +266,7 @@ class MoneyController extends AdminController
 
         /** @var User[] $admins */
         $admins = User::find()->where(['role' => [User::ROLE_ROOT, User::ROLE_MANAGER]])->orderBy(['name' => SORT_ASC])->all();
-        $adminMap = [null => 'Все'];
+        $adminMap = [null => 'Все', '-1' => 'Online оплата'];
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
         /** @var Group[] $groups */
