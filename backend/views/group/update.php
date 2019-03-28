@@ -8,6 +8,7 @@ use common\components\helpers\Calendar;
 /* @var $group common\models\Group */
 /* @var $groupTypes \common\models\GroupType[] */
 /* @var $subjects \common\models\Subject[] */
+/* @var $canMoveMoney bool */
 
 $this->title = $group->id ? $group->name : 'Добавить группу';
 $this->params['breadcrumbs'][] = ['label' => 'Группы', 'url' => ['index']];
@@ -182,7 +183,14 @@ SCRIPT
                 <?php foreach ($group->inactiveGroupPupils as $groupPupil): ?>
                     <tr>
                         <td><?= $groupPupil->user->name; ?></td>
-                        <td class="text-right"><?= $groupPupil->startDateObject->format('d.m.Y'); ?> - <?= $groupPupil->endDateObject->format('d.m.Y'); ?></td>
+                        <td class="text-right">
+                            <?= $groupPupil->startDateObject->format('d.m.Y'); ?> - <?= $groupPupil->endDateObject->format('d.m.Y'); ?>
+                            <?php if ($canMoveMoney && $groupPupil->moneyLeft > 0): ?>
+                                <a href="<?= \yii\helpers\Url::to(['group/move-money', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>" class="btn btn-xs btn-default" title="Перенести оставшиеся деньги">
+                                    <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>
+                                </a>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </table>

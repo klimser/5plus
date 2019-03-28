@@ -88,6 +88,7 @@ class GroupComponent extends Component
      * @param Group $group
      * @param \DateTime $startDate
      * @param \DateTime|null $endDate
+     * @param bool $fillSchedule
      * @return GroupPupil
      * @throws \Exception
      */
@@ -151,5 +152,52 @@ class GroupComponent extends Component
                 }
             }
         }
+    }
+
+    /**
+     * @param Group $groupFrom
+     * @param Group $groupTo
+     * @param User $user
+     * @param \DateTime|null $moveDate
+     */
+    public static function moveMoney(Group $groupFrom, Group $groupTo, User $user, ?\DateTime $moveDate = null)
+    {
+        $moneyLeft = Payment::find()
+            ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
+            ->select('SUM(amount)')
+            ->scalar();
+        while ($moneyLeft > 0) {
+            /** @var Payment $lastPayment */
+            $lastPayment = Payment::find()
+                ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
+                ->andWhere(['>', 'amount', 0])
+                ->orderBy(['created_at' => SORT_DESC])
+                ->one();
+            if ($lastPayment->amount <= $moneyLeft) {
+                $lastPayment->group_id = $groupTo->id;
+                $lastPayment->save();
+                $moneyLeft -= $lastPayment->amount;
+            } else {
+                $diff = $lastPayment->amount - $moneyLeft;
+                MoneyComponent::decreasePayment($lastPayment, $diff);
+
+                $newPayment = new Payment();
+                $newPayment->user_id = $lastPayment->user_id;
+                $newPayment->admin_id = \Yii::$app->user->id;
+                $newPayment->group_id = $groupTo->id;
+                $newPayment->contract_id = $lastPayment->contract_id;
+                $newPayment->amount = $moneyLeft;
+                $newPayment->discount = $lastPayment->discount;
+                $newPayment->created_at = $moveDate ? $moveDate->format('Y-m-d H:i:s') : $lastPayment->created_at;
+                $newPayment->comment = 'Перевод оставшихся средств студента из группы ' . $groupFrom->name . ' в группу ' . $groupTo->name;
+                MoneyComponent::registerIncome($newPayment);
+                $moneyLeft = 0;
+            }
+        }
+        EventComponent::fillSchedule($groupTo);
+        GroupComponent::calculateTeacherSalary($groupTo);
+        MoneyComponent::setUserChargeDates($user, $groupFrom);
+        MoneyComponent::setUserChargeDates($user, $groupTo);
+        MoneyComponent::recalculateDebt($user, $groupTo);
     }
 }

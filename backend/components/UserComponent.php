@@ -19,6 +19,7 @@ class UserComponent extends Component
         'registrator' => 'Регистрация договоров',
         'cashier' => 'Кассир (приём денег)',
         'groupManager' => 'Редактор групп',
+        'moneyMover' => 'Перенос остатков денег в другую группу',
         'scheduler' => 'Расписание',
         'accountant' => 'Бухгалтер (зарплата)',
         'support' => 'Техподдержка (заявки и т п)',

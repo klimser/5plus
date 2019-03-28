@@ -19,6 +19,7 @@ use common\models\Teacher;
 use yii;
 use yii\web\NotFoundHttpException;
 use yii\web\ForbiddenHttpException;
+use yii\web\BadRequestHttpException;
 
 /**
  * GroupController implements the CRUD actions for Teacher model.
@@ -33,7 +34,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3187);
+//        $user = User::findOne(3819);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
@@ -227,6 +228,7 @@ class GroupController extends AdminController
             'group' => $group,
             'groupTypes' => GroupType::find()->orderBy('name')->all(),
             'subjects' => Subject::find()->orderBy('name')->with('teachers')->all(),
+            'canMoveMoney' => \Yii::$app->user->can('moveMoney'),
         ]);
     }
 
@@ -351,6 +353,17 @@ class GroupController extends AdminController
         $groupPupilTo = GroupPupil::findOne(['group_id' => $groupTo->id, 'user_id' => $user->id, 'active' => GroupPupil::STATUS_ACTIVE]);
         if ($groupPupilTo) return $this->asJson(self::getJsonErrorResult('Студент уже занимается в группе В'));
 
+        $unknownEvent = EventComponent::getUncheckedEvent($groupFrom, $moveDate);
+        if ($unknownEvent !== null) {
+            return $this->asJson(self::getJsonErrorResult(
+                'В группе ИЗ остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: '
+                . yii\bootstrap\Html::a(
+                    $unknownEvent->eventDateTime->format('d.m.Y'),
+                    yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
+                )
+            ));
+        }
+
         $transaction = GroupPupil::getDb()->beginTransaction();
         try {
             $moveDate->modify('midnight');
@@ -369,69 +382,7 @@ class GroupController extends AdminController
             if (!$groupPupilTo->save()) throw new \Exception('Server error: ' . $groupPupilTo->getErrorsAsString());
             $groupTo->link('groupPupils', $groupPupilTo);
 
-            /** @var Payment[] $discountPayments */
-            $discountPayments = Payment::find()
-                ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id, 'discount' => Payment::STATUS_ACTIVE])
-                ->andWhere(['>', 'amount', 0])
-                ->all();
-            foreach ($discountPayments as $discountPayment) {
-                if ($discountPayment->paymentsSum < $discountPayment->amount) {
-                    $diff = $discountPayment->amount - $discountPayment->paymentsSum;
-                    if ($discountPayment->paymentsSum) {
-                        MoneyComponent::decreasePayment($discountPayment, $discountPayment->paymentsSum);
-
-                        $newPayment = new Payment();
-                        $newPayment->user_id = $discountPayment->user_id;
-                        $newPayment->admin_id = Yii::$app->user->id;
-                        $newPayment->group_id = $groupTo->id;
-                        $newPayment->contract_id = $discountPayment->contract_id;
-                        $newPayment->amount = $diff;
-                        $newPayment->discount = $discountPayment->discount;
-                        $newPayment->created_at = $moveDate->format('Y-m-d H:i:s');
-                        $newPayment->comment = 'Автоперевод средств при переводе студента из группы ' . $groupFrom->name . ' в группу ' . $groupTo->name;
-                        MoneyComponent::registerIncome($newPayment);
-                    } else {
-                        $discountPayment->group_id = $groupTo->id;
-                        $discountPayment->save();
-                    }
-                }
-            }
-            $freeMoney = Payment::find()
-                ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id, 'discount' => Payment::STATUS_INACTIVE])
-                ->select('SUM(amount)')
-                ->scalar();
-            while ($freeMoney > 0) {
-                /** @var Payment $lastPayment */
-                $lastPayment = Payment::find()
-                    ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id, 'discount' => Payment::STATUS_INACTIVE])
-                    ->andWhere(['>', 'amount', 0])
-                    ->orderBy(['created_at' => SORT_DESC])
-                    ->one();
-                if ($lastPayment->amount > $freeMoney) {
-                    $diff = $lastPayment->amount - $freeMoney;
-                    MoneyComponent::decreasePayment($lastPayment, $diff);
-
-                    $newPayment = new Payment();
-                    $newPayment->user_id = $lastPayment->user_id;
-                    $newPayment->admin_id = Yii::$app->user->id;
-                    $newPayment->group_id = $groupTo->id;
-                    $newPayment->contract_id = $lastPayment->contract_id;
-                    $newPayment->amount = $freeMoney;
-                    $newPayment->created_at = $moveDate->format('Y-m-d H:i:s');
-                    $newPayment->comment = 'Автоперевод средств при переводе студента из группы ' . $groupFrom->name . ' в группу ' . $groupTo->name;
-                    MoneyComponent::registerIncome($newPayment);
-                    $freeMoney = 0;
-                } else {
-                    $lastPayment->group_id = $groupTo->id;
-                    $lastPayment->save();
-                    $freeMoney -= $lastPayment->amount;
-                }
-            }
-            EventComponent::fillSchedule($groupTo);
-            GroupComponent::calculateTeacherSalary($groupTo);
-            MoneyComponent::setUserChargeDates($user, $groupFrom);
-            MoneyComponent::setUserChargeDates($user, $groupTo);
-            MoneyComponent::recalculateDebt($user, $groupTo);
+            GroupComponent::moveMoney($groupFrom, $groupTo, $user, $moveDate);
 
             $transaction->commit();
             return $this->asJson(self::getJsonOkResult());
@@ -441,6 +392,86 @@ class GroupController extends AdminController
                 ->logError('group/move-pupil', $ex->getMessage(), true);
             return $this->asJson(self::getJsonErrorResult($ex->getMessage()));
         }
+    }
+
+    /**
+     * @param int $userId
+     * @param int $groupId
+     * @return string|yii\web\Response
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     * @throws \Throwable
+     */
+    public function actionMoveMoney(int $userId, int $groupId)
+    {
+        if (!Yii::$app->user->can('moveMoney')) throw new ForbiddenHttpException('Access denied!');
+
+        $user = User::findOne($userId);
+        $group = Group::findOne($groupId);
+        if (!$user) throw new BadRequestHttpException('User not found');
+        if (!$group) throw new BadRequestHttpException('Group not found');
+        if (GroupPupil::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE, 'date_end' => null])->one()) {
+            throw new BadRequestHttpException('Студент ещё занимается в группе');
+        }
+        /** @var GroupPupil[] $groupPupils */
+        $groupPupils = GroupPupil::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id])->all();
+        if (count($groupPupils) == 0) throw new BadRequestHttpException('Pupil not found');
+
+        $moneyLeft = Payment::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id])->select('SUM(amount)')->scalar();
+        if ($moneyLeft <= 0) throw new BadRequestHttpException('Не осталось денег для перевода');
+
+        $dateEnd = null;
+        foreach ($groupPupils as $groupPupil) {
+            if (!$dateEnd || $groupPupil->endDateObject > $dateEnd) {
+                $dateEnd = $groupPupil->endDateObject;
+            }
+        }
+        $unknownEvent = EventComponent::getUncheckedEvent($group, $dateEnd);
+        if ($unknownEvent !== null) {
+            throw new BadRequestHttpException("В группе {$group->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
+                . yii\bootstrap\Html::a(
+                    $unknownEvent->eventDateTime->format('d.m.Y'),
+                    yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
+                )
+            );
+        }
+
+        if (\Yii::$app->request->isPost) {
+            $groupToId = \Yii::$app->request->post('group_to');
+            if (!$groupToId) throw new BadRequestHttpException('No group selected');
+            $groupTo = Group::findOne($groupToId);
+            if (!$groupTo) throw new BadRequestHttpException('Group not found');
+            $groupPupilsTo = GroupPupil::find()->andWhere(['user_id' => $user->id, 'group_id' => $groupTo->id, 'active' => GroupPupil::STATUS_ACTIVE])->all();
+            if (count($groupPupilsTo) == 0) throw new BadRequestHttpException('Pupil in destination group is not found');
+
+            $transaction = \Yii::$app->db->beginTransaction();
+            try {
+                GroupComponent::moveMoney($group, $groupTo, $user);
+
+                foreach ($groupPupils as $groupPupil) {
+                    $groupPupil->active = GroupPupil::STATUS_INACTIVE;
+                    $groupPupil->save();
+                }
+                $transaction->commit();
+                \Yii::$app->session->addFlash('success', 'Средства перенесены');
+            } catch (\Throwable $exception) {
+                $transaction->rollBack();
+                \Yii::$app->session->addFlash('error', $exception->getMessage());
+                throw $exception;
+            }
+        }
+
+        return $this->render('move_money', [
+            'group' => $group,
+            'user' => $user,
+            'moneyLeft' => $moneyLeft,
+            'groupList' => Group::find()
+                ->joinWith('groupPupils')
+                ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE, GroupPupil::tableName() . '.user_id' => $user->id])
+                ->andWhere(Group::tableName() . '.id != :groupFrom', ['groupFrom' => $group->id])
+                ->distinct(true)
+                ->orderBy(Group::tableName() . '.name')->all(),
+        ]);
     }
 
         /**

@@ -96,4 +96,19 @@ class EventComponent extends Component
             }
         }
     }
+
+    /**
+     * @param Group $group
+     * @param \DateTime $limitDate
+     * @return Event|null
+     */
+    public static function getUncheckedEvent(Group $group, \DateTime $limitDate): ?Event
+    {
+        /** @var Event|null $event */
+        $event = Event::find()
+            ->andWhere(['group_id' => $group->id, 'status' => Event::STATUS_UNKNOWN])
+            ->andWhere(['<=', 'event_date', $limitDate->format('Y-m-d H:i:s')])
+            ->orderBy(['event_date' => SORT_ASC])->one();
+        return $event;
+    }
 }

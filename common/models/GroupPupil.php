@@ -20,6 +20,7 @@ use common\components\extended\ActiveRecord;
  * @property \DateTime $startDateObject
  * @property \DateTime|null $endDateObject
  * @property \DateTime $chargeDateObject
+ * @property int $moneyLeft
  * @property Payment[] $payments
  * @property User $user
  * @property Group $group
@@ -120,5 +121,16 @@ class GroupPupil extends ActiveRecord
     public function getChargeDateObject()
     {
         return empty($this->date_charge_till) ? null : new \DateTime($this->date_charge_till);
+    }
+
+    /**
+     * @return int
+     */
+    public function getMoneyLeft(): int
+    {
+        return Payment::find()
+            ->andWhere(['user_id' => $this->user_id, 'group_id' => $this->group_id])
+            ->select('SUM(amount)')
+            ->scalar();
     }
 }

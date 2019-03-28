@@ -91,6 +91,12 @@ return [
             'manageGiftCardTypes',
         ],
     ],
+    'moneyMover' => [
+        'type' => 1,
+        'children' => [
+            'moveMoney',
+        ]
+    ],
     'content' => [
         'type' => 1,
         'children' => [
@@ -152,6 +158,10 @@ return [
     'moneyCorrection' => [
         'type' => 2,
         'description' => 'Correct money movements manually',
+    ],
+    'moveMoney' => [
+        'type' => 2,
+        'description' => 'Move money from finished group to new one',
     ],
 
     /* GROUP MANAGER */

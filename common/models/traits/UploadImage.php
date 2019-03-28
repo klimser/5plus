@@ -3,7 +3,6 @@
 namespace common\models\traits;
 use backend\components\TranslitComponent;
 use common\components\ComponentContainer;
-use Tinify\Source;
 use yii\base\UnknownPropertyException;
 use yii\web\UploadedFile;
 
