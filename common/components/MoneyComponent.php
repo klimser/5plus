@@ -57,12 +57,11 @@ class MoneyComponent extends Component
      * @param Company $company
      * @param User $pupil
      * @param int $amount
-     * @param null|string $number
      * @param Group $group
      * @return Contract
      * @throws \Exception
      */
-    public static function addPupilContract(Company $company, User $pupil, int $amount, ?string $number, Group $group): Contract
+    public static function addPupilContract(Company $company, User $pupil, int $amount, Group $group): Contract
     {
         if ($amount <= 0) throw new \Exception('Сумма договора не может быть отрицательной');
         if ($pupil->role != User::ROLE_PUPIL) throw new \Exception('Договор может быть создан только для студента');
@@ -98,10 +97,6 @@ class MoneyComponent extends Component
                     : Contract::STATUS_INACTIVE;
             }
         }
-
-        if ($number) $contract->number = $number;
-        else $contract = ContractComponent::generateContractNumber($contract);
-
         if (!$contract->save()) throw new \Exception('Не удалось создать договор: ' . $contract->getErrorsAsString());
 
         ComponentContainer::getActionLogger()->log(

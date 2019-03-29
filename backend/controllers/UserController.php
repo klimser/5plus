@@ -121,7 +121,6 @@ class UserController extends AdminController
                             $company,
                             $pupil,
                             $amount,
-                            null,
                             $groupPupil ? $groupPupil->group : Group::findOne($contractData['group'])
                         );
 
@@ -226,7 +225,6 @@ class UserController extends AdminController
             $company,
             $groupPupil->user,
             $amount,
-            $paymentData['contractType'] == 'manual' ? $paymentData['contract'] : null,
             $groupPupil->group
         );
 

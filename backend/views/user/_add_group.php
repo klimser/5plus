@@ -90,22 +90,6 @@ $this->registerJs('User.init();');
         <input id="comment" class="form-control" name="payment[comment]"
             <?= array_key_exists('comment', $paymentData) ? 'value="' . $paymentData['comment'] . '"' : ''; ?>>
     </div>
-    <div class="radio">
-        <label>
-            <input type="radio" name="payment[contractType]" id="payment_type_auto" value="auto" onchange="User.checkContractType(this);"
-                <?= !array_key_exists('contractType', $paymentData) || $paymentData['contractType'] == 'auto' ? 'checked' : ''; ?>>
-            Создать договор автоматически
-        </label>
-    </div>
-    <div class="radio">
-        <label class="form-inline">
-            <input type="radio" name="payment[contractType]" id="payment_type_manual" value="manual" onchange="User.checkContractType(this);"
-                <?= array_key_exists('contractType', $paymentData) && $paymentData['contractType'] == 'manual' ? 'checked' : ''; ?>>
-            Старый договор, номер: <input id="contract" class="form-control" name="payment[contract]" required
-                <?= array_key_exists('contractType', $paymentData) && $paymentData['contractType'] == 'manual' ? '' : 'disabled'; ?>
-                <?= array_key_exists('contract', $paymentData) ? 'value="' . $paymentData['contract'] . '"' : ''; ?>>
-        </label>
-    </div>
 </div>
 
 <div id="add_contract" <?= $addContract ? '' : 'class="hidden"'; ?>>

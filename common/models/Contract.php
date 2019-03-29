@@ -104,6 +104,20 @@ class Contract extends ActiveRecord
         if (empty($this->created_at)) $this->created_at = date('Y-m-d H:i:s');
         if (!parent::beforeValidate()) return false;
 
+        if ($this->isNewRecord && empty($this->number)) {
+            if (!$this->user_id) {
+                $this->addError('user_id', 'Assign user to contract first!');
+                return false;
+            }
+
+            $numberPrefix = $this->createDate->format('Ymd') . $this->user_id;
+            $numberAffix = 1;
+            while (Contract::find()->andWhere(['number' => $numberPrefix . $numberAffix])->select('COUNT(id)')->scalar() > 0) {
+                $numberAffix++;
+            }
+            $this->number = $numberPrefix . $numberAffix;
+        }
+
         if ($this->getOldAttribute('status') == self::STATUS_PAID
             && ($this->status != self::STATUS_PAID || $this->amount != $this->getOldAttribute('amount'))) {
             $this->addError('status', 'Paid contract cannot be changed!');

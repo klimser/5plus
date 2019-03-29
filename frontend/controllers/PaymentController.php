@@ -118,7 +118,6 @@ class PaymentController extends Controller
                 Company::findOne(Company::COMPANY_SUPER_ID),
                 $pupil,
                 $amount,
-                null,
                 $group
             );
             $contract->status = Contract::STATUS_PROCESS;

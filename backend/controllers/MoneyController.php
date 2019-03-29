@@ -71,9 +71,8 @@ class MoneyController extends AdminController
         $companyId = Yii::$app->request->post('company');
         $amount = intval(Yii::$app->request->post('amount', 0));
         $comment = Yii::$app->request->post('comment', '');
-        $contractNum = Yii::$app->request->post('contract');
 
-        if (!$userId || !$groupId || !$companyId || !$amount || !$contractNum) $jsonData = self::getJsonErrorResult('Wrong request');
+        if (!$userId || !$groupId || !$companyId || !$amount) $jsonData = self::getJsonErrorResult('Wrong request');
         else {
             $user = User::findOne($userId);
             $group = Group::findOne(['id' => $groupId, 'active' => Group::STATUS_ACTIVE]);
@@ -86,7 +85,7 @@ class MoneyController extends AdminController
             else {
                 $transaction = \Yii::$app->db->beginTransaction();
                 try {
-                    $contract = MoneyComponent::addPupilContract($company, $user, $amount, $contractNum != 'auto' ? $contractNum : null, $group);
+                    $contract = MoneyComponent::addPupilContract($company, $user, $amount, $group);
                     $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $comment);
 
                     $transaction->commit();
@@ -199,7 +198,6 @@ class MoneyController extends AdminController
                         Company::findOne(Company::COMPANY_SUPER_ID),
                         $pupil,
                         $giftCard->amount,
-                        null,
                         $group
                     );
 

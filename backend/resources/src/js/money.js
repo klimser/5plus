@@ -201,7 +201,6 @@ let Money = {
                 group: this.groupId,
                 amount: parseInt($(form).find("#amount").val()),
                 comment: $('#payment_comment').val(),
-                contract: $("#payment_type_auto").is(":checked") ? "auto" : $("#contract").val(),
                 company: $(form).find("input[name=company_id]:checked").val()
             },
             success: function(data) {

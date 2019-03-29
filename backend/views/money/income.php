@@ -92,22 +92,6 @@ $this->params['breadcrumbs'][] = $this->title;
                             </div>
                         </div>
                         <div class="col-xs-12">
-                            <div class="radio">
-                                <label>
-                                    <input type="radio" name="payment[contractType]" id="payment_type_auto" value="auto" onchange="User.checkContractType(this);" checked>
-                                    Создать договор автоматически
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-xs-12">
-                            <div class="radio">
-                                <label class="form-inline">
-                                    <input type="radio" name="payment[contractType]" id="payment_type_manual" value="manual" onchange="User.checkContractType(this);">
-                                    Старый договор, номер: <input id="contract" class="form-control" required disabled>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-xs-12">
                             <?= Html::radioList(
                                 'company_id',
                                 null,

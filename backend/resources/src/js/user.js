@@ -97,15 +97,11 @@ let User = {
             if (contractSwitch.length > 0 && contractSwitch.is(":checked")) {
                 contractSwitch.click();
             }
-            this.checkContractType();
         } else {
             $('#add_payment').addClass('hidden')
                 .find("input").prop('disabled', true);
         }
         this.setAmountBlockVisibility();
-    },
-    checkContractType: function() {
-        $("#contract").prop("disabled", $("input[name='payment[contractType]']:checked").val() === "auto");
     },
     checkAddContract: function(e) {
         let paymentSwitch = $("#add_payment_switch");

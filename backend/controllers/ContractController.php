@@ -161,8 +161,6 @@ class ContractController extends AdminController
                         && (($groupParam && $amount < $groupParam->price3Month) || (!$groupParam && $amount < $group->price3Month))) {
                         \Yii::$app->session->addFlash('error', 'Wrong payment amount');
                     } else {
-                        $contract = ContractComponent::generateContractNumber($contract);
-
                         if (!$contract->save()) \Yii::$app->session->addFlash('error', 'Не удалось создать договор: ' . $contract->getErrorsAsString());
                         else {
                             Yii::$app->session->addFlash(
