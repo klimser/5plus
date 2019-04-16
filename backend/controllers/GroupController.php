@@ -283,6 +283,7 @@ class GroupController extends AdminController
                 if (array_key_exists($groupPupil->user_id, $pupilsMap)
                     && ($groupPupil->startDateObject != $pupilsMap[$groupPupil->user_id]['startDate']
                         || $groupPupil->endDateObject != $pupilsMap[$groupPupil->user_id]['endDate'])) {
+                    GroupComponent::checkPupilDates($groupPupil->user, $groupPupil->startDateObject, $groupPupil->endDateObject);
                     $groupPupil->date_start = $pupilsMap[$groupPupil->user_id]['startDate']->format('Y-m-d');
                     $groupPupil->date_end = $pupilsMap[$groupPupil->user_id]['endDate'] ? $pupilsMap[$groupPupil->user_id]['endDate']->format('Y-m-d') : null;
 
