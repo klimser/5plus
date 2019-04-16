@@ -13,6 +13,7 @@ return [
             'manageEmployees',
             'editUser',
             'reportMoneyTotal',
+            'pupilChangePast',
         ],
     ],
     'manager' => [
@@ -208,6 +209,12 @@ return [
     'manageGiftCardTypes' => [
         'type' => 2,
         'description' => 'Manage prepaid gift card types',
+    ],
+
+    // Root only!
+    'pupilChangePast' => [
+        'type' => 2,
+        'description' => 'Edit pupils in groups in past dates',
     ],
 
     /* SUPPORT */
