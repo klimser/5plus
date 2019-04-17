@@ -208,6 +208,6 @@ class Group extends ActiveRecord
      */
     public function isKids(): bool
     {
-        return preg_match('#kids#i', $this->name) || preg_match('#кидс#i', $this->name);
+        return preg_match('#kids#i', $this->name) || preg_match('#кидс#iu', $this->name);
     }
 }
