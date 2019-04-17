@@ -28,10 +28,27 @@ class CashReport
         $adminSumMap = [];
         $adminMap = [];
         foreach ($payments as $payment) {
-            if (count($payment->contract->payments) == 1 && $payment->group->isKids() == $kids) {
+            if ($payment->group->isKids() == $kids) {
                 if (!array_key_exists($payment->admin_id, $adminSumMap)) $adminSumMap[$payment->admin_id] = 0;
-                $adminSumMap[$payment->admin_id] += $payment->amount;
                 $adminMap[$payment->admin_id] = $payment->admin->name;
+
+                if (count($payment->contract->payments) == 1) {
+                    $adminSumMap[$payment->admin_id] += $payment->amount;
+                } else {
+                    $ok = true;
+                    $minDate = $payment->created_at;
+                    $paymentSum = 0;
+                    foreach ($payment->contract->payments as $coPayment) {
+                        $paymentSum += $coPayment->amount;
+                        if ($coPayment->created_at < $minDate) {
+                            $ok = false;
+                            break;
+                        }
+                    }
+                    if ($ok) {
+                        $adminSumMap[$payment->admin_id] += $paymentSum;
+                    }
+                }
             }
         }
 
