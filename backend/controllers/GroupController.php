@@ -273,7 +273,6 @@ class GroupController extends AdminController
                 $endDate = $pupilEndDates[$key] ? date_create_from_format('d.m.Y H:i:s', $pupilEndDates[$key] . ' 00:00:00') : null;
                 if ($endDate && $group->date_end && $endDate > $group->endDateObject) $endDate = clone $group->endDateObject;
                 if ($endDate && $endDate <= $startDate) throw new \Exception('Введённые даты начала и завершения занятий студента ' . $pupil->name . ' недопустимы');
-                GroupComponent::checkPupilDates($pupil, $startDate, $endDate);
                 $pupilsMap[$pupilId] = [
                     'startDate' => $startDate,
                     'endDate' => $endDate,
@@ -283,7 +282,7 @@ class GroupController extends AdminController
                 if (array_key_exists($groupPupil->user_id, $pupilsMap)
                     && ($groupPupil->startDateObject != $pupilsMap[$groupPupil->user_id]['startDate']
                         || $groupPupil->endDateObject != $pupilsMap[$groupPupil->user_id]['endDate'])) {
-                    GroupComponent::checkPupilDates($groupPupil->user, $groupPupil->startDateObject, $groupPupil->endDateObject);
+                    GroupComponent::checkPupilDates($groupPupil, $pupilsMap[$groupPupil->user_id]['startDate'], $pupilsMap[$groupPupil->user_id]['endDate']);
                     $groupPupil->date_start = $pupilsMap[$groupPupil->user_id]['startDate']->format('Y-m-d');
                     $groupPupil->date_end = $pupilsMap[$groupPupil->user_id]['endDate'] ? $pupilsMap[$groupPupil->user_id]['endDate']->format('Y-m-d') : null;
 

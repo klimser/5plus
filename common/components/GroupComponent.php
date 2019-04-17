@@ -101,7 +101,7 @@ class GroupComponent extends Component
         if ($group->endDateObject && $startDate > $group->endDateObject) {
             throw new \Exception('Студент не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
         }
-        self::checkPupilDates($pupil, $startDate, $endDate);
+        self::checkPupilDates(null, $startDate, $endDate);
         $existedGroupPupil = GroupPupil::find()
             ->andWhere(['group_id' => $group->id, 'user_id' => $pupil->id])
             ->andWhere(['OR',
@@ -200,12 +200,23 @@ class GroupComponent extends Component
         MoneyComponent::recalculateDebt($user, $groupTo);
     }
 
-    public static function checkPupilDates(User $pupil, \DateTime $startDate, ?\DateTime $endDate)
+    /**
+     * @param GroupPupil|null $groupPupil
+     * @param \DateTime $startDate
+     * @param \DateTime|null $endDate
+     * @throws \Exception
+     */
+    public static function checkPupilDates(?GroupPupil $groupPupil, \DateTime $startDate, ?\DateTime $endDate)
     {
         $limitDate = new \DateTime('-7 days');
-        if (($startDate < $limitDate || ($endDate && $endDate < $limitDate))
+        if ((($groupPupil && $groupPupil->startDateObject != $startDate && ($groupPupil->startDateObject < $limitDate || $startDate < $limitDate))
+            || (!$groupPupil && $startDate < $limitDate)
+            || ($groupPupil && $groupPupil->endDateObject != $endDate
+                && ($groupPupil->endDateObject && $groupPupil->endDateObject < $limitDate)
+                || ($endDate && $endDate < $limitDate))
+            || (!$groupPupil && $endDate && $endDate < $limitDate))
             && !\Yii::$app->user->can('pupilChangePast')) {
-            throw new \Exception('Дата занятий студента ' . $pupil->name . ' может быть изменена только Александром Сергеевичем, обратитесь к нему.');
+            throw new \Exception('Дата занятий студента ' . $groupPupil->user->name . ' может быть изменена только Александром Сергеевичем, обратитесь к нему.');
         }
     }
 }
