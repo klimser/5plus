@@ -210,6 +210,13 @@ $this->title = 'Панель управления';
                                 </a>
                             </li>
                         <?php endif; ?>
+                        <?php if ($admin->can('reportCash')): ?>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['report/cash']); ?>">
+                                    <span class="fas fa-coins"></span> Касса
+                                </a>
+                            </li>
+                        <?php endif; ?>
                     </ul>
                 </li>
 

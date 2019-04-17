@@ -216,7 +216,7 @@ class GroupComponent extends Component
                 || ($endDate && $endDate < $limitDate))
             || (!$groupPupil && $endDate && $endDate < $limitDate))
             && !\Yii::$app->user->can('pupilChangePast')) {
-            throw new \Exception('Дата занятий студента ' . $groupPupil->user->name . ' может быть изменена только Александром Сергеевичем, обратитесь к нему.');
+            throw new \Exception('Дата занятий студента ' . ($groupPupil ? $groupPupil->user->name : '') . ' может быть изменена только Александром Сергеевичем, обратитесь к нему.');
         }
     }
 }

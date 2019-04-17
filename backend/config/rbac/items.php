@@ -13,6 +13,7 @@ return [
             'manageEmployees',
             'editUser',
             'reportMoneyTotal',
+            'reportCash',
             'pupilChangePast',
         ],
     ],
@@ -205,6 +206,10 @@ return [
     'reportMoneyTotal' => [
         'type' => 2,
         'description' => 'Get money totals report for all groups',
+    ],
+    'reportCash' => [
+        'type' => 2,
+        'description' => 'Get money cash report for a day',
     ],
     'manageGiftCardTypes' => [
         'type' => 2,

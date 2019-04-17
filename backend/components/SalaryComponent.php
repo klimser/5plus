@@ -24,7 +24,7 @@ class SalaryComponent
         if (!$groupParam) throw new \Exception('There is no salary for this month');
 
         $daysCount = intval($date->format('t'));
-        $lastColumn = \common\components\helpers\Spreadsheet::getColumnByNumber($daysCount + 2);
+        $lastColumn = $daysCount + 2;
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
@@ -33,7 +33,7 @@ class SalaryComponent
         $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
         $spreadsheet->getActiveSheet()->setTitle($date->format('m-Y') . ' ' . mb_substr($group->name, 0, 22));
 
-        $spreadsheet->getActiveSheet()->mergeCells("A1:{$lastColumn}1");
+        $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(1, 1, $lastColumn, 1);
         $spreadsheet->getActiveSheet()->setCellValue(
             'A1',
             "$group->name - " . Calendar::$monthNames[intval($date->format('n'))] . ' ' . $date->format('Y')
@@ -46,9 +46,9 @@ class SalaryComponent
         $spreadsheet->getActiveSheet()->setCellValue('A4', 'Стоимость занятия');
         $spreadsheet->getActiveSheet()->setCellValue('A5', 'Стоимость со скидкой');
 
-        $spreadsheet->getActiveSheet()->mergeCells("B3:{$lastColumn}3");
-        $spreadsheet->getActiveSheet()->mergeCells("B4:{$lastColumn}4");
-        $spreadsheet->getActiveSheet()->mergeCells("B5:{$lastColumn}5");
+        $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(2, 3, $lastColumn, 3);
+        $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(2, 4, $lastColumn, 4);
+        $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(2, 5, $lastColumn, 5);
         $spreadsheet->getActiveSheet()->setCellValue('B3', $groupParam->teacher->name);
         $spreadsheet->getActiveSheet()->setCellValueExplicit('B4', $groupParam->lesson_price, DataType::TYPE_NUMERIC);
         $spreadsheet->getActiveSheet()->setCellValueExplicit('B5', $groupParam->lesson_price_discount, DataType::TYPE_NUMERIC);
@@ -64,7 +64,7 @@ class SalaryComponent
             ->all();
 
         if (!$events) {
-            $spreadsheet->getActiveSheet()->mergeCells("A7:{$lastColumn}7");
+            $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(1, 7, $lastColumn, 7);
             $spreadsheet->getActiveSheet()->getStyle('A7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $spreadsheet->getActiveSheet()->setCellValue('A7', 'В группе не было занятий');
         } else {
@@ -94,19 +94,21 @@ class SalaryComponent
 
             for ($i = 1; $i <= $daysCount; $i++) {
                 $spreadsheet->getActiveSheet()
-                    ->setCellValueExplicit(\common\components\helpers\Spreadsheet::getColumnByNumber($i + 1) . '7', $i, DataType::TYPE_NUMERIC);
+                    ->setCellValueExplicitByColumnAndRow($i + 1,7, $i, DataType::TYPE_NUMERIC);
             }
-            $spreadsheet->getActiveSheet()->setCellValue("{$lastColumn}7", 'Итого');
-            $spreadsheet->getActiveSheet()->getStyle("B7:{$lastColumn}7")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $spreadsheet->getActiveSheet()->getStyle("B7:{$lastColumn}7")->getFont()->setBold(true);
+            $spreadsheet->getActiveSheet()->setCellValueByColumnAndRow($lastColumn, 7, 'Итого');
+            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(2, 7, $lastColumn, 7)
+                ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(2, 7, $lastColumn, 7)
+                ->getFont()->setBold(true);
 
             $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Зарплата преподавателю');
             $redColor = 'f2dede';
             foreach ($events as $event) {
-                $column = \common\components\helpers\Spreadsheet::getColumnByNumber(intval($event->eventDateTime->format('j')) + 1);
+                $column = intval($event->eventDateTime->format('j')) + 1;
 
                 if ($event->status == Event::STATUS_CANCELED) {
-                    $spreadsheet->getActiveSheet()->getStyle("{$column}7")
+                    $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, 7)
                         ->getFill()->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setRGB($redColor);
                 } else {
@@ -120,27 +122,29 @@ class SalaryComponent
                                 $totalSum += $payment->amount;
                             }
                             $spreadsheet->getActiveSheet()
-                                ->setCellValueExplicit($column . $groupPupilMap[$member->group_pupil_id], $paymentSum * -1, DataType::TYPE_NUMERIC);
+                                ->setCellValueExplicitByColumnAndRow($column, $groupPupilMap[$member->group_pupil_id], $paymentSum * -1, DataType::TYPE_NUMERIC);
                         }
 
                         if ($member->status == EventMember::STATUS_MISS) {
-                            $spreadsheet->getActiveSheet()->getStyle($column . $groupPupilMap[$member->group_pupil_id])
+                            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, $groupPupilMap[$member->group_pupil_id])
                                 ->getFill()->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()->setRGB($redColor);
                         }
                     }
 
                     $spreadsheet->getActiveSheet()
-                        ->setCellValueExplicit($column . $row, round($totalSum * (-1) / 100 * $groupParam->teacher_rate), DataType::TYPE_NUMERIC);
+                        ->setCellValueExplicitByColumnAndRow($column, $row, round($totalSum * (-1) / 100 * $groupParam->teacher_rate), DataType::TYPE_NUMERIC);
                 }
             }
 
             foreach ($userChargeMap as $userId => $chargeAmount) {
-                $spreadsheet->getActiveSheet()->setCellValueExplicit($lastColumn . $userMap[$userId], $chargeAmount * (-1), DataType::TYPE_NUMERIC);
+                $spreadsheet->getActiveSheet()
+                    ->setCellValueExplicitByColumnAndRow($lastColumn, $userMap[$userId], $chargeAmount * (-1), DataType::TYPE_NUMERIC);
             }
-            $spreadsheet->getActiveSheet()->setCellValueExplicit($lastColumn . $row, $groupParam->teacher_salary, DataType::TYPE_NUMERIC);
-            $spreadsheet->getActiveSheet()->getStyle("A$row:$lastColumn$row")->getFont()->setBold(true);
-            $spreadsheet->getActiveSheet()->getStyle("A7:$lastColumn$row")->applyFromArray([
+            $spreadsheet->getActiveSheet()
+                ->setCellValueExplicitByColumnAndRow($lastColumn, $row, $groupParam->teacher_salary, DataType::TYPE_NUMERIC);
+            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(1, $row, $lastColumn, $row)->getFont()->setBold(true);
+            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(1, 7, $lastColumn, $row)->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -151,7 +155,7 @@ class SalaryComponent
         }
 
         for ($i = 1; $i < $daysCount + 2; $i++) {
-            $spreadsheet->getActiveSheet()->getColumnDimension(\common\components\helpers\Spreadsheet::getColumnByNumber($i))->setAutoSize(true);
+            $spreadsheet->getActiveSheet()->getColumnDimensionByColumn($i)->setAutoSize(true);
         }
 
         return $spreadsheet;
