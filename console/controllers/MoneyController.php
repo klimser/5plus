@@ -21,14 +21,18 @@ class MoneyController extends Controller
      */
     public function actionCharge()
     {
-        $admin = User::findOne(4);
+        $admin = User::findOne(User::SYSTEM_USER_ID);
         Yii::$app->user->login($admin);
         $transaction = null;
         try {
             /** @var Group[] $activeGroups */
-            $activeGroups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->with(['groupPupils', 'events.members.payments'])->all();
+            $activeGroups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->all();
             $nowDate = new \DateTime();
-            foreach ($activeGroups as $group) {
+            foreach ($activeGroups as $emptyGroup) {
+                /** @var Group $group */
+                $group = Group::find()->andWhere(['id' => $emptyGroup->id])
+                    ->with(['groupPupils', 'events.members.payments'])
+                    ->one();
                 $transaction = Yii::$app->db->beginTransaction();
 
                 $isActive = false;

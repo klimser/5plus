@@ -87,7 +87,11 @@ class GroupMovementReport
         $rows = [0 => 3, 1 => 3];
         $groupCollections = [];
         foreach ($groups as $group) {
-            $groupParam = GroupComponent::getGroupParam($group, $startDate);
+            if ($group->groupPupils) {
+                $teacher = GroupComponent::getGroupParam($group, $startDate)->teacher;
+            } else {
+                $teacher = $group->teacher;
+            }
 
             $index = $group->isKids() ? 1 : 0;
             if (!array_key_exists($index, $groupCollections)) $groupCollections[$index] = [];
@@ -96,7 +100,7 @@ class GroupMovementReport
             $spreadsheet->getActiveSheet()
                 ->setCellValueByColumnAndRow($offset + 1, $rows[$index], $nums[$index])
                 ->setCellValueByColumnAndRow($offset + 2, $rows[$index], $group->name)
-                ->setCellValueByColumnAndRow($offset + 3, $rows[$index], $groupParam->teacher->name)
+                ->setCellValueByColumnAndRow($offset + 3, $rows[$index], $teacher->name)
                 ->setCellValueByColumnAndRow($offset + 4, $rows[$index], array_key_exists($group->id, $startPupilsCount) ? $startPupilsCount[$group->id] : 0)
                 ->setCellValueByColumnAndRow($offset + 5, $rows[$index], array_key_exists($group->id, $inPupilsCount) ? $inPupilsCount[$group->id] : 0)
                 ->setCellValueByColumnAndRow($offset + 6, $rows[$index], array_key_exists($group->id, $outPupilsCount) ? $outPupilsCount[$group->id] : 0)

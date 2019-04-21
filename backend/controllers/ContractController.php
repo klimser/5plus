@@ -3,7 +3,6 @@
 namespace backend\controllers;
 
 use common\components\ComponentContainer;
-use common\components\ContractComponent;
 use common\models\Company;
 use common\models\Contract;
 use common\models\ContractSearch;
@@ -48,13 +47,11 @@ class ContractController extends AdminController
     {
         $contract = $this->findModel($id);
         $generator = new \Picqer\Barcode\BarcodeGeneratorSVG();
-        $response = new \yii\web\Response();
-        $response->sendContentAsFile(
+        return \Yii::$app->response->sendContentAsFile(
             $generator->getBarcode($contract->number, $generator::TYPE_CODE_128),
             "barcode.svg",
             ['mimeType' => 'image/svg+xml', 'inline' => true]
         );
-        return $response;
     }
 
     /**

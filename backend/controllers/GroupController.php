@@ -49,7 +49,7 @@ class GroupController extends AdminController
 //        MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
 //        GroupComponent::calculateTeacherSalary($groupPupil->group);
 
-//        $group = Group::findOne(151);
+//        $group = Group::findOne(183);
 //        foreach ($group->groupPupils as $groupPupil) {
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
 //            MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
