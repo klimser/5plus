@@ -91,6 +91,13 @@ $this->params['breadcrumbs'][] = $this->title;
                     'type' => \kartik\field\FieldRange::INPUT_TEXT,
                 ]),
                 'contentOptions' => ['class' => 'text-right'],
+                'content' => function ($model, $key, $index, $column) {
+                    return $model->amount
+                        . ($model->amount < 0 && $model->used_payment_id === null
+                            ? ' <span class="label label-warning">no</span>'
+                            : ''
+                        );
+                },
             ],
             'comment',
             [
