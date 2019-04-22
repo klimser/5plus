@@ -6,6 +6,7 @@ use backend\components\EventComponent;
 use common\components\Action;
 use common\components\ComponentContainer;
 use common\components\MoneyComponent;
+use common\models\Debt;
 use common\models\Group;
 use common\models\GroupParam;
 use common\models\GroupPupil;
@@ -34,7 +35,92 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
-//        $user = User::findOne(3819);
+        if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
+
+            $groups = Group::find()->all();
+            foreach ($groups as $group) {
+                GroupComponent::calculateTeacherSalary($group);
+            }
+
+//            /** @var \backend\models\Action[] $actions */
+//            $actions = \backend\models\Action::find()
+//                ->andWhere(['type' => Action::TYPE_GROUP_PUPIL_UPDATED])
+//                ->andWhere(['or', 'comment LIKE "%date_start%"', 'comment LIKE "%date_end%"'])
+//                ->all();
+//            echo '<table>';
+//            foreach ($actions as $action) {
+//                $data = json_decode($action->comment, true);
+//                if (array_key_exists('date_start', $data)) {
+//                    $startDate = date_create_from_format('Y-m-d', $data['date_start']);
+//                    $diff = date_diff($startDate, $action->createDate);
+//                    if ($diff->days > 8) {
+//                        echo "<tr><td>{$action->admin->name}</td><td>{$action->user->name}</td><td>{$action->group->name}</td><td>{$action->createDate->format('Y-m-d')}</td><td>{$data['date_start']}</td><td>{$diff->days}</td></tr>";
+//                        continue;
+//                    }
+//                }
+//                if (array_key_exists('date_end', $data) && $data['date_end']) {
+//                    $endDate = date_create_from_format('Y-m-d', $data['date_end']);
+//                    $diff = date_diff($endDate, $action->createDate);
+//                    if ($diff->days > 8) {
+//                        echo "<tr><td>{$action->admin->name}</td><td>{$action->user->name}</td><td>{$action->group->name}</td><td>{$action->createDate->format('Y-m-d')}</td><td>{$data['date_end']}</td><td>{$diff->days}</td></tr>";
+//                        continue;
+//                    }
+//                }
+//            }
+//            echo '</table>';
+//            die;
+
+//            /** @var Debt[] $debts */
+//            $debts = Debt::find()->all();
+//            foreach ($debts as $debt) {
+//                $nextPayment = Payment::find()
+//                    ->andWhere(['user_id' => $debt->user_id])
+//                    ->andWhere(['like', 'comment', 'Перевод оставшихся средств студента из группы ' . $debt->group->name])
+//                    ->orderBy(['created_at' => SORT_ASC])
+//                    ->one();
+//                if ($nextPayment) {
+//                    $prevPayment = Payment::find()
+//                        ->andWhere(['user_id' => $debt->user_id, 'group_id' => $debt->group_id])
+//                        ->andWhere(['>', 'amount', 0])
+//                        ->orderBy(['created_at' => SORT_DESC])
+//                        ->one();
+//                    if ($prevPayment) {
+//                        $transaction = \Yii::$app->db->beginTransaction();
+//                        try {
+//                            echo $debt->user->name, ' -- ', $prevPayment->group->name, ' >> ', $nextPayment->group->name, "\n";
+//                            $needDelete = false;
+//                            if ($nextPayment->amount > $debt->amount) {
+//                                $nextPayment->amount -= $debt->amount;
+//                                $prevPayment->amount += $debt->amount;
+//                                $nextPayment->save();
+//                                $prevPayment->save();
+//                            } else {
+//                                $prevPayment->amount += $nextPayment->amount;
+//                                $prevPayment->save();
+//                                $nextPayment->amount = 0;
+//                                $nextPayment->save();
+//                                $needDelete = true;
+//                            }
+//
+//                            foreach ($debt->user->groupPupils as $groupPupil) {
+//                                EventComponent::fillSchedule($groupPupil->group);
+//                                MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
+//                                MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
+//                                GroupComponent::calculateTeacherSalary($groupPupil->group);
+//                                MoneyComponent::recalculateDebt($groupPupil->user, $groupPupil->group);
+//                            }
+//                            if ($needDelete) $nextPayment->delete();
+//                            $transaction->commit();
+//                        } catch (\Throwable $exception) {
+//                            $transaction->rollBack();
+//                            print_r($exception->getTrace());
+//                        }
+//                    }
+//                }
+//            }
+        }
+
+//        $user = User::findOne(4237);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
