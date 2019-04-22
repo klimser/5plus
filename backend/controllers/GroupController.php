@@ -344,7 +344,7 @@ class GroupController extends AdminController
 
         if (!$user) return $this->asJson(self::getJsonErrorResult('Студент не найден'));
         if (!$groupFrom) return $this->asJson(self::getJsonErrorResult('Группа ИЗ не найдена'));
-        if (!$groupTo) return $this->asJson(self::getJsonErrorResult('Группа ИЗ не найдена'));
+        if (!$groupTo) return $this->asJson(self::getJsonErrorResult('Группа В не найдена'));
         if (!$moveDate) return $this->asJson(self::getJsonErrorResult('Неверная дата перевода'));
 
         $groupPupilFrom = GroupPupil::findOne(['group_id' => $groupFrom->id, 'user_id' => $user->id, 'active' => GroupPupil::STATUS_ACTIVE]);
@@ -369,6 +369,7 @@ class GroupController extends AdminController
             $moveDate->modify('midnight');
             if (!$groupPupilFrom->endDateObject || $groupPupilFrom->endDateObject > $moveDate) {
                 $groupPupilFrom->date_end = $moveDate->format('Y-m-d');
+                $groupPupilFrom->moved = GroupPupil::STATUS_ACTIVE;
                 if ($groupPupilFrom->date_end < date('Y-m-d')) $groupPupilFrom->active = GroupPupil::STATUS_INACTIVE;
                 if ($groupPupilFrom->save()) {
                     EventComponent::fillSchedule($groupFrom);

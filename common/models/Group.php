@@ -29,7 +29,8 @@ use common\models\traits\GroupParam as GroupParamTrait;
  * @property User[] $pupils
  * @property GroupPupil[] $groupPupils
  * @property GroupPupil[] $activeGroupPupils
- * @property GroupPupil[] $inactiveGroupPupils
+ * @property GroupPupil[] $finishedGroupPupils
+ * @property GroupPupil[] $movedGroupPupils
  * @property Subject $subject
  * @property Teacher $teacher
  * @property GroupType $type
@@ -169,13 +170,29 @@ class Group extends ActiveRecord
     /**
      * @return GroupPupil[]
      */
-    public function getInactiveGroupPupils()
+    public function getFinishedGroupPupils()
     {
-        $inactiveGroupPupils = [];
+        $finishedGroupPupils = [];
         foreach ($this->groupPupils as $groupPupil) {
-            if ($groupPupil->active == GroupPupil::STATUS_INACTIVE) $inactiveGroupPupils[] = $groupPupil;
+            if ($groupPupil->active == GroupPupil::STATUS_INACTIVE && $groupPupil->moved == GroupPupil::STATUS_INACTIVE) {
+                $finishedGroupPupils[] = $groupPupil;
+            }
         }
-        return $inactiveGroupPupils;
+        return $finishedGroupPupils;
+    }
+
+    /**
+     * @return GroupPupil[]
+     */
+    public function getMovedGroupPupils()
+    {
+        $movedGroupPupils = [];
+        foreach ($this->groupPupils as $groupPupil) {
+            if ($groupPupil->active == GroupPupil::STATUS_INACTIVE && $groupPupil->moved == GroupPupil::STATUS_ACTIVE) {
+                $movedGroupPupils[] = $groupPupil;
+            }
+        }
+        return $movedGroupPupils;
     }
 
     /**

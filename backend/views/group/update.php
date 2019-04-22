@@ -177,10 +177,23 @@ SCRIPT
         <button class="btn btn-default btn-xs" onclick="return Group.renderPupilForm();"><span class="icon icon-user-plus"></span> Добавить студента</button>
         <hr>
 
-        <?php if (count($group->inactiveGroupPupils)): ?>
+        <?php if (count($group->movedGroupPupils)): ?>
+            <h4>Перешли в другие группы</h4>
+            <table class="table table-condensed">
+                <?php foreach ($group->movedGroupPupils as $groupPupil): ?>
+                    <tr>
+                        <td><?= $groupPupil->user->name; ?></td>
+                        <td class="text-right">
+                            <?= $groupPupil->startDateObject->format('d.m.Y'); ?> - <?= $groupPupil->endDateObject->format('d.m.Y'); ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        <?php endif; ?>
+        <?php if (count($group->finishedGroupPupils)): ?>
             <h4>Закончили заниматься</h4>
             <table class="table table-condensed">
-                <?php foreach ($group->inactiveGroupPupils as $groupPupil): ?>
+                <?php foreach ($group->finishedGroupPupils as $groupPupil): ?>
                     <tr>
                         <td><?= $groupPupil->user->name; ?></td>
                         <td class="text-right">

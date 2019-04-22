@@ -15,6 +15,7 @@ use common\components\extended\ActiveRecord;
  * @property int $active
  * @property string $date_start
  * @property string $date_end
+ * @property int $moved
  * @property string $date_charge_till
  * @property int $paid_lessons
  * @property \DateTime $startDateObject
@@ -43,8 +44,8 @@ class GroupPupil extends ActiveRecord
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
             [['user_id'], 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
-            ['active', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
-            ['active', 'default', 'value' => self::STATUS_ACTIVE],
+            [['active', 'moved'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
+            [['active', 'moved'], 'default', 'value' => self::STATUS_ACTIVE],
         ];
     }
 
@@ -56,6 +57,7 @@ class GroupPupil extends ActiveRecord
             'user_id' => 'ID ученика',
             'group_id' => 'ID группы',
             'active' => 'Активен ли студент',
+            'moved' => 'Студент перешел в другую группу',
             'date_start' => 'Дата начала занятий в группе',
             'date_end' => 'Дата завершения занятий в группе',
             'date_charge_till' => 'Стоимость списана до этой даты',
