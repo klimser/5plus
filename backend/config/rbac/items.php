@@ -15,6 +15,7 @@ return [
             'reportMoneyTotal',
             'reportCash',
             'pupilChangePast',
+            'moneyCorrection',
         ],
     ],
     'manager' => [
@@ -69,7 +70,6 @@ return [
         'type' => 1,
         'children' => [
             'viewSalary',
-            'moneyCorrection',
             'reportMoney',
         ],
     ],

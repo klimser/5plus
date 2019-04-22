@@ -157,7 +157,7 @@ class Contract extends ActiveRecord
     public function getPaidDateString(): string
     {
         $paidDate = $this->getPaidDate();
-        return $paidDate ? $paidDate->format('Y-m-d H:i:s') : '';
+        return $paidDate ? $paidDate->format('Y-m-d') : '';
     }
 
     /**

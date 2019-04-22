@@ -117,9 +117,11 @@ class SalaryComponent
                         if ($member->payments) {
                             $paymentSum = 0;
                             foreach ($member->payments as $payment) {
-                                $paymentSum += $payment->amount;
-                                $userChargeMap[$payment->user_id] += $payment->amount;
-                                $totalSum += $payment->amount;
+                                if ($payment->used_payment_id) {
+                                    $paymentSum += $payment->amount;
+                                    $userChargeMap[$payment->user_id] += $payment->amount;
+                                    $totalSum += $payment->amount;
+                                }
                             }
                             $spreadsheet->getActiveSheet()
                                 ->setCellValueExplicitByColumnAndRow($column, $groupPupilMap[$member->group_pupil_id], $paymentSum * -1, DataType::TYPE_NUMERIC);
