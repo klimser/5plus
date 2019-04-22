@@ -174,7 +174,7 @@ SCRIPT
             endforeach;
             $this->registerJs($script); ?>
         </div>
-        <button class="btn btn-default btn-xs" onclick="return Group.renderPupilForm();"><span class="icon icon-user-plus"></span> Добавить ученика</button>
+        <button class="btn btn-default btn-xs" onclick="return Group.renderPupilForm();"><span class="icon icon-user-plus"></span> Добавить студента</button>
         <hr>
 
         <?php if (count($group->inactiveGroupPupils)): ?>

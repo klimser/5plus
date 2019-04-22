@@ -13,6 +13,8 @@ return [
             'manageEmployees',
             'editUser',
             'reportMoneyTotal',
+            'reportCash',
+            'pupilChangePast',
         ],
     ],
     'manager' => [
@@ -205,9 +207,19 @@ return [
         'type' => 2,
         'description' => 'Get money totals report for all groups',
     ],
+    'reportCash' => [
+        'type' => 2,
+        'description' => 'Get money cash report for a day',
+    ],
     'manageGiftCardTypes' => [
         'type' => 2,
         'description' => 'Manage prepaid gift card types',
+    ],
+
+    // Root only!
+    'pupilChangePast' => [
+        'type' => 2,
+        'description' => 'Edit pupils in groups in past dates',
     ],
 
     /* SUPPORT */

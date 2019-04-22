@@ -96,62 +96,61 @@ class GroupComponent extends Component
     {
         if (!$group || !$startDate || ($endDate && $endDate < $startDate)) {
             throw new \Exception('Студент не добавлен в группу, введены некорректные значения даты начала и завершения занятий!');
-        } else {
-            $startDate->modify('midnight');
-            if ($group->endDateObject && $startDate > $group->endDateObject) {
-                throw new \Exception('Студент не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
-            } else {
-                $existedGroupPupil = GroupPupil::find()
-                    ->andWhere(['group_id' => $group->id, 'user_id' => $pupil->id])
-                    ->andWhere(['OR',
-                        ['AND',
-                            ['<', 'date_start', $startDate->format('Y-m-d')],
-                            ['OR', ['date_end' => null], ['>', 'date_end', $startDate->format('Y-m-d')]]],
-                        ['AND',
-                            ['>=', 'date_start', $startDate->format('Y-m-d')],
-                            ($endDate ? ['<=', 'date_start', $endDate->format('Y-m-d')] : '1'),
-                        ]
-                    ])
-                    ->one();
-                if ($existedGroupPupil) {
-                    throw new \Exception('Студент уже был добавлен в группу в выбранном промежутке времени, не добавляйте его дважды, так нельзя!');
-                }
-
-                $groupPupil = new GroupPupil();
-                $groupPupil->user_id = $pupil->id;
-                $groupPupil->group_id = $group->id;
-                $groupPupil->date_start = $startDate < $group->startDateObject ? $group->date_start : $startDate->format('Y-m-d');
-                if ($endDate) {
-                    $endDate->modify('midnight');
-                    if ($group->endDateObject && $endDate > $group->endDateObject) $endDate = $group->endDateObject;
-                    if ($endDate < $group->startDateObject) $endDate = $group->startDateObject;
-                    $groupPupil->date_end = $endDate->format('Y-m-d');
-                }
-                if (!$groupPupil->save()) {
-                    ComponentContainer::getErrorLogger()
-                        ->logError('user/pupil-to-group', $groupPupil->getErrorsAsString(), true);
-                    throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
-                } else {
-                    $pupil->link('groupPupils', $groupPupil);
-                    $group->link('groupPupils', $groupPupil);
-
-                    if ($fillSchedule) {
-                        EventComponent::fillSchedule($group);
-                        GroupComponent::calculateTeacherSalary($group);
-                    }
-
-                    ComponentContainer::getActionLogger()->log(
-                        Action::TYPE_GROUP_PUPIL_ADDED,
-                        $groupPupil->user,
-                        null,
-                        $group,
-                        json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
-                    );
-
-                    return $groupPupil;
-                }
-            }
         }
+        $startDate->modify('midnight');
+        if ($group->endDateObject && $startDate > $group->endDateObject) {
+            throw new \Exception('Студент не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
+        }
+        self::checkPupilDates(null, $startDate, $endDate);
+        $existedGroupPupil = GroupPupil::find()
+            ->andWhere(['group_id' => $group->id, 'user_id' => $pupil->id])
+            ->andWhere(['OR',
+                ['AND',
+                    ['<', 'date_start', $startDate->format('Y-m-d')],
+                    ['OR', ['date_end' => null], ['>', 'date_end', $startDate->format('Y-m-d')]]],
+                ['AND',
+                    ['>=', 'date_start', $startDate->format('Y-m-d')],
+                    ($endDate ? ['<=', 'date_start', $endDate->format('Y-m-d')] : '1'),
+                ]
+            ])
+            ->one();
+        if ($existedGroupPupil) {
+            throw new \Exception('Студент уже был добавлен в группу в выбранном промежутке времени, не добавляйте его дважды, так нельзя!');
+        }
+
+        $groupPupil = new GroupPupil();
+        $groupPupil->user_id = $pupil->id;
+        $groupPupil->group_id = $group->id;
+        $groupPupil->date_start = $startDate < $group->startDateObject ? $group->date_start : $startDate->format('Y-m-d');
+        if ($endDate) {
+            $endDate->modify('midnight');
+            if ($group->endDateObject && $endDate > $group->endDateObject) $endDate = $group->endDateObject;
+            if ($endDate < $group->startDateObject) $endDate = $group->startDateObject;
+            $groupPupil->date_end = $endDate->format('Y-m-d');
+        }
+        if (!$groupPupil->save()) {
+            ComponentContainer::getErrorLogger()
+                ->logError('user/pupil-to-group', $groupPupil->getErrorsAsString(), true);
+            throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
+        }
+
+        $pupil->link('groupPupils', $groupPupil);
+        $group->link('groupPupils', $groupPupil);
+
+        if ($fillSchedule) {
+            EventComponent::fillSchedule($group);
+            GroupComponent::calculateTeacherSalary($group);
+        }
+
+        ComponentContainer::getActionLogger()->log(
+            Action::TYPE_GROUP_PUPIL_ADDED,
+            $groupPupil->user,
+            null,
+            $group,
+            json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
+        );
+
+        return $groupPupil;
     }
 
     /**
@@ -199,5 +198,25 @@ class GroupComponent extends Component
         MoneyComponent::setUserChargeDates($user, $groupFrom);
         MoneyComponent::setUserChargeDates($user, $groupTo);
         MoneyComponent::recalculateDebt($user, $groupTo);
+    }
+
+    /**
+     * @param GroupPupil|null $groupPupil
+     * @param \DateTime $startDate
+     * @param \DateTime|null $endDate
+     * @throws \Exception
+     */
+    public static function checkPupilDates(?GroupPupil $groupPupil, \DateTime $startDate, ?\DateTime $endDate)
+    {
+        $limitDate = new \DateTime('-7 days');
+        if ((($groupPupil && $groupPupil->startDateObject != $startDate && ($groupPupil->startDateObject < $limitDate || $startDate < $limitDate))
+            || (!$groupPupil && $startDate < $limitDate)
+            || ($groupPupil && $groupPupil->endDateObject != $endDate
+                && ($groupPupil->endDateObject && $groupPupil->endDateObject < $limitDate)
+                || ($endDate && $endDate < $limitDate))
+            || (!$groupPupil && $endDate && $endDate < $limitDate))
+            && !\Yii::$app->user->can('pupilChangePast')) {
+            throw new \Exception('Дата занятий студента ' . ($groupPupil ? $groupPupil->user->name : '') . ' может быть изменена только Александром Сергеевичем, обратитесь к нему.');
+        }
     }
 }

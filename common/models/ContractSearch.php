@@ -22,6 +22,10 @@ class ContractSearch extends Contract
         ];
     }
 
+    public function beforeValidate()
+    {
+        return true;
+    }
 
     public function scenarios()
     {
