@@ -66,7 +66,7 @@ class GroupComponent extends Component
                     ->andWhere(['group_id' => $group->id])
                     ->andWhere(['>=', 'created_at', $dateStart->format('Y-m-d H:i:s')])
                     ->andWhere(['<', 'created_at', $dateEnd->format('Y-m-d H:i:s')])
-                    ->andWhere('used_payment IS NOT NULL')
+                    ->andWhere('used_payment_id IS NOT NULL')
                     ->select('SUM(amount)')
                     ->scalar();
                 $groupParam->teacher_salary = round($paymentSum * (-1) * $groupParam->teacher_rate / 100);
