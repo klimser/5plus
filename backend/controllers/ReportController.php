@@ -6,6 +6,7 @@ use backend\components\report\CashReport;
 use backend\components\report\DebtReport;
 use backend\components\report\GroupMovementReport;
 use backend\components\report\MoneyReport;
+use backend\components\report\RestMoneyReport;
 use common\models\Group;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use yii\web\ForbiddenHttpException;
@@ -123,5 +124,22 @@ class ReportController extends AdminController
         }
 
         return $this->render('cash');
+    }
+
+    public function actionRestMoney()
+    {
+        if (!\Yii::$app->user->can('reportCash')) throw new ForbiddenHttpException('Access denied!');
+
+        ob_start();
+        $objWriter = IOFactory::createWriter(
+            RestMoneyReport::create(),
+            'Xlsx'
+        );
+        $objWriter->save('php://output');
+        return \Yii::$app->response->sendContentAsFile(
+            ob_get_clean(),
+            'rest-money-' . date('d.m.Y') . '.xlsx',
+            ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        );
     }
 }

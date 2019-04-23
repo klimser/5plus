@@ -216,6 +216,11 @@ $this->title = 'Панель управления';
                                     <span class="fas fa-coins"></span> Касса
                                 </a>
                             </li>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['report/rest-money']); ?>">
+                                    <span class="fas fa-funnel-dollar"></span> Остатки
+                                </a>
+                            </li>
                         <?php endif; ?>
                     </ul>
                 </li>
