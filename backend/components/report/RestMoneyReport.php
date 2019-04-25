@@ -32,29 +32,55 @@ class RestMoneyReport
             ->setCellValue('B3', 'Выбыл')
             ->setCellValue('C3', 'Остаток');
 
-
         $row = 5;
-        /** @var Group[] $groups */
-        $groups = Group::find()
-            ->andWhere([Group::tableName() . '.active' => Group::STATUS_ACTIVE])
-            ->joinWith('groupPupils')
-            ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_INACTIVE])
-            ->orderBy([GroupPupil::tableName() . '.date_end' => SORT_DESC])
+        $data = Group::find()->alias('g')
+            ->andWhere(['g.active' => Group::STATUS_ACTIVE])
+            ->leftJoin(['gp1' => GroupPupil::tableName()], 'gp1.group_id = g.id')
+            ->leftJoin(
+                ['gp2' => GroupPupil::tableName()],
+                'gp2.group_id = gp1.group_id AND gp2.user_id = gp1.user_id AND gp2.id != gp1.id '
+                . 'AND gp2.active = ' . GroupPupil::STATUS_ACTIVE
+            )
+            ->andWhere([
+                'gp1.active' => GroupPupil::STATUS_INACTIVE,
+                'gp2.id' => null,
+            ])
+            ->orderBy(['gp1.date_end' => SORT_DESC])
+            ->select(['group_id' => 'g.id', 'group_pupil_id' => 'gp1.id'])
+            ->asArray()
             ->all();
+        $groupPupilIds = [];
+        $groupPupilMap = [];
+        $groupMap = [];
+        foreach ($data as $record) {
+            $groupPupilIds[] = $record['group_pupil_id'];
+            if (!array_key_exists($record['group_id'], $groupMap)) {
+                $groupMap[$record['group_id']] = ['entity' => null, 'pupils' => []];
+            }
+            $groupMap[$record['group_id']]['pupils'][] = $record['group_pupil_id'];
+        }
+        $groups = Group::find()->andWhere(['id' => array_keys($groupMap)])->all();
+        foreach ($groups as $group) $groupMap[$group->id]['entity'] = $group;
+        $groupPupils = GroupPupil::find()->andWhere(['id' => $groupPupilIds])->all();
+        foreach ($groupPupils as $groupPupil) $groupPupilMap[$groupPupil->id] = $groupPupil;
         $totalSum = 0;
-        foreach ($groups as $group) {
+        foreach ($groupMap as $groupData) {
             $titleRendered = false;
-            foreach ($group->finishedGroupPupils as $groupPupil) {
+            foreach ($groupData['pupils'] as $groupPupilId) {
+                $groupPupil = $groupPupilMap[$groupPupilId];
                 if ($groupPupil->moneyLeft > 0) {
                     if (!$titleRendered) {
                         $spreadsheet->getActiveSheet()->mergeCells("A$row:C$row");
-                        $spreadsheet->getActiveSheet()->setCellValue("A$row", $group->name);
+                        $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupData['entity']->name);
                         $spreadsheet->getActiveSheet()->getStyle("A$row")->getFont()->setItalic(true)->setSize(14);
                         $row++;
                         $titleRendered = true;
                     }
                     $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupPupil->user->name);
-                    $spreadsheet->getActiveSheet()->setCellValue("B$row", $groupPupil->chargeDateObject->format('d.m.Y'));
+                    $spreadsheet->getActiveSheet()->setCellValue(
+                        "B$row",
+                        $groupPupil->endDateObject->format('d.m.Y')
+                    );
                     $spreadsheet->getActiveSheet()->setCellValueExplicit(
                         "C$row",
                         $groupPupil->moneyLeft,

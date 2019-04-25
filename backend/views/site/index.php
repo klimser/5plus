@@ -146,6 +146,14 @@ $this->title = 'Панель управления';
                     </li>
                 <?php endif; ?>
 
+                <?php if ($admin->can('viewMissed')): ?>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['missed/table']); ?>">
+                            <span class="fas fa-table"></span> Посещаемость
+                        </a>
+                    </li>
+                <?php endif; ?>
+
                 <?php if ($admin->can('viewSalary')): ?>
                     <li role="presentation">
                         <a href="<?= Url::to(['money/salary']); ?>">

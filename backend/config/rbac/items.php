@@ -64,6 +64,7 @@ return [
             'manageSchedule',
             'viewGroups',
             'reportDebt',
+            'viewMissed',
         ],
     ],
     'accountant' => [
@@ -91,6 +92,7 @@ return [
             'manageGroups',
             'reportGroupMovement',
             'manageGiftCardTypes',
+            'viewMissed',
         ],
     ],
     'moneyMover' => [
@@ -150,6 +152,10 @@ return [
     'manageSchedule' => [
         'type' => 2,
         'description' => 'Manage schedule',
+    ],
+    'viewMissed' => [
+        'type' => 2,
+        'description' => 'View missed pupils report',
     ],
 
     /* ACCOUNTANT */

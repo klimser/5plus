@@ -152,7 +152,10 @@ class Group extends ActiveRecord
      */
     public function getGroupPupils()
     {
-        return $this->hasMany(GroupPupil::class, ['group_id' => 'id'])->with('user')->inverseOf('group');
+        return $this->hasMany(GroupPupil::class, ['group_id' => 'id'])
+            ->joinWith('user')
+            ->orderBy(User::tableName() . '.name')
+            ->inverseOf('group');
     }
 
     /**

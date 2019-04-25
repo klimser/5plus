@@ -48,6 +48,11 @@ $this->render('/grunt-assets');
         $menuItems = [];
         if (\Yii::$app->user->identity->role == \common\models\User::ROLE_ROOT) {
             $menuItems[] = [
+                'label' => 'Пользователи',
+                'encode' => false,
+                'url' => ['user/index'],
+            ];
+            $menuItems[] = [
                 'label' => '<span class="fas fa-broom"></span>',
                 'encode' => false,
                 'url' => ['site/clear-cache'],
