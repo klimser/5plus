@@ -102,7 +102,6 @@ class User extends ActiveRecord implements IdentityInterface
             [['phoneFormatted', 'phone2Formatted'], 'string', 'min' => 11, 'max' => 11],
             [['phoneFormatted', 'phone2Formatted'], 'match', 'pattern' => '#^\d{2} \d{3}-\d{4}$#'],
             [['username'], 'unique'],
-            [['phone'], 'unique', 'on' => self::SCENARIO_USER],
             [['password_reset_token'], 'unique'],
             [['password'], 'safe'],
             [['password'], 'required', 'on' => self::SCENARIO_ADMIN, 'when' => function ($model, $attribute) {return $model->isNewRecord;},

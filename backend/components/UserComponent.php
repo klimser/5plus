@@ -73,4 +73,17 @@ class UserComponent extends Component
         \Yii::$app->cache->delete('user.letters');
         \Yii::$app->cache->delete('user.years');
     }
+
+    public static function isPhoneUsed(int $role, string $phone, ?string $phone2 = null): bool
+    {
+        $qB = User::find()
+            ->orWhere(['phone' => $phone])
+            ->orWhere(['phone2' => $phone]);
+        if ($phone2) {
+            $qB->orWhere(['phone' => $phone2])
+                ->orWhere(['phone2' => $phone2]);
+        }
+        $qB->andWhere(['role' => $role]);
+        return null !== $qB->one();
+    }
 }

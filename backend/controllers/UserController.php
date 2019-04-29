@@ -77,18 +77,9 @@ class UserController extends AdminController
 
             $transaction = User::getDb()->beginTransaction();
             try {
-                $qB = User::find()
-                    ->orWhere(['phone' => $pupil->phone])
-                    ->orWhere(['phone2' => $pupil->phone]);
-                if ($pupil->phone2) {
-                    $qB->orWhere(['phone' => $pupil->phone2])
-                        ->orWhere(['phone2' => $pupil->phone2]);
+                if (UserComponent::isPhoneUsed(User::ROLE_PUPIL, $pupil->phone, $pupil->phone2)) {
+                    throw new \Exception('Студент с таким номером телефона уже существует!');
                 }
-                $qB->andWhere(['role' => User::ROLE_PUPIL]);
-                if ($qB->one()) throw new \Exception('Студент с таким номером телефона уже существует!');
-
-                $company = Company::findOne($companyId);
-                if (!$company) throw new \Exception('Не выбран учебный центр!');
 
                 $personType = \Yii::$app->request->post('person_type', User::ROLE_PARENTS);
                 switch ($personType) {
@@ -106,6 +97,9 @@ class UserController extends AdminController
                     $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
                     $addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
                     $addContract = array_key_exists('add', $contractData) && $contractData['add'];
+
+                    $company = Company::findOne($companyId);
+                    if (!$company) throw new \Exception('Не выбран учебный центр!');
 
                     $groupPupil = null;
                     if ($addGroup) {
@@ -183,6 +177,11 @@ class UserController extends AdminController
                 break;
             case 'new':
                 $parent->role = $personType;
+
+                if (UserComponent::isPhoneUsed($personType, $parent->phone, $parent->phone2)) {
+                    throw new \Exception('Родитель/компания с таким номером телефона уже существует!');
+                }
+
                 if (!$parent->save()) {
                     $parent->moveErrorsToFlash();
                     throw new \Exception('Server error');

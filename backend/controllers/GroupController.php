@@ -337,6 +337,7 @@ class GroupController extends AdminController
         $groupFromId = Yii::$app->request->post('group_from', 0);
         $groupToId = Yii::$app->request->post('group_to', 0);
         $moveDate =  date_create_from_format('d.m.Y', Yii::$app->request->post('move_date', ''));
+        $moveDate->modify('midnight');
 
         $user = User::findOne($userId);
         $groupFrom = Group::findOne($groupFromId);
@@ -362,6 +363,19 @@ class GroupController extends AdminController
                     yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
                 )
             ));
+        }
+
+        $income = Payment::find()
+            ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
+            ->andWhere(['>', 'amount', 0])
+            ->select('SUM(amount)')->scalar();
+        $outcome = Payment::find()
+            ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
+            ->andWhere(['<', 'amount', 0])
+            ->andWhere(['<', 'created_at', $moveDate->format('Y-m-d H:i:s')])
+            ->select('SUM(amount)')->scalar();
+        if ($income + $outcome < 0) {
+            return $this->asJson(self::getJsonErrorResult('Студент не может быть переведён пока не погасит долг - ' . (($income + $outcome) * (-1))));
         }
 
         $transaction = GroupPupil::getDb()->beginTransaction();
