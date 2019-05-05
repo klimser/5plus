@@ -45,7 +45,8 @@ class GroupPupil extends ActiveRecord
             [['user_id'], 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
             [['active', 'moved'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
-            [['active', 'moved'], 'default', 'value' => self::STATUS_ACTIVE],
+            [['active'], 'default', 'value' => self::STATUS_ACTIVE],
+            [['moved'], 'default', 'value' => self::STATUS_INACTIVE],
         ];
     }
 

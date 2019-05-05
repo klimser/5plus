@@ -1,32 +1,51 @@
 <?php
 
 /* @var $this yii\web\View */
-/* @var $resultMap \common\models\User[][] */
-/* @var $groupMap common\models\Group[] */
+/* @var $groupMap array */
 
 $this->title = 'Отсутствуют на занятиях';
 $this->params['breadcrumbs'][] = $this->title;
 
 ?>
 
-<?php foreach ($resultMap as $groupId => $users):
-    if (empty($users)) continue;
-?>
-    <table class="table table-condensed">
+<table class="table table-condensed">
+    <?php foreach ($groupMap as $groupId => $data):
+        if (empty($data['pupils'])) continue;
+    ?>
         <tr>
-            <th colspan="2"><?= $groupMap[$groupId]->name; ?></th>
+            <th colspan="4">
+                <a href="<?= \yii\helpers\Url::to(['missed/table', 'groupId' => $groupId]); ?>" target="_blank">
+                    <?= $data['entity']->name; ?>
+                </a>
+            </th>
         </tr>
-        <?php foreach ($users as $user): ?>
+        <?php foreach ($data['pupils'] as $pupilData): ?>
             <tr>
-                <td><?= $user->name; ?></td>
+                <td><?= $pupilData['groupPupil']->user->name; ?></td>
                 <td>
-                    <?= $user->phoneFull; ?>
-                    <?php if ($user->phone2): ?>
+                    <nobr><?= $pupilData['groupPupil']->user->phoneFull; ?></nobr>
+                    <?php if ($pupilData['groupPupil']->user->phone2): ?>
                         <br>
-                        <?= $user->phone2Full; ?>
+                        <nobr><?= $pupilData['groupPupil']->user->phone2Full; ?></nobr>
                     <?php endif; ?>
+                </td>
+                <td>
+                    <?php
+                    /** @var \backend\models\UserCall $call */
+                    foreach ($pupilData['calls'] as $call): ?>
+                        <?= $call->createDate->format('d.m.y H:i'); ?>
+                        <?= $call->admin->name; ?>
+                        <i><?= $call->comment; ?></i>
+                        <hr class="thin">
+                    <?php endforeach; ?>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-default" onclick="return Missed.showCall(<?= $pupilData['groupPupil']->id; ?>, this);">
+                        <span class="fas fa-phone"></span>
+                    </button>
+                    <div id="phone_call_<?= $pupilData['groupPupil']->id; ?>"></div>
                 </td>
             </tr>
         <?php endforeach; ?>
-    </table>
-<?php endforeach; ?>
+    <?php endforeach; ?>
+</table>

@@ -60,17 +60,11 @@ class SubscribeCommand extends UserCommand
             );
 
             //Fetch conversation command if it exists and execute it
-            if ($conversation->exists()) {
-                if ($conversation->getCommand() != $this->name) {
-                    return $this->telegram->executeCommand($conversation->getCommand());
-                } else {
-                    if ($message->getContact() || ($message->getReplyToMessage() && $message->getReplyToMessage()->getContact())) {
-                        return $this->processSubscription();
-                    }
+            if ($conversation->exists() && $conversation->getCommand() === $this->name) {
+                if ($message->getContact() || ($message->getReplyToMessage() && $message->getReplyToMessage()->getContact())) {
+                    return $this->processSubscription();
                 }
-            }
-
-            if (!$conversation->exists()) {
+            } else {
                 $conversation = new Conversation(
                     $message->getFrom()->getId(),
                     $chatId,

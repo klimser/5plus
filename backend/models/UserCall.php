@@ -13,7 +13,6 @@ use common\models\User;
  * @property int $user_id ID студента
  * @property int $admin_id ID админа
  * @property string $comment Комментарий
- * @property string $created_at Дата звонка
  *
  * @property User $user
  * @property User $admin

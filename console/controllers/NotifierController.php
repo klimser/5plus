@@ -7,7 +7,6 @@ use common\components\helpers\WordForm;
 use common\components\paygram\PaygramApiException;
 use common\components\PaymentComponent;
 use common\components\telegram\Request;
-use common\models\Debt;
 use common\models\GroupPupil;
 use common\models\Notify;
 use common\models\User;
@@ -21,9 +20,12 @@ class NotifierController extends Controller
 {
     const QUANTITY_LIMIT = 40;
     const TIME_LIMIT = 50;
+
     /**
      * Search for a not sent notifications and sends it.
      * @return int
+     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws yii\db\Exception
      */
     public function actionSend()
     {
@@ -146,25 +148,25 @@ class NotifierController extends Controller
     {
         $monthLimit = new \DateTime('-30 days');
 
-        /** @var Debt[] $debts */
-        $debts = Debt::find()
-            ->joinWith('user.activeGroupPupils', true, 'INNER JOIN')
+        /** @var GroupPupil[] $groupPupils */
+        $groupPupils = GroupPupil::find()
+            ->joinWith('user')
+            ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE])
+            ->andWhere(['<', GroupPupil::tableName() . '.paid_lessons', 0])
             ->andWhere(['!=', User::tableName() . '.status', User::STATUS_LOCKED])
-            ->select(Debt::tableName() . '.*')
-            ->distinct(true)
             ->with(['user', 'group'])
             ->all();
-        foreach ($debts as $debt) {
+        foreach ($groupPupils as $groupPupil) {
 
             /*----------------------  TEMPLATE ID 1 ---------------------------*/
             $queuedNotifications = Notify::find()
-                ->andWhere(['user_id' => $debt->user_id, 'group_id' => $debt->group_id, 'template_id' => Notify::TEMPLATE_PUPIL_DEBT])
+                ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id, 'template_id' => Notify::TEMPLATE_PUPIL_DEBT])
                 ->andWhere(['!=', 'status', Notify::STATUS_SENT])
                 ->one();
             if (empty($queuedNotifications)) {
                 /** @var Notify[] $sentNotifications */
                 $sentNotifications = Notify::find()
-                    ->andWhere(['user_id' => $debt->user_id, 'group_id' => $debt->group_id, 'template_id' => Notify::TEMPLATE_PUPIL_DEBT])
+                    ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id, 'template_id' => Notify::TEMPLATE_PUPIL_DEBT])
                     ->andWhere(['status' => Notify::STATUS_SENT])
                     ->andWhere(['>', 'sent_at', $monthLimit->format('Y-m-d H:i:s')])
                     ->orderBy(['sent_at' => SORT_DESC])
@@ -177,37 +179,37 @@ class NotifierController extends Controller
 
                 if ($needSent) {
                     $lessonDebt = GroupPupil::find()
-                        ->andWhere(['user_id' => $debt->user_id, 'group_id' => $debt->group_id])
+                        ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
                         ->andWhere(['<', 'paid_lessons', 0])
                         ->select('SUM(paid_lessons)')
                         ->scalar();
                     ComponentContainer::getNotifyQueue()->add(
-                        $debt->user,
+                        $groupPupil->user,
                         Notify::TEMPLATE_PUPIL_DEBT,
                         ['debt' => abs($lessonDebt)],
-                        $debt->group
+                        $groupPupil->group
                     );
                 }
             }
             /*----------------------  END TEMPLATE ID 1 ---------------------------*/
 
             /*----------------------  TEMPLATE ID 2 ---------------------------*/
-            if ($debt->user->parent_id) {
-                $parent = $debt->user->parent;
+            if ($groupPupil->user->parent_id) {
+                $parent = $groupPupil->user->parent;
                 /** @var Notify[] $queuedNotificationsDraft */
                 $queuedNotificationsDraft = Notify::find()
-                    ->andWhere(['user_id' => $parent->id, 'group_id' => $debt->group_id, 'template_id' => Notify::TEMPLATE_PARENT_DEBT])
+                    ->andWhere(['user_id' => $parent->id, 'group_id' => $groupPupil->group_id, 'template_id' => Notify::TEMPLATE_PARENT_DEBT])
                     ->andWhere(['!=', 'status', Notify::STATUS_SENT])
                     ->all();
                 $queuedNotifications = [];
                 foreach ($queuedNotificationsDraft as $notification) {
-                    if ($notification->parameters['child_id'] == $debt->user_id) $queuedNotifications[] = $notification;
+                    if ($notification->parameters['child_id'] == $groupPupil->user_id) $queuedNotifications[] = $notification;
                 }
 
                 if (empty($queuedNotifications)) {
                     /** @var Notify[] $sentNotificationsDraft */
                     $sentNotificationsDraft = Notify::find()
-                        ->andWhere(['user_id' => $parent->id, 'group_id' => $debt->group_id, 'template_id' => Notify::TEMPLATE_PARENT_DEBT])
+                        ->andWhere(['user_id' => $parent->id, 'group_id' => $groupPupil->group_id, 'template_id' => Notify::TEMPLATE_PARENT_DEBT])
                         ->andWhere(['status' => Notify::STATUS_SENT])
                         ->andWhere(['>', 'sent_at', $monthLimit->format('Y-m-d H:i:s')])
                         ->orderBy(['sent_at' => SORT_DESC])
@@ -215,7 +217,7 @@ class NotifierController extends Controller
                     /** @var Notify[] $sentNotifications */
                     $sentNotifications = [];
                     foreach ($sentNotificationsDraft as $notification) {
-                        if ($notification->parameters['child_id'] == $debt->user_id) $sentNotifications[] = $notification;
+                        if ($notification->parameters['child_id'] == $groupPupil->user_id) $sentNotifications[] = $notification;
                     }
 
                     $needSent = true;
@@ -226,15 +228,15 @@ class NotifierController extends Controller
 
                     if ($needSent) {
                         $lessonDebt = GroupPupil::find()
-                            ->andWhere(['user_id' => $debt->user_id, 'group_id' => $debt->group_id])
+                            ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
                             ->andWhere(['<', 'paid_lessons', 0])
                             ->select('SUM(paid_lessons)')
                             ->scalar();
                         ComponentContainer::getNotifyQueue()->add(
                             $parent,
                             Notify::TEMPLATE_PARENT_DEBT,
-                            ['debt' => abs($lessonDebt), 'child_id' => $debt->user_id],
-                            $debt->group
+                            ['debt' => abs($lessonDebt), 'child_id' => $groupPupil->user_id],
+                            $groupPupil->group
                         );
                     }
                 }

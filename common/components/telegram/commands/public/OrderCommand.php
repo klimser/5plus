@@ -60,17 +60,13 @@ class OrderCommand extends UserCommand
         );
 
         //Fetch conversation command if it exists and execute it
-        if ($conversation->exists()) {
-            if ($conversation->getCommand() != $this->name) {
-                return $this->telegram->executeCommand($conversation->getCommand());
-            } else {
-                if ($message->getText() != self::STEP_BACK_TEXT) {
-                    $conversation->notes['step']++;
-                    $conversation->update();
-                } elseif ($conversation->notes['step'] == 1) {
-                    $conversation->stop();
-                    return null;
-                }
+        if ($conversation->exists() && $conversation->getCommand() === $this->name) {
+            if ($message->getText() != self::STEP_BACK_TEXT) {
+                $conversation->notes['step']++;
+                $conversation->update();
+            } elseif ($conversation->notes['step'] == 1) {
+                $conversation->stop();
+                return null;
             }
         } else {
             $conversation = new Conversation(
@@ -179,6 +175,7 @@ class OrderCommand extends UserCommand
         switch ($conversation->notes['step']) {
             case 1:
                 $data['text'] = $this->getGreetingText();
+                $keyboard = Keyboard::remove();
                 break;
             case 2:
                 if ($message->getText() == self::STEP_BACK_TEXT) {

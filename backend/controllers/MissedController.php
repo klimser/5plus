@@ -3,7 +3,10 @@
 namespace backend\controllers;
 use backend\models\Event;
 use backend\models\EventMember;
+use backend\models\UserCall;
+use common\components\ComponentContainer;
 use common\models\Group;
+use common\models\GroupPupil;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 
@@ -12,19 +15,20 @@ use yii\web\ForbiddenHttpException;
  */
 class MissedController extends AdminController
 {
-    const MISS_LIMIT = 3;
+    const MISS_LIMIT = 2;
 
     public function actionList()
     {
         if (!\Yii::$app->user->can('viewMissed')) throw new ForbiddenHttpException('Access denied!');
 
         /** @var Group[] $groups */
-        $groups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->all();
-        $resultMap = [];
+        $groups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all();
         $groupMap = [];
         foreach ($groups as $group) {
-            $resultMap[$group->id] = [];
-            $groupMap[$group->id] = $group;
+            $groupMap[$group->id] = [
+                'entity' => $group,
+                'pupils' => [],
+            ];
             /** @var Event[] $lastEvents */
             $lastEvents = Event::find()
                 ->andWhere(['group_id' => $group->id, 'status' => Event::STATUS_PASSED])
@@ -33,6 +37,7 @@ class MissedController extends AdminController
                 ->limit(self::MISS_LIMIT)
                 ->all();
             $missedMap = [];
+            /** @var GroupPupil[] $groupPupilMap */
             $groupPupilMap = [];
             foreach ($lastEvents as $event) {
                 foreach ($event->members as $eventMember) {
@@ -44,12 +49,68 @@ class MissedController extends AdminController
             }
             foreach ($missedMap as $groupPupilId => $missedCount) {
                 if ($missedCount == self::MISS_LIMIT) {
-                    $resultMap[$group->id][] = $groupPupilMap[$groupPupilId]->user;
+                    $pupilData = [
+                        'groupPupil' => $groupPupilMap[$groupPupilId],
+                        'calls' => [],
+                    ];
+                    /** @var Event $lastVisit */
+                    $lastVisit = Event::find()->alias('e')
+                        ->joinWith(['members em'], false)
+                        ->andWhere([
+                            'e.group_id' => $groupPupilMap[$groupPupilId]->group_id,
+                            'e.status' => Event::STATUS_PASSED,
+                            'em.group_pupil_id' => $groupPupilId,
+                            'em.status' => EventMember::STATUS_ATTEND,
+                        ])
+                        ->orderBy(['e.event_date' => SORT_DESC])
+                        ->one();
+                    $callDateFrom = $lastVisit
+                        ? $lastVisit->eventDateTime
+                        : $groupPupilMap[$groupPupilId]->startDateObject;
+                    $pupilData['calls'] = UserCall::find()
+                        ->andWhere(['user_id' => $groupPupilMap[$groupPupilId]->user_id])
+                        ->andWhere(['>', 'created_at', $callDateFrom->format('Y-m-d H:i:s')])
+                        ->orderBy(['created_at' => SORT_ASC])
+                        ->all();
+                    $groupMap[$group->id]['pupils'][] = $pupilData;
                 }
             }
         }
 
-        return $this->render('list', ['resultMap' => $resultMap, 'groupMap' => $groupMap]);
+        return $this->render('list', ['groupMap' => $groupMap]);
+    }
+
+    /**
+     * @return \yii\web\Response
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     */
+    public function actionCall()
+    {
+        if (!\Yii::$app->request->isPost) throw new BadRequestHttpException('Only POST requests allowed');
+        if (!\Yii::$app->user->can('viewMissed')) throw new ForbiddenHttpException('Access denied!');
+
+        $groupPupilId = \Yii::$app->request->post('groupPupil');
+        if (!$groupPupilId) throw new BadRequestHttpException('Wrong request');
+        $groupPupil = GroupPupil::findOne($groupPupilId);
+        if (!$groupPupil) throw new BadRequestHttpException('Wrong request');
+        $callResult = \Yii::$app->request->post('callResult')[$groupPupilId];
+        $comment = \Yii::$app->request->post('callComment')[$groupPupilId];
+        switch ($callResult) {
+            case 'fail': $comment = 'Недозвон'; break;
+            case 'phone': $comment = 'Неправильный номер телефона'; break;
+        }
+
+        $userCall = new UserCall();
+        $userCall->user_id = $groupPupil->user_id;
+        $userCall->admin_id = \Yii::$app->user->id;
+        $userCall->comment = $comment;
+        if (!$userCall->save()) {
+            ComponentContainer::getErrorLogger()->logError('missed/call', $userCall->getErrorsAsString(), true);
+            throw new \Exception('Fatal error');
+        }
+
+        return $this->redirect(['list']);
     }
 
     /**

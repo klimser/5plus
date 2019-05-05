@@ -147,10 +147,22 @@ $this->title = 'Панель управления';
                 <?php endif; ?>
 
                 <?php if ($admin->can('viewMissed')): ?>
-                    <li role="presentation">
-                        <a href="<?= Url::to(['missed/table']); ?>">
-                            <span class="fas fa-table"></span> Посещаемость
+                    <li role="presentation" class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                            Посещаемость <span class="caret"></span>
                         </a>
+                        <ul class="dropdown-menu">
+                            <li role="presentation">
+                                <a href="<?= Url::to(['missed/table']); ?>">
+                                    <span class="fas fa-table"></span> Таблица посещений
+                                </a>
+                            </li>
+                            <li role="presentation">
+                                <a href="<?= Url::to(['missed/list']); ?>">
+                                    <span class="fas fa-phone"></span> Обзвон отсутствующих
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 <?php endif; ?>
 
