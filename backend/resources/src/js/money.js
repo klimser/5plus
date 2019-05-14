@@ -112,14 +112,9 @@ let Money = {
         $("#income_form").addClass("hidden");
         $("#payment_type_block").addClass("hidden");
         $('.phone-search-result').html('');
-        $.ajax({
-            url: '/user/find-by-phone',
-            type: 'post',
-            data: {
-                phone: $("#search_phone").val()
-            },
-            dataType: 'json',
-            success: function (data) {
+        User.findByPhone(
+            $("#search_phone").val(),
+            function (data) {
                 if (data.pupils !== undefined && data.pupils.length > 0) {
                     let pupilList = '';
                     Money.pupils = {};
@@ -142,10 +137,10 @@ let Money = {
                     Main.throwFlashMessage('#pupils_block', '<div class="panel panel-default"><div class="panel-body">Не найдено студентов<br><a href="/user/create-pupil" target="_blank" class="btn btn-success btn-lg">Добавить <span class="glyphicon glyphicon-new-window"></span></a></div></div>', 'alert-warning');
                 }
             },
-            error: function (xhr, textStatus, errorThrown) {
+            function (xhr, textStatus, errorThrown) {
                 Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
             }
-        });
+        );
     },
     setPupil: function (pupilId) {
         this.pupilId = pupilId;

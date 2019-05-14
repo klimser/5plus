@@ -403,8 +403,8 @@ class UserController extends AdminController
         if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
         if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
 
-        $jsonData = self::getJsonOkResult();
-        $phone = preg_replace('#\D#', '', \Yii::$app->request->post('phone', ''));
+        $jsonData = self::getJsonOkResult(['phone' => \Yii::$app->request->post('phone', '')]);
+        $phone = preg_replace('#\D#', '', $jsonData['phone']);
 
         if (!empty($phone) && strlen($phone) == 9) {
             $searchString = "+998$phone";

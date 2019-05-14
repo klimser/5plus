@@ -1,4 +1,16 @@
 let User = {
+    findByPhone: function(phoneString, successHandler, errorHandler) {
+        $.ajax({
+            url: '/user/find-by-phone',
+            type: 'post',
+            data: {
+                phone: phoneString
+            },
+            dataType: 'json',
+            success: successHandler,
+            error: errorHandler
+        });
+    },
     changePersonType: function() {
         switch ($('input.person_type:checked').val()) {
             case '2':
@@ -131,6 +143,34 @@ let User = {
     },
     setAmount: function(amount) {
         $("#amount").val(amount);
+    },
+    checkPhone(e) {
+        this.phoneCheckInput = e;
+        User.findByPhone(
+            $(e).val(),
+            function (data) {
+                if (!User.phoneCheckInput) return;
+                if ($(User.phoneCheckInput).val() !== data.phone) return;
+
+                let messageBlock = $(User.phoneCheckInput);
+                if (data.pupils !== undefined && data.pupils.length > 0) {
+                    let pupilList = '';
+                    Money.pupils = {};
+                    Money.groups = {};
+                    data.pupils.forEach(function(pupil) {
+                        pupilList += '<div>' + pupil.name + '</div>';
+                    });
+
+                    messageBlock.html('<b>Студенты с таким номером уже существуют!!!</b>' + pupilList);
+                } else {
+                    messageBlock.html('');
+                }
+                User.phoneCheckInput = null;
+            },
+            function (xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+            }
+        );
     },
     init: function() {
         if ($("#add_group_switch").is(":checked")) this.setAmountHelperButtons($("#group"));
