@@ -1,11 +1,17 @@
 <?php
 
+use backend\models\ActionSearch;
+use common\components\Action;
+use dosamigos\datepicker\DatePicker;
+use kartik\field\FieldRange;
 use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\data\ActiveDataProvider;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel \backend\models\ActionSearch */
+/* @var $this View */
+/* @var $dataProvider ActiveDataProvider */
+/* @var $searchModel ActionSearch */
 /* @var $studentMap string[] */
 /* @var $adminMap string[] */
 /* @var $groupMap string[] */
@@ -43,7 +49,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'type',
                 'content' => function ($model, $key, $index, $column) {
-                    return '<nobr>' . \common\components\Action::$typeLabels[$model->type] . '</nobr>';
+                    return '<span class="text-nowrap">' . Action::TYPE_LABELS[$model->type] . '</span>';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -82,13 +88,13 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'attribute' => 'amount',
-                'filter' => \kartik\field\FieldRange::widget([
+                'filter' => FieldRange::widget([
                     'model' => $searchModel,
                     'name1'=>'amountFrom',
                     'name2'=>'amountTo',
                     'separator' => '-',
                     'template' => '{widget}',
-                    'type' => \kartik\field\FieldRange::INPUT_TEXT,
+                    'type' => FieldRange::INPUT_TEXT,
                 ]),
                 'contentOptions' => ['class' => 'text-right'],
 //                'options' => ['class' => 'col-xs-1'],
@@ -101,7 +107,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'createDate',
                 'format' => 'datetime',
                 'label' => 'Дата операции',
-                'filter' => \dosamigos\datepicker\DatePicker::widget([
+                'filter' => DatePicker::widget([
                     'model' => $searchModel,
                     'attribute' => 'createDateString',
                     'template' => '{addon}{input}',

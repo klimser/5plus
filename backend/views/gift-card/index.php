@@ -1,11 +1,17 @@
 <?php
 
+use common\models\GiftCard;
+use common\models\GiftCardSearch;
+use dosamigos\datepicker\DatePicker;
 use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\helpers\Url;
+use yii\data\ActiveDataProvider;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel \common\models\GiftCardSearch */
+/* @var $this View */
+/* @var $dataProvider ActiveDataProvider */
+/* @var $searchModel GiftCardSearch */
 /* @var $status string */
 
 $this->title = 'Предоплаченные карты';
@@ -16,16 +22,16 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <ul class="nav nav-pills">
         <li role="presentation" <?= $status === null ? 'class="active"' : ''; ?>>
-            <a href="<?= \yii\helpers\Url::to(['gift-card/index']); ?>">Все</a>
+            <a href="<?= Url::to(['gift-card/index']); ?>">Все</a>
         </li>
-        <li role="presentation" <?= $status === \common\models\GiftCard::STATUS_NEW ? 'class="active"' : ''; ?>>
-            <a href="<?= \yii\helpers\Url::to(['gift-card/index', 'status' => \common\models\GiftCard::STATUS_NEW]); ?>">Не оплаченные</a>
+        <li role="presentation" <?= $status === GiftCard::STATUS_NEW ? 'class="active"' : ''; ?>>
+            <a href="<?= Url::to(['gift-card/index', 'status' => GiftCard::STATUS_NEW]); ?>">Не оплаченные</a>
         </li>
-        <li role="presentation" <?= $status == \common\models\GiftCard::STATUS_PAID ? 'class="active"' : ''; ?>>
-            <a href="<?= \yii\helpers\Url::to(['gift-card/index', 'status' => \common\models\GiftCard::STATUS_PAID]); ?>">Оплаченные</a>
+        <li role="presentation" <?= $status == GiftCard::STATUS_PAID ? 'class="active"' : ''; ?>>
+            <a href="<?= Url::to(['gift-card/index', 'status' => GiftCard::STATUS_PAID]); ?>">Оплаченные</a>
         </li>
-        <li role="presentation" <?= $status == \common\models\GiftCard::STATUS_USED ? 'class="active"' : ''; ?>>
-            <a href="<?= \yii\helpers\Url::to(['gift-card/index', 'status' => \common\models\GiftCard::STATUS_USED]); ?>">Активированные</a>
+        <li role="presentation" <?= $status == GiftCard::STATUS_USED ? 'class="active"' : ''; ?>>
+            <a href="<?= Url::to(['gift-card/index', 'status' => GiftCard::STATUS_USED]); ?>">Активированные</a>
         </li>
     </ul>
     <hr>
@@ -36,10 +42,10 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return  = [];
             switch ($model->status) {
-                case \common\models\GiftCard::STATUS_PAID:
+                case GiftCard::STATUS_PAID:
                     $return['class'] = 'success';
                     break;
-                case \common\models\GiftCard::STATUS_USED:
+                case GiftCard::STATUS_USED:
                     $return['class'] = 'warning';
                     break;
             }
@@ -52,13 +58,13 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'customer_phone',
                 'content' => function ($model, $key, $index, $column) {
-                    return "<nobr>{$model->phoneFull}</nobr>";
+                    return "<span class='text-nowrap'>{$model->phoneFull}</span>";
                 },
             ],
             [
                 'attribute' => 'created_at',
                 'format' => 'datetime',
-                'filter' => \dosamigos\datepicker\DatePicker::widget([
+                'filter' => DatePicker::widget([
                     'model' => $searchModel,
                     'attribute' => 'createDateString',
                     'template' => '{addon}{input}',
@@ -72,7 +78,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'paid_at',
                 'format' => 'datetime',
-                'filter' => \dosamigos\datepicker\DatePicker::widget([
+                'filter' => DatePicker::widget([
                     'model' => $searchModel,
                     'attribute' => 'paidDateString',
                     'template' => '{addon}{input}',
@@ -86,7 +92,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'used_at',
                 'format' => 'datetime',
-                'filter' => \dosamigos\datepicker\DatePicker::widget([
+                'filter' => DatePicker::widget([
                     'model' => $searchModel,
                     'attribute' => 'usedDateString',
                     'template' => '{addon}{input}',

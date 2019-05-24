@@ -3,6 +3,7 @@
 namespace backend\components;
 
 use common\models\User;
+use Yii;
 use yii\base\Component;
 
 class UserComponent extends Component
@@ -31,7 +32,7 @@ class UserComponent extends Component
      */
     public static function getFirstLetters(): array
     {
-        $letters = \Yii::$app->cache->get('user.letters');
+        $letters = Yii::$app->cache->get('user.letters');
         if (!$letters) {
             $letters = User::find()
                 ->select(['SUBSTR(name, 1, 1)'])
@@ -42,7 +43,7 @@ class UserComponent extends Component
                 ->column();
             array_walk($letters, function(&$value){$value = mb_strtoupper($value, 'UTF-8');});
             sort($letters);
-            \Yii::$app->cache->set('user.letters', $letters);
+            Yii::$app->cache->set('user.letters', $letters);
         }
         return $letters;
     }
@@ -52,7 +53,7 @@ class UserComponent extends Component
      */
     public static function getStartYears(): array
     {
-        $years = \Yii::$app->cache->get('user.years');
+        $years = Yii::$app->cache->get('user.years');
         if (!$years) {
             /** @var User[] $users */
             $years = User::find()
@@ -63,15 +64,15 @@ class UserComponent extends Component
                 ->column();
             array_walk($years, function(&$value){$value = intval($value);});
             sort($years);
-            \Yii::$app->cache->set('user.years', $years);
+            Yii::$app->cache->set('user.years', $years);
         }
         return $years;
     }
 
     public static function clearSearchCache()
     {
-        \Yii::$app->cache->delete('user.letters');
-        \Yii::$app->cache->delete('user.years');
+        Yii::$app->cache->delete('user.letters');
+        Yii::$app->cache->delete('user.years');
     }
 
     public static function isPhoneUsed(int $role, string $phone, ?string $phone2 = null): bool

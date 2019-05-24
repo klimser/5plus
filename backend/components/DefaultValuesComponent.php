@@ -2,6 +2,7 @@
 
 namespace backend\components;
 
+use Yii;
 use yii\base\Component;
 
 class DefaultValuesComponent extends Component
@@ -50,11 +51,11 @@ class DefaultValuesComponent extends Component
                 ],
                 'toolbar' => 'undo redo | styleselect | bold italic | subscript superscript | fontsizeselect | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | responsivefilemanager link image',
                 'imagetools_toolbar' => 'rotateleft rotateright | flipv fliph | editimage imageoptions',
-                'external_filemanager_path' => \Yii::$app->getHomeUrl() . 'filemanager/filemanager/',
+                'external_filemanager_path' => Yii::$app->getHomeUrl() . 'filemanager/filemanager/',
                 'filemanager_title' => 'Responsive Filemanager',
                 'external_plugins' => [
-                    'filemanager' => \Yii::$app->getHomeUrl() . 'filemanager/filemanager/plugin.min.js',
-                    'responsivefilemanager' => \Yii::$app->getHomeUrl() . 'filemanager/responsivefilemanager/plugin.min.js',
+                    'filemanager' => Yii::$app->getHomeUrl() . 'filemanager/filemanager/plugin.min.js',
+                    'responsivefilemanager' => Yii::$app->getHomeUrl() . 'filemanager/responsivefilemanager/plugin.min.js',
                 ],
                 'relative_urls' => false,
             ]

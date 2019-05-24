@@ -5,15 +5,17 @@ namespace backend\components\report;
 use common\components\GroupComponent;
 use common\models\Group;
 use common\models\GroupPupil;
+use DateTime;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 
 class GroupMovementReport
 {
-    public static function create(\DateTime $startDate, \DateTime $endDate): Spreadsheet
+    public static function create(DateTime $startDate, DateTime $endDate): Spreadsheet
     {
         $startDateString = $startDate->format('Y-m-d');
         $endDateString = $endDate->format('Y-m-d');
@@ -154,7 +156,7 @@ class GroupMovementReport
                 ->andWhere(['<', 'date_start', $startDateString])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
                 ->andWhere(['group_id' => $groupIds])
-                ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
                 ->scalar();
             $startUsers = GroupPupil::find()
                 ->andWhere(['<', 'date_start', $startDateString])
@@ -166,7 +168,7 @@ class GroupMovementReport
                 ->andWhere(['<=', 'date_start', $endDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
-                ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
                 ->scalar();
             $totalUsers = GroupPupil::find()
                 ->andWhere(['<=', 'date_start', $endDateString])
@@ -178,7 +180,7 @@ class GroupMovementReport
                 ->andWhere(['<=', 'date_start', $endDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
-                ->select(new  \yii\db\Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
                 ->scalar();
             $finalUsers = GroupPupil::find()
                 ->andWhere(['<=', 'date_start', $endDateString])

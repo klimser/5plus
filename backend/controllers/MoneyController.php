@@ -297,7 +297,7 @@ class MoneyController extends AdminController
         foreach ($groups as $group) $groupMap[$group->id] = $group->name;
 
         $typeMap = [null => 'Все'];
-        foreach (Action::$typeLabels as $key => $value) $typeMap[$key] = $value;
+        foreach (Action::TYPE_LABELS as $key => $value) $typeMap[$key] = $value;
 
         return $this->render('actions', [
             'dataProvider' => $dataProvider,

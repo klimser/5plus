@@ -1,13 +1,23 @@
 <?php
 
+use common\components\helpers\Calendar;
+use common\models\Group;
+use common\models\GroupSearch;
+use common\models\Subject;
+use common\models\Teacher;
+use yii\grid\ActionColumn;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\helpers\Url;
+use yii\data\ActiveDataProvider;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $searchModel common\models\GroupSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $subjectMap \common\models\Subject[] */
-/* @var $teacherMap \common\models\Teacher[] */
+/* @var $this View */
+/* @var $searchModel GroupSearch */
+/* @var $dataProvider ActiveDataProvider */
+/* @var $subjectMap Subject[] */
+/* @var $teacherMap Teacher[] */
 /* @var $canEdit bool */
 
 $this->title = 'Группы';
@@ -15,7 +25,7 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="group-index">
 
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['inactive']); ?>">Завершённые группы</a></div>
+    <div class="pull-right"><a href="<?= Url::to(['inactive']); ?>">Завершённые группы</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
@@ -24,14 +34,14 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == \common\models\Group::STATUS_INACTIVE) ? ['class' => 'inactive'] : [];},
+        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == Group::STATUS_INACTIVE) ? ['class' => 'inactive'] : [];},
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             [
                 'attribute' => 'name',
                 'format' => 'html',
                 'content' => function ($model, $key, $index, $column) use ($subjectMap) {
-                    return Html::a($model->name, \yii\helpers\Url::to(['group/view', 'id' => $model->id]));
+                    return Html::a($model->name, Url::to(['group/view', 'id' => $model->id]));
                 },
             ],
             [
@@ -65,11 +75,11 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'text',
                 'header' => 'Расписание',
                 'content' => function ($model, $key, $index, $column) {
-                    /* @var $model \common\models\Group */
+                    /* @var $model Group */
                     $data = [];
                     for ($i = 0; $i < 7; $i++) {
                         if (!empty($model->scheduleData[$i])) {
-                            $data[] = '<nobr>' . \common\components\helpers\Calendar::$weekDaysShort[($i + 1) % 7] . ": {$model->scheduleData[$i]}</nobr>";
+                            $data[] = '<span class="text-nowrap">' . Calendar::$weekDaysShort[($i + 1) % 7] . ": {$model->scheduleData[$i]}</span>";
                         }
                     }
                     return implode('<br>', $data);
@@ -79,15 +89,15 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'text',
                 'header' => 'Ученики',
                 'content' => function ($model, $key, $index, $column) {
-                    return '<div class="pupils"><nobr>' . count($model->activeGroupPupils) . ' учеников '
-                        . '<a href="#" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').toggle(); return false;"><span class="glyphicon glyphicon-chevron-down"></span></a></nobr>'
+                    return '<div class="pupils"><span class="text-nowrap">' . count($model->activeGroupPupils) . ' учеников '
+                        . '<a href="#" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').toggle(); return false;"><span class="glyphicon glyphicon-chevron-down"></span></a></span>'
                         . '<div class="pupil_list" style="display: none;">'
-                        . implode('<br>', \yii\helpers\ArrayHelper::getColumn($model->activeGroupPupils, 'user.name'))
+                        . implode('<br>', ArrayHelper::getColumn($model->activeGroupPupils, 'user.name'))
                         . '</div></div>';
                 },
             ],
             [
-                'class' => \yii\grid\ActionColumn::class,
+                'class' => ActionColumn::class,
                 'template' => $canEdit ? '{update}' : '',
                 'buttonOptions' => ['class' => 'btn btn-default'],
 

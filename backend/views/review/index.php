@@ -1,18 +1,25 @@
 <?php
 
+use common\models\OrderSearch;
+use common\models\Review;
+use common\models\Subject;
+use yii\grid\ActionColumn;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use dosamigos\datepicker\DatePicker;
+use yii\helpers\Url;
+use yii\data\ActiveDataProvider;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel \common\models\OrderSearch */
+/* @var $this View */
+/* @var $dataProvider ActiveDataProvider */
+/* @var $searchModel OrderSearch */
 
 $this->title = 'Отзывы';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="review-index">
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Настройки страницы отзывов</a></div>
+    <div class="pull-right"><a href="<?= Url::to(['page']); ?>">Настройки страницы отзывов</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= GridView::widget([
@@ -52,24 +59,24 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'status',
                 'format' => 'html',
                 'content' => function ($model, $key, $index, $column) {
-                    return \common\models\Review::$statusLabels[$model->status];
+                    return Review::$statusLabels[$model->status];
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'status',
-                    array_merge(['' => 'Любой'], \common\models\Review::$statusLabels),
+                    array_merge(['' => 'Любой'], Review::$statusLabels),
                     ['class' => 'form-control']
                 ),
             ],
             [
-                'class' => \yii\grid\ActionColumn::class,
-                'template' => '<nobr>{approve}{update}{delete}</nobr>',
+                'class' => ActionColumn::class,
+                'template' => '<span class="text-nowrap">{approve}{update}{delete}</span>',
                 'buttonOptions' => ['class' => 'btn btn-default margin-right-10'],
                 'buttons' => [
                     'approve' => function ($url, $model, $key) {
-                        if ($model->status == \common\models\Review::STATUS_APPROVED) return false;
-                        /** @var \common\models\Subject $model */
-                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ok']), '#', ['class' => 'btn btn-default margin-right-10 approve', 'title' => 'Утвердить', 'onclick' => 'return Main.changeEntityStatus("review", ' . $model->id . ', "' . \common\models\Review::STATUS_APPROVED . '");']);
+                        if ($model->status == Review::STATUS_APPROVED) return false;
+                        /** @var Subject $model */
+                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ok']), '#', ['class' => 'btn btn-default margin-right-10 approve', 'title' => 'Утвердить', 'onclick' => 'return Main.changeEntityStatus("review", ' . $model->id . ', "' . Review::STATUS_APPROVED . '");']);
                     }
                 ],
             ],
