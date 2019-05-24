@@ -1,23 +1,32 @@
 <?php
 
 use backend\models\WelcomeLesson;
+use common\models\Group;use common\models\PaymentSearch;
+use common\models\Subject;
+use common\models\Teacher;
+use common\models\User;
 use dosamigos\datepicker\DatePicker;
 use yii\grid\Column;
 use yii\bootstrap\Html;
 use yii\grid\GridView;
+use yii\data\ActiveDataProvider;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel \common\models\PaymentSearch */
-/* @var $studentMap \common\models\User[] */
-/* @var $subjectMap \common\models\Subject[] */
-/* @var $teacherMap \common\models\Teacher[] */
+/* @var $this View */
+/* @var $dataProvider ActiveDataProvider */
+/* @var $searchModel PaymentSearch */
+/* @var $studentMap User[] */
+/* @var $subjectMap Subject[] */
+/* @var $teacherMap Teacher[] */
+/* @var $groups Group[] */
 
 $this->title = 'Пробные уроки';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="welcome-lesson-index">
     <h1><?= Html::encode($this->title) ?></h1>
+
+    <div id="messages_place"></div>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -107,4 +116,33 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
         ],
     ]); ?>
+
+    <div class="modal fade" id="moving-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="moving-form">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Modal title</h4>
+                    </div>
+                    <div class="modal-body">
+                        <h3 id="pupil"></h3>
+                        <div id="start_date"></div>
+                        <b>Группа</b>
+                        <div id="group_proposal"></div>
+                        <input type="radio" name="group_proposal" value="0" onchange="WelcomeLesson.groupChange(this);"> Другая
+                        <select name="group_id" id="other_group" disabled>
+                            <?php foreach ($groups as $group): ?>
+                                <option value="<?= $group->id; ?>"><?= $group->name; ?> (<?= $group->teacher->name; ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">отмена</button>
+                        <button class="btn btn-primary">В группу!</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

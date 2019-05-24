@@ -4,6 +4,7 @@ namespace backend\controllers;
 
 use backend\models\WelcomeLesson;
 use backend\models\WelcomeLessonSearch;
+use common\models\Group;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
@@ -49,6 +50,7 @@ class WelcomeLessonController extends AdminController
             'userMap' => $userMap,
             'subjectMap' => $subjectMap,
             'teacherMap' => $teacherMap,
+            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->with('teacher')->orderBy(['name' => 'ASC'])->all(),
         ]);
     }
 }

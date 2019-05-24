@@ -25,9 +25,9 @@ let WelcomeLesson = {
                 break;
             case this.statusPassed:
                 $(e).html(
-                    '<a href="#" title="Проведено" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusPassed + ')">' +
+                    '<button class="btn btn-primary" type="button" title="В группу!" onclick="return WelcomeLesson.showMovingForm(this, ' + id + ')">' +
                     '<span class="fas fa-user-check"></span>' +
-                    '</a>' +
+                    '</button>' +
                     '<a href="#" title="Не пришёл" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusMissed + ')">' +
                     '<span class="fas fa-user-slash"></span>' +
                     '</a>' +
@@ -40,5 +40,30 @@ let WelcomeLesson = {
                 $(e).html('');
                 break;
         }
+    },
+    showMovingForm: function(e, lessonId) {
+        $(e).prop("disabled", true);
+        $.ajax({
+            url: '/welcome-lesson/propose-group',
+            type: 'post',
+            dataType: 'json',
+            data: {id: lessonId},
+            success: function(data) {
+                let form = $("#moving-form");
+                form.find("#pupil").html(data.pupilName);
+                form.find("#start_date").html(data.lessonDate);
+                let proposals = '';
+                data.proposals.forEach(function(group) {
+                    proposals += '<input type="radio" name="group_proposal" value="' + group.id + '"> ' + group.name + ' (' + group.teacherName + ')<br>';
+                });
+                form.find("#group_proposal").html(proposals);
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+            }
+        });
+    },
+    groupChange: function(e) {
+        $("#other_group").prop("disabled", !$(e).is(":checked"));
     }
 };
