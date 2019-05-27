@@ -123,7 +123,7 @@ class EventController extends AdminController
         $eventMember = EventMember::findOne($memberId);
         if (!$eventMember) $jsonData = self::getJsonErrorResult('Pupil not found');
         else {
-            $status = Yii::$app->getRequest()->post('status');
+            $status = intval(Yii::$app->getRequest()->post('status'));
             if (!in_array($status, [EventMember::STATUS_ATTEND, EventMember::STATUS_MISS])) $jsonData = self::getJsonErrorResult('Wrong status!');
             elseif ($eventMember->event->eventDateTime > $this->getLimitDate()
                 || ($eventMember->status != EventMember::STATUS_UNKNOWN && ($eventMember->status != EventMember::STATUS_MISS || $eventMember->event->limitAttendTimestamp < time()))) {

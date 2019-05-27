@@ -22,8 +22,8 @@ let Event = {
             $(detailsBlock).removeClass("hidden");
             let pupilsBlock = $(detailsBlock).find(".pupils_block");
             if (parseInt($(pupilsBlock).data("buttonState")) === 0) {
-                $(pupilsBlock).find(".event_member").forEach(function(memberRow) {
-                    Event.fillMemberButtons($(memberRow).data("id"));
+                $(pupilsBlock).find(".event_member").each(function() {
+                    Event.fillMemberButtons($(this).data("id"));
                 });
                 $(pupilsBlock).data("buttonState", 1);
             }
@@ -69,9 +69,9 @@ let Event = {
                     $(eventDetailsBlock).data("status", data.eventStatus).find(".status_block").remove();
                     let pupilsBlock = $(eventDetailsBlock).find(".pupils_block");
                     if (data.eventStatus === this.eventStatusCancelled) {
-                        $(pupilsBlock).find(".event_member").forEach(function(memberRow) {
-                            $(memberRow).data("status", Event.memberStatusMiss);
-                            Event.fillMemberButtons($(memberRow).data("id"));
+                        $(pupilsBlock).find(".event_member").each(function() {
+                            $(this).data("status", Event.memberStatusMiss);
+                            Event.fillMemberButtons($(this).data("id"));
                         });
                     }
                     $(pupilsBlock).removeClass("hidden");
@@ -114,7 +114,7 @@ let Event = {
             case this.memberStatusMiss:
                 if (this.isAttendEditAllowed(memberId)) {
                     return '<button class="btn btn-default" onclick="Event.revertMissStatus(this, ' + memberId + ');">' +
-                           '<span class="fas fa-pencil"></span>' +
+                           '<span class="fas fa-pencil-alt"></span>' +
                         '</button>';
                 }
                 break;
@@ -135,7 +135,7 @@ let Event = {
     setPupilAttendStatus: function(memberId, status) {
         this.lockMemberButtons();
         $.ajax({
-            url: '/event/set-pupil-status?member=' + memberId,
+            url: '/event/set-pupil-status?memberId=' + memberId,
             type: 'post',
             dataType: 'json',
             data: {
