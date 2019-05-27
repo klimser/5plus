@@ -111,23 +111,24 @@ class EventController extends AdminController
     }
 
     /**
-     * @param int $member
+     * @param int $memberId
      * @return yii\web\Response
      * @throws yii\web\BadRequestHttpException
      */
-    public function actionSetPupilStatus($member)
+    public function actionSetPupilStatus($memberId)
     {
         if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
 
         /** @var EventMember $eventMember */
-        $eventMember = EventMember::findOne($member);
+        $eventMember = EventMember::findOne($memberId);
         if (!$eventMember) $jsonData = self::getJsonErrorResult('Pupil not found');
         else {
             $status = Yii::$app->getRequest()->post('status');
-            if ($eventMember->status != EventMember::STATUS_UNKNOWN || $eventMember->event->eventDateTime > $this->getLimitDate()) {
+            if (!in_array($status, [EventMember::STATUS_ATTEND, EventMember::STATUS_MISS])) $jsonData = self::getJsonErrorResult('Wrong status!');
+            elseif ($eventMember->event->eventDateTime > $this->getLimitDate()
+                || ($eventMember->status != EventMember::STATUS_UNKNOWN && ($eventMember->status != EventMember::STATUS_MISS || $eventMember->event->limitAttendTimestamp < time()))) {
                 $jsonData = self::getJsonErrorResult('Pupil edit denied!');
-            } elseif (!in_array($status, [EventMember::STATUS_ATTEND, EventMember::STATUS_MISS])) $jsonData = self::getJsonErrorResult('Wrong status!');
-            else {
+            } else {
                 $eventMember->status = $status;
                 if ($eventMember->save()) {
                     $jsonData = self::getJsonOkResult([

@@ -18,7 +18,8 @@ use yii;
  * @property Teacher $teacher
  * @property string $event_date
  * @property int $status
- * @property string $eventTime read-only
+ * @property-read string $eventTime
+ * @property-read  int $limitAttendTimestamp
  * @property \DateTime $eventDateTime
  *
  * @property Group $group
@@ -102,6 +103,13 @@ class Event extends ActiveRecord
     public function getEventTime()
     {
         return $this->getEventDateTime()->format('H:i');
+    }
+
+    public function getLimitAttendTimestamp(): int
+    {
+        $limitDate = clone $this->eventDateTime;
+        $limitDate->modify('+1 hour');
+        return $limitDate->getTimestamp();
     }
 
     /**

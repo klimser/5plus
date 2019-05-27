@@ -19,6 +19,8 @@ $previousDate->modify('-1 day');
 $nextDate = clone $startDate;
 $nextDate->modify('+1 day');
 
+$this->registerJs('Event.init(' . time() . ');');
+
 ?>
 <div class="events-index">
     <div class="row">
@@ -41,7 +43,7 @@ $nextDate->modify('+1 day');
                     ]);?>
                 </div>
                 <div class="col-xs-5 col-md-2">
-                    <button class="btn btn-primary" type="button" onclick="Event.jumpToDate(this);">Перейти</button>
+                    <button class="btn btn-primary" type="button" onclick="Event.jumpToDate();">Перейти</button>
                 </div>
             </div>
         </div>
@@ -80,7 +82,7 @@ $nextDate->modify('+1 day');
                             </button>
                         </div>
                     </div>
-                    <div class="event_details hidden" id="event_details_<?= $event->id; ?>">
+                    <div class="event_details hidden" id="event_details_<?= $event->id; ?>" data-status="<?= $event->status; ?>" data-limit-attend-timestamp="<?= $event->limitAttendTimestamp; ?>">
                         <div class="row teacher-block">
                             <div class="col-xs-8 col-sm-9 col-md-8 col-lg-9">
                                 <span class="fas fa-user-tie"></span>
@@ -109,49 +111,23 @@ $nextDate->modify('+1 day');
                                 </div>
                             </div>
                         <?php endif; ?>
-                        <div class="pupils_block <?= $event->status == Event::STATUS_UNKNOWN ? ' hidden' : ''; ?>">
+                        <div class="pupils_block <?= $event->status == Event::STATUS_UNKNOWN ? ' hidden' : ''; ?>" data-button-state="0">
                             <div class="row">
                                 <div class="col-xs-12">
                                     <table class="table table-condensed">
                                         <thead>
-                                            <tr><th colspan="2" class="text-center">Ученики</th></tr>
+                                            <tr><th colspan="2" class="text-center">Студенты</th></tr>
                                         </thead>
                                         <tbody>
                                             <?php foreach ($event->members as $member): ?>
-                                                <tr id="event_member_<?= $member->id; ?>" <?php
-                                                    if ($member->status == EventMember::STATUS_ATTEND) echo ' class="success"';
-                                                    if ($member->status == EventMember::STATUS_MISS) echo ' class="danger"';
-                                                ?>>
+                                                <tr id="event_member_<?= $member->id; ?>" class="event_member <?php
+                                                    if ($member->status == EventMember::STATUS_ATTEND) echo ' success ';
+                                                    if ($member->status == EventMember::STATUS_MISS) echo ' danger ';
+                                                ?>" data-id="<?= $member->id; ?>" data-status="<?= $member->status; ?>" data-mark="<?= $member->mark; ?>">
                                                     <td>
                                                         <?= $member->groupPupil->user->name; ?>
                                                     </td>
-                                                    <td class="buttons-column text-right">
-                                                        <?php switch ($member->status) {
-                                                            case EventMember::STATUS_UNKNOWN: ?>
-                                                                <button class="btn btn-success" onclick="Event.setPupilAttendStatus(<?= $member->id; ?>, <?= EventMember::STATUS_ATTEND; ?>);" title="Присутствовал(а)">
-                                                                    <span class="glyphicon glyphicon-ok"></span>
-                                                                </button>
-                                                                <button class="btn btn-danger" onclick="Event.setPupilAttendStatus(<?= $member->id; ?>, <?= EventMember::STATUS_MISS; ?>);" title="Отсутствовал(а)">
-                                                                    <span class="glyphicon glyphicon-remove"></span>
-                                                                </button>
-                                                        <?php break;
-                                                            case EventMember::STATUS_ATTEND: ?>
-                                                                <?php if ($member->mark > 0): ?>
-                                                                    <b><?= $member->mark; ?></b>
-                                                                <?php else: ?>
-                                                                    <div class="input-group">
-                                                                        <input type="number" step="1" min="1" max="5" class="form-control" placeholder="Балл">
-                                                                        <span class="input-group-btn">
-                                                                            <button class="btn btn-primary" type="button" onclick="Event.setPupilMark(this, <?= $member->id; ?>);">
-                                                                                OK
-                                                                            </button>
-                                                                        </span>
-                                                                    </div>
-                                                                <?php endif; ?>
-                                                        <?php break;
-                                                        } ?>
-
-                                                    </td>
+                                                    <td class="buttons-column text-right"></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
