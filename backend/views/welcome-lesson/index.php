@@ -120,17 +120,23 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="modal fade" id="moving-modal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <form id="moving-form">
+                <form id="moving-form" onsubmit="return WelcomeLesson.movePupil(this);">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title">Modal title</h4>
+                        <h4 class="modal-title">В группу!</h4>
                     </div>
                     <div class="modal-body">
+                        <div id="modal_messages_place"></div>
                         <h3 id="pupil"></h3>
                         <div id="start_date"></div>
+                        <input type="hidden" name="id" id="lesson_id" required>
                         <b>Группа</b>
                         <div id="group_proposal"></div>
-                        <input type="radio" name="group_proposal" value="0" onchange="WelcomeLesson.groupChange(this);"> Другая
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="group_proposal" value="0" onchange="WelcomeLesson.groupChange(this);"> Другая
+                            </label>
+                        </div>
                         <select name="group_id" id="other_group" disabled>
                             <?php foreach ($groups as $group): ?>
                                 <option value="<?= $group->id; ?>"><?= $group->name; ?> (<?= $group->teacher->name; ?>)</option>

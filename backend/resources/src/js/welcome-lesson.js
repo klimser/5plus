@@ -49,14 +49,22 @@ let WelcomeLesson = {
             dataType: 'json',
             data: {id: lessonId},
             success: function(data) {
-                let form = $("#moving-form");
-                form.find("#pupil").html(data.pupilName);
-                form.find("#start_date").html(data.lessonDate);
-                let proposals = '';
-                data.proposals.forEach(function(group) {
-                    proposals += '<input type="radio" name="group_proposal" value="' + group.id + '"> ' + group.name + ' (' + group.teacherName + ')<br>';
-                });
-                form.find("#group_proposal").html(proposals);
+                if (data.status === "ok") {
+                    let form = $("#moving-form");
+                    form.find("#lesson_id").val(data.id);
+                    form.find("#pupil").html(data.pupilName);
+                    form.find("#start_date").html(data.lessonDate);
+                    let proposals = '';
+                    data.groups.forEach(function(group) {
+                        proposals += '<div class="radio"><label>' +
+                            '<input type="radio" name="group_proposal" value="' + group.id + '"> ' + group.name + ' (' + group.teacherName + ')' +
+                            '</label></div>';
+                    });
+                    form.find("#group_proposal").html(proposals);
+                    $("#moving-modal").modal('show');
+                } else {
+                    Main.throwFlashMessage('#messages_place', "Ошибка: " + data.message, 'alert-danger');
+                }
             },
             error: function (xhr, textStatus, errorThrown) {
                 Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
@@ -65,5 +73,32 @@ let WelcomeLesson = {
     },
     groupChange: function(e) {
         $("#other_group").prop("disabled", !$(e).is(":checked"));
+    },
+    lockMovingFormButtons: function() {
+        $("#moving-form").find('button').prop("disabled", true);
+    },
+    unlockMovingFormButtons: function() {
+        $("#moving-form").find('button').prop("disabled", false);
+    },
+    movePupil: function(form) {
+        this.lockMovingFormButtons();
+        $.ajax({
+            url: '/welcome-lesson/move',
+            type: 'post',
+            dataType: 'json',
+            data: $(form).serialize(),
+            success: function(data) {
+                WelcomeLesson.unlockMovingFormButtons();
+                if (data.status === "ok") {
+                    $("#moving-form").modal("hide");
+                } else {
+                    Main.throwFlashMessage('#modal_messages_place', "Ошибка: " + data.message, 'alert-danger');
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#modal_messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+                WelcomeLesson.unlockMovingFormButtons();
+            }
+        });
     }
 };
