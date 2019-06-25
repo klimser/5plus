@@ -11,6 +11,8 @@ use backend\models\EventMember;
 use common\models\Group;
 use common\models\GroupPupil;
 use common\models\Payment;
+use common\models\Subject;
+use common\models\SubjectCategory;
 use common\models\User;
 use common\models\UserSearch;
 use yii\data\Pagination;
@@ -152,6 +154,8 @@ class UserController extends AdminController
             'contractAllowed' => \Yii::$app->user->can('contractManagement'),
             'companyId' => $companyId,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
+            'subjects' => Subject::find()->andWhere(['active' => Subject::STATUS_ACTIVE])->with('subjectCategory')
+                ->orderBy(['category_id' => SORT_ASC, 'name' => SORT_ASC])->all(),
             'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
             'existedCompanies' => User::find()->andWhere(['role' => User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
             'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),

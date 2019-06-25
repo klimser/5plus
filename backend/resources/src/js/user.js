@@ -68,12 +68,32 @@ let User = {
             $("#amount_block").addClass('hidden').find("input").prop("disabled", true);
         }
     },
+    checkWelcomeLesson: function(e) {
+        let lessonBlock = $('#add_welcome_lesson');
+        if (e.checked) {
+            lessonBlock.removeClass("hidden")
+                .find("input, select").prop("disabled", false);
+            let groupSwitch = $("#add_group_switch");
+            if (groupSwitch.is(":checked")) {
+                groupSwitch.prop("checked", false);
+                this.checkAddGroup(groupSwitch);
+            }
+        } else {
+            lessonBlock.addClass("hidden")
+                .find("input, select").prop("disabled", true);
+        }
+    },
     checkAddGroup: function(e) {
         let paymentSwitch = $("#add_payment_switch");
         let contractSwitch = $("#add_contract_switch");
         if (e.checked) {
             $('#add_group').removeClass("hidden")
                 .find("input").prop("disabled", false);
+            let lessonSwitch = $("#welcome_lesson_switch");
+            if (lessonSwitch.is(":checked")) {
+                lessonSwitch.prop("checked", false);
+                this.checkWelcomeLesson(lessonSwitch);
+            }
             if (paymentSwitch.length > 0) {
                 paymentSwitch.prop("disabled", false);
             }

@@ -9,6 +9,7 @@ use yii\bootstrap\ActiveForm;
 /* @var $parentCompany \common\models\User */
 /* @var $pupil \common\models\User */
 /* @var $groups \common\models\Group[] */
+/* @var $subjects \common\models\Subject[] */
 /* @var $existedParents \common\models\User[] */
 /* @var $existedCompanies \common\models\User[] */
 /* @var $groupData array */
@@ -59,6 +60,7 @@ SCRIPT
 
                 <?= $this->render('_add_group', [
                     'groups' => $groups,
+                    'subjects' => $subjects,
                     'groupData' => $groupData,
                     'paymentData' => $paymentData,
                     'contractData' => $contractData,

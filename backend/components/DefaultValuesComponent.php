@@ -7,6 +7,17 @@ use yii\base\Component;
 
 class DefaultValuesComponent extends Component
 {
+    public static function getDatePickerSettings()
+    {
+        return [
+            'clientOptions' => [
+                'autoclose' => true,
+                'format' => 'dd.mm.yyyy',
+                'language' => 'ru',
+                'weekStart' => 1,
+            ]
+        ];
+    }
     public static function getTinyMceSettings()
     {
         return [

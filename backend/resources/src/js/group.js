@@ -6,7 +6,7 @@ var Group = {
     teacherMap: [],
     dateRegexp: /\d{2}\.\d{2}\.\d{4}/,
     loadTeacherMap: function () {
-        if (this.teacherMap.length == 0) {
+        if (this.teacherMap.length === 0) {
             this.active = $("#group-teacher_id").val();
             $.ajax({
                 url: '/teacher/list-json',
