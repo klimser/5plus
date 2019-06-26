@@ -41,13 +41,13 @@ $this->registerJs('User.init();');
 <div class="checkbox">
     <label>
         <input type="checkbox" id="welcome_lesson_switch" value="1" name="welcome_lesson[add]" onchange="User.checkWelcomeLesson(this);" <?= $addWelcomeLesson ? 'checked' : ''; ?> autocomplete="off">
-        Welcome lesson
+        Пробный урок
     </label>
 </div>
 
 <div id="add_welcome_lesson" <?= $addWelcomeLesson ? '' : 'class="hidden"'; ?>>
     <div class="form-group">
-        <label for="welcome_lesson_subject">Subject</label>
+        <label for="welcome_lesson_subject">Предмет</label>
         <select class="form-control" id="welcome_lesson_subject" name="welcome_lesson[subject_id]" onchange="User.changeSubject(this);">
             <?php foreach ($subjects as $subject): ?>
                 <option value="<?= $subject->id; ?>"><?= $subject->name; ?> (<?= $subject->subjectCategory->name; ?>)</option>
@@ -55,11 +55,11 @@ $this->registerJs('User.init();');
         </select>
     </div>
     <div class="form-group">
-        <label for="welcome_lesson_teacher">Teacher</label>
+        <label for="welcome_lesson_teacher">Учитель</label>
         <select class="form-control" id="welcome_lesson_teacher" name="welcome_lesson[teacher_id]"></select>
     </div>
     <div class="form-group">
-        <label for="welcome_lesson_date">Lesson date</label>
+        <label for="welcome_lesson_date">Дата</label>
         <?= DatePicker::widget(array_merge(
                 DefaultValuesComponent::getDatePickerSettings(),
                 [

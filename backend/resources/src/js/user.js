@@ -1,4 +1,56 @@
 let User = {
+    activeSubject: '',
+    teacherList: [],
+    teacherMap: [],
+    teacherElement: $("#welcome_lesson_teacher"),
+    loadTeacherMap: function () {
+        if (this.teacherMap.length === 0) {
+            this.activeSubject = $("#welcome_lesson_subject").val();
+            $.ajax({
+                url: '/teacher/list-json',
+                type: 'get',
+                dataType: 'json',
+                success: function (data) {
+                    data.forEach(function(teacher) {
+                        User.teacherMap[teacher.id] = teacher.name;
+                    });
+                    User.loadTeacherSelect($("#welcome_lesson_subject"));
+                }
+            });
+        }
+    },
+    loadTeacherSelect: function (e) {
+        let subjectId = $(e).val();
+        $(this.teacherElement).data("subject", subjectId);
+
+        if (typeof this.teacherList[subjectId] == 'undefined') {
+            $.ajax({
+                url: '/teacher/list-json',
+                type: 'get',
+                dataType: 'json',
+                data: {subject: subjectId},
+                success: function (data) {
+                    User.teacherList[data.subjectId] = [];
+                    data.teachers.forEach(function(teacherId) {
+                        User.teacherList[data.subjectId].push(teacherId);
+                    });
+                    Group.fillTeacherSelect(data.subjectId);
+                }
+            });
+        } else this.fillTeacherSelect(subjectId);
+    },
+    fillTeacherSelect: function (subjectId) {
+        if ($(this.teacherElement).data("subject") === subjectId) {
+            $(this.teacherElement).html(this.getTeachersOptions(subjectId)).removeData("subject");
+        }
+    },
+    getTeachersOptions: function (subjectId) {
+        let list = '';
+        this.teacherList[subjectId].forEach(function(teacherId) {
+            list += '<option value="' + teacherId + '">' + User.teacherMap[teacherId] + '</option>';
+        });
+        return list;
+    },
     findByPhone: function(phoneString, successHandler, errorHandler) {
         $.ajax({
             url: '/user/find-by-phone',
@@ -60,6 +112,9 @@ let User = {
                 $("#company_form").removeClass('hidden');
                 break;
         }
+    },
+    changeSubject: function(e) {
+        this.fillTeacherSelect($(e).val());
     },
     setAmountBlockVisibility: function() {
         if ($("#add_payment_switch").is(":checked") || $("#add_contract_switch").is(":checked")) {
@@ -193,6 +248,7 @@ let User = {
         );
     },
     init: function() {
+        this.loadTeacherMap();
         if ($("#add_group_switch").is(":checked")) this.setAmountHelperButtons($("#group"));
         else if ($("#add_contract_switch").is(":checked")) this.setAmountHelperButtons($("#contract_group"));
     }

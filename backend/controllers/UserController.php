@@ -2,6 +2,8 @@
 
 namespace backend\controllers;
 
+use backend\models\TeacherSubjectLink;
+use backend\models\WelcomeLesson;
 use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use backend\components\UserComponent;
@@ -12,7 +14,7 @@ use common\models\Group;
 use common\models\GroupPupil;
 use common\models\Payment;
 use common\models\Subject;
-use common\models\SubjectCategory;
+use common\models\Teacher;
 use common\models\User;
 use common\models\UserSearch;
 use yii\data\Pagination;
@@ -72,6 +74,7 @@ class UserController extends AdminController
             User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], \Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
             $groupData = \Yii::$app->request->post('group', []);
+            $welcomeLessonData = \Yii::$app->request->post('welcome_lesson', []);
             $paymentData = \Yii::$app->request->post('payment', []);
             $contractData = \Yii::$app->request->post('contract', []);
             $amount = intval(\Yii::$app->request->post('amount', 0));
@@ -97,6 +100,7 @@ class UserController extends AdminController
 
                 if ($pupil->save()) {
                     $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
+                    $addWelcomeLesson = array_key_exists('add', $welcomeLessonData) && $welcomeLessonData['add'];
                     $addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
                     $addContract = array_key_exists('add', $contractData) && $contractData['add'];
 
@@ -111,6 +115,8 @@ class UserController extends AdminController
                             $this->addPupilMoneyIncome($company, $groupPupil, $amount, $paymentData);
                             MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                         }
+                    } elseif ($addWelcomeLesson) {
+                        $this->addPupilToWelcomeLesson($pupil, $welcomeLessonData);
                     }
                     if (!$addPayment && $addContract) {
                         $contract = MoneyComponent::addPupilContract(
@@ -213,6 +219,37 @@ class UserController extends AdminController
 
         \Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
         return $groupPupil;
+    }
+
+    /**
+     * @param User $pupil
+     * @param array $welcomeLessonData
+     * @return WelcomeLesson
+     * @throws \Exception
+     */
+    private function addPupilToWelcomeLesson(User $pupil, array $welcomeLessonData): WelcomeLesson
+    {
+        /** @var Subject $subject */
+        $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subject_id'], 'active' => Subject::STATUS_ACTIVE])->one();
+        if (!$subject) throw new \Exception('Предмет не найден');
+        /** @var Teacher $teacher */
+        $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacher_id'], 'active' => Teacher::STATUS_ACTIVE])->one();
+        if (!$teacher) throw new \Exception('Учитель не найден');
+        $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
+        if (!$teacherSubject) throw new \Exception('Учитель не найден');
+        $startDate = date_create_from_format('d.m.Y', $welcomeLessonData['date']);
+        if (!$startDate) throw new \Exception('Неверная дата начала занятий');
+
+        $welcomeLesson = new WelcomeLesson();
+        $welcomeLesson->subject_id = $subject->id;
+        $welcomeLesson->teacher_id = $teacher->id;
+        $welcomeLesson->user_id = $pupil->id;
+
+        if (!$welcomeLesson->save()) {
+            throw new \Exception('Server error: ' . $welcomeLesson->getErrorsAsString());
+        }
+
+        return $welcomeLesson;
     }
 
     /**
