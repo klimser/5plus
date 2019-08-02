@@ -15,6 +15,7 @@ use yii\bootstrap\ActiveForm;
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */
+/* @var $welcomeLessonData array */
 /* @var $amount int */
 /* @var $companyId int */
 /* @var $companies \common\models\Company[] */
@@ -64,6 +65,7 @@ SCRIPT
                     'groupData' => $groupData,
                     'paymentData' => $paymentData,
                     'contractData' => $contractData,
+                    'welcomeLessonData' => $welcomeLessonData,
                     'companies' => $companies,
                     'amount' => $amount,
                     'companyId' => $companyId,

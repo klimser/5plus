@@ -35,7 +35,7 @@ class WelcomeLessonSearch extends WelcomeLesson
      */
     public function search($params)
     {
-        $query = Action::find()->joinWith(['user'])->with(['user', 'subject', 'teacher']);
+        $query = self::find()->joinWith(['user'])->with(['user', 'subject', 'teacher']);
 
         $providerParams = [
             'query' => $query,
@@ -86,7 +86,7 @@ class WelcomeLessonSearch extends WelcomeLesson
             'user_id' => $this->user_id,
         ]);
         if (!$this->status) {
-            $query->andWhere('status NOT IN (:bad_status)', ['bad_status' => [self::STATUS_DENIED, self::STATUS_SUCCESS]]);
+            $query->andWhere(self::tableName() . '.status NOT IN (:bad_status)', ['bad_status' => [self::STATUS_DENIED, self::STATUS_SUCCESS]]);
         }
 
         if ($this->lesson_date) {

@@ -7,9 +7,10 @@ use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
 use DateTime;
+use yii\db\ActiveQuery;
 
 /**
- * This is the model class for table "{{%event}}".
+ * This is the model class for table "{{%welcome_lesson}}".
  *
  * @property int $id
  * @property int $user_id
@@ -65,7 +66,7 @@ class WelcomeLesson extends ActiveRecord
     {
         return [
             [['user_id', 'subject_id', 'teacher_id', 'status'], 'integer'],
-            [['lesson_date'], 'required'],
+            [['user_id', 'subject_id', 'teacher_id', 'lesson_date'], 'required'],
             [['lesson_date'], 'date', 'format' => 'yyyy-MM-dd HH:mm:ss'],
             [['status'], 'in', 'range' => self::STATUS_LIST],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
@@ -89,7 +90,7 @@ class WelcomeLesson extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getSubject()
     {
@@ -97,7 +98,7 @@ class WelcomeLesson extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getTeacher()
     {
@@ -105,7 +106,7 @@ class WelcomeLesson extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getUser()
     {

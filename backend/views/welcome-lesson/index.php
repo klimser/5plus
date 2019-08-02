@@ -1,7 +1,8 @@
 <?php
 
 use backend\models\WelcomeLesson;
-use common\models\Group;use common\models\PaymentSearch;
+use backend\models\WelcomeLessonSearch;
+use common\models\Group;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
@@ -14,7 +15,7 @@ use yii\web\View;
 
 /* @var $this View */
 /* @var $dataProvider ActiveDataProvider */
-/* @var $searchModel PaymentSearch */
+/* @var $searchModel WelcomeLessonSearch */
 /* @var $studentMap User[] */
 /* @var $subjectMap Subject[] */
 /* @var $teacherMap Teacher[] */

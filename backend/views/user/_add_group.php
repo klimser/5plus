@@ -11,7 +11,7 @@ use yii\helpers\ArrayHelper;
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */
-/* @var $welcomeLesson array */
+/* @var $welcomeLessonData array */
 /* @var $companies \common\models\Company[] */
 /* @var $amount int */
 /* @var $companyId int */
@@ -22,7 +22,7 @@ use yii\helpers\ArrayHelper;
 $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
 $addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
 $addContract = array_key_exists('add', $contractData) && $contractData['add'];
-$addWelcomeLesson = array_key_exists('add', $welcomeLesson) && $welcomeLesson['add'];
+$addWelcomeLesson = array_key_exists('add', $welcomeLessonData) && $welcomeLessonData['add'];
 
 $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
     $list = '';
@@ -48,9 +48,9 @@ $this->registerJs('User.init();');
 <div id="add_welcome_lesson" <?= $addWelcomeLesson ? '' : 'class="hidden"'; ?>>
     <div class="form-group">
         <label for="welcome_lesson_subject">Предмет</label>
-        <select class="form-control" id="welcome_lesson_subject" name="welcome_lesson[subject_id]" onchange="User.changeSubject(this);">
+        <select class="form-control" id="welcome_lesson_subject" name="welcome_lesson[subject_id]" onchange="User.loadTeacherSelect(this);">
             <?php foreach ($subjects as $subject): ?>
-                <option value="<?= $subject->id; ?>"><?= $subject->name; ?> (<?= $subject->subjectCategory->name; ?>)</option>
+                <option value="<?= $subject->id; ?>" <?= !empty($welcomeLessonData['subject_id']) && $welcomeLessonData['subject_id'] == $subject->id ? 'selected' : ''; ?>><?= $subject->name; ?> (<?= $subject->subjectCategory->name; ?>)</option>
             <?php endforeach; ?>
         </select>
     </div>
@@ -64,7 +64,7 @@ $this->registerJs('User.init();');
                 DefaultValuesComponent::getDatePickerSettings(),
                 [
                     'name' => 'welcome_lesson[date]',
-                    'value' => array_key_exists('date', $welcomeLesson) ? $welcomeLesson['date'] : date('d.m.Y'),
+                    'value' => array_key_exists('date', $welcomeLessonData) ? $welcomeLessonData['date'] : date('d.m.Y'),
                     'options' => ['id' => 'welcome_lesson_date', 'required' => true, 'disabled' => !$addWelcomeLesson],
                 ]
         ));?>

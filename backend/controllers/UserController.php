@@ -67,6 +67,7 @@ class UserController extends AdminController
         $groupData = [];
         $paymentData = [];
         $contractData = [];
+        $welcomeLessonData = [];
         $amount = 0;
         $companyId = null;
 
@@ -105,7 +106,7 @@ class UserController extends AdminController
                     $addContract = array_key_exists('add', $contractData) && $contractData['add'];
 
                     $company = Company::findOne($companyId);
-                    if (!$company) throw new \Exception('Не выбран учебный центр!');
+                    if (($addPayment || $addContract) && !$company) throw new \Exception('Не выбран учебный центр!');
 
                     $groupPupil = null;
                     if ($addGroup) {
@@ -155,6 +156,7 @@ class UserController extends AdminController
             'groupData' => $groupData,
             'paymentData' => $paymentData,
             'contractData' => $contractData,
+            'welcomeLessonData' => $welcomeLessonData,
             'amount' => $amount,
             'incomeAllowed' => \Yii::$app->user->can('moneyManagement'),
             'contractAllowed' => \Yii::$app->user->can('contractManagement'),
@@ -244,6 +246,7 @@ class UserController extends AdminController
         $welcomeLesson->subject_id = $subject->id;
         $welcomeLesson->teacher_id = $teacher->id;
         $welcomeLesson->user_id = $pupil->id;
+        $welcomeLesson->lessonDateTime = $startDate;
 
         if (!$welcomeLesson->save()) {
             throw new \Exception('Server error: ' . $welcomeLesson->getErrorsAsString());

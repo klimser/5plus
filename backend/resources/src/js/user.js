@@ -1,14 +1,11 @@
 let User = {
-    activeSubject: '',
     teacherList: [],
     teacherMap: [],
     teacherElement: $("#welcome_lesson_teacher"),
     loadTeacherMap: function () {
         if (this.teacherMap.length === 0) {
-            this.activeSubject = $("#welcome_lesson_subject").val();
-            $.ajax({
+            $.get({
                 url: '/teacher/list-json',
-                type: 'get',
                 dataType: 'json',
                 success: function (data) {
                     data.forEach(function(teacher) {
@@ -23,10 +20,9 @@ let User = {
         let subjectId = $(e).val();
         $(this.teacherElement).data("subject", subjectId);
 
-        if (typeof this.teacherList[subjectId] == 'undefined') {
-            $.ajax({
+        if (typeof this.teacherList[subjectId] === 'undefined') {
+            $.get({
                 url: '/teacher/list-json',
-                type: 'get',
                 dataType: 'json',
                 data: {subject: subjectId},
                 success: function (data) {
@@ -34,7 +30,7 @@ let User = {
                     data.teachers.forEach(function(teacherId) {
                         User.teacherList[data.subjectId].push(teacherId);
                     });
-                    Group.fillTeacherSelect(data.subjectId);
+                    User.fillTeacherSelect(data.subjectId);
                 }
             });
         } else this.fillTeacherSelect(subjectId);
@@ -112,9 +108,6 @@ let User = {
                 $("#company_form").removeClass('hidden');
                 break;
         }
-    },
-    changeSubject: function(e) {
-        this.fillTeacherSelect($(e).val());
     },
     setAmountBlockVisibility: function() {
         if ($("#add_payment_switch").is(":checked") || $("#add_contract_switch").is(":checked")) {

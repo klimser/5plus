@@ -34,8 +34,8 @@ class WelcomeLessonController extends AdminController
 
         /** @var User[] $users */
         $users = User::find()->where(['id' => WelcomeLesson::find()->select(['user_id'])->distinct()->asArray()->column()])->orderBy(['name' => SORT_ASC])->all();
-        $userMap = [null => 'Все'];
-        foreach ($users as $user) $userMap[$user->id] = $user->name;
+        $studentMap = [null => 'Все'];
+        foreach ($users as $user) $studentMap[$user->id] = $user->name;
 
         /** @var Subject[] $subjects */
         $subjects = Subject::find()->orderBy('name')->all();
@@ -47,10 +47,10 @@ class WelcomeLessonController extends AdminController
         $teacherMap = [null => 'Все'];
         foreach ($teachers as $teacher) $teacherMap[$teacher->id] = $teacher->name;
 
-        return $this->render('debt', [
+        return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'userMap' => $userMap,
+            'studentMap' => $studentMap,
             'subjectMap' => $subjectMap,
             'teacherMap' => $teacherMap,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->with('teacher')->orderBy(['name' => 'ASC'])->all(),
