@@ -247,6 +247,7 @@ class MoneyComponent extends Component
                                 $rate = 0;
                             }
                             self::savePayment($payment);
+                            $eventMember->link('payments', $payment);
                         }
                     }
                 }
