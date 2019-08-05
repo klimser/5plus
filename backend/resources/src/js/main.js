@@ -1,4 +1,4 @@
-var Main = {
+let Main = {
     throwFlashMessage: function (blockSelector, message, additionalClass, append) {
         if (typeof append !== 'boolean') append = false;
         var blockContent = '<div class="alert alert-dismissible ' + additionalClass + '"><button type="button" class="close" data-dismiss="alert" aria-label="Закрыть"><span aria-hidden="true">&times;</span></button>' + message + '</div>';
@@ -30,7 +30,7 @@ var Main = {
             }
         });
     },
-    changeEntityStatus: function (entityType, entityId, newStatus, e) {
+    changeEntityStatus: function (entityType, entityId, newStatus, e, successCallback) {
         var postData = {
             status: newStatus
         };
@@ -46,20 +46,22 @@ var Main = {
                 postData.comment = $(problemEdit).val();
             }
         }
+        let successCallbacks = [function (data) {
+            if (data.status === 'ok') {
+                $('tr[data-key="' + data.id + '"] td').css({backgroundColor: '#dff0d8'}).animate({backgroundColor: '#dff0d8'}, 1000, function () {
+                    $(this).css({backgroundColor: ''});
+                });
+            } else {
+                alert(data.message);
+            }
+        }];
+        if (successCallback) successCallbacks.push(successCallback);
         $.ajax({
             url: '/' + entityType + '/change-status?id=' + entityId,
             type: 'POST',
             dataType: 'json',
             data: postData,
-            success: function (data) {
-                if (data.status === 'ok') {
-                    $('tr[data-key="' + data.id + '"] td').css({backgroundColor: '#dff0d8'}).animate({backgroundColor: '#dff0d8'}, 1000, function () {
-                        $(this).css({backgroundColor: ''});
-                    });
-                } else {
-                    alert(data.message);
-                }
-            }
+            success: successCallbacks,
         });
     },
     submitSortableForm: function (form) {

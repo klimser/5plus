@@ -1,7 +1,7 @@
 <?php
 namespace backend\components;
 
-use backend\models\User;
+use common\models\User;
 use yii\base\Widget;
 
 class DebtWidget extends Widget

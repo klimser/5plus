@@ -1,12 +1,16 @@
 <?php
 
+use common\models\OrderSearch;
+use yii\grid\ActionColumn;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use dosamigos\datepicker\DatePicker;
+use yii\data\ActiveDataProvider;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel \common\models\OrderSearch */
+/* @var $this View */
+/* @var $dataProvider ActiveDataProvider */
+/* @var $searchModel OrderSearch */
 
 $this->title = 'Заявки';
 $this->params['breadcrumbs'][] = $this->title;
@@ -46,7 +50,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'phone',
                 'header' => 'Телефон',
-                'content' => function ($model, $key, $index, $column) { return "<nobr>{$model->phoneFull}</nobr>"; },
+                'content' => function ($model, $key, $index, $column) { return "<span class='text-nowrap'>{$model->phoneFull}</span>"; },
             ],
             [
                 'attribute' => 'user_comment',
@@ -88,8 +92,8 @@ $this->params['breadcrumbs'][] = $this->title;
                 ),
             ],
             [
-                'class' => \yii\grid\ActionColumn::class,
-                'template' => '<nobr>{update}{delete}</nobr>',
+                'class' => ActionColumn::class,
+                'template' => '<span class="text-nowrap">{update}{delete}</span>',
                 'buttonOptions' => ['class' => 'btn btn-default margin-right-10'],
             ],
         ],

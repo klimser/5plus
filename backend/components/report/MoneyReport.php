@@ -4,6 +4,7 @@ namespace backend\components\report;
 
 use common\models\Group;
 use common\models\Payment;
+use DateTime;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -11,7 +12,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class MoneyReport
 {
-    public static function createGroup(Group $group, \DateTime $startDate, \DateTime $endDate): Spreadsheet
+    public static function createGroup(Group $group, DateTime $startDate, DateTime $endDate): Spreadsheet
     {
         $startDateString = $startDate->format('Y-m-d');
         $endDateString = $endDate->format('Y-m-d');
@@ -72,7 +73,7 @@ class MoneyReport
         return $spreadsheet;
     }
 
-    public static function createAll(\DateTime $startDate, \DateTime $endDate): Spreadsheet
+    public static function createAll(DateTime $startDate, DateTime $endDate): Spreadsheet
     {
         $startDateString = $startDate->format('Y-m-d');
         $endDateString = $endDate->format('Y-m-d');

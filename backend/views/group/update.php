@@ -1,8 +1,13 @@
 <?php
 
+use backend\components\DefaultValuesComponent;
+use dosamigos\datepicker\DatePicker;
+use dosamigos\datepicker\DateRangePicker;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 use common\components\helpers\Calendar;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $group common\models\Group */
@@ -24,7 +29,7 @@ SCRIPT
     <h1>
         <?= Html::encode($this->title) ?>
         <?php if ($group->id): ?>
-            <a class="pull-right btn btn-default" href="<?= \yii\helpers\Url::to(['view', 'id' => $group->id]); ?>">
+            <a class="pull-right btn btn-default" href="<?= Url::to(['view', 'id' => $group->id]); ?>">
                 Сводка <span class="fas fa-arrow-right"></span>
             </a>
         <?php endif; ?>
@@ -39,12 +44,12 @@ SCRIPT
         ->textInput(['maxlength' => true, 'required' => true]) ?>
 
     <?= $form->field($group, 'type_id', ['options' => ['class' => 'form-group col-xs-12 col-md-4']])
-        ->dropDownList(\yii\helpers\ArrayHelper::map($groupTypes, 'id', 'name'), ['required' => true]); ?>
+        ->dropDownList(ArrayHelper::map($groupTypes, 'id', 'name'), ['required' => true]); ?>
 
     <?= $form->field($group, 'subject_id', ['options' => ['class' => 'form-group col-xs-12 col-sm-6']])
-        ->dropDownList(\yii\helpers\ArrayHelper::map($subjects, 'id', 'name'), ['onChange' => 'Group.loadTeacherSelect(this);', 'required' => true]); ?>
+        ->dropDownList(ArrayHelper::map($subjects, 'id', 'name'), ['onChange' => 'Group.loadTeacherSelect(this);', 'required' => true]); ?>
     <?php
-    if ($group->subject_id) $teachersList = \yii\helpers\ArrayHelper::map($group->subject->teachers, 'id', 'name');
+    if ($group->subject_id) $teachersList = ArrayHelper::map($group->subject->teachers, 'id', 'name');
     else $teachersList = [];
     ?>
     <?= $form->field($group, 'teacher_id', ['options' => ['class' => 'form-group col-xs-12 col-sm-6']])
@@ -84,22 +89,20 @@ SCRIPT
             if ($group->date_end) $optionsTo['value'] = $group->endDateObject->format('d.m.Y');
             ?>
             <?= $form->field($group, 'date_start', ['labelOptions' => ['label' => 'Группа занимается'], 'options' => ['class' => '']])
-            ->widget(\dosamigos\datepicker\DateRangePicker::class, [
-                'options' => $options,
-                'optionsTo' => $optionsTo,
-                'attributeTo' => 'date_end',
-                'form' => $form, // best for correct client validation
-                'language' => 'ru',
-                'labelTo' => 'ДО',
-                'clientOptions' => [
-                    'autoclose' => true,
-                    'format' => 'dd.mm.yyyy',
+            ->widget(DateRangePicker::class, array_merge(
+                DefaultValuesComponent::getDatePickerSettings(),
+                [
+                    'options' => $options,
+                    'optionsTo' => $optionsTo,
+                    'attributeTo' => 'date_end',
+                    'form' => $form, // best for correct client validation
                     'language' => 'ru',
-                ],
-                'clientEvents' => [
-                    'changeDate' => 'function(e) {if ($(e.target).attr("name") == "Group[date_end]" && e.format() == $(e.currentTarget).find("input[name=\'Group[date_start]\']").val()) $(e.target).datepicker("clearDates");}',
+                    'labelTo' => 'ДО',
+                    'clientEvents' => [
+                        'changeDate' => 'function(e) {if ($(e.target).attr("name") == "Group[date_end]" && e.format() == $(e.currentTarget).find("input[name=\'Group[date_start]\']").val()) $(e.target).datepicker("clearDates");}',
+                    ]
                 ]
-            ]);?>
+            ));?>
         <?php else: ?>
             <label>Группа занимается</label>
             <div class="row">
@@ -109,14 +112,10 @@ SCRIPT
                 </div>
                 <div class="col-xs-6">
                     <input type="hidden" id="group-date_start" value="<?= $group->startDateObject->format('d.m.Y'); ?>">
-                    <?= $form->field($group, 'date_end', ['enableLabel' => false])->widget(\dosamigos\datepicker\DatePicker::class, [
-                        'options' => ['value' => $group->date_end ? $group->endDateObject->format('d.m.Y') : null],
-                        'clientOptions' => [
-                            'autoclose' => true,
-                            'format' => 'dd.mm.yyyy',
-                            'language' => 'ru',
-                        ]
-                    ]);?>
+                    <?= $form->field($group, 'date_end', ['enableLabel' => false])->widget(DatePicker::class, array_merge(
+                        DefaultValuesComponent::getDatePickerSettings(),
+                        ['options' => ['value' => $group->date_end ? $group->endDateObject->format('d.m.Y') : null]]
+                    ));?>
                 </div>
             </div>
         <?php endif; ?>
@@ -139,14 +138,16 @@ SCRIPT
                             <?php endif; ?>
                         </div>
                         <div class="pull-right">
-                            <a href="<?= \yii\helpers\Url::to(['group/move-pupil', 'user' => $groupPupil->user_id, 'group' => $groupPupil->group_id]); ?>" class="btn btn-xs btn-default">Перевести <span class="glyphicon glyphicon-arrow-right"></span></a>
+                            <a href="<?= Url::to(['group/move-pupil', 'user' => $groupPupil->user_id, 'group' => $groupPupil->group_id]); ?>" class="btn btn-xs btn-default">Перевести <span class="glyphicon glyphicon-arrow-right"></span></a>
                         </div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-xs-12">
                         <div class="form-group">
-                            <?= \dosamigos\datepicker\DateRangePicker::widget([
+                            <?php $settings = DefaultValuesComponent::getDatePickerSettings();
+                            $settings['clientOptions']['startDate'] = $group->startDateObject->format('d.m.Y');
+                            echo DateRangePicker::widget(array_merge($settings, [
                                 'name' => 'pupil_start[]',
                                 'value' => $groupPupil->date_start ? $groupPupil->startDateObject->format('d.m.Y') : null,
                                 'nameTo' => 'pupil_end[]',
@@ -155,16 +156,10 @@ SCRIPT
                                 'optionsTo' => ['class' => 'pupil-end'],
                                 'language' => 'ru',
                                 'labelTo' => 'ДО',
-                                'clientOptions' => [
-                                    'autoclose' => true,
-                                    'format' => 'dd.mm.yyyy',
-                                    'startDate' => $group->startDateObject->format('d.m.Y'),
-                                    'language' => 'ru',
-                                ],
                                 'clientEvents' => [
                                     'changeDate' => 'function(e) {if ($(e.target).attr("name") == "pupil_end[]" && e.format() == $(e.currentTarget).find("input[name=\'pupil_start[]\']").val()) $(e.target).datepicker("clearDates");}',
                                 ]
-                            ]);?>
+                            ]));?>
                         </div>
                     </div>
                 </div>
@@ -199,7 +194,7 @@ SCRIPT
                         <td class="text-right">
                             <?= $groupPupil->startDateObject->format('d.m.Y'); ?> - <?= $groupPupil->endDateObject->format('d.m.Y'); ?>
                             <?php if ($canMoveMoney && $groupPupil->moneyLeft > 0): ?>
-                                <a href="<?= \yii\helpers\Url::to(['group/move-money', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>" class="btn btn-xs btn-default" title="Перенести оставшиеся деньги">
+                                <a href="<?= Url::to(['group/move-money', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>" class="btn btn-xs btn-default" title="Перенести оставшиеся деньги">
                                     <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>
                                 </a>
                             <?php endif; ?>

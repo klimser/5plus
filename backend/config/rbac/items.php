@@ -47,6 +47,7 @@ return [
             'manageUsers',
             'editUser',
             'contractManagement',
+            'welcomeLessons',
         ],
     ],
     'cashier' => [
@@ -132,6 +133,10 @@ return [
     'contractManagement' => [
         'type' => 2,
         'description' => 'Manage contracts',
+    ],
+    'welcomeLessons' => [
+        'type' => 2,
+        'description' => 'Move pupils from welcome lessons to groups',
     ],
 
     /* CASHIER */

@@ -1,5 +1,7 @@
 <?php
 
+use backend\components\DefaultValuesComponent;
+use dosamigos\datepicker\DatePicker;
 use yii\bootstrap\ActiveForm;
 
 
@@ -34,17 +36,14 @@ $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
     </div>
     <div class="form-group">
         <label for="group_date_from">Начало занятий</label>
-        <?= \dosamigos\datepicker\DatePicker::widget([
-            'name' => 'group[date_from]',
-            'value' => array_key_exists('date_from', $groupData) ? $groupData['date_from'] : date('d.m.Y'),
-            'options' => ['id' => 'group_date_from', 'required' => true],
-            'clientOptions' => [
-                'autoclose' => true,
-                'format' => 'dd.mm.yyyy',
-                'language' => 'ru',
-                'weekStart' => 1,
-            ]
-        ]);?>
+        <?= DatePicker::widget(array_merge(
+                DefaultValuesComponent::getDatePickerSettings(),
+                [
+                    'name' => 'group[date_from]',
+                    'value' => array_key_exists('date_from', $groupData) ? $groupData['date_from'] : date('d.m.Y'),
+                    'options' => ['id' => 'group_date_from', 'required' => true],
+                ]
+        ));?>
     </div>
 
     <button class="btn btn-primary">добавить</button>

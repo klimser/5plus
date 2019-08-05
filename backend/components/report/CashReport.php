@@ -3,6 +3,7 @@
 namespace backend\components\report;
 
 use common\models\Payment;
+use DateTime;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -10,7 +11,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class CashReport
 {
-    public static function create(\DateTime $date, bool $kids): Spreadsheet
+    public static function create(DateTime $date, bool $kids): Spreadsheet
     {
         $date->modify('midnight');
         $endDate = clone $date;

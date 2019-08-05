@@ -2,6 +2,8 @@
 
 namespace backend\controllers;
 
+use backend\models\TeacherSubjectLink;
+use backend\models\WelcomeLesson;
 use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use backend\components\UserComponent;
@@ -11,6 +13,8 @@ use backend\models\EventMember;
 use common\models\Group;
 use common\models\GroupPupil;
 use common\models\Payment;
+use common\models\Subject;
+use common\models\Teacher;
 use common\models\User;
 use common\models\UserSearch;
 use yii\data\Pagination;
@@ -63,6 +67,7 @@ class UserController extends AdminController
         $groupData = [];
         $paymentData = [];
         $contractData = [];
+        $welcomeLessonData = [];
         $amount = 0;
         $companyId = null;
 
@@ -70,6 +75,7 @@ class UserController extends AdminController
             User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], \Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
             $groupData = \Yii::$app->request->post('group', []);
+            $welcomeLessonData = \Yii::$app->request->post('welcome_lesson', []);
             $paymentData = \Yii::$app->request->post('payment', []);
             $contractData = \Yii::$app->request->post('contract', []);
             $amount = intval(\Yii::$app->request->post('amount', 0));
@@ -95,11 +101,12 @@ class UserController extends AdminController
 
                 if ($pupil->save()) {
                     $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
+                    $addWelcomeLesson = array_key_exists('add', $welcomeLessonData) && $welcomeLessonData['add'];
                     $addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
                     $addContract = array_key_exists('add', $contractData) && $contractData['add'];
 
                     $company = Company::findOne($companyId);
-                    if (!$company) throw new \Exception('Не выбран учебный центр!');
+                    if (($addPayment || $addContract) && !$company) throw new \Exception('Не выбран учебный центр!');
 
                     $groupPupil = null;
                     if ($addGroup) {
@@ -109,6 +116,8 @@ class UserController extends AdminController
                             $this->addPupilMoneyIncome($company, $groupPupil, $amount, $paymentData);
                             MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                         }
+                    } elseif ($addWelcomeLesson) {
+                        $this->addPupilToWelcomeLesson($pupil, $welcomeLessonData);
                     }
                     if (!$addPayment && $addContract) {
                         $contract = MoneyComponent::addPupilContract(
@@ -147,11 +156,14 @@ class UserController extends AdminController
             'groupData' => $groupData,
             'paymentData' => $paymentData,
             'contractData' => $contractData,
+            'welcomeLessonData' => $welcomeLessonData,
             'amount' => $amount,
             'incomeAllowed' => \Yii::$app->user->can('moneyManagement'),
             'contractAllowed' => \Yii::$app->user->can('contractManagement'),
             'companyId' => $companyId,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
+            'subjects' => Subject::find()->andWhere(['active' => Subject::STATUS_ACTIVE])->with('subjectCategory')
+                ->orderBy(['category_id' => SORT_ASC, 'name' => SORT_ASC])->all(),
             'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
             'existedCompanies' => User::find()->andWhere(['role' => User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
             'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
@@ -209,6 +221,38 @@ class UserController extends AdminController
 
         \Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
         return $groupPupil;
+    }
+
+    /**
+     * @param User $pupil
+     * @param array $welcomeLessonData
+     * @return WelcomeLesson
+     * @throws \Exception
+     */
+    private function addPupilToWelcomeLesson(User $pupil, array $welcomeLessonData): WelcomeLesson
+    {
+        /** @var Subject $subject */
+        $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subject_id'], 'active' => Subject::STATUS_ACTIVE])->one();
+        if (!$subject) throw new \Exception('Предмет не найден');
+        /** @var Teacher $teacher */
+        $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacher_id'], 'active' => Teacher::STATUS_ACTIVE])->one();
+        if (!$teacher) throw new \Exception('Учитель не найден');
+        $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
+        if (!$teacherSubject) throw new \Exception('Учитель не найден');
+        $startDate = date_create_from_format('d.m.Y', $welcomeLessonData['date']);
+        if (!$startDate) throw new \Exception('Неверная дата начала занятий');
+
+        $welcomeLesson = new WelcomeLesson();
+        $welcomeLesson->subject_id = $subject->id;
+        $welcomeLesson->teacher_id = $teacher->id;
+        $welcomeLesson->user_id = $pupil->id;
+        $welcomeLesson->lessonDateTime = $startDate;
+
+        if (!$welcomeLesson->save()) {
+            throw new \Exception('Server error: ' . $welcomeLesson->getErrorsAsString());
+        }
+
+        return $welcomeLesson;
     }
 
     /**
@@ -403,8 +447,8 @@ class UserController extends AdminController
         if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
         if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
 
-        $jsonData = self::getJsonOkResult();
-        $phone = preg_replace('#\D#', '', \Yii::$app->request->post('phone', ''));
+        $jsonData = self::getJsonOkResult(['phone' => \Yii::$app->request->post('phone', '')]);
+        $phone = preg_replace('#\D#', '', $jsonData['phone']);
 
         if (!empty($phone) && strlen($phone) == 9) {
             $searchString = "+998$phone";

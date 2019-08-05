@@ -1,12 +1,17 @@
 <?php
 
+use backend\components\DefaultValuesComponent;
+use dosamigos\datepicker\DatePicker;
 use yii\bootstrap\Html;
+use yii\helpers\ArrayHelper;
 
 /* @var $this \yii\web\View */
 /* @var $groups \common\models\Group[] */
+/* @var $subjects \common\models\Subject[] */
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */
+/* @var $welcomeLessonData array */
 /* @var $companies \common\models\Company[] */
 /* @var $amount int */
 /* @var $companyId int */
@@ -17,6 +22,7 @@ use yii\bootstrap\Html;
 $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
 $addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
 $addContract = array_key_exists('add', $contractData) && $contractData['add'];
+$addWelcomeLesson = array_key_exists('add', $welcomeLessonData) && $welcomeLessonData['add'];
 
 $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
     $list = '';
@@ -31,6 +37,40 @@ $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
 
 $this->registerJs('User.init();');
 ?>
+
+<div class="checkbox">
+    <label>
+        <input type="checkbox" id="welcome_lesson_switch" value="1" name="welcome_lesson[add]" onchange="User.checkWelcomeLesson(this);" <?= $addWelcomeLesson ? 'checked' : ''; ?> autocomplete="off">
+        Пробный урок
+    </label>
+</div>
+
+<div id="add_welcome_lesson" <?= $addWelcomeLesson ? '' : 'class="hidden"'; ?>>
+    <div class="form-group">
+        <label for="welcome_lesson_subject">Предмет</label>
+        <select class="form-control" id="welcome_lesson_subject" name="welcome_lesson[subject_id]" onchange="User.loadTeacherSelect(this);">
+            <?php foreach ($subjects as $subject): ?>
+                <option value="<?= $subject->id; ?>" <?= !empty($welcomeLessonData['subject_id']) && $welcomeLessonData['subject_id'] == $subject->id ? 'selected' : ''; ?>><?= $subject->name; ?> (<?= $subject->subjectCategory->name; ?>)</option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="welcome_lesson_teacher">Учитель</label>
+        <select class="form-control" id="welcome_lesson_teacher" name="welcome_lesson[teacher_id]"></select>
+    </div>
+    <div class="form-group">
+        <label for="welcome_lesson_date">Дата</label>
+        <?= DatePicker::widget(array_merge(
+                DefaultValuesComponent::getDatePickerSettings(),
+                [
+                    'name' => 'welcome_lesson[date]',
+                    'value' => array_key_exists('date', $welcomeLessonData) ? $welcomeLessonData['date'] : date('d.m.Y'),
+                    'options' => ['id' => 'welcome_lesson_date', 'required' => true, 'disabled' => !$addWelcomeLesson],
+                ]
+        ));?>
+    </div>
+</div>
+
 <div class="checkbox">
     <label>
         <input type="checkbox" id="add_group_switch" value="1" name="group[add]" onchange="User.checkAddGroup(this);" <?= $addGroup ? 'checked' : ''; ?> autocomplete="off">
@@ -47,17 +87,14 @@ $this->registerJs('User.init();');
     </div>
     <div class="form-group">
         <label for="group_date_from">Начало занятий</label>
-        <?= \dosamigos\datepicker\DatePicker::widget([
-            'name' => 'group[date_from]',
-            'value' => array_key_exists('date_from', $groupData) ? $groupData['date_from'] : date('d.m.Y'),
-            'options' => ['id' => 'group_date_from', 'required' => true, 'disabled' => !$addGroup],
-            'clientOptions' => [
-                'autoclose' => true,
-                'format' => 'dd.mm.yyyy',
-                'language' => 'ru',
-                'weekStart' => 1,
-            ]
-        ]);?>
+        <?= DatePicker::widget(array_merge(
+                DefaultValuesComponent::getDatePickerSettings(),
+                [
+                    'name' => 'group[date_from]',
+                    'value' => array_key_exists('date_from', $groupData) ? $groupData['date_from'] : date('d.m.Y'),
+                    'options' => ['id' => 'group_date_from', 'required' => true, 'disabled' => !$addGroup],
+                ]
+        ));?>
     </div>
 </div>
 
@@ -111,7 +148,7 @@ $this->registerJs('User.init();');
     <?= Html::radioList(
         'company_id',
         $companyId,
-        \yii\helpers\ArrayHelper::map($companies, 'id', 'second_name'),
+        ArrayHelper::map($companies, 'id', 'second_name'),
         ['class' => 'form-group', 'itemOptions' => ['required' => true, 'disabled' => !$addPayment && !$addContract]]
     ); ?>
 </div>

@@ -6,18 +6,23 @@ use backend\models\Event;
 use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use common\models\Group;
+use DateInterval;
+use DateTime;
+use Exception;
+use Throwable;
 use yii\base\Component;
+use yii\db\StaleObjectException;
 
 class EventComponent extends Component
 {
     /**
      * @param Group $group
-     * @param \DateTime $date
+     * @param DateTime $date
      * @return Event|null
-     * @throws \Exception
-     * @throws \Throwable
+     * @throws Exception
+     * @throws Throwable
      */
-    public static function addEvent(Group $group, \DateTime $date): ?Event
+    public static function addEvent(Group $group, DateTime $date): ?Event
     {
         $groupParam = GroupComponent::getGroupParam($group, $date);
         if ($groupParam->isHasLesson($date)) {
@@ -28,7 +33,7 @@ class EventComponent extends Component
                 $event->group_id = $group->id;
                 $event->status = Event::STATUS_UNKNOWN;
 
-                if (!$event->save()) throw new \Exception('Schedule save error: ' . $event->getErrorsAsString());
+                if (!$event->save()) throw new Exception('Schedule save error: ' . $event->getErrorsAsString());
             }
 
             foreach ($group->groupPupils as $groupPupil) {
@@ -57,6 +62,8 @@ class EventComponent extends Component
     /**
      * @param Event $event
      * @return bool
+     * @throws Throwable
+     * @throws StaleObjectException
      */
     private static function deleteEvent(Event $event): bool
     {
@@ -66,18 +73,18 @@ class EventComponent extends Component
 
     /**
      * @param Group $group
-     * @throws \Exception
+     * @throws Throwable
      */
     public static function fillSchedule(Group $group)
     {
-        $limitDate = new \DateTime('+1 day midnight');
+        $limitDate = new DateTime('+1 day midnight');
         if ($group->groupPupils) {
             $startDate = clone $group->startDateObject;
             $startDate->modify('midnight');
             $endDate = $group->endDateObject ? clone $group->endDateObject : null;
             if (!$endDate || $endDate > $limitDate) $endDate = $limitDate;
             $endDate->modify('midnight');
-            $intervalDay = new \DateInterval('P1D');
+            $intervalDay = new DateInterval('P1D');
             while ($startDate <= $endDate) {
                 $event = self::addEvent($group, $startDate);
                 if ($event) MoneyComponent::chargeByEvent($event);
@@ -92,17 +99,17 @@ class EventComponent extends Component
             foreach ($overEvents as $event) {
                 $event->status = Event::STATUS_CANCELED;
                 MoneyComponent::chargeByEvent($event);
-                if (!self::deleteEvent($event)) throw new \Exception('Unable to delete event');
+                if (!self::deleteEvent($event)) throw new Exception('Unable to delete event');
             }
         }
     }
 
     /**
      * @param Group $group
-     * @param \DateTime $limitDate
+     * @param DateTime $limitDate
      * @return Event|null
      */
-    public static function getUncheckedEvent(Group $group, \DateTime $limitDate): ?Event
+    public static function getUncheckedEvent(Group $group, DateTime $limitDate): ?Event
     {
         /** @var Event|null $event */
         $event = Event::find()

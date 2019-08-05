@@ -9,11 +9,13 @@ use yii\bootstrap\ActiveForm;
 /* @var $parentCompany \common\models\User */
 /* @var $pupil \common\models\User */
 /* @var $groups \common\models\Group[] */
+/* @var $subjects \common\models\Subject[] */
 /* @var $existedParents \common\models\User[] */
 /* @var $existedCompanies \common\models\User[] */
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */
+/* @var $welcomeLessonData array */
 /* @var $amount int */
 /* @var $companyId int */
 /* @var $companies \common\models\Company[] */
@@ -32,6 +34,7 @@ SCRIPT
 ?>
 <div class="user-create">
     <h1><?= Html::encode($this->title) ?></h1>
+    <div id="messages_place"></div>
     <div class="user-form">
         <?php $form = ActiveForm::begin(); ?>
 
@@ -51,16 +54,18 @@ SCRIPT
                 <?= $form->field($pupil, '[pupil]name')->textInput(['maxlength' => true, 'required' => true]); ?>
 
                 <?= $form->field($pupil, '[pupil]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
-                    ->textInput(['required' => true, 'maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+                    ->textInput(['required' => true, 'maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
 
                 <?= $form->field($pupil, '[pupil]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
-                    ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+                    ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
 
                 <?= $this->render('_add_group', [
                     'groups' => $groups,
+                    'subjects' => $subjects,
                     'groupData' => $groupData,
                     'paymentData' => $paymentData,
                     'contractData' => $contractData,
+                    'welcomeLessonData' => $welcomeLessonData,
                     'companies' => $companies,
                     'amount' => $amount,
                     'companyId' => $companyId,

@@ -9,6 +9,8 @@ use common\models\Group;
 use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\User;
+use DateTime;
+use Exception;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -18,10 +20,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class SalaryComponent
 {
-    public static function getGroupSalarySpreadsheet(Group $group, \DateTime $date): Spreadsheet
+    public static function getGroupSalarySpreadsheet(Group $group, DateTime $date): Spreadsheet
     {
         $groupParam = GroupParam::findByDate($group, $date);
-        if (!$groupParam) throw new \Exception('There is no salary for this month');
+        if (!$groupParam) throw new Exception('There is no salary for this month');
 
         $daysCount = intval($date->format('t'));
         $lastColumn = $daysCount + 2;
@@ -55,7 +57,7 @@ class SalaryComponent
         $spreadsheet->getActiveSheet()->getStyle('B3:B5')->getFont()->setBold(true);
 
         $nextMonth = clone $date;
-        $nextMonth->add(new \DateInterval('P1M'));
+        $nextMonth->modify('+1 month');
         /** @var Event[] $events */
         $events = Event::find()
             ->andWhere(['group_id' => $group->id])
@@ -163,7 +165,7 @@ class SalaryComponent
         return $spreadsheet;
     }
 
-    public static function getMonthSalarySpreadsheet(\DateTime $date): Spreadsheet
+    public static function getMonthSalarySpreadsheet(DateTime $date): Spreadsheet
     {
         /** @var GroupParam[] $groupParams */
         $groupParams = GroupParam::find()
@@ -172,7 +174,7 @@ class SalaryComponent
             ->with(['teacher', 'group'])
             ->orderBy([GroupParam::tableName() . '.teacher_id' => SORT_ASC])->all();
 
-        if (empty($groupParams)) throw new \Exception('No salary data found');
+        if (empty($groupParams)) throw new Exception('No salary data found');
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);

@@ -20,7 +20,7 @@ class Action extends BaseObject
     const TYPE_GROUP_PUPIL_ADDED = 13;
     const TYPE_GROUP_PUPIL_UPDATED = 14;
 
-    public static $typeLabels = [
+    public const TYPE_LABELS = [
         self::TYPE_INCOME => 'Внесение админом',
         self::TYPE_CHARGE => 'Списание',
         self::TYPE_CANCEL_AUTO => 'Авто отмена', 
