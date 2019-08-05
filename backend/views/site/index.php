@@ -4,6 +4,9 @@ use \yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $admin \yii\web\User */
+/* @var $orderCount int */
+/* @var $feedbackCount int */
+/* @var $reviewCount int */
 
 $this->title = 'Панель управления';
 ?>
@@ -88,11 +91,7 @@ $this->title = 'Панель управления';
             <hr>
         <?php endif; ?>
 
-        <?php if ($admin->can('support')):
-            /* @var $orderCount int */
-            /* @var $feedbackCount int */
-            /* @var $reviewCount int */
-            ?>
+        <?php if ($admin->can('support')): ?>
             <div class="panel panel-default">
                 <div class="panel-body">
                     <div class="row">
