@@ -80,13 +80,13 @@ class WelcomeLessonSearch extends WelcomeLesson
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'status' => $this->status,
+            self::tableName() . '.status' => $this->status,
             'subject_id' => $this->subject_id,
             'teacher_id' => $this->teacher_id,
             'user_id' => $this->user_id,
         ]);
         if (!$this->status) {
-            $query->andWhere(self::tableName() . '.status NOT IN (:bad_status)', ['bad_status' => [self::STATUS_DENIED, self::STATUS_SUCCESS]]);
+            $query->andWhere(['not in', self::tableName() . '.status', [self::STATUS_DENIED, self::STATUS_SUCCESS]]);
         }
 
         if ($this->lesson_date) {

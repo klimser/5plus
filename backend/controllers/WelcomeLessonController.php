@@ -18,6 +18,7 @@ use yii\web\ForbiddenHttpException;
  */
 class WelcomeLessonController extends AdminController
 {
+
     const PROPOSE_GROUP_LIMIT = 6;
 
     /**
@@ -47,14 +48,54 @@ class WelcomeLessonController extends AdminController
         $teacherMap = [null => 'Все'];
         foreach ($teachers as $teacher) $teacherMap[$teacher->id] = $teacher->name;
 
+        $statusMap = [null => 'Активные'];
+        foreach (WelcomeLesson::STATUS_LABELS as $value => $label) {
+            $statusMap[$value] = $label;
+        }
+
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
             'studentMap' => $studentMap,
             'subjectMap' => $subjectMap,
             'teacherMap' => $teacherMap,
+            'statusMap' => $statusMap,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->with('teacher')->orderBy(['name' => 'ASC'])->all(),
         ]);
+    }
+
+    /**
+     * @param $id
+     * @return \yii\web\Response
+     * @throws yii\web\NotFoundHttpException
+     */
+    public function actionChangeStatus($id)
+    {
+        $jsonData = [];
+        if (Yii::$app->request->isAjax) {
+            $welcomeLesson = $this->findModel($id);
+
+            $newStatus = intval(Yii::$app->request->post('status'));
+            if ($welcomeLesson->status != WelcomeLesson::STATUS_UNKNOWN
+                && ($welcomeLesson->status != WelcomeLesson::STATUS_PASSED
+                    || !in_array($newStatus, [WelcomeLesson::STATUS_MISSED, WelcomeLesson::STATUS_DENIED]))) {
+                $jsonData = self::getJsonErrorResult(
+                    'Статус "' . WelcomeLesson::STATUS_LABELS[$newStatus] . '" не может быть установлен сообщению со статусом "' . WelcomeLesson::STATUS_LABELS[$welcomeLesson->status] . '"'
+                );
+            } else {
+                $welcomeLesson->status = $newStatus;
+                $isError = false;
+                if (!$isError) {
+                    if ($welcomeLesson->save()) {
+                        $jsonData = self::getJsonOkResult([
+                            'id' => $welcomeLesson->id,
+                            'state' => $welcomeLesson->status,
+                        ]);
+                    } else $jsonData = self::getJsonErrorResult($welcomeLesson->getErrorsAsString('status'));
+                }
+            }
+        }
+        return $this->asJson($jsonData);
     }
 
     public function actionProposeGroup()
@@ -143,5 +184,21 @@ class WelcomeLessonController extends AdminController
         }
 
         return $this->asJson($jsonData);
+    }
+
+    /**
+     * Finds the Feedback model based on its primary key value.
+     * If the model is not found, a 404 HTTP exception will be thrown.
+     * @param string $id
+     * @return WelcomeLesson the loaded model
+     * @throws yii\web\NotFoundHttpException if the model cannot be found
+     */
+    protected function findModel($id)
+    {
+        if (($model = WelcomeLesson::findOne($id)) !== null) {
+            return $model;
+        } else {
+            throw new yii\web\NotFoundHttpException('The requested page does not exist.');
+        }
     }
 }

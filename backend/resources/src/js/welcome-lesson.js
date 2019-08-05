@@ -7,39 +7,36 @@ let WelcomeLesson = {
     changeStatusHandler: function(e, id, status) {
         return Main.changeEntityStatus('welcome-lesson', id, status, e, function(data) {
             if (data.status === 'ok') {
-                WelcomeLesson.setButtons($('tr[data-key="' + data.id + '"] td:last-child'), data.id, data.newValue);
+                WelcomeLesson.setButtons($('tr[data-key="' + data.id + '"] td:last-child'), data.id, data.state);
             }
         });
     },
     setButtons: function(e, id, status) {
+        let contents = '';
         switch (status) {
             case this.statusUnknown:
-                $(e).html(
-                    '<a href="#" title="Проведено" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusPassed + ')">' +
+                contents =
+                    '<a href="#" title="Проведено" class="btn btn-primary" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusPassed + ')">' +
                         '<span class="fas fa-check"></span>' +
                     '</a>' +
-                    '<a href="#" title="Отменено" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusCanceled + ')">' +
+                    '<a href="#" title="Отменено" class="btn btn-danger" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusCanceled + ')">' +
                         '<span class="fas fa-times"></span>' +
-                    '</a>'
-                );
+                    '</a>';
                 break;
             case this.statusPassed:
-                $(e).html(
+                contents =
                     '<button class="btn btn-primary" type="button" title="В группу!" onclick="return WelcomeLesson.showMovingForm(this, ' + id + ')">' +
                     '<span class="fas fa-user-check"></span>' +
                     '</button>' +
-                    '<a href="#" title="Не пришёл" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusMissed + ')">' +
+                    '<a href="#" title="Не пришёл" class="btn btn-warning" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusMissed + ')">' +
                     '<span class="fas fa-user-slash"></span>' +
                     '</a>' +
-                    '<a href="#" title="Не будет ходить" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusDenied + ')">' +
+                    '<a href="#" title="Не будет ходить" class="btn btn-danger" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusDenied + ')">' +
                     '<span class="fas fa-running"></span>' +
-                    '</a>'
-                );
-                break;
-            default:
-                $(e).html('');
+                    '</a>';
                 break;
         }
+        $(e).html('<span class="text-nowrap welcome-lesson-buttons">' + contents + '</span>');
     },
     showMovingForm: function(e, lessonId) {
         $(e).prop("disabled", true);
@@ -50,6 +47,7 @@ let WelcomeLesson = {
             data: {id: lessonId},
             success: function(data) {
                 if (data.status === "ok") {
+                    $(".welcome-lesson-buttons button").prop("disabled", false);
                     let form = $("#moving-form");
                     form.find("#lesson_id").val(data.id);
                     form.find("#pupil").html(data.pupilName);
@@ -57,7 +55,7 @@ let WelcomeLesson = {
                     let proposals = '';
                     data.groups.forEach(function(group) {
                         proposals += '<div class="radio"><label>' +
-                            '<input type="radio" name="group_proposal" value="' + group.id + '"> ' + group.name + ' (' + group.teacherName + ')' +
+                            '<input type="radio" name="group_proposal" value="' + group.id + '" onchange="WelcomeLesson.groupChange(this);"> ' + group.name + ' (' + group.teacherName + ')' +
                             '</label></div>';
                     });
                     form.find("#group_proposal").html(proposals);
@@ -72,7 +70,7 @@ let WelcomeLesson = {
         });
     },
     groupChange: function(e) {
-        $("#other_group").prop("disabled", !$(e).is(":checked"));
+        $("#other_group").prop("disabled", parseInt($(e).val()) !== 0 || !$(e).is(":checked"));
     },
     lockMovingFormButtons: function() {
         $("#moving-form").find('button').prop("disabled", true);

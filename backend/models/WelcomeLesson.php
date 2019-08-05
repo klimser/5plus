@@ -43,7 +43,7 @@ class WelcomeLesson extends ActiveRecord
     ];
 
     public const STATUS_LABELS = [
-        self::STATUS_UNKNOWN => 'Не прошло',
+        self::STATUS_UNKNOWN => 'Ожидается',
         self::STATUS_PASSED => 'Прошло',
         self::STATUS_MISSED => 'Студент не пришёл',
         self::STATUS_CANCELED => 'Отменено',
@@ -67,11 +67,12 @@ class WelcomeLesson extends ActiveRecord
         return [
             [['user_id', 'subject_id', 'teacher_id', 'status'], 'integer'],
             [['user_id', 'subject_id', 'teacher_id', 'lesson_date'], 'required'],
-            [['lesson_date'], 'date', 'format' => 'yyyy-MM-dd HH:mm:ss'],
-            [['status'], 'in', 'range' => self::STATUS_LIST],
-            [['user_id'], 'exist', 'targetRelation' => 'user'],
-            [['subject_id'], 'exist', 'targetRelation' => 'subject'],
-            [['teacher_id'], 'exist', 'targetRelation' => 'teacher'],
+            ['lesson_date', 'date', 'format' => 'yyyy-MM-dd HH:mm:ss'],
+            ['status', 'in', 'range' => self::STATUS_LIST],
+            ['status', 'default', 'value' => self::STATUS_UNKNOWN],
+            ['user_id', 'exist', 'targetRelation' => 'user'],
+            ['subject_id', 'exist', 'targetRelation' => 'subject'],
+            ['teacher_id', 'exist', 'targetRelation' => 'teacher'],
         ];
     }
 
@@ -82,6 +83,7 @@ class WelcomeLesson extends ActiveRecord
     {
         return [
             'id' => 'ID',
+            'user_id' => 'Студент',
             'lesson_date' => 'Дата',
             'subject_id' => 'Предмет',
             'teacher_id' => 'Учитель',

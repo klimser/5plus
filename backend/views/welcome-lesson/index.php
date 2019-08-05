@@ -19,6 +19,7 @@ use yii\web\View;
 /* @var $studentMap User[] */
 /* @var $subjectMap Subject[] */
 /* @var $teacherMap Teacher[] */
+/* @var $statusMap string[] */
 /* @var $groups Group[] */
 
 $this->title = 'Пробные уроки';
@@ -34,19 +35,19 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
         'rowOptions' => function ($model, $index, $widget, $grid) {
-            $return = [];
+            $return = ['class' => 'welcome-row', 'data' => ['status' => $model->status]];
             switch ($model->status) {
                 case WelcomeLesson::STATUS_PASSED:
-                    $return['class'] = 'success';
+                    $return['class'] .= ' success';
                     break;
                 case WelcomeLesson::STATUS_MISSED:
-                    $return['class'] = 'warning';
+                    $return['class'] .= ' warning';
                     break;
                 case WelcomeLesson::STATUS_CANCELED:
-                    $return['class'] = 'info';
+                    $return['class'] .= ' info';
                     break;
                 case WelcomeLesson::STATUS_DENIED:
-                    $return['class'] = 'danger';
+                    $return['class'] .= ' danger';
                     break;
             }
             return $return;
@@ -108,15 +109,33 @@ $this->params['breadcrumbs'][] = $this->title;
                 'content' => function ($model, $key, $index, $column) {
                     return WelcomeLesson::STATUS_LABELS[$model->status];
                 },
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'status',
+                    $statusMap,
+                    ['class' => 'form-control']
+                )
             ],
             [
                 'class' => Column::class,
+                'header' => 'Действия',
                 'content' => function ($model, $key, $index, $column) {
-                    return '<script>$(function() { WelcomeLesson.setButtons($(\'tr[data-key="' . $model->id . '"] td:last-child\'), ' . $model->id . ', ' . $model->status . ') });</script>';
-                },
+                    return '';
+                }
             ],
         ],
     ]); ?>
+
+    <?php
+    $this->registerJs(<<<SCRIPT
+    $("table tr.welcome-row").each(function() {
+        if ($(this).find("td:last-child").html().length === 0) {
+            WelcomeLesson.setButtons($(this).find("td:last-child"), $(this).data("key"), $(this).data("status"));
+        }
+    });
+SCRIPT
+    );
+    ?>
 
     <div class="modal fade" id="moving-modal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
@@ -138,7 +157,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                 <input type="radio" name="group_proposal" value="0" onchange="WelcomeLesson.groupChange(this);"> Другая
                             </label>
                         </div>
-                        <select name="group_id" id="other_group" disabled>
+                        <select name="group_id" id="other_group" class="form-control" disabled>
                             <?php foreach ($groups as $group): ?>
                                 <option value="<?= $group->id; ?>"><?= $group->name; ?> (<?= $group->teacher->name; ?>)</option>
                             <?php endforeach; ?>

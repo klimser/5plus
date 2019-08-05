@@ -9,7 +9,7 @@ $this->title = 'Панель управления';
 ?>
 <div class="row">
     <?php if ($admin->can('moneyManagement')): ?>
-        <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="col-xs-12 col-sm-6 col-md-3">
             <a class="btn btn-default btn-lg full-width" href="<?= Url::to('money/income'); ?>">
                 <span class="fas fa-hand-holding-usd fa-3x"></span><hr>
                 Принять оплату
@@ -17,7 +17,7 @@ $this->title = 'Панель управления';
         </div>
     <?php endif; ?>
     <?php if ($admin->can('contractManagement')): ?>
-        <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="col-xs-12 col-sm-6 col-md-3">
             <a class="btn btn-default btn-lg full-width" href="<?= Url::to('contract/create'); ?>">
                 <span class="fas fa-file-invoice-dollar fa-3x"></span><hr>
                 Выдать договор
@@ -25,10 +25,18 @@ $this->title = 'Панель управления';
         </div>
     <?php endif; ?>
     <?php if ($admin->can('manageSchedule')): ?>
-        <div class="col-xs-12 col-sm-6 col-md-4">
+        <div class="col-xs-12 col-sm-6 col-md-3">
             <a class="btn btn-default btn-lg full-width" href="<?= Url::to('event/index'); ?>">
                 <span class="far fa-calendar-alt fa-3x"></span><hr>
                 Расписание
+            </a>
+        </div>
+    <?php endif; ?>
+    <?php if ($admin->can('welcomeLessons')): ?>
+        <div class="col-xs-12 col-sm-6 col-md-3">
+            <a class="btn btn-default btn-lg full-width" href="<?= Url::to('welcome-lesson/index'); ?>">
+                <span class="fas fa-flag-checkered fa-3x"></span><hr>
+                Пробные уроки
             </a>
         </div>
     <?php endif; ?>
