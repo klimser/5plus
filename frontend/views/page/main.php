@@ -1,7 +1,12 @@
 <?php
 
+use common\components\WidgetHtml;
+use frontend\components\widgets\ReviewCarouselWidget;
+use frontend\components\widgets\SubjectCarouselWidget;
+use frontend\components\widgets\TeacherCarouselWidget;
 use yii\bootstrap\Html;
 use \himiklab\yii2\recaptcha\ReCaptcha;
+use yii\helpers\Url;
 
 /* @var $this \yii\web\View */
 /* @var $page common\models\Page */
@@ -18,15 +23,24 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
 
 <div class="container">
     <div class="row">
-        <div class="col-xs-12 col-sm-6 text-center">
-            <a class="btn btn-lg btn-primary" href="<?= \yii\helpers\Url::to(['webpage', 'id' => $quizWebpage->id]); ?>">
-                Проверь свои знания
-            </a>
+        <div class="col-xs-12 col-sm-4 text-center">
+            <p>
+                <a class="btn btn-lg btn-primary" href="<?= Url::to(['webpage', 'id' => $quizWebpage->id]); ?>">
+                    Проверь свои знания
+                </a>
+            </p>
         </div>
-        <div class="col-xs-12 col-sm-6 text-center">
-            <a class="btn btn-lg btn-primary" href="<?= \yii\helpers\Url::to(['payment/index']); ?>">
-                Онлайн-оплата
-            </a>
+        <div class="col-xs-12 col-sm-4 text-center">
+            <p>
+                <a class="btn btn-lg btn-primary" href="<?= Url::to(['payment/index']); ?>">
+                    Онлайн-оплата
+                </a>
+            </p>
+        </div>
+        <div class="col-xs-12 col-sm-4 text-center">
+            <p>
+                <?= YII_ENV == 'prod' ? WidgetHtml::getByName('callback') : ''; ?>
+            </p>
         </div>
     </div>
 </div>
@@ -43,7 +57,7 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
         <div class="row">
             <div class="col-xs-12">
                 <?= $i == 0 ? $page->content : ''; ?>
-                <?= \frontend\components\widgets\SubjectCarouselWidget::widget(['subjectCategory' => $subjectCategory, 'buttonLeft' => $i % 2 == 1, 'index' => $i]); ?>
+                <?= SubjectCarouselWidget::widget(['subjectCategory' => $subjectCategory, 'buttonLeft' => $i % 2 == 1, 'index' => $i]); ?>
             </div>
         </div>
     </div>
@@ -59,7 +73,7 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
 <div class="clouds-line-bottom"></div>
 <div class="light-block">
     <div class="container">
-        <?= \frontend\components\widgets\TeacherCarouselWidget::widget(); ?>
+        <?= TeacherCarouselWidget::widget(); ?>
     </div>
 </div>
 <div class="clouds-line-top"></div>
@@ -67,7 +81,7 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
 <div class="container">
     <div class="row">
         <div class="col-xs-12">
-            <?= \frontend\components\widgets\ReviewCarouselWidget::widget(); ?>
+            <?= ReviewCarouselWidget::widget(); ?>
         </div>
     </div>
 </div>
@@ -76,7 +90,7 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <?= Html::beginForm(
-                    \yii\helpers\Url::to(['order/create']),
+                    Url::to(['order/create']),
                     'post',
                     [
                         'onsubmit' => 'fbq("track", "Lead", {content_name: $("#order-subject").find("option:selected").text()}); return MainPage.completeOrder(this);'

@@ -4,6 +4,7 @@
 /* @var $webpage \common\models\Webpage */
 /* @var $content string */
 
+use common\models\Menu;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
@@ -62,7 +63,7 @@ $this->render('/grunt-assets');
                     <?php NavBar::begin(['options' => ['class' => 'navbar-default'], 'innerContainerOptions' => ['class' => 'container-fluid']]); ?>
                     <?= Nav::widget([
                         'options' => ['class' => 'navbar-nav'],
-                        'items' => \common\models\Menu::getMenuItemsCached(\common\models\Menu::MAIN_MENU_ID, array_key_exists('webpage', $this->params) ? $this->params['webpage'] : null),
+                        'items' => Menu::getMenuItemsCached(Menu::MAIN_MENU_ID, array_key_exists('webpage', $this->params) ? $this->params['webpage'] : null),
                     ]); ?>
                     <?php NavBar::end(); ?>
                 </div>
@@ -110,7 +111,7 @@ $this->render('/grunt-assets');
             <div class="row">
                 <div class="col-xs-5 col-sm-3 col-md-2 company_name">
                     <div>&copy; НОУ "Exclusive Education", <?= date('Y'); ?></div>
-                    <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/footer_dots.svg">
+                    <img alt="" src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/footer_dots.svg">
                 </div>
                 <div class="phone-block col-xs-7 col-sm-3 col-md-2 col-md-offset-1">
                     <?= WidgetHtml::getByName('phones'); ?>
@@ -130,7 +131,7 @@ $this->render('/grunt-assets');
                         Сайт сделал <a href="https://sergey-klimov.ru"><b>Сергей Климов</b></a>
                     </div>
                     <div>
-                        Дизайн <a href="http://korden.uz"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/korden_logo.png"></a>
+                        Дизайн <a href="http://korden.uz"><img alt="korden" src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/korden_logo.png"></a>
                     </div>
                 </div>
             </div>
