@@ -39,4 +39,8 @@ class ComponentContainer
     {
         return \Yii::$app->telegramPublic;
     }
+    public static function getBitrix(): Bitrix
+    {
+        return \Yii::$app->bitrix;
+    }
 }

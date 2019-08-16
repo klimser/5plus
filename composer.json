@@ -16,6 +16,8 @@
   "require": {
     "php": ">=7.2",
     "ext-mbstring": "*",
+    "ext-curl": "*",
+    "ext-json": "*",
     "yiisoft/yii2": ">=2.0.6",
     "yiisoft/yii2-bootstrap": "*",
     "yiisoft/yii2-swiftmailer": "*",

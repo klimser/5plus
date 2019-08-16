@@ -20,6 +20,7 @@ use common\components\extended\ActiveRecord;
  * @property int $used_payment_id
  * @property int $event_member_id
  * @property int $cash_received
+ * @property int $bitrix_id
  * @property string $created_at
  * @property \DateTime|null $createDate
  *
@@ -47,7 +48,7 @@ class Payment extends ActiveRecord
     {
         return [
             [['user_id', 'group_id', 'amount'], 'required'],
-            [['user_id', 'group_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id', 'cash_received'], 'integer'],
+            [['user_id', 'group_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id', 'cash_received', 'bitrix_id'], 'integer'],
             [['comment'], 'string'],
             ['discount', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
             ['discount', 'default', 'value' => self::STATUS_INACTIVE],

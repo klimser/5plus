@@ -26,7 +26,9 @@ use yii\web\IdentityInterface;
  * @property int $role
  * @property int $parent_id
  * @property int $tg_chat_id
+ * @property int $bitrix_id
  * @property string $password write-only password
+ * @property array $nameParts
  * @property User $parent
  * @property User[] $children
  * @property GroupPupil[] $groupPupils
@@ -93,7 +95,7 @@ class User extends ActiveRecord implements IdentityInterface
                 }
                 return true;
             }"],
-            [['status', 'money', 'role', 'parent_id'], 'integer'],
+            [['status', 'money', 'role', 'parent_id', 'bitrix_id'], 'integer'],
             [['username', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
             [['name'], 'string', 'max' => 127],
             [['auth_key'], 'string', 'max' => 32],
@@ -261,6 +263,16 @@ class User extends ActiveRecord implements IdentityInterface
             if ($debt->group_id == $group->id) return $debt;
         }
         return null;
+    }
+
+    public function getNameParts(): array
+    {
+        if (empty($this->name)) return [];
+        $parts = explode(' ', $this->name);
+        if (count($parts) > 2) {
+            return [$parts[0], $parts[1], implode(' ', array_slice($parts, 2))];
+        }
+        return $parts;
     }
 
     /**
