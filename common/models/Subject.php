@@ -16,6 +16,7 @@ use yii\web\UploadedFile;
  * @property string $description
  * @property string $content
  * @property int $webpage_id
+ * @property int $bitrix_id
  * @property int $active
  * @property string $image
  * @property int|null $category_id
@@ -57,9 +58,9 @@ class Subject extends ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'content', 'description', 'category_id'], 'required'],
+            [['name', 'content', 'description', 'category_id', 'bitrix_id'], 'required'],
             [['name'], 'string', 'max' => 50],
-            [['category_id'], 'integer'],
+            [['category_id', 'bitrix_id'], 'integer'],
             [['image'], 'string', 'max' => 255],
             [['content', 'description'], 'string'],
             [['imageFile', 'imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg', 'checkExtensionByMimeType' => true],
@@ -85,6 +86,7 @@ class Subject extends ActiveRecord
             'active' => 'Опубликован',
             'imageFile' => 'Картинка (min 484x309)',
             'category_id' => 'Группа предметов',
+            'bitrix_id' => 'Курс в BITRIX',
         ];
     }
 
@@ -135,6 +137,14 @@ class Subject extends ActiveRecord
     public static function getActiveList()
     {
         return self::getActiveListQuery()->all();
+    }
+
+    public function beforeValidate()
+    {
+        if (!parent::beforeValidate()) return false;
+
+        $this->name = trim($this->name);
+        return true;
     }
 
     public function beforeDelete()

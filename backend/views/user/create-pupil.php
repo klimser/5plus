@@ -1,17 +1,19 @@
 <?php
 
+use common\models\User;
 use yii\bootstrap\Html;
 use yii\bootstrap\ActiveForm;
+use yii\helpers\ArrayHelper;
 
 
 /* @var $this yii\web\View */
-/* @var $parent \common\models\User */
-/* @var $parentCompany \common\models\User */
-/* @var $pupil \common\models\User */
+/* @var $parent User */
+/* @var $parentCompany User */
+/* @var $pupil User */
 /* @var $groups \common\models\Group[] */
 /* @var $subjects \common\models\Subject[] */
-/* @var $existedParents \common\models\User[] */
-/* @var $existedCompanies \common\models\User[] */
+/* @var $existedParents User[] */
+/* @var $existedCompanies User[] */
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */
@@ -43,15 +45,17 @@ SCRIPT
                 <h2>Студент</h2>
                 <?= Html::radioList(
                     'person_type',
-                    $parentCompany->name ? \common\models\User::ROLE_COMPANY : \common\models\User::ROLE_PARENTS,
+                    $parentCompany->name ? User::ROLE_COMPANY : User::ROLE_PARENTS,
                     [
-                        \common\models\User::ROLE_PARENTS => 'Физ. лицо',
-                        \common\models\User::ROLE_COMPANY => 'Юр. лицо',
+                        User::ROLE_PARENTS => 'Физ. лицо',
+                        User::ROLE_COMPANY => 'Юр. лицо',
                     ],
                     ['itemOptions' => ['onchange' => 'User.changePersonType();', 'class' => 'person_type']]
                 ); ?>
 
                 <?= $form->field($pupil, '[pupil]name')->textInput(['maxlength' => true, 'required' => true]); ?>
+
+                <?= $form->field($pupil, '[pupil]note')->textarea(['maxlength' => true, 'htmlOptions' => ['rows' => 3]]); ?>
 
                 <?= $form->field($pupil, '[pupil]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
                     ->textInput(['required' => true, 'maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
@@ -90,13 +94,7 @@ SCRIPT
                     </label>
                 </div>
                 <div id="parents_select" <?= !$parent->id ? ' class="hidden"' : ''; ?>>
-                    <select name="parent_exists" class="form-control chosen">
-                        <?php foreach ($existedParents as $existedParent): ?>
-                            <option value="<?= $existedParent->getId(); ?>" <?= $parent->id == $existedParent->id ? ' selected' : ''; ?>>
-                                <?= $existedParent->name; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <?= Html::dropDownList('parent_exists', $parent->id, ArrayHelper::map($existedParents, 'id', 'name'), ['class' => 'form-control chosen']); ?>
                 </div>
                 <div class="radio">
                     <label>
@@ -124,13 +122,7 @@ SCRIPT
                     </label>
                 </div>
                 <div id="company_select" <?= !$parentCompany->id ? ' class="hidden"' : ''; ?>>
-                    <select name="company_exists" class="form-control chosen">
-                        <?php foreach ($existedCompanies as $existedCompany): ?>
-                            <option value="<?= $existedCompany->getId(); ?>" <?= $parentCompany->id == $existedCompany->id ? ' selected' : ''; ?>>
-                                <?= $existedCompany->name; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <?= Html::dropDownList('parent_exists', $parentCompany->id, ArrayHelper::map($existedCompanies, 'id', 'name'), ['class' => 'form-control chosen']); ?>
                 </div>
                 <div class="radio">
                     <label>

@@ -1,5 +1,9 @@
 <?php
 
+use backend\components\DefaultValuesComponent;
+use common\components\bitrix\Bitrix;
+use dosamigos\tinymce\TinyMce;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 
@@ -21,7 +25,9 @@ $this->params['breadcrumbs'][] = $subject->name;
 
         <?= $form->field($subject, 'name')->textInput(['required' => true, 'maxlength' => true]); ?>
 
-        <?= $form->field($subject, 'category_id')->dropDownList(\yii\helpers\ArrayHelper::map($subjectCategories, 'id', 'name')); ?>
+        <?= $form->field($subject, 'category_id')->dropDownList(ArrayHelper::map($subjectCategories, 'id', 'name')); ?>
+
+        <?= $form->field($subject, 'bitrix_id')->dropDownList(Bitrix::SUBJECT_LIST, ['required' => true]); ?>
 
         <?=
         $form->field($subject, 'imageFile', ['options' => ['class' => 'form-group col-xs-10']])
@@ -29,7 +35,7 @@ $this->params['breadcrumbs'][] = $subject->name;
         ?>
         <div class="col-xs-2">
             <?php if ($subject->image): ?>
-                <img src="<?= $subject->imageUrl; ?>" style="max-width: 100%;">
+                <img alt="<?= $subject->name; ?>" src="<?= $subject->imageUrl; ?>" style="max-width: 100%;">
             <?php endif; ?>
         </div>
         <div class="clearfix"></div>
@@ -37,7 +43,7 @@ $this->params['breadcrumbs'][] = $subject->name;
         <?= $form->field($subject, 'description')->textarea() ?>
 
         <?=
-        $form->field($subject, 'content')->widget(\dosamigos\tinymce\TinyMce::class, \backend\components\DefaultValuesComponent::getTinyMceSettings());
+        $form->field($subject, 'content')->widget(TinyMce::class, DefaultValuesComponent::getTinyMceSettings());
         ?>
 
         <?= $this->render('/webpage/_form', [

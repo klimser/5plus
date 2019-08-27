@@ -273,6 +273,7 @@ class MoneyComponent extends Component
         if ($payment->amount <= 0) throw new \Exception('Wrong payment! You are not able to decrease negative payments: ' . $payment->id);
         $diff = $newAmount - $payment->amount;
         $payment->amount = $newAmount;
+        $payment->bitrix_sync_status = Payment::STATUS_INACTIVE;
         if (!$payment->save()) throw new \Exception('Error decreasing payment: ' . $payment->getErrorsAsString());
         self::addPupilMoney($payment->user, $diff, $payment->group);
     }
@@ -285,6 +286,7 @@ class MoneyComponent extends Component
      */
     public static function cancelPayment(Payment $payment, bool $logEvent = true)
     {
+        if ($payment->amount > 0) throw new \Exception('Wrong payment! You are not able to cancel positive payments: ' . $payment->id);
         if (!$payment->delete()) throw new \Exception('Error deleting payment from DB: ' . $payment->id);
         self::addPupilMoney($payment->user, $payment->amount * (-1), $payment->group);
         $paymentComment = 'Отмена списания за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->group->name . '"';

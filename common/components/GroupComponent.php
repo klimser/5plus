@@ -135,6 +135,13 @@ class GroupComponent extends Component
             throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
         }
 
+        $pupil->bitrix_sync_status = 0;
+        if (!$pupil->save()) {
+            ComponentContainer::getErrorLogger()
+                ->logError('user/pupil-to-group', $pupil->getErrorsAsString(), true);
+            throw new \Exception('Внутренняя ошибка сервера: ' . $pupil->getErrorsAsString());
+        }
+
         $pupil->link('groupPupils', $groupPupil);
         $group->link('groupPupils', $groupPupil);
 
@@ -175,6 +182,7 @@ class GroupComponent extends Component
                 ->one();
             if ($lastPayment->amount <= $moneyLeft) {
                 $lastPayment->group_id = $groupTo->id;
+                $lastPayment->bitrix_sync_status = Payment::STATUS_INACTIVE;
                 $lastPayment->save();
                 $moneyLeft -= $lastPayment->amount;
             } else {

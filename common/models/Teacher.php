@@ -328,10 +328,11 @@ class Teacher extends ActiveRecord
 
     public function beforeValidate()
     {
-        if (parent::beforeValidate()) {
-            if ($this->descriptionForEdit) $this->description = self::convertTextForDB($this->descriptionForEdit, 'teacher_highlight');
-            return true;
-        } else return false;
+        if (!parent::beforeValidate()) return false;
+
+        if ($this->descriptionForEdit) $this->description = self::convertTextForDB($this->descriptionForEdit, 'teacher_highlight');
+        $this->name = trim($this->name);
+        return true;
     }
 
     public function beforeDelete()

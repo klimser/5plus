@@ -1,6 +1,10 @@
 <?php
 
-use yii\helpers\Html;
+use backend\components\DebtWidget;
+use backend\components\UserComponent;
+use common\models\User;
+use yii\helpers\ArrayHelper;
+use yii\bootstrap\Html;
 use yii\bootstrap\ActiveForm;
 
 /* @var $this yii\web\View */
@@ -8,8 +12,8 @@ use yii\bootstrap\ActiveForm;
 /* @var $isAdmin bool */
 /* @var $editACL bool */
 /* @var $authManager \yii\rbac\ManagerInterface*/
-/* @var $existedParents \common\models\User[] */
-/* @var $parent \common\models\User */
+/* @var $existedParents User[] */
+/* @var $parent User */
 
 $this->registerJs(<<<SCRIPT
     Main.initPhoneFormatted();
@@ -28,9 +32,9 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="col-xs-12">
             <h1 class="pull-left no-margin-top"><?= Html::encode($this->title) ?></h1>
             <?php if ($isAdmin): ?>
-                <?= \backend\components\DebtWidget::widget(['user' => $user]); ?>
+                <?= DebtWidget::widget(['user' => $user]); ?>
             <?php else: ?>
-                <?= \backend\components\DebtWidget::widget(['user' => Yii::$app->user->identity]); ?>
+                <?= DebtWidget::widget(['user' => Yii::$app->user->identity]); ?>
             <?php endif; ?>
         </div>
         <div class="clearfix"></div>
@@ -46,17 +50,19 @@ $this->params['breadcrumbs'][] = $this->title;
             <?= $form->field($user, 'password')->passwordInput(['data' => ['id' => $user->id]]); ?>
 
             <?php if ($isAdmin): ?>
+                <?= $form->field($user, 'note')->textarea(['maxlength' => true, 'htmlOptions' => ['rows' => 3]]); ?>
+
                 <?= $form->field($user, 'phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
 
                 <?= $form->field($user, 'phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
 
-                <?php if ($editACL && ($user->role == \common\models\User::ROLE_MANAGER || $user->role == \common\models\User::ROLE_ROOT)): ?>
+                <?php if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT)): ?>
                     <div class="panel panel-default">
                         <div class="panel-heading">Права</div>
                         <div class="panel-body">
-                            <?php foreach (\backend\components\UserComponent::ACL_RULES as $ruleKey => $ruleLabel): ?>
+                            <?php foreach (UserComponent::ACL_RULES as $ruleKey => $ruleLabel): ?>
                                 <div class="checkbox">
                                     <label>
                                         <input type="checkbox" name="acl[<?= $ruleKey; ?>]" value="1" <?= $authManager->checkAccess($user->id, $ruleKey) ? 'checked' : ''; ?>>
@@ -75,7 +81,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php endif; ?>
         </div>
 
-        <?php if ($isAdmin && $user->role == \common\models\User::ROLE_PUPIL && !$user->parent_id): ?>
+        <?php if ($isAdmin && $user->role == User::ROLE_PUPIL && !$user->parent_id): ?>
             <div class="col-xs-12 col-md-6">
                 <h2>Родители</h2>
 
@@ -90,13 +96,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     </label>
                 </div>
                 <div id="parents_select" >
-                    <select name="parent_exists" class="form-control chosen">
-                        <?php foreach ($existedParents as $existedParent): ?>
-                            <option value="<?= $existedParent->getId(); ?>">
-                                <?= $existedParent->name; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <?= Html::dropDownList('parent_exists', $parent->id, ArrayHelper::map($existedParents, 'id', 'name'), ['class' => 'form-control chosen']); ?>
                 </div>
                 <div class="radio">
                     <label>

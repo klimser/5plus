@@ -230,4 +230,13 @@ class Group extends ActiveRecord
     {
         return preg_match('#kids#i', $this->name) || preg_match('#кидс#iu', $this->name);
     }
+
+    public function beforeValidate()
+    {
+        if (!parent::beforeValidate()) return false;
+
+        $this->name = trim($this->name);
+        $this->legal_name = trim($this->legal_name);
+        return true;
+    }
 }

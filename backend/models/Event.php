@@ -8,7 +8,6 @@ use common\models\Group;
 use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\Teacher;
-use yii;
 
 /**
  * This is the model class for table "{{%event}}".
@@ -46,7 +45,7 @@ class Event extends ActiveRecord
     {
         return [
             [['group_id', 'status'], 'integer'],
-            [['event_date'], 'required'],
+            [['group_id', 'event_date'], 'required'],
             [['event_date'], 'date', 'format' => 'yyyy-MM-dd HH:mm:ss'],
             [['status'], 'in', 'range' => [self::STATUS_UNKNOWN, self::STATUS_PASSED, self::STATUS_CANCELED]],
             [['group_id'], 'exist', 'targetRelation' => 'group'],

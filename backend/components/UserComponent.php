@@ -75,8 +75,9 @@ class UserComponent extends Component
         Yii::$app->cache->delete('user.years');
     }
 
-    public static function isPhoneUsed(int $role, string $phone, ?string $phone2 = null): bool
+    public static function isPhoneUsed(int $role, ?string $phone, ?string $phone2 = null): bool
     {
+        if (empty($phone)) throw new \Exception('Phone is mandatory');
         $qB = User::find()
             ->orWhere(['phone' => $phone])
             ->orWhere(['phone2' => $phone]);

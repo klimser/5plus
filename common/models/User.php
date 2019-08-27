@@ -18,6 +18,7 @@ use yii\web\IdentityInterface;
  * @property string $name
  * @property string $phone
  * @property string $username
+ * @property string $note
  * @property string $password_hash
  * @property string $password_reset_token
  * @property string $auth_key
@@ -27,6 +28,7 @@ use yii\web\IdentityInterface;
  * @property int $parent_id
  * @property int $tg_chat_id
  * @property int $bitrix_id
+ * @property int $bitrix_sync_status
  * @property string $password write-only password
  * @property array $nameParts
  * @property User $parent
@@ -67,7 +69,7 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'role', 'password'];
-        $scenarios[self::SCENARIO_USER] = ['name', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted'];
+        $scenarios[self::SCENARIO_USER] = ['name', 'note', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'password'];
         return $scenarios;
     }
 
@@ -96,7 +98,7 @@ class User extends ActiveRecord implements IdentityInterface
                 return true;
             }"],
             [['status', 'money', 'role', 'parent_id', 'bitrix_id'], 'integer'],
-            [['username', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
+            [['username', 'note', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
             [['name'], 'string', 'max' => 127],
             [['auth_key'], 'string', 'max' => 32],
             [['phone', 'phone2'], 'string', 'min' => 13, 'max' => 13],
@@ -130,6 +132,8 @@ class User extends ActiveRecord implements IdentityInterface
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_LOCKED]],
             ['role', 'default', 'value' => self::ROLE_PUPIL],
             ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER]],
+            ['bitrix_sync_status', 'in', 'range' => [0, 1]],
+            ['bitrix_sync_status', 'default', 'value' => 0],
         ];
     }
 
@@ -140,6 +144,7 @@ class User extends ActiveRecord implements IdentityInterface
             'id'        => 'ID',
             'username'  => 'Логин',
             'name'      => 'Имя',
+            'note' => 'Заметки',
             'phone' => 'Телефон',
             'phone2' => 'Доп. телефон',
             'phoneFormatted' => 'Телефон',
@@ -302,6 +307,9 @@ class User extends ActiveRecord implements IdentityInterface
             }
             if ($this->password_hash === null) {
                 $this->password_hash = '';
+            }
+            if (empty($this->note)) {
+                $this->note = null;
             }
             return true;
         } else {

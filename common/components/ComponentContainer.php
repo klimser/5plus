@@ -2,6 +2,7 @@
 
 namespace common\components;
 
+use common\components\bitrix\Bitrix;
 use common\components\paygram\PaygramApi;
 use common\components\paymo\PaymoApi;
 

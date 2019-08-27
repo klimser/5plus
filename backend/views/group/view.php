@@ -1,6 +1,7 @@
 <?php
 
 use common\components\helpers\Calendar;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $group common\models\Group */
@@ -76,11 +77,14 @@ $this->params['breadcrumbs'][] = $group->name;
                 <tr>
                     <td><?= $i; ?></td>
                     <td>
-                        <a href="<?= \yii\helpers\Url::to(['money/pupil-report', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>"
+                        <a href="<?= Url::to(['money/pupil-report', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>"
                            target="_blank" class="hidden-print hidden-xs hidden-sm">
                             <span class="fas fa-file-invoice-dollar"></span>
                         </a>
                         <?= $groupPupil->user->name; ?>
+                        <?php if ($groupPupil->user->note): ?>
+                            <br><small><?= nl2br($groupPupil->user->note); ?></small>
+                        <?php endif; ?>
                     </td>
                     <td>
                         <?= $groupPupil->user->phone; ?>

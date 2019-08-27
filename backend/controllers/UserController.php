@@ -17,11 +17,16 @@ use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
 use common\models\UserSearch;
+use DateTime;
+use Exception;
+use Throwable;
+use Yii;
 use yii\data\Pagination;
 use yii\helpers\Url;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
+use yii\web\Response;
 
 /**
  * PageController implements the CRUD actions for Page model.
@@ -35,17 +40,17 @@ class UserController extends AdminController
      */
     public function actionIndex()
     {
-        if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
 
         $searchModel = new UserSearch();
-        $dataProvider = $searchModel->search(\Yii::$app->request->queryParams);
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'firstLetter' => mb_strtoupper(\Yii::$app->request->get('letter', 'all'), 'UTF-8'),
-            'selectedYear' => \Yii::$app->request->get('year', -1),
-            'canManageEmployees' => \Yii::$app->user->can('manageEmployees'),
+            'firstLetter' => mb_strtoupper(Yii::$app->request->get('letter', 'all'), 'UTF-8'),
+            'selectedYear' => Yii::$app->request->get('year', -1),
+            'canManageEmployees' => Yii::$app->user->can('manageEmployees'),
         ]);
     }
 
@@ -54,12 +59,12 @@ class UserController extends AdminController
      * If creation is successful, the browser will be redirected to the 'index' page.
      * @return mixed
      * @throws ForbiddenHttpException
-     * @throws \Throwable
+     * @throws Throwable
      * @throws \yii\db\Exception
      */
     public function actionCreatePupil()
     {
-        if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
 
         $parent = new User(['scenario' => User::SCENARIO_USER]);
         $parentCompany = new User(['scenario' => User::SCENARIO_USER]);
@@ -71,15 +76,15 @@ class UserController extends AdminController
         $amount = 0;
         $companyId = null;
 
-        if (\Yii::$app->request->isPost) {
-            User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], \Yii::$app->request->post());
+        if (Yii::$app->request->isPost) {
+            User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
-            $groupData = \Yii::$app->request->post('group', []);
-            $welcomeLessonData = \Yii::$app->request->post('welcome_lesson', []);
-            $paymentData = \Yii::$app->request->post('payment', []);
-            $contractData = \Yii::$app->request->post('contract', []);
-            $amount = intval(\Yii::$app->request->post('amount', 0));
-            $companyId = \Yii::$app->request->post('company_id');
+            $groupData = Yii::$app->request->post('group', []);
+            $welcomeLessonData = Yii::$app->request->post('welcome_lesson', []);
+            $paymentData = Yii::$app->request->post('payment', []);
+            $contractData = Yii::$app->request->post('contract', []);
+            $amount = intval(Yii::$app->request->post('amount', 0));
+            $companyId = Yii::$app->request->post('company_id');
 
             $transaction = User::getDb()->beginTransaction();
             try {
@@ -87,7 +92,7 @@ class UserController extends AdminController
 //                    throw new \Exception('Студент с таким номером телефона уже существует!');
 //                }
 
-                $personType = \Yii::$app->request->post('person_type', User::ROLE_PARENTS);
+                $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
                 switch ($personType) {
                     case User::ROLE_PARENTS:
                         $parent = $this->processParent($parent, 'parent', $personType);
@@ -106,13 +111,13 @@ class UserController extends AdminController
                     $addContract = array_key_exists('add', $contractData) && $contractData['add'];
 
                     $company = Company::findOne($companyId);
-                    if (($addPayment || $addContract) && !$company) throw new \Exception('Не выбран учебный центр!');
+                    if (($addPayment || $addContract) && !$company) throw new Exception('Не выбран учебный центр!');
 
                     $groupPupil = null;
                     if ($addGroup) {
                         $groupPupil = $this->addPupilToGroup($pupil, $groupData);
 
-                        if (\Yii::$app->user->can('moneyManagement') && $addPayment) {
+                        if (Yii::$app->user->can('moneyManagement') && $addPayment) {
                             $this->addPupilMoneyIncome($company, $groupPupil, $amount, $paymentData);
                             MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                         }
@@ -127,7 +132,7 @@ class UserController extends AdminController
                             $groupPupil ? $groupPupil->group : Group::findOne($contractData['group'])
                         );
 
-                        \Yii::$app->session->addFlash(
+                        Yii::$app->session->addFlash(
                             'success',
                             'Договор ' . $contract->number . ' зарегистрирован '
                             . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
@@ -135,7 +140,7 @@ class UserController extends AdminController
                     }
 
                     $transaction->commit();
-                    \Yii::$app->session->addFlash('success', 'Добавлено');
+                    Yii::$app->session->addFlash('success', 'Добавлено');
                     UserComponent::clearSearchCache();
 
                     return $this->redirect(['index']);
@@ -143,9 +148,9 @@ class UserController extends AdminController
                     $pupil->moveErrorsToFlash();
                     $transaction->rollBack();
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $transaction->rollBack();
-                \Yii::$app->session->addFlash('error', $e->getMessage());
+                Yii::$app->session->addFlash('error', $e->getMessage());
             }
         }
 
@@ -158,8 +163,8 @@ class UserController extends AdminController
             'contractData' => $contractData,
             'welcomeLessonData' => $welcomeLessonData,
             'amount' => $amount,
-            'incomeAllowed' => \Yii::$app->user->can('moneyManagement'),
-            'contractAllowed' => \Yii::$app->user->can('contractManagement'),
+            'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
+            'contractAllowed' => Yii::$app->user->can('contractManagement'),
             'companyId' => $companyId,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
             'subjects' => Subject::find()->andWhere(['active' => Subject::STATUS_ACTIVE])->with('subjectCategory')
@@ -175,28 +180,28 @@ class UserController extends AdminController
      * @param string $prefix
      * @param int $personType
      * @return User
-     * @throws \Exception
+     * @throws Exception
      */
     private function processParent(User $parent, string $prefix, int $personType): User
     {
-        $parentType = \Yii::$app->request->post($prefix . '_type', 'new');
+        $parentType = Yii::$app->request->post($prefix . '_type', 'new');
         switch ($parentType) {
             case 'exist':
-                $parentId = \Yii::$app->request->post($prefix . '_exists');
-                if (!$parentId) throw new \Exception("Choose $prefix from the list");
+                $parentId = Yii::$app->request->post($prefix . '_exists');
+                if (!$parentId) throw new Exception("Choose $prefix from the list");
                 $parent = $this->findModel($parentId);
-                if ($parent->role != $personType || $parent->status == User::STATUS_LOCKED) throw new \Exception('Parents not found');
+                if ($parent->role != $personType || $parent->status == User::STATUS_LOCKED) throw new Exception('Parents not found');
                 break;
             case 'new':
                 $parent->role = $personType;
 
                 if (UserComponent::isPhoneUsed($personType, $parent->phone, $parent->phone2)) {
-                    throw new \Exception('Родитель/компания с таким номером телефона уже существует!');
+                    throw new Exception('Родитель/компания с таким номером телефона уже существует!');
                 }
 
                 if (!$parent->save()) {
                     $parent->moveErrorsToFlash();
-                    throw new \Exception('Server error');
+                    throw new Exception('Server error');
                 }
                 break;
         }
@@ -207,19 +212,19 @@ class UserController extends AdminController
      * @param User $pupil
      * @param array $groupData
      * @return GroupPupil
-     * @throws \Exception
+     * @throws Exception
      */
     private function addPupilToGroup(User $pupil, array $groupData): GroupPupil
     {
         /** @var Group $group */
         $group = Group::find()->andWhere(['id' => $groupData['id'], 'active' => Group::STATUS_ACTIVE])->one();
-        if (!$group) throw new \Exception('Группа не найдена');
+        if (!$group) throw new Exception('Группа не найдена');
         $startDate = date_create_from_format('d.m.Y', $groupData['date_from']);
-        if (!$startDate) throw new \Exception('Неверная дата начала занятий');
+        if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
         $groupPupil = GroupComponent::addPupilToGroup($pupil, $group, $startDate);
 
-        \Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
+        Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
         return $groupPupil;
     }
 
@@ -227,20 +232,20 @@ class UserController extends AdminController
      * @param User $pupil
      * @param array $welcomeLessonData
      * @return WelcomeLesson
-     * @throws \Exception
+     * @throws Exception
      */
     private function addPupilToWelcomeLesson(User $pupil, array $welcomeLessonData): WelcomeLesson
     {
         /** @var Subject $subject */
         $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subject_id'], 'active' => Subject::STATUS_ACTIVE])->one();
-        if (!$subject) throw new \Exception('Предмет не найден');
+        if (!$subject) throw new Exception('Предмет не найден');
         /** @var Teacher $teacher */
         $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacher_id'], 'active' => Teacher::STATUS_ACTIVE])->one();
-        if (!$teacher) throw new \Exception('Учитель не найден');
+        if (!$teacher) throw new Exception('Учитель не найден');
         $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
-        if (!$teacherSubject) throw new \Exception('Учитель не найден');
+        if (!$teacherSubject) throw new Exception('Учитель не найден');
         $startDate = date_create_from_format('d.m.Y', $welcomeLessonData['date']);
-        if (!$startDate) throw new \Exception('Неверная дата начала занятий');
+        if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
         $welcomeLesson = new WelcomeLesson();
         $welcomeLesson->subject_id = $subject->id;
@@ -249,7 +254,7 @@ class UserController extends AdminController
         $welcomeLesson->lessonDateTime = $startDate;
 
         if (!$welcomeLesson->save()) {
-            throw new \Exception('Server error: ' . $welcomeLesson->getErrorsAsString());
+            throw new Exception('Server error: ' . $welcomeLesson->getErrorsAsString());
         }
 
         return $welcomeLesson;
@@ -261,6 +266,7 @@ class UserController extends AdminController
      * @param int $amount
      * @param array $paymentData
      * @return int
+     * @throws Exception
      */
     private function addPupilMoneyIncome(Company $company, GroupPupil $groupPupil, int $amount, array $paymentData)
     {
@@ -271,7 +277,7 @@ class UserController extends AdminController
             $groupPupil->group
         );
 
-        \Yii::$app->session->addFlash(
+        Yii::$app->session->addFlash(
             'success',
             'Договор ' . $contract->number . ' зарегистрирован '
             . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
@@ -279,13 +285,13 @@ class UserController extends AdminController
 
         $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $paymentData['comment']);
 
-        \Yii::$app->session->addFlash('success', 'Внесение денег зарегистрировано, номер транзакции: ' . $paymentId);
+        Yii::$app->session->addFlash('success', 'Внесение денег зарегистрировано, номер транзакции: ' . $paymentId);
         return $paymentId;
     }
 
     public function actionAddToGroup($userId)
     {
-        if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
         /** @var User $pupil */
         $pupil = User::find()
             ->andWhere(['id' => $userId, 'role' => User::ROLE_PUPIL])
@@ -294,17 +300,17 @@ class UserController extends AdminController
         if (!$pupil) throw new NotFoundHttpException('Pupil not found');
 
         $groupData = [];
-        if (\Yii::$app->request->isPost) {
-            $groupData = \Yii::$app->request->post('group', []);
+        if (Yii::$app->request->isPost) {
+            $groupData = Yii::$app->request->post('group', []);
 
-            $transaction = \Yii::$app->db->beginTransaction();
+            $transaction = Yii::$app->db->beginTransaction();
             try {
                 $this->addPupilToGroup($pupil, $groupData);
                 $transaction->commit();
-                \Yii::$app->session->addFlash('success', 'Добавлено');
-            } catch (\Throwable $e) {
+                Yii::$app->session->addFlash('success', 'Добавлено');
+            } catch (Throwable $e) {
                 $transaction->rollBack();
-                \Yii::$app->session->addFlash('error', $e->getMessage());
+                Yii::$app->session->addFlash('error', $e->getMessage());
             }
         }
 
@@ -317,25 +323,22 @@ class UserController extends AdminController
 
     /**
      * Creates a new Employee.
-     * If creation is successful, the browser will be redirected to the 'update' page.
      * @return mixed
      * @throws ForbiddenHttpException
-     * @throws \Exception
-     * @throws \yii\db\Exception
      */
     public function actionCreateEmployee()
     {
-        if (!\Yii::$app->user->can('manageEmployees')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('manageEmployees')) throw new ForbiddenHttpException('Access denied!');
 
         $employee = new User(['scenario' => User::SCENARIO_ADMIN]);
 
-        if (\Yii::$app->request->isPost) {
-            $employee->load(\Yii::$app->request->post());
+        if (Yii::$app->request->isPost) {
+            $employee->load(Yii::$app->request->post());
             $employee->setPassword($employee->password);
             $employee->generateAuthKey();
 
             if ($employee->save()) {
-                \Yii::$app->session->addFlash('success', 'Сотрудник добавлен');
+                Yii::$app->session->addFlash('success', 'Сотрудник добавлен');
                 UserComponent::clearSearchCache();
 
                 return $this->redirect(['update', 'id' => $employee->id]);
@@ -351,39 +354,44 @@ class UserController extends AdminController
 
     /**
      * Updates an existing User model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param string $id
+     * @param string|int|null $id
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
+     * @throws \yii\db\Exception
      */
     public function actionUpdate($id = null)
     {
-        $userToEdit = $id ?: \Yii::$app->user->id;
-        if (!\Yii::$app->user->can('editUser', ['user' => $userToEdit])) throw new ForbiddenHttpException('Access denied!');
+        $userToEdit = $id ?: Yii::$app->user->id;
+        if (!Yii::$app->user->can('editUser', ['user' => $userToEdit])) throw new ForbiddenHttpException('Access denied!');
 
         $user = $this->findModel($userToEdit);
-        $user->setScenario(in_array($user->role, [User::ROLE_PUPIL, User::ROLE_PARENTS]) ? User::SCENARIO_USER : User::SCENARIO_ADMIN);
-        $isAdmin = \Yii::$app->user->can('manageUsers');
-        $editACL = \Yii::$app->user->can('manageEmployees');
-        $auth = \Yii::$app->authManager;
+        $user->setScenario(in_array($user->role, [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]) ? User::SCENARIO_USER : User::SCENARIO_ADMIN);
+        $isAdmin = Yii::$app->user->can('manageUsers');
+        $editACL = Yii::$app->user->can('manageEmployees');
+        $auth = Yii::$app->authManager;
         $parent = new User(['scenario' => User::SCENARIO_USER]);
 
-        if (\Yii::$app->request->isPost) {
-            $transaction = \Yii::$app->db->beginTransaction();
+        if (Yii::$app->request->isPost) {
+            $transaction = Yii::$app->db->beginTransaction();
             try {
-                if ($user->load(\Yii::$app->request->post())) {
+                if ($user->load(Yii::$app->request->post())) {
                     $fields = null;
-                    if (!$isAdmin) $fields = ['username', 'password'];
+                    if (!$isAdmin) {
+                        $fields = ['username', 'password'];
+                    } else {
+                        $user->bitrix_sync_status = 0;
+                    }
                     if ($user->save(true, $fields)) {
                         if ($user->role == User::ROLE_PUPIL && !$user->parent_id) {
-                            $parent->load(\Yii::$app->request->post('User', []), 'parent');
+                            $parent->load(Yii::$app->request->post('User', []), 'parent');
                             $parent = $this->processParent($parent, 'parent', User::ROLE_PARENTS);
-                            $user->parent_id = $parent->id;
-                            $user->save(false, ['parent_id']);
+                            if ($parent->id) {
+                                $user->link('parent', $parent);
+                            }
                         }
                         if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT)) {
-                            $newRules = \Yii::$app->request->post('acl', []);
+                            $newRules = Yii::$app->request->post('acl', []);
                             foreach (UserComponent::ACL_RULES as $key => $devNull) {
                                 $role = $auth->getRole($key);
                                 if (array_key_exists($key, $newRules)) {
@@ -395,16 +403,16 @@ class UserController extends AdminController
                         }
                         UserComponent::clearSearchCache();
                         $transaction->commit();
-                        \Yii::$app->session->addFlash('success', 'Успешно обновлено');
+                        Yii::$app->session->addFlash('success', 'Успешно обновлено');
                         return $this->redirect(['update', 'id' => $id]);
                     } else {
                         $transaction->rollBack();
                         $user->moveErrorsToFlash();
                     }
-                } else throw new \Exception('Внутренняя ошибка сервера');
-            } catch (\Throwable $exception) {
+                } else throw new Exception('Внутренняя ошибка сервера');
+            } catch (Throwable $exception) {
                 $transaction->rollBack();
-                \Yii::$app->session->addFlash('error', $exception->getMessage());
+                Yii::$app->session->addFlash('error', $exception->getMessage());
             }
         }
 
@@ -413,24 +421,20 @@ class UserController extends AdminController
             'isAdmin' => $isAdmin,
             'editACL' => $editACL,
             'authManager' => $auth,
-            'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
+            'existedParents' => User::find()->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY]])->orderBy(['name' => SORT_ASC])->all(),
             'parent' => $parent,
         ]);
     }
 
-    /**
-     * @param $id
-     * @return \yii\web\Response
-     */
     public function actionChangeActive($id)
     {
         $jsonData = [];
-        if (\Yii::$app->request->isAjax) {
-            if (!\Yii::$app->user->can('manageUsers')) $jsonData = self::getJsonErrorResult('Access denied!');
+        if (Yii::$app->request->isAjax) {
+            if (!Yii::$app->user->can('manageUsers')) $jsonData = self::getJsonErrorResult('Access denied!');
             else {
                 $user = $this->findModel($id);
 
-                $activeState = \Yii::$app->request->post('active');
+                $activeState = Yii::$app->request->post('active');
                 $jsonData = self::getJsonOkResult(['id' => $user->id]);
                 if (($user->status == User::STATUS_ACTIVE) != $activeState) {
                     $user->status = $activeState ? User::STATUS_ACTIVE : User::STATUS_LOCKED;
@@ -444,10 +448,10 @@ class UserController extends AdminController
 
     public function actionFindByPhone()
     {
-        if (!\Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
-        if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
+        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
 
-        $jsonData = self::getJsonOkResult(['phone' => \Yii::$app->request->post('phone', '')]);
+        $jsonData = self::getJsonOkResult(['phone' => Yii::$app->request->post('phone', '')]);
         $phone = preg_replace('#\D#', '', $jsonData['phone']);
 
         if (!empty($phone) && strlen($phone) == 9) {
@@ -474,7 +478,7 @@ class UserController extends AdminController
                     $data = $pupil->toArray(['id', 'name']);
                     $data['groups'] = [];
                     foreach ($pupil->activeGroupPupils as $groupPupil) {
-                        $groupParam = GroupComponent::getGroupParam($groupPupil->group, new \DateTime());
+                        $groupParam = GroupComponent::getGroupParam($groupPupil->group, new DateTime());
                         $groupData = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
                         $groupData['month_price'] = $groupParam->priceMonth;
                         $groupData['discount_price'] = $groupParam->price3Month;
@@ -491,6 +495,47 @@ class UserController extends AdminController
         return $this->asJson($jsonData);
     }
 
+    private function renderSingleSchedule(User $pupil, $month = null)
+    {
+        if ($month) $eventMonth = DateTime::createFromFormat('Y-m', $month);
+        if (!isset($eventMonth) || !$eventMonth) $eventMonth = new DateTime();
+        $eventMonth->modify('first day of this month midnight');
+        $endDate = clone($eventMonth);
+        $endDate->modify('+1 month');
+        $eventMemberCollection = EventMember::find()
+            ->innerJoinWith('event')
+            ->andWhere(['user_id' => $pupil->id])
+            ->andWhere('event_date > :startDate', [':startDate' => $eventMonth->format('Y-m-d H:i:s')])
+            ->andWhere('event_date < :endDate', [':endDate' => $endDate->format('Y-m-d H:i:s')])
+            ->all();
+        $groupMap = [];
+        $eventMap = [];
+        /** @var EventMember $eventMember */
+        foreach ($eventMemberCollection as $eventMember) {
+            $day = $eventMember->event->eventDateTime->format('Y-m-d');
+            if (!isset($eventMap[$day])) $eventMap[$day] = [];
+            $eventMap[$day][$eventMember->event->eventTime] = $eventMember;
+
+            if (!array_key_exists($eventMember->event->group_id, $groupMap)) {
+                $groupMap[$eventMember->event->group_id] = [
+                    'group' => Group::findOne($eventMember->event->group_id),
+                    'payments' => Payment::find()
+                        ->andWhere('created_at >= :from', ['from' => $eventMonth->format('Y-m-d H:i:s')])
+                        ->andWhere('created_at < :to', ['to' => $endDate->format('Y-m-d H:i:s')])
+                        ->andWhere(['group_id' => $eventMember->event->group_id, 'user_id' => $pupil->id])
+                        ->all(),
+                ];
+            }
+        }
+
+        return $this->render('schedule', [
+            'eventMonth' => $eventMonth,
+            'user' => $pupil,
+            'eventMap' => $eventMap,
+            'groupMap' => $groupMap,
+        ]);
+    }
+
     /**
      * @param int|null $id
      * @param string|null $month
@@ -500,61 +545,27 @@ class UserController extends AdminController
      */
     public function actionSchedule($id = null, $month = null)
     {
-        $userToWatch = $id ?: \Yii::$app->user->id;
-        if (!\Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
+        $userToWatch = $id ?: Yii::$app->user->id;
+        if (!Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
 
         $user = $this->findModel($userToWatch);
-        if ($user->role != User::ROLE_PUPIL) {
-            if ($user->role == User::ROLE_PARENTS) $pupilCollection = $user->children;
-            else $pupilCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_PUPIL])->orderBy('name')->all();
+        if ($user->role === User::ROLE_PUPIL) {
+            return $this->renderSingleSchedule($user, $month);
+        }
 
+        if (in_array($user->role, [User::ROLE_COMPANY, User::ROLE_PARENTS])) {
+            $pupilCollection = $user->children;
             if ($pupilCollection && count($pupilCollection) == 1) {
-                $user = reset($pupilCollection);
-            } else {
-                return $this->render('select_pupil_schedule', [
-                    'pupilCollection' => $pupilCollection,
-                    'month' => $month,
-                    'user' => $user,
-                ]);
+                return $this->renderSingleSchedule(reset($pupilCollection), $month);
             }
-        }
-        if ($month) $eventMonth = \DateTime::createFromFormat('Y-m', $month);
-        if (!isset($eventMonth) || !$eventMonth) $eventMonth = new \DateTime();
-        $endDate = clone($eventMonth);
-        $endDate->add(new \DateInterval('P1M'));
-        $eventMemberCollection = EventMember::find()
-            ->innerJoinWith('event')
-            ->where(['user_id' => $user->id])
-            ->andWhere('event_date > :startDate', [':startDate' => $eventMonth->format('Y-m') . '-01 00:00:00'])
-            ->andWhere('event_date < :endDate', [':endDate' => $endDate->format('Y-m') . '-01 00:00:00'])
-            ->all();
-        $groupIdSet = [];
-        $eventMap = [];
-        /** @var EventMember $eventMember */
-        foreach ($eventMemberCollection as $eventMember) {
-            $day = $eventMember->event->eventDateTime->format('Y-m-d');
-            if (!isset($eventMap[$day])) $eventMap[$day] = [];
-            $eventMap[$day][$eventMember->event->eventTime] = $eventMember;
-            if ($eventMember->event->group_id) $groupIdSet[$eventMember->event->group_id] = true;
+        } else {
+            $pupilCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_PUPIL])->orderBy('name')->all();
         }
 
-        $groupMap = [];
-        foreach ($groupIdSet as $groupId => $devNull) {
-            $groupMap[$groupId] = [
-                'group' => Group::findOne($groupId),
-                'payments' => Payment::find()
-                    ->andWhere('created_at >= :from', ['from' => $eventMonth->format('Y-m-d H:i:s')])
-                    ->andWhere('created_at < :to', ['to' => $endDate->format('Y-m-d H:i:s')])
-                    ->andWhere(['group_id' => $groupId, 'user_id' => $user->id])
-                    ->all(),
-            ];
-        }
-
-        return $this->render('schedule', [
-            'eventMonth' => $eventMonth,
+        return $this->render('select_pupil_schedule', [
+            'pupilCollection' => $pupilCollection,
+            'month' => $month,
             'user' => $user,
-            'eventMap' => $eventMap,
-            'groupMap' => $groupMap,
         ]);
     }
 
@@ -562,11 +573,12 @@ class UserController extends AdminController
      * @param int|null $id
      * @return string
      * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionMoneyHistory($id = null)
     {
-        $userToWatch = $id ?: \Yii::$app->user->id;
-        if (!\Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
+        $userToWatch = $id ?: Yii::$app->user->id;
+        if (!Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
         $user = $this->findModel($userToWatch);
 
         if ($user->role != User::ROLE_PUPIL) {
@@ -592,13 +604,13 @@ class UserController extends AdminController
         ]);
     }
 
-
     /**
-     * @return \yii\web\Response
+     * @return Response
      */
-    public function actionPupils() {
+    public function actionPupils()
+    {
         $jsonData = [];
-        if (\Yii::$app->request->isAjax) {
+        if (Yii::$app->request->isAjax) {
             $jsonData = User::find()
                 ->andWhere(['role' => User::ROLE_PUPIL])
                 ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])

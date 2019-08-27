@@ -18,6 +18,7 @@ use yii\db\ActiveQuery;
  * @property int $teacher_id
  * @property-read string $lesson_date
  * @property int $status
+ * @property int $bitrix_sync_status
  * @property-read User $user
  * @property-read Subject $subject
  * @property-read Teacher $teacher
@@ -65,11 +66,13 @@ class WelcomeLesson extends ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'subject_id', 'teacher_id', 'status'], 'integer'],
+            [['user_id', 'subject_id', 'teacher_id', 'status', 'bitrix_sync_status'], 'integer'],
             [['user_id', 'subject_id', 'teacher_id', 'lesson_date'], 'required'],
             ['lesson_date', 'date', 'format' => 'yyyy-MM-dd HH:mm:ss'],
             ['status', 'in', 'range' => self::STATUS_LIST],
             ['status', 'default', 'value' => self::STATUS_UNKNOWN],
+            [['bitrix_sync_status'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
+            [['bitrix_sync_status'], 'default', 'value' => self::STATUS_INACTIVE],
             ['user_id', 'exist', 'targetRelation' => 'user'],
             ['subject_id', 'exist', 'targetRelation' => 'subject'],
             ['teacher_id', 'exist', 'targetRelation' => 'teacher'],

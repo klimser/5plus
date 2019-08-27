@@ -84,15 +84,13 @@ class WelcomeLessonController extends AdminController
                 );
             } else {
                 $welcomeLesson->status = $newStatus;
-                $isError = false;
-                if (!$isError) {
-                    if ($welcomeLesson->save()) {
-                        $jsonData = self::getJsonOkResult([
-                            'id' => $welcomeLesson->id,
-                            'state' => $welcomeLesson->status,
-                        ]);
-                    } else $jsonData = self::getJsonErrorResult($welcomeLesson->getErrorsAsString('status'));
-                }
+                $welcomeLesson->bitrix_sync_status = WelcomeLesson::STATUS_INACTIVE;
+                if ($welcomeLesson->save()) {
+                    $jsonData = self::getJsonOkResult([
+                        'id' => $welcomeLesson->id,
+                        'state' => $welcomeLesson->status,
+                    ]);
+                } else $jsonData = self::getJsonErrorResult($welcomeLesson->getErrorsAsString('status'));
             }
         }
         return $this->asJson($jsonData);

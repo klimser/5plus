@@ -86,7 +86,7 @@ class WelcomeLessonSearch extends WelcomeLesson
             'user_id' => $this->user_id,
         ]);
         if (!$this->status) {
-            $query->andWhere(['not in', self::tableName() . '.status', [self::STATUS_DENIED, self::STATUS_SUCCESS]]);
+            $query->andWhere(['not', [self::tableName() . '.status' => [self::STATUS_DENIED, self::STATUS_SUCCESS]]]);
         }
 
         if ($this->lesson_date) {

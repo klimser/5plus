@@ -81,7 +81,16 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $key, $index, $grid) {return ($model->status == User::STATUS_LOCKED) ? ['class' => 'inactive'] : [];},
         'columns' => [
 //            'username',
-            'name',
+            [
+                'attribute' => 'name',
+                'content' => function ($model, $key, $index, $column) {
+                    $addon = '';
+                    if (!empty($model->note)) {
+                        $addon = '<br><small>' . nl2br($model->note) . '</small>';
+                    }
+                    return "$model->name $addon";
+                },
+            ],
             'phoneFull',
             [
                 'attribute' => 'money',

@@ -12,7 +12,6 @@ use common\components\extended\ActiveRecord;
  * @property int $user_id
  * @property int $group_id
  * @property int $admin_id
- * @property int $group_pupil_id
  * @property int $amount
  * @property int $discount Скидочный платёж
  * @property string $comment
@@ -20,7 +19,7 @@ use common\components\extended\ActiveRecord;
  * @property int $used_payment_id
  * @property int $event_member_id
  * @property int $cash_received
- * @property int $bitrix_id
+ * @property int $bitrix_sync_status
  * @property string $created_at
  * @property \DateTime|null $createDate
  *
@@ -28,7 +27,6 @@ use common\components\extended\ActiveRecord;
  * @property User $user
  * @property Group $group
  * @property User $admin
- * @property GroupPupil $groupPupil
  * @property Payment $usedPayment
  * @property EventMember $eventMember
  * @property Payment[] $payments
@@ -43,15 +41,14 @@ class Payment extends ActiveRecord
         return '{{%payment}}';
     }
 
-
     public function rules()
     {
         return [
             [['user_id', 'group_id', 'amount'], 'required'],
-            [['user_id', 'group_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id', 'cash_received', 'bitrix_id'], 'integer'],
+            [['user_id', 'group_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id', 'cash_received', 'bitrix_sync_status'], 'integer'],
             [['comment'], 'string'],
-            ['discount', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
-            ['discount', 'default', 'value' => self::STATUS_INACTIVE],
+            [['discount', 'bitrix_sync_status'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
+            [['discount',  'bitrix_sync_status'], 'default', 'value' => self::STATUS_INACTIVE],
             ['cash_received', 'default', 'value' => self::STATUS_ACTIVE],
             ['user_id', 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
             ['admin_id', 'exist', 'targetRelation' => 'admin'],
@@ -122,14 +119,6 @@ class Payment extends ActiveRecord
     public function getAdmin()
     {
         return $this->hasOne(User::class, ['id' => 'admin_id']);
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getGroupPupil()
-    {
-        return $this->hasOne(GroupPupil::class, ['id' => 'group_pupil_id']);
     }
 
     /**
