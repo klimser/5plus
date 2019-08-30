@@ -217,7 +217,7 @@ class Contract extends ActiveRecord
      */
     public function getPayments()
     {
-        return $this->hasMany(Payment::class, ['contract_id' => 'id']);
+        return $this->hasMany(Payment::class, ['contract_id' => 'id'])->inverseOf('contract');
     }
 
     /**

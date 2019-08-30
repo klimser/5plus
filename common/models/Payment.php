@@ -4,6 +4,8 @@ namespace common\models;
 
 use backend\models\EventMember;
 use common\components\extended\ActiveRecord;
+use DateTime;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "{{%payment}}".
@@ -21,7 +23,7 @@ use common\components\extended\ActiveRecord;
  * @property int $cash_received
  * @property int $bitrix_sync_status
  * @property string $created_at
- * @property \DateTime|null $createDate
+ * @property DateTime|null $createDate
  *
  * @property Contract $contract
  * @property User $user
@@ -90,7 +92,7 @@ class Payment extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getUser()
     {
@@ -98,15 +100,15 @@ class Payment extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getContract()
     {
-        return $this->hasOne(Contract::class, ['id' => 'contract_id']);
+        return $this->hasOne(Contract::class, ['id' => 'contract_id'])->inverseOf('payments');
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getGroup()
     {
@@ -114,7 +116,7 @@ class Payment extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getAdmin()
     {
@@ -122,23 +124,23 @@ class Payment extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getUsedPayment()
     {
-        return $this->hasOne(Payment::class, ['id' => 'used_payment_id']);
+        return $this->hasOne(Payment::class, ['id' => 'used_payment_id'])->inverseOf('payments');
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getEventMember()
     {
-        return $this->hasOne(EventMember::class, ['id' => 'event_member_id'])->inverseOf('payment');
+        return $this->hasOne(EventMember::class, ['id' => 'event_member_id'])->inverseOf('payments');
     }
 
 	/**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getPayments()
     {
@@ -162,11 +164,12 @@ class Payment extends ActiveRecord
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
+     * @throws \Exception
      */
-    public function getCreateDate(): ?\DateTime
+    public function getCreateDate(): ?DateTime
     {
-        return empty($this->created_at) ? null : new \DateTime($this->created_at);
+        return empty($this->created_at) ? null : new DateTime($this->created_at);
     }
 
     /**

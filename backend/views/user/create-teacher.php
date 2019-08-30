@@ -1,15 +1,16 @@
 <?php
 
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
-use common\models\User;
 
 /* @var $this yii\web\View */
 /* @var $user common\models\User */
+/* @var $teachers common\models\Teacher[] */
 
-$this->title = 'Добавить сотрудника';
+$this->title = 'Добавить учителя';
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
-$this->params['breadcrumbs'][] = 'Новый сотрудник';
+$this->params['breadcrumbs'][] = 'Новый учитель';
 
 $this->registerJs(<<<SCRIPT
     Main.initPhoneFormatted();
@@ -23,13 +24,13 @@ SCRIPT
     <div class="user-form">
         <?php $form = ActiveForm::begin(); ?>
 
+        <?= $form->field($user, 'teacher_id')->dropDownList(ArrayHelper::map($teachers, 'id', 'name')); ?>
+        
         <?= $form->field($user, 'name')->textInput(['maxlength' => true]); ?>
 
         <?= $form->field($user, 'username')->textInput(['maxlength' => true, 'required' => true]); ?>
 
         <?= $form->field($user, 'password')->passwordInput(['required' => $user->isNewRecord, 'data' => ['id' => $user->id]]); ?>
-
-        <?= $form->field($user, 'role')->dropDownList([User::ROLE_ROOT => 'Администратор', User::ROLE_MANAGER => 'Менеджер']); ?>
 
         <?= $form->field($user, 'phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
             ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>

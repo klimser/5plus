@@ -19,6 +19,8 @@ class UserRoleRule extends Rule
 
             if ($item->name === 'root') {
                 return $role == User::ROLE_ROOT;
+            } elseif ($item->name === 'teacher') {
+                return $role == User::ROLE_TEACHER;
             } elseif ($item->name === 'manager') {
                 return $role == User::ROLE_MANAGER || $role == User::ROLE_ROOT;
             } elseif ($item->name === 'parents') {

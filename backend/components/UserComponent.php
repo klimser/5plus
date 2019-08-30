@@ -14,6 +14,7 @@ class UserComponent extends Component
         User::ROLE_COMPANY => 'Компания',
         User::ROLE_PARENTS => 'Родители',
         User::ROLE_PUPIL   => 'Студент',
+        User::ROLE_TEACHER   => 'Учитель',
     ];
 
     public const ACL_RULES = [

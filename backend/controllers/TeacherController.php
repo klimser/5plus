@@ -29,7 +29,7 @@ class TeacherController extends AdminController
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => Teacher::find()->with('subjects')->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC]),
+            'query' => Teacher::find()->with(['subjects', 'user'])->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC]),
             'pagination' => ['pageSize' => 50,],
             'sort' => [
                 'defaultOrder' => ['name' => SORT_ASC],

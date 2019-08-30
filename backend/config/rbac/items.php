@@ -41,6 +41,15 @@ return [
             'viewMySchedule',
         ],
     ],
+    'teacher' => [
+        'type' => 1,
+        'ruleName' => 'userRole',
+        'children' => [
+            'viewIndex',
+            'manageSchedule',
+            'viewMissed',
+        ],
+    ],
     'registrator' => [
         'type' => 1,
         'children' => [
@@ -66,6 +75,7 @@ return [
             'viewGroups',
             'reportDebt',
             'viewMissed',
+            'callMissed',
         ],
     ],
     'accountant' => [
@@ -94,6 +104,7 @@ return [
             'reportGroupMovement',
             'manageGiftCardTypes',
             'viewMissed',
+            'callMissed',
         ],
     ],
     'moneyMover' => [
@@ -161,6 +172,10 @@ return [
     'viewMissed' => [
         'type' => 2,
         'description' => 'View missed pupils report',
+    ],
+    'callMissed' => [
+        'type' => 2,
+        'description' => 'Call pupils that missed lessons',
     ],
 
     /* ACCOUNTANT */

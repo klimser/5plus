@@ -7,6 +7,7 @@ use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use backend\models\Event;
 use backend\models\EventMember;
+use common\models\GroupParam;
 use yii;
 use yii\web\NotFoundHttpException;
 
@@ -20,7 +21,7 @@ class EventController extends AdminController
     }
 
     /**
-     * Lists all Page models.
+     * Lists all Event models.
      * @return mixed
      */
     public function actionIndex()
@@ -35,12 +36,24 @@ class EventController extends AdminController
         $endDate = clone($startDate);
         $endDate->modify('+1 day');
 
-        $events = Event::find()
+        $eventsQuery = Event::find()
             ->where('event_date > :startDate', [':startDate' => $startDate->format('Y-m-d H:i:s')])
             ->andWhere('event_date < :endDate', [':endDate' => $endDate->format('Y-m-d H:i:s')])
             ->with(['group', 'members.groupPupil.user'])
-            ->orderBy(['event_date' => SORT_ASC])
-            ->all();
+            ->orderBy(['event_date' => SORT_ASC]);
+        
+        if (Yii::$app->user->can('teacher')) {
+            $teacherId = Yii::$app->user->identity->teacher_id;
+            $eventsQuery->joinWith(['group' => function($query) { $query->alias('g'); }])
+                ->leftJoin(['gp' => GroupParam::tableName()], ['g.id' => 'gp.group_id', 'gp.year' => $startDate->format('Y'), 'gp.month' => $startDate->format('n')])
+                ->andWhere([
+                    'or',
+                    ['gp.teacher_id' => $teacherId],
+                    ['and', ['gp.id' => null], ['g.teacher_id' => $teacherId]]
+                ]);
+        }
+        
+        $events = $eventsQuery->all();
 
         return $this->render('index', [
             'startDate' => $startDate,

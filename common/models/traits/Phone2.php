@@ -12,11 +12,9 @@ namespace common\models\traits;
  */
 trait Phone2
 {
-    protected $phone2Formatted;
-
     public function setPhone2Formatted($value): void
     {
-        $this->phone2Formatted = $value;
+        $this->phone2 = empty($value) ? null : '+998' . substr(preg_replace('#\D#', '', $value), -9);
     }
 
     protected function getPhone2DigitsOnly(): ?string
@@ -47,12 +45,5 @@ trait Phone2
         if (!$digits || strlen($digits) !== 12) return $digits;
 
         return "+$digits";
-    }
-
-    protected function loadPhone2()
-    {
-        if (!empty($this->phone2Formatted)) {
-            $this->phone2 = '+998' . substr(preg_replace('#\D#', '', $this->phone2Formatted), -9);
-        }
     }
 }

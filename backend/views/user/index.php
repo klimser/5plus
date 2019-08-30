@@ -131,7 +131,6 @@ $this->params['breadcrumbs'][] = $this->title;
                         return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-list-alt']), Url::to(['money/payment', 'PaymentSearch' => ['user_id' => $model->id]]), ['class' => 'btn btn-default margin-right-10', 'title' => 'История платежей']);
                     },
                 ],
-                'buttonOptions' => ['class' => 'btn btn-default margin-right-10'],
             ],
         ],
     ]); ?>

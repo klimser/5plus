@@ -164,11 +164,13 @@ $this->title = 'Панель управления';
                                     <span class="fas fa-table"></span> Таблица посещений
                                 </a>
                             </li>
-                            <li role="presentation">
-                                <a href="<?= Url::to(['missed/list']); ?>">
-                                    <span class="fas fa-phone"></span> Обзвон отсутствующих
-                                </a>
-                            </li>
+                            <?php if ($admin->can('callMissed')): ?>
+                                <li role="presentation">
+                                    <a href="<?= Url::to(['missed/list']); ?>">
+                                        <span class="fas fa-phone"></span> Обзвон отсутствующих
+                                    </a>
+                                </li>
+                            <?php endif; ?>
                         </ul>
                     </li>
                 <?php endif; ?>
@@ -189,68 +191,76 @@ $this->title = 'Панель управления';
                     </li>
                 <?php endif; ?>
 
-                <li role="presentation" class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
-                        Предоплаченные карты <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <?php if ($admin->can('moneyManagement')): ?>
-                            <li role="presentation">
-                                <a href="<?= Url::to(['gift-card/index']); ?>">
-                                    <span class="fas fa-file-invoice"></span> Список карт
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                        <?php if ($admin->can('manageGiftCardTypes')): ?>
-                            <li role="presentation">
-                                <a href="<?= Url::to(['gift-card-type/index']); ?>">
-                                    <span class="fas fa-cog"></span> Типы карт
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                    </ul>
-                </li>
+                <?php if ($admin->can('moneyManagement') || $admin->can('manageGiftCardTypes')): ?>
+                    <li role="presentation" class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                            Предоплаченные карты <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <?php if ($admin->can('moneyManagement')): ?>
+                                <li role="presentation">
+                                    <a href="<?= Url::to(['gift-card/index']); ?>">
+                                        <span class="fas fa-file-invoice"></span> Список карт
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                            <?php if ($admin->can('manageGiftCardTypes')): ?>
+                                <li role="presentation">
+                                    <a href="<?= Url::to(['gift-card-type/index']); ?>">
+                                        <span class="fas fa-cog"></span> Типы карт
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </li>
+                <?php endif; ?>
 
-                <li role="presentation" class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
-                        Отчёты <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <?php if ($admin->can('reportGroupMovement')): ?>
-                            <li role="presentation">
-                                <a href="<?= Url::to(['report/group-movement']); ?>">
-                                    <span class="fas fa-walking"></span> Отчет движения
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                        <?php if ($admin->can('reportDebt')): ?>
-                            <li role="presentation">
-                                <a href="<?= Url::to(['report/debt']); ?>">
-                                    <span class="fas fa-info"></span> Отчет по должникам
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                        <?php if ($admin->can('reportMoney')): ?>
-                            <li role="presentation">
-                                <a href="<?= Url::to(['report/money']); ?>">
-                                    <span class="fas fa-dollar-sign"></span> Финансовый отчёт
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                        <?php if ($admin->can('reportCash')): ?>
-                            <li role="presentation">
-                                <a href="<?= Url::to(['report/cash']); ?>">
-                                    <span class="fas fa-coins"></span> Касса
-                                </a>
-                            </li>
-                            <li role="presentation">
-                                <a href="<?= Url::to(['report/rest-money']); ?>">
-                                    <span class="fas fa-funnel-dollar"></span> Остатки
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                    </ul>
-                </li>
+                <?php if ($admin->can('reportGroupMovement')
+                    || $admin->can('reportDebt')
+                    || $admin->can('reportMoney')
+                    || $admin->can('reportCash')
+                ): ?>
+                    <li role="presentation" class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                            Отчёты <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <?php if ($admin->can('reportGroupMovement')): ?>
+                                <li role="presentation">
+                                    <a href="<?= Url::to(['report/group-movement']); ?>">
+                                        <span class="fas fa-walking"></span> Отчет движения
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                            <?php if ($admin->can('reportDebt')): ?>
+                                <li role="presentation">
+                                    <a href="<?= Url::to(['report/debt']); ?>">
+                                        <span class="fas fa-info"></span> Отчет по должникам
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                            <?php if ($admin->can('reportMoney')): ?>
+                                <li role="presentation">
+                                    <a href="<?= Url::to(['report/money']); ?>">
+                                        <span class="fas fa-dollar-sign"></span> Финансовый отчёт
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                            <?php if ($admin->can('reportCash')): ?>
+                                <li role="presentation">
+                                    <a href="<?= Url::to(['report/cash']); ?>">
+                                        <span class="fas fa-coins"></span> Касса
+                                    </a>
+                                </li>
+                                <li role="presentation">
+                                    <a href="<?= Url::to(['report/rest-money']); ?>">
+                                        <span class="fas fa-funnel-dollar"></span> Остатки
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </li>
+                <?php endif; ?>
 
                 <?php if ($admin->can('content')): ?>
                     <li role="presentation" class="dropdown">
