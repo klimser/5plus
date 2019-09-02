@@ -147,7 +147,10 @@ class MissedController extends AdminController
             $group = Group::findOne($groupId);
             if (!$group) throw new BadRequestHttpException('Group not found');
             if ($teacherId) {
-                $groupParam = GroupParam::findByDate($group, $date);
+                $groupParam = GroupParam::findByDate($group, $dateStart);
+                if (($groupParam && $groupParam->teacher_id != $teacherId) || $group->teacher_id != $teacherId) {
+                    throw new ForbiddenHttpException('Access denied!');
+                }
             }
 
             /** @var Event[] $events */
@@ -161,17 +164,23 @@ class MissedController extends AdminController
                     if (!array_key_exists($eventMember->group_pupil_id, $dataMap)) {
                         $dataMap[$eventMember->group_pupil_id] = [0 => $eventMember->groupPupil->user->name];
                     }
-                    $dataMap[$eventMember->group_pupil_id][intval($event->eventDateTime->format('j'))] = $eventMember->status;
+                    $dataMap[$eventMember->group_pupil_id][(int)$event->eventDateTime->format('j')] = $eventMember->status;
                 }
             }
             usort($dataMap, function($a, $b) { return $a[0] <=> $b[0]; });
         }
 
+        $groupQuery = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC]);
+        if ($teacherId) {
+            $ids = GroupParam::find()->andWhere(['teacher_id' => $teacherId])->select('group_id')->distinct(true)->column();
+            $groupQuery->andWhere(['id' => $ids]);
+        }
+        
         return $this->render('table', [
             'date' => $dateStart,
             'daysCount' => intval($dateEnd->format('d')),
             'dataMap' => $dataMap,
-            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
+            'groups' => $groupQuery->all(),
             'group' => $group,
         ]);
     }

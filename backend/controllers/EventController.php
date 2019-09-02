@@ -10,6 +10,7 @@ use backend\models\EventMember;
 use common\models\GroupParam;
 use yii;
 use yii\web\NotFoundHttpException;
+use yii\web\BadRequestHttpException;
 
 class EventController extends AdminController
 {
@@ -21,8 +22,25 @@ class EventController extends AdminController
     }
 
     /**
+     * @param Event $event
+     * @return bool
+     * @throws \Exception
+     */
+    private function isTeacherHasAccess(Event $event): bool
+    {
+        if (Yii::$app->user->can('teacher')) {
+            $groupParam = GroupComponent::getGroupParam($event->group, new \DateTime());
+            if ($groupParam->teacher_id != Yii::$app->user->identity->teacher_id) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Lists all Event models.
      * @return mixed
+     * @throws \Exception
      */
     public function actionIndex()
     {
@@ -44,8 +62,10 @@ class EventController extends AdminController
         
         if (Yii::$app->user->can('teacher')) {
             $teacherId = Yii::$app->user->identity->teacher_id;
-            $eventsQuery->joinWith(['group' => function($query) { $query->alias('g'); }])
-                ->leftJoin(['gp' => GroupParam::tableName()], ['g.id' => 'gp.group_id', 'gp.year' => $startDate->format('Y'), 'gp.month' => $startDate->format('n')])
+            $eventsQuery->joinWith(['group' => function(yii\db\ActiveQuery $query) { $query->alias('g'); }])
+                ->leftJoin(
+                    ['gp' => GroupParam::tableName()],
+                    ['g.id' => 'gp.group_id', 'gp.year' => (int)$startDate->format('Y'), 'gp.month' => (int)$startDate->format('n')])
                 ->andWhere([
                     'or',
                     ['gp.teacher_id' => $teacherId],
@@ -66,19 +86,24 @@ class EventController extends AdminController
     /**
      * @param int $event
      * @return yii\web\Response
-     * @throws yii\web\BadRequestHttpException
+     * @throws yii\db\Exception
+     * @throws BadRequestHttpException
      */
     public function actionChangeStatus($event)
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
 
         /** @var Event $event */
         $event = Event::find()->andWhere(['id' => $event])->with('members.groupPupil.user')->one();
         if (!$event) $jsonData = self::getJsonErrorResult('Event not found');
         else {
             $status = Yii::$app->getRequest()->post('status');
-            if ($event->status != Event::STATUS_UNKNOWN || $event->eventDateTime > $this->getLimitDate()) $jsonData = self::getJsonErrorResult('Event edit denied!');
-            elseif (!in_array($status, [Event::STATUS_PASSED, Event::STATUS_CANCELED])) $jsonData = self::getJsonErrorResult('Wrong status!');
+            
+            if (!$this->isTeacherHasAccess($event)
+                || $event->status != Event::STATUS_UNKNOWN
+                || $event->eventDateTime > $this->getLimitDate()) {
+                $jsonData = self::getJsonErrorResult('Event edit denied!');
+            } elseif (!in_array($status, [Event::STATUS_PASSED, Event::STATUS_CANCELED])) $jsonData = self::getJsonErrorResult('Wrong status!');
             else {
                 $transaction = \Yii::$app->db->beginTransaction();
                 try {
@@ -130,7 +155,7 @@ class EventController extends AdminController
      */
     public function actionSetPupilStatus($memberId)
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
 
         /** @var EventMember $eventMember */
         $eventMember = EventMember::findOne($memberId);
@@ -138,7 +163,8 @@ class EventController extends AdminController
         else {
             $status = intval(Yii::$app->getRequest()->post('status'));
             if (!in_array($status, [EventMember::STATUS_ATTEND, EventMember::STATUS_MISS])) $jsonData = self::getJsonErrorResult('Wrong status!');
-            elseif ($eventMember->event->eventDateTime > $this->getLimitDate()
+            elseif (!$this->isTeacherHasAccess($eventMember->event)
+                || $eventMember->event->eventDateTime > $this->getLimitDate()
                 || ($eventMember->status != EventMember::STATUS_UNKNOWN && ($eventMember->status != EventMember::STATUS_MISS || $eventMember->event->limitAttendTimestamp < time()))) {
                 $jsonData = self::getJsonErrorResult('Pupil edit denied!');
             } else {
@@ -166,14 +192,15 @@ class EventController extends AdminController
      */
     public function actionSetPupilMark($member)
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
 
         /** @var EventMember $eventMember */
         $eventMember = EventMember::findOne($member);
         $mark = intval(Yii::$app->getRequest()->post('mark'));
         if (!$eventMember) $jsonData = self::getJsonErrorResult('Pupil not found');
-        elseif ($eventMember->status != EventMember::STATUS_ATTEND) $jsonData = self::getJsonErrorResult('Pupil edit denied!');
-        elseif ($mark <= 0 || $mark > 5) $jsonData = self::getJsonErrorResult('Wrong mark!');
+        elseif (!$this->isTeacherHasAccess($eventMember->event) || $eventMember->status != EventMember::STATUS_ATTEND) {
+            $jsonData = self::getJsonErrorResult('Pupil edit denied!');
+        } elseif ($mark <= 0 || $mark > 5) $jsonData = self::getJsonErrorResult('Wrong mark!');
         else {
             $eventMember->mark = $mark;
             if ($eventMember->save()) {
