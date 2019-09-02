@@ -26,8 +26,9 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a('Добавить студента', ['create-pupil'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Добавить учителя', ['create-teacher'], ['class' => 'btn btn-success pull-right']) ?>
         <?php if ($canManageEmployees): ?>
-            <?= Html::a('Добавить сотрудника', ['create-employee'], ['class' => 'btn btn-success pull-right']) ?>
+            <?= Html::a('Добавить сотрудника', ['create-employee'], ['class' => 'btn btn-success pull-right margin-right-10']) ?>
         <?php endif; ?>
     </p>
     <nav aria-label="User by letter" class="text-center">
