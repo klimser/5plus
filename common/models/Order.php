@@ -68,6 +68,7 @@ class Order extends ActiveRecord
     public function rules()
     {
         return [
+            [['name', 'user_comment'], 'trim'],
             [['subject', 'name', 'phone'], 'required'],
             [['status'], 'string'],
             [['subject'], 'string', 'max' => 127],
@@ -81,6 +82,7 @@ class Order extends ActiveRecord
             [['reCaptcha'], ReCaptchaValidator::class, 'on' => self::SCENARIO_FRONTEND],
             ['source', 'default', 'value' => 'Сайт', 'on' => self::SCENARIO_FRONTEND],
             ['source', 'default', 'value' => 'Telegram бот', 'on' => self::SCENARIO_TELEGRAM],
+            [['name', 'user_comment'], 'default', 'value' => null],
         ];
     }
 
@@ -123,21 +125,5 @@ class Order extends ActiveRecord
     {
         $createDate = $this->getCreateDate();
         return $createDate ? $createDate->format('Y-m-d') : '';
-    }
-
-    /**
-     * @param array $data
-     * @param null $formName
-     * @return bool
-     */
-    public function load($data, $formName = null)
-    {
-        if (!parent::load($data, $formName)) return false;
-
-        if (!$this->user_comment) $this->user_comment = null;
-        if ($this->name !== null) $this->name = trim($this->name);
-        $this->loadPhone();
-
-        return true;
     }
 }

@@ -6,9 +6,13 @@ use backend\models\EventMember;
 use backend\models\UserCall;
 use common\components\ComponentContainer;
 use common\models\Group;
+use common\models\GroupParam;
 use common\models\GroupPupil;
+use Exception;
+use Yii;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
+use yii\web\Response;
 
 /**
  * MissedController implements list of pupils that missing lessons.
@@ -19,7 +23,7 @@ class MissedController extends AdminController
 
     public function actionList()
     {
-        if (!\Yii::$app->user->can('viewMissed')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('callMissed')) throw new ForbiddenHttpException('Access denied!');
 
         /** @var Group[] $groups */
         $groups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all();
@@ -81,21 +85,21 @@ class MissedController extends AdminController
     }
 
     /**
-     * @return \yii\web\Response
+     * @return Response
      * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
      */
     public function actionCall()
     {
-        if (!\Yii::$app->request->isPost) throw new BadRequestHttpException('Only POST requests allowed');
-        if (!\Yii::$app->user->can('viewMissed')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->request->isPost) throw new BadRequestHttpException('Only POST requests allowed');
+        if (!Yii::$app->user->can('callMissed')) throw new ForbiddenHttpException('Access denied!');
 
-        $groupPupilId = \Yii::$app->request->post('groupPupil');
+        $groupPupilId = Yii::$app->request->post('groupPupil');
         if (!$groupPupilId) throw new BadRequestHttpException('Wrong request');
         $groupPupil = GroupPupil::findOne($groupPupilId);
         if (!$groupPupil) throw new BadRequestHttpException('Wrong request');
-        $callResult = \Yii::$app->request->post('callResult')[$groupPupilId];
-        $comment = \Yii::$app->request->post('callComment')[$groupPupilId];
+        $callResult = Yii::$app->request->post('callResult')[$groupPupilId];
+        $comment = Yii::$app->request->post('callComment')[$groupPupilId];
         switch ($callResult) {
             case 'fail': $comment = 'Недозвон'; break;
             case 'phone': $comment = 'Неправильный номер телефона'; break;
@@ -103,11 +107,11 @@ class MissedController extends AdminController
 
         $userCall = new UserCall();
         $userCall->user_id = $groupPupil->user_id;
-        $userCall->admin_id = \Yii::$app->user->id;
+        $userCall->admin_id = Yii::$app->user->id;
         $userCall->comment = $comment;
         if (!$userCall->save()) {
             ComponentContainer::getErrorLogger()->logError('missed/call', $userCall->getErrorsAsString(), true);
-            throw new \Exception('Fatal error');
+            throw new Exception('Fatal error');
         }
 
         return $this->redirect(['list']);
@@ -124,7 +128,12 @@ class MissedController extends AdminController
      */
     public function actionTable(int $groupId = 0, int $year = 0, int $month = 0)
     {
-        if (!\Yii::$app->user->can('viewMissed')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('viewMissed')) throw new ForbiddenHttpException('Access denied!');
+
+        $teacherId = null;
+        if (Yii::$app->user->can('teacher')) {
+            $teacherId = Yii::$app->user->identity->teacher_id;
+        }
 
         if (!$year) $year = intval(date('Y'));
         if (!$month) $month = intval(date('n'));
@@ -137,6 +146,12 @@ class MissedController extends AdminController
         if ($groupId) {
             $group = Group::findOne($groupId);
             if (!$group) throw new BadRequestHttpException('Group not found');
+            if ($teacherId) {
+                $groupParam = GroupParam::findByDate($group, $dateStart);
+                if (($groupParam && $groupParam->teacher_id != $teacherId) || $group->teacher_id != $teacherId) {
+                    throw new ForbiddenHttpException('Access denied!');
+                }
+            }
 
             /** @var Event[] $events */
             $events = Event::find()
@@ -149,17 +164,23 @@ class MissedController extends AdminController
                     if (!array_key_exists($eventMember->group_pupil_id, $dataMap)) {
                         $dataMap[$eventMember->group_pupil_id] = [0 => $eventMember->groupPupil->user->name];
                     }
-                    $dataMap[$eventMember->group_pupil_id][intval($event->eventDateTime->format('j'))] = $eventMember->status;
+                    $dataMap[$eventMember->group_pupil_id][(int)$event->eventDateTime->format('j')] = $eventMember->status;
                 }
             }
             usort($dataMap, function($a, $b) { return $a[0] <=> $b[0]; });
         }
 
+        $groupQuery = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC]);
+        if ($teacherId) {
+            $ids = GroupParam::find()->andWhere(['teacher_id' => $teacherId])->select('group_id')->distinct(true)->column();
+            $groupQuery->andWhere(['id' => $ids]);
+        }
+        
         return $this->render('table', [
             'date' => $dateStart,
             'daysCount' => intval($dateEnd->format('d')),
             'dataMap' => $dataMap,
-            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
+            'groups' => $groupQuery->all(),
             'group' => $group,
         ]);
     }

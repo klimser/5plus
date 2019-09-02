@@ -106,7 +106,7 @@ let Event = {
             case this.memberStatusAttend:
                 if (memberMark > 0) return '<b>' + memberMark + '</b>';
                 else return '<form onsubmit="return Event.setPupilMark(this, ' + memberId + ');">' +
-                    '<div class="input-group"><input type="number" step="1" min="1" max="5" class="form-control" placeholder="Балл" required>' +
+                    '<div class="input-group"><input type="number" name="mark" step="1" min="1" max="5" class="form-control" placeholder="Балл" required>' +
                     '<span class="input-group-btn">' +
                         '<button class="btn btn-primary">OK</button>' +
                 '</span></div></form>';
@@ -158,7 +158,7 @@ let Event = {
         });
     },
     setPupilMark: function(e, memberId) {
-        let mark = parseInt($(e).closest(".input-group").find("input").val());
+        let mark = parseInt($(e).find("input[name='mark']").val());
         if (!mark || mark <= 0 || mark > 5) {
             Main.throwFlashMessage('#messages_place', "Укажите оценку от 1 до 5", 'alert-danger');
             return false;

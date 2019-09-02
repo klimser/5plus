@@ -44,7 +44,7 @@ class WelcomeLessonController extends AdminController
         foreach ($subjects as $subject) $subjectMap[$subject->id] = $subject->name;
 
         /** @var Teacher[] $teachers */
-        $teachers = Teacher::find()->orderBy('name')->all();
+        $teachers = Teacher::find()->andWhere(['active' => Teacher::STATUS_ACTIVE])->orderBy('name')->all();
         $teacherMap = [null => 'Все'];
         foreach ($teachers as $teacher) $teacherMap[$teacher->id] = $teacher->name;
 

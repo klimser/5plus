@@ -5,6 +5,8 @@ namespace common\models;
 use common\components\extended\ActiveRecord;
 use common\models\traits\Inserted;
 use common\models\traits\Phone;
+use DateTime;
+use Exception;
 
 /**
  * This is the model class for table "{{%gift_card}}".
@@ -20,10 +22,10 @@ use common\models\traits\Phone;
  * @property string $additional Дополнительные данные
  * @property array $additionalData Дополнительные данные
  * @property string $paid_at Дата оплаты
- * @property \DateTime $paidDate Дата оплаты
+ * @property DateTime $paidDate Дата оплаты
  * @property string $paidDateString Дата оплаты
  * @property string $used_at Дата активации
- * @property \DateTime $usedDate Дата активации
+ * @property DateTime $usedDate Дата активации
  * @property string $usedDateString Дата активации
  */
 class GiftCard extends ActiveRecord
@@ -56,6 +58,7 @@ class GiftCard extends ActiveRecord
     public function rules()
     {
         return [
+            [['name', 'customer_name', 'customer_email', 'additional'], 'trim'],
             [['name', 'amount','code', 'customer_name', 'customer_phone', 'customer_email'], 'required'],
             [['amount', 'status'], 'integer'],
             [['name'], 'string', 'max' => 127],
@@ -64,6 +67,7 @@ class GiftCard extends ActiveRecord
             [['customer_name', 'customer_email'], 'string', 'max' => 255],
             [['customer_phone'], 'string', 'max' => 13],
             ['status', 'in', 'range' => self::$statusList],
+            [['additional'], 'default', 'value' => null],
         ];
     }
 
@@ -112,11 +116,12 @@ class GiftCard extends ActiveRecord
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
+     * @throws Exception
      */
-    public function getPaidDate(): ?\DateTime
+    public function getPaidDate(): ?DateTime
     {
-        return empty($this->paid_at) ? null : new \DateTime($this->paid_at);
+        return empty($this->paid_at) ? null : new DateTime($this->paid_at);
     }
 
     /**
@@ -129,11 +134,12 @@ class GiftCard extends ActiveRecord
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
+     * @throws Exception
      */
-    public function getUsedDate(): ?\DateTime
+    public function getUsedDate(): ?DateTime
     {
-        return empty($this->used_at) ? null : new \DateTime($this->used_at);
+        return empty($this->used_at) ? null : new DateTime($this->used_at);
     }
 
     /**
@@ -151,7 +157,6 @@ class GiftCard extends ActiveRecord
     public function beforeValidate()
     {
         if (parent::beforeValidate()) {
-            $this->loadPhone();
             if ($this->isNewRecord) {
                 do {
                     $this->code = substr(hash('md5', $this->name . mt_rand(1000, mt_getrandmax())), 0, 8);

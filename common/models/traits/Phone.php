@@ -11,8 +11,6 @@ namespace common\models\traits;
  */
 trait Phone
 {
-    protected $phoneFormatted;
-
     private function getPhoneAttributeName(): string
     {
         return property_exists($this, 'phoneAttribute') ? $this->phoneAttribute : 'phone';
@@ -20,7 +18,8 @@ trait Phone
 
     public function setPhoneFormatted(string $value): void
     {
-        $this->phoneFormatted = $value;
+        $attr = $this->getPhoneAttributeName();
+        $this->$attr = empty($value) ? null : '+998' . substr(preg_replace('#\D#', '', $value), -9);
     }
 
     protected function getPhoneDigitsOnly(): ?string
@@ -53,13 +52,5 @@ trait Phone
         if (!$digits || strlen($digits) !== 12) return $digits;
 
         return "+$digits";
-    }
-
-    protected function loadPhone(): void
-    {
-        $attr = $this->getPhoneAttributeName();
-        if (!empty($this->phoneFormatted)) {
-            $this->$attr = '+998' . substr(preg_replace('#\D#', '', $this->phoneFormatted), -9);
-        }
     }
 }

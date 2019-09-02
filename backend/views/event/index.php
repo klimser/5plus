@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use common\components\helpers\Calendar;
 use \backend\models\Event;
 use \backend\models\EventMember;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $startDate \DateTime */
@@ -53,7 +54,7 @@ $this->registerJs('Event.init(' . time() . ');');
 
     <div class="row">
         <div class="col-xs-12">
-            <a class="btn btn-default full-width" href="<?= \yii\helpers\Url::to(['index', 'date' => $previousDate->format('Y-m-d')]); ?>">
+            <a class="btn btn-default full-width" href="<?= Url::to(['index', 'date' => $previousDate->format('Y-m-d')]); ?>">
                 <span class="glyphicon glyphicon-menu-up"></span>
                 <?= $previousDate->format('d.m.Y'); ?>
                 <small><?= Calendar::$weekDays[$previousDate->format('w')]; ?></small>
@@ -74,12 +75,12 @@ $this->registerJs('Event.init(' . time() . ');');
                 <div class="col-xs-12 col-md-4">
                     <div class="row">
                         <div class="col-xs-12">
-                            <button type="button" class="full-width text-left btn btn-<?= $statusClass; ?>" onclick="Event.toggleEvent(<?= $event->id; ?>);">
+                            <div class="full-width btn btn-<?= $statusClass; ?>" onclick="Event.toggleEvent(<?= $event->id; ?>);">
                                 <div class="full-width text-left">
                                     <span class="badge"><?= $event->eventTime; ?></span>
                                     <?= $event->group->name; ?>
                                 </div>
-                            </button>
+                            </div>
                         </div>
                     </div>
                     <div class="event_details hidden" id="event_details_<?= $event->id; ?>" data-status="<?= $event->status; ?>" data-limit-attend-timestamp="<?= $event->limitAttendTimestamp; ?>">
@@ -89,10 +90,10 @@ $this->registerJs('Event.init(' . time() . ');');
                                 <?= $event->teacher->name; ?>
                             </div>
                             <div class="col-xs-4 col-sm-3 col-md-4 col-lg-3">
-                                <a href="<?= \yii\helpers\Url::to(['group/view', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
+                                <a href="<?= Url::to(['group/view', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
                                     <span class="fas fa-dollar-sign"></span>
                                 </a>
-                                <a href="<?= \yii\helpers\Url::to(['group/update', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
+                                <a href="<?= Url::to(['group/update', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
                                     <span class="fas fa-pencil-alt"></span>
                                 </a>
                             </div>
@@ -145,7 +146,7 @@ $this->registerJs('Event.init(' . time() . ');');
     <hr>
     <div class="row">
         <div class="col-xs-12">
-            <a class="btn btn-default full-width" href="<?= \yii\helpers\Url::to(['index', 'date' => $nextDate->format('Y-m-d')]); ?>">
+            <a class="btn btn-default full-width" href="<?= Url::to(['index', 'date' => $nextDate->format('Y-m-d')]); ?>">
                 <span class="glyphicon glyphicon-menu-down"></span>
                 <?= $nextDate->format('d.m.Y'); ?>
                 <small><?= Calendar::$weekDays[$nextDate->format('w')]; ?></small>

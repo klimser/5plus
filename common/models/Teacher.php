@@ -7,7 +7,9 @@ use backend\models\TeacherSubjectLink;
 use common\components\ComponentContainer;
 use common\components\extended\ActiveRecord;
 use common\models\traits\UploadImage;
+use DateTime;
 use yii;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "{{%teacher}}".
@@ -16,7 +18,7 @@ use yii;
  * @property string $name
  * @property string $phone
  * @property string $birthday
- * @property \DateTime $birthdayDate
+ * @property DateTime $birthdayDate
  * @property string $title
  * @property string $description
  * @property string|null $photo
@@ -33,7 +35,8 @@ use yii;
  * @property TeacherSubjectLink[] $teacherSubjects
  * @property Subject[] $subjects
  * @property Group[] $groups
- * * @property Webpage $webpage
+ * @property Webpage $webpage
+ * @property User $user
  */
 class Teacher extends ActiveRecord
 {
@@ -74,16 +77,18 @@ class Teacher extends ActiveRecord
     public function rules()
     {
         return [
+            [['name', 'title', 'description'], 'trim'],
             [['name'], 'required'],
             [['name'], 'string', 'max' => 127],
             [['title', 'photo'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 13],
-            [['birthday'], 'string', 'max' => 10],
+            [['birthday'], 'date', 'format' => 'yyyy-MM-dd'],
             [['description', 'descriptionForEdit'], 'string'],
             [['photoFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg', 'checkExtensionByMimeType' => true],
             [['active', 'page_visibility', 'page_order'], 'integer'],
             [['active', 'page_visibility'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
             [['active', 'page_visibility'], 'default', 'value' => self::STATUS_ACTIVE],
+            [['title', 'phone', 'photo', 'description'], 'default', 'value' => null],
         ];
     }
 
@@ -105,11 +110,19 @@ class Teacher extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getWebpage()
     {
         return $this->hasOne(Webpage::class, ['id' => 'webpage_id']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getUser()
+    {
+        return $this->hasOne(User::class, ['teacher_id' => 'id'])->inverseOf('teacher');
     }
 
     public function getShortName()
@@ -144,13 +157,13 @@ class Teacher extends ActiveRecord
 
     public function getBirthdayDate()
     {
-        $birthdayDate = $this->birthday ? new \DateTime($this->birthday) : null;
+        $birthdayDate = $this->birthday ? new DateTime($this->birthday) : null;
         if ($birthdayDate) $birthdayDate->modify(date('Y') . $birthdayDate->format('-m-d'));
         return $birthdayDate;
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getEvents()
     {
@@ -158,7 +171,7 @@ class Teacher extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getTeacherSubjects()
     {
@@ -166,7 +179,7 @@ class Teacher extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getSubjects()
     {
@@ -175,7 +188,7 @@ class Teacher extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getGroups()
     {
@@ -183,10 +196,11 @@ class Teacher extends ActiveRecord
     }
 
     /**
-     * @param $imagePath
-     * @param $maskPath
-     * @param $framePath
+     * @param string $imagePath
+     * @param string $maskPath
+     * @param string $framePath
      * @return string
+     * @throws \ImagickException
      */
     private function addPhotoFrame(string $imagePath, string $maskPath, string $framePath): string
     {
@@ -311,7 +325,7 @@ class Teacher extends ActiveRecord
     }
 
     /**
-     * @return yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public static function getVisibleListQuery()
     {
@@ -329,9 +343,9 @@ class Teacher extends ActiveRecord
     public function beforeValidate()
     {
         if (!parent::beforeValidate()) return false;
-
-        if ($this->descriptionForEdit) $this->description = self::convertTextForDB($this->descriptionForEdit, 'teacher_highlight');
-        $this->name = trim($this->name);
+        if ($this->descriptionForEdit) {
+            $this->description = self::convertTextForDB($this->descriptionForEdit, 'teacher_highlight');
+        }
         return true;
     }
 

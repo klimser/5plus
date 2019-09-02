@@ -9,6 +9,7 @@ use common\models\traits\Phone2;
 use yii;
 use yii\base\NotSupportedException;
 use \common\components\extended\ActiveRecord;
+use yii\db\ActiveQuery;
 use yii\web\IdentityInterface;
 
 /**
@@ -26,12 +27,14 @@ use yii\web\IdentityInterface;
  * @property int $money
  * @property int $role
  * @property int $parent_id
+ * @property int $teacher_id
  * @property int $tg_chat_id
  * @property int $bitrix_id
  * @property int $bitrix_sync_status
  * @property string $password write-only password
  * @property array $nameParts
  * @property User $parent
+ * @property Teacher $teacher
  * @property User[] $children
  * @property GroupPupil[] $groupPupils
  * @property Group[] $groups
@@ -42,7 +45,6 @@ use yii\web\IdentityInterface;
  * @property Payment[] $payments
  * @property Payment[] $paymentsAsAdmin
  * @property Debt[] $debts
- * @property int $balance
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -59,6 +61,7 @@ class User extends ActiveRecord implements IdentityInterface
     const ROLE_PUPIL   = 3;
     const ROLE_COMPANY = 4;
     const ROLE_MANAGER = 10;
+    const ROLE_TEACHER = 20;
 
     public $password;
 
@@ -68,7 +71,7 @@ class User extends ActiveRecord implements IdentityInterface
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'role', 'password'];
+        $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'role', 'password', 'teacher_id'];
         $scenarios[self::SCENARIO_USER] = ['name', 'note', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'password'];
         return $scenarios;
     }
@@ -84,6 +87,7 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
 //            [['username', 'name', 'auth_key', 'password_hash'], 'required'],
+            [['name', 'username', 'note'], 'trim'],
             [['name'], 'required', 'whenClient' => "function (attribute, value) {
                 var parentExpr = /\[parent\].*/;
                 var companyExpr = /\[parentCompany\].*/;
@@ -97,7 +101,7 @@ class User extends ActiveRecord implements IdentityInterface
                 }
                 return true;
             }"],
-            [['status', 'money', 'role', 'parent_id', 'bitrix_id'], 'integer'],
+            [['status', 'money', 'role', 'parent_id', 'teacher_id', 'bitrix_id'], 'integer'],
             [['username', 'note', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
             [['name'], 'string', 'max' => 127],
             [['auth_key'], 'string', 'max' => 32],
@@ -131,9 +135,12 @@ class User extends ActiveRecord implements IdentityInterface
             ['status', 'default', 'value' => self::STATUS_ACTIVE,  'on' => self::SCENARIO_ADMIN],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_LOCKED]],
             ['role', 'default', 'value' => self::ROLE_PUPIL],
-            ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER]],
+            ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER, self::ROLE_TEACHER]],
             ['bitrix_sync_status', 'in', 'range' => [0, 1]],
             ['bitrix_sync_status', 'default', 'value' => 0],
+            [['password_hash'], 'default', 'value' => ''],
+            [['note', 'password_reset_token', 'phone2'], 'default', 'value' => null],
+            ['teacher_id', 'exist', 'targetRelation' => 'teacher'],
         ];
     }
 
@@ -155,13 +162,14 @@ class User extends ActiveRecord implements IdentityInterface
             'status'    => 'Статус',
             'money'     => 'Баланс',
             'password'  => 'Пароль',
+            'teacher_id'   => 'Учитель',
         ];
     }
 
     public function getPassword() {return '';}
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getParent()
     {
@@ -169,7 +177,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getChildren()
     {
@@ -177,7 +185,15 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
+     */
+    public function getTeacher()
+    {
+        return $this->hasOne(Teacher::class, ['id' => 'teacher_id'])->inverseOf('user');
+    }
+
+    /**
+     * @return ActiveQuery
      */
     public function getGroupPupils()
     {
@@ -185,7 +201,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getGroups()
     {
@@ -194,7 +210,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getActiveGroupPupils()
     {
@@ -202,7 +218,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getActiveGroups()
     {
@@ -211,7 +227,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getActions()
     {
@@ -219,7 +235,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getActionsAsAdmin()
     {
@@ -227,7 +243,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getDebts()
     {
@@ -235,7 +251,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getEventMembers()
     {
@@ -243,7 +259,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getPayments()
     {
@@ -251,7 +267,7 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getPaymentsAsAdmin()
     {
@@ -278,23 +294,6 @@ class User extends ActiveRecord implements IdentityInterface
             return [$parts[0], $parts[1], implode(' ', array_slice($parts, 2))];
         }
         return $parts;
-    }
-
-    /**
-     * @param array $data
-     * @param null $formName
-     * @return bool
-     */
-    public function load($data, $formName = null)
-    {
-        if (!parent::load($data, $formName)) return false;
-
-        if ($this->name !== null) $this->name = trim($this->name);
-
-        $this->loadPhone();
-        $this->loadPhone2();
-
-        return true;
     }
 
     public function beforeValidate() {
@@ -408,6 +407,7 @@ class User extends ActiveRecord implements IdentityInterface
      * Generates password hash from password and sets it to the model
      *
      * @param string $password
+     * @throws yii\base\Exception
      */
     public function setPassword($password)
     {

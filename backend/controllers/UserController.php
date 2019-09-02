@@ -325,6 +325,7 @@ class UserController extends AdminController
      * Creates a new Employee.
      * @return mixed
      * @throws ForbiddenHttpException
+     * @throws \yii\base\Exception
      */
     public function actionCreateEmployee()
     {
@@ -333,22 +334,63 @@ class UserController extends AdminController
         $employee = new User(['scenario' => User::SCENARIO_ADMIN]);
 
         if (Yii::$app->request->isPost) {
-            $employee->load(Yii::$app->request->post());
-            $employee->setPassword($employee->password);
-            $employee->generateAuthKey();
-
-            if ($employee->save()) {
+            if (!$employee->load(Yii::$app->request->post())) {
+                Yii::$app->session->addFlash('error', 'Form data not found');
+            } elseif (!$employee->save()) {
+                $employee->moveErrorsToFlash();
+            } else {
                 Yii::$app->session->addFlash('success', 'Сотрудник добавлен');
                 UserComponent::clearSearchCache();
-
                 return $this->redirect(['update', 'id' => $employee->id]);
-            } else {
-                $employee->moveErrorsToFlash();
             }
         }
 
         return $this->render('create-employee', [
             'user' => $employee,
+        ]);
+    }
+
+    /**
+     * Creates a new Employee.
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws \yii\base\Exception
+     */
+    public function actionCreateTeacher()
+    {
+        if (!Yii::$app->user->can('manageTeachers') || !Yii::$app->user->can('manageUsers')) {
+            throw new ForbiddenHttpException('Access denied!');
+        }
+
+        $userTeacher = new User(['scenario' => User::SCENARIO_ADMIN, 'role' => User::ROLE_TEACHER]);
+
+        if (Yii::$app->request->isPost) {
+            if (!$userTeacher->load(Yii::$app->request->post())) {
+                Yii::$app->session->addFlash('error', 'Form data not found');
+            } elseif (!$userTeacher->save()) {
+                $userTeacher->moveErrorsToFlash();
+            } else {
+                Yii::$app->session->addFlash('success', 'Учитель добавлен');
+                UserComponent::clearSearchCache();
+                return $this->redirect(['update', 'id' => $userTeacher->id]);
+            }
+        } elseif ($teacherId = Yii::$app->request->get('teacher_id')) {
+            $teacher = Teacher::findOne($teacherId);
+            if ($teacher) {
+                $userTeacher->teacher_id = $teacher->id;
+                $userTeacher->name = $teacher->name;
+                $userTeacher->phone = $teacher->phone;
+            }
+        }
+
+        return $this->render('create-teacher', [
+            'user' => $userTeacher,
+            'teachers' => Teacher::find()->alias('t')
+                ->select(['t.*'])
+                ->leftJoin(['u' => User::tableName()], ['u.teacher_id' => 't.id'])
+                ->andWhere(['u.id' => null])
+                ->addOrderBy(['t.name' => SORT_ASC])
+                ->all(),
         ]);
     }
 
@@ -375,41 +417,43 @@ class UserController extends AdminController
         if (Yii::$app->request->isPost) {
             $transaction = Yii::$app->db->beginTransaction();
             try {
-                if ($user->load(Yii::$app->request->post())) {
-                    $fields = null;
-                    if (!$isAdmin) {
-                        $fields = ['username', 'password'];
-                    } else {
-                        $user->bitrix_sync_status = 0;
+                if (!$user->load(Yii::$app->request->post())) {
+                    throw new Exception('Внутренняя ошибка сервера');
+                }
+
+                $fields = null;
+                if (!$isAdmin) {
+                    $fields = ['username', 'password'];
+                } else {
+                    $user->bitrix_sync_status = 0;
+                }
+                if (!$user->save(true, $fields)) {
+                    $transaction->rollBack();
+                    $user->moveErrorsToFlash();
+                } else {
+                    if ($user->role == User::ROLE_PUPIL && !$user->parent_id) {
+                        $parent->load(Yii::$app->request->post('User', []), 'parent');
+                        $parent = $this->processParent($parent, 'parent', User::ROLE_PARENTS);
+                        if ($parent->id) {
+                            $user->link('parent', $parent);
+                        }
                     }
-                    if ($user->save(true, $fields)) {
-                        if ($user->role == User::ROLE_PUPIL && !$user->parent_id) {
-                            $parent->load(Yii::$app->request->post('User', []), 'parent');
-                            $parent = $this->processParent($parent, 'parent', User::ROLE_PARENTS);
-                            if ($parent->id) {
-                                $user->link('parent', $parent);
+                    if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT)) {
+                        $newRules = Yii::$app->request->post('acl', []);
+                        foreach (UserComponent::ACL_RULES as $key => $devNull) {
+                            $role = $auth->getRole($key);
+                            if (array_key_exists($key, $newRules)) {
+                                if (!$auth->getAssignment($role->name, $user->id)) $auth->assign($role, $user->id);
+                            } else {
+                                if ($auth->getAssignment($role->name, $user->id)) $auth->revoke($role, $user->id);
                             }
                         }
-                        if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT)) {
-                            $newRules = Yii::$app->request->post('acl', []);
-                            foreach (UserComponent::ACL_RULES as $key => $devNull) {
-                                $role = $auth->getRole($key);
-                                if (array_key_exists($key, $newRules)) {
-                                    if (!$auth->getAssignment($role->name, $user->id)) $auth->assign($role, $user->id);
-                                } else {
-                                    if ($auth->getAssignment($role->name, $user->id)) $auth->revoke($role, $user->id);
-                                }
-                            }
-                        }
-                        UserComponent::clearSearchCache();
-                        $transaction->commit();
-                        Yii::$app->session->addFlash('success', 'Успешно обновлено');
-                        return $this->redirect(['update', 'id' => $id]);
-                    } else {
-                        $transaction->rollBack();
-                        $user->moveErrorsToFlash();
                     }
-                } else throw new Exception('Внутренняя ошибка сервера');
+                    UserComponent::clearSearchCache();
+                    $transaction->commit();
+                    Yii::$app->session->addFlash('success', 'Успешно обновлено');
+                    return $this->redirect(['update', 'id' => $id]);
+                }
             } catch (Throwable $exception) {
                 $transaction->rollBack();
                 Yii::$app->session->addFlash('error', $exception->getMessage());

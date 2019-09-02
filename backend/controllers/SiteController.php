@@ -54,6 +54,7 @@ class SiteController extends Controller
         switch ($currentUser->role) {
             case User::ROLE_ROOT:
             case User::ROLE_MANAGER:
+            case User::ROLE_TEACHER:
                 $viewFile = 'index';
                 break;
             case User::ROLE_PARENTS: if (count($currentUser->children) > 1) $viewFile = 'index_parent'; break;
