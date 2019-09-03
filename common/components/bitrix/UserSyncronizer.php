@@ -35,10 +35,12 @@ class UserSyncronizer
                     $changedUser['LAST_NAME'] = $trimSurname;
                     $changed = true;
                 }
-                foreach ($changedUser['PHONE'] as $key => $phone) {
-                    if (preg_match('#^\d{9}$#', trim($phone['VALUE']))) {
-                        $changedUser['PHONE'][$key]['VALUE'] = '+998' . trim($phone['VALUE']);
-                        $changed = true;
+                if (array_key_exists('PHONE', $changedUser)) {
+                    foreach ($changedUser['PHONE'] as $key => $phone) {
+                        if (preg_match('#^\d{9}$#', trim($phone['VALUE']))) {
+                            $changedUser['PHONE'][$key]['VALUE'] = '+998' . trim($phone['VALUE']);
+                            $changed = true;
+                        }
                     }
                 }
                 
