@@ -88,6 +88,13 @@ class User extends ActiveRecord implements IdentityInterface
         return [
 //            [['username', 'name', 'auth_key', 'password_hash'], 'required'],
             [['name', 'username', 'note'], 'trim'],
+            ['status', 'default', 'value' => self::STATUS_INACTIVE, 'on' => self::SCENARIO_USER],
+            ['status', 'default', 'value' => self::STATUS_ACTIVE,  'on' => self::SCENARIO_ADMIN],
+            ['role', 'default', 'value' => self::ROLE_PUPIL],
+            ['bitrix_sync_status', 'default', 'value' => 0],
+            [['password_hash'], 'default', 'value' => ''],
+            [['username', 'note', 'password_reset_token', 'phone2'], 'default', 'value' => null],
+            
             [['name'], 'required', 'whenClient' => "function (attribute, value) {
                 var parentExpr = /\[parent\].*/;
                 var companyExpr = /\[parentCompany\].*/;
@@ -131,15 +138,9 @@ class User extends ActiveRecord implements IdentityInterface
                     return true;
                 }"],
 
-            ['status', 'default', 'value' => self::STATUS_INACTIVE, 'on' => self::SCENARIO_USER],
-            ['status', 'default', 'value' => self::STATUS_ACTIVE,  'on' => self::SCENARIO_ADMIN],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_LOCKED]],
-            ['role', 'default', 'value' => self::ROLE_PUPIL],
             ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER, self::ROLE_TEACHER]],
             ['bitrix_sync_status', 'in', 'range' => [0, 1]],
-            ['bitrix_sync_status', 'default', 'value' => 0],
-            [['password_hash'], 'default', 'value' => ''],
-            [['note', 'password_reset_token', 'phone2'], 'default', 'value' => null],
             ['teacher_id', 'exist', 'targetRelation' => 'teacher'],
         ];
     }
