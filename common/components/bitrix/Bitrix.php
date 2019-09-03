@@ -172,13 +172,13 @@ class Bitrix extends BaseObject
     
     public function getSubjectIdByGroup(Group $group, string $listType): int
     {
-        return $this->getSubjectIdByBitrixName($group->subject->bitrix_id, $listType);
+        return $this->getSubjectIdByBitrixName($group->subject->bitrix_name, $listType);
     }
 
     public function getSubjectIdByWelcomeLesson(WelcomeLesson $lesson, string $listType): int
     {
         $subject = $lesson->group_id ? $lesson->group->subject : $lesson->subject;
-        return $this->getSubjectIdByBitrixName($subject->bitrix_id, $listType);
+        return $this->getSubjectIdByBitrixName($subject->bitrix_name, $listType);
     }
 
     /**

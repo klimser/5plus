@@ -16,7 +16,7 @@ use yii\web\UploadedFile;
  * @property string $description
  * @property string $content
  * @property int $webpage_id
- * @property int $bitrix_id
+ * @property int $bitrix_name
  * @property int $active
  * @property string $image
  * @property int|null $category_id
@@ -58,9 +58,10 @@ class Subject extends ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'content', 'description', 'category_id', 'bitrix_id'], 'required'],
+            [['name', 'content', 'description', 'category_id', 'bitrix_name'], 'required'],
             [['name'], 'string', 'max' => 50],
-            [['category_id', 'bitrix_id'], 'integer'],
+            [['bitrix_name'], 'string', 'max' => 127],
+            [['category_id'], 'integer'],
             [['image'], 'string', 'max' => 255],
             [['content', 'description'], 'string'],
             [['imageFile', 'imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg', 'checkExtensionByMimeType' => true],
@@ -86,7 +87,7 @@ class Subject extends ActiveRecord
             'active' => 'Опубликован',
             'imageFile' => 'Картинка (min 484x309)',
             'category_id' => 'Группа предметов',
-            'bitrix_id' => 'Курс в BITRIX',
+            'bitrix_name' => 'Курс в BITRIX',
         ];
     }
 

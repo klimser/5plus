@@ -15,6 +15,9 @@ $this->title = $subject->isNewRecord ? 'Новый курс' : $subject->name;
 $this->params['breadcrumbs'][] = ['label' => 'Курсы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $subject->name;
 
+$bitrixSubjects = array_unique(array_merge(array_keys(Bitrix::DEAL_SUBJECT_LIST), array_keys(Bitrix::USER_SUBJECT_LIST)));
+sort($bitrixSubjects);
+
 ?>
 <div class="subject-update">
 
@@ -27,7 +30,7 @@ $this->params['breadcrumbs'][] = $subject->name;
 
         <?= $form->field($subject, 'category_id')->dropDownList(ArrayHelper::map($subjectCategories, 'id', 'name')); ?>
 
-        <?= $form->field($subject, 'bitrix_id')->dropDownList(Bitrix::SUBJECT_LIST, ['required' => true]); ?>
+        <?= $form->field($subject, 'bitrix_name')->dropDownList(ArrayHelper::map($bitrixSubjects, function($val) { return $val; }, function($val) { return $val; }), ['required' => true]); ?>
 
         <?=
         $form->field($subject, 'imageFile', ['options' => ['class' => 'form-group col-xs-10']])
