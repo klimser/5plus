@@ -38,7 +38,7 @@ class BitrixSyncController extends Controller
         // USERS
 
         $userSyncronizer = new UserSyncronizer(ComponentContainer::getBitrix());
-        $userSyncronizer->trimUsers();
+        $userSyncronizer->formatUsers();
 
         while ($userSyncronizer->syncNextUser()) {
             if ($this->isTimeExceeded()) return yii\console\ExitCode::OK;

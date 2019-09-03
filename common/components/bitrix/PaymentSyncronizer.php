@@ -109,6 +109,6 @@ class PaymentSyncronizer
             }
         }
 
-        return false;
+        return true;
     }
 }

@@ -16,18 +16,36 @@ class UserSyncronizer
         $this->client = $client;
     }
 
-    public function trimUsers(): void
+    public function formatUsers(): void
     {
+        $affectedFields = ['NAME', 'LAST_NAME', 'PHONE'];
         $offset = 0;
         do {
-            $response = $this->client->call('crm.contact.list', ['select' => ['NAME', 'LAST_NAME'], 'start' => $offset], true);
+            $response = $this->client->call('crm.contact.list', ['select' => $affectedFields, 'start' => $offset], true);
             $userList = $response['result'];
             foreach ($userList as $user) {
-                [$trimName, $trimSurname] = [trim($user['NAME']), trim($user['LAST_NAME'])];
-                if ($trimName !== $user['NAME'] || $trimSurname !== $user['LAST_NAME']) {
-                    $result = $this->client->call('crm.contact.update', ['id' => $user['ID'], 'fields' => ['NAME' => $trimName, 'LAST_NAME' => $trimSurname]]);
+                $changedUser = array_filter($user, function($key) use ($affectedFields) { return in_array($key, $affectedFields); }, ARRAY_FILTER_USE_KEY);
+                $changed = false;
+                [$trimName, $trimSurname] = [trim($changedUser['NAME']), trim($changedUser['LAST_NAME'])];
+                if ($trimName !== $changedUser['NAME']) {
+                    $changedUser['NAME'] = $trimName;
+                    $changed = true;
+                }
+                if ($trimSurname !== $changedUser['LAST_NAME']) {
+                    $changedUser['LAST_NAME'] = $trimSurname;
+                    $changed = true;
+                }
+                foreach ($changedUser['PHONE'] as $key => $phone) {
+                    if (preg_match('#^\d{9}$#', trim($phone['VALUE']))) {
+                        $changedUser['PHONE'][$key]['VALUE'] = '+998' . trim($phone['VALUE']);
+                        $changed = true;
+                    }
+                }
+                
+                if ($changed) {
+                    $result = $this->client->call('crm.contact.update', ['id' => $user['ID'], 'fields' => $changedUser]);
                     if (!$result) {
-                        ComponentContainer::getErrorLogger()->logError('bitrix/trimUsers', "id: $user[ID]", true);
+                        ComponentContainer::getErrorLogger()->logError('bitrix/formatUsers', "id: $user[ID]", true);
                     }
                 }
             }
@@ -146,6 +164,6 @@ class UserSyncronizer
             }
         }
 
-        return false;
+        return true;
     }
 }

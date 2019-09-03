@@ -69,6 +69,6 @@ class WelcomeLessonSyncronizer
             }
         }
 
-        return false;
+        return true;
     }
 }
