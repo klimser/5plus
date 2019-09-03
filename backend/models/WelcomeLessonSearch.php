@@ -14,7 +14,7 @@ class WelcomeLessonSearch extends WelcomeLesson
     public function rules()
     {
         return [
-            [['subject_id', 'teacher_id', 'user_id', 'status'], 'integer'],
+            [['subject_id', 'teacher_id', 'group_id', 'user_id', 'status'], 'integer'],
             [['lesson_date'], 'string'],
             [['lessonDateTime'], 'safe'],
         ];
@@ -35,7 +35,7 @@ class WelcomeLessonSearch extends WelcomeLesson
      */
     public function search($params)
     {
-        $query = self::find()->joinWith(['user'])->with(['user', 'subject', 'teacher']);
+        $query = self::find()->joinWith(['user'])->with(['user', 'subject', 'teacher', 'group']);
 
         $providerParams = [
             'query' => $query,
@@ -83,6 +83,7 @@ class WelcomeLessonSearch extends WelcomeLesson
             self::tableName() . '.status' => $this->status,
             'subject_id' => $this->subject_id,
             'teacher_id' => $this->teacher_id,
+            'group_id' => $this->group_id,
             'user_id' => $this->user_id,
         ]);
         if (!$this->status) {

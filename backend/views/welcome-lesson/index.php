@@ -19,6 +19,7 @@ use yii\web\View;
 /* @var $studentMap User[] */
 /* @var $subjectMap Subject[] */
 /* @var $teacherMap Teacher[] */
+/* @var $groupMap Group[] */
 /* @var $statusMap string[] */
 /* @var $groups Group[] */
 
@@ -66,9 +67,21 @@ $this->params['breadcrumbs'][] = $this->title;
                 )
             ],
             [
+                'attribute' => 'group_id',
+                'content' => function ($model, $key, $index, $column) {
+                    return $model->group->name;
+                },
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'group_id',
+                    $groupMap,
+                    ['class' => 'form-control']
+                )
+            ],
+            [
                 'attribute' => 'subject_id',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->subject->name;
+                    return $model->group_id ? $model->group->subject->name : $model->subject->name;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -80,7 +93,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'teacher_id',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->teacher->name;
+                    return $model->group_id ? $model->group->teacher->name : $model->teacher->name;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

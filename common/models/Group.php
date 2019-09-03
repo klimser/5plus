@@ -5,6 +5,7 @@ namespace common\models;
 use backend\models\Event;
 use common\components\extended\ActiveRecord;
 use common\models\traits\GroupParam as GroupParamTrait;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "{{%group}}".
@@ -93,7 +94,7 @@ class Group extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getType()
     {
@@ -101,7 +102,7 @@ class Group extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getSubject()
     {
@@ -109,7 +110,7 @@ class Group extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getTeacher()
     {
@@ -117,7 +118,7 @@ class Group extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getEvents()
     {
@@ -148,7 +149,7 @@ class Group extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getGroupPupils()
     {
@@ -199,7 +200,7 @@ class Group extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getPupils()
     {

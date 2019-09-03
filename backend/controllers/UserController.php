@@ -236,20 +236,32 @@ class UserController extends AdminController
      */
     private function addPupilToWelcomeLesson(User $pupil, array $welcomeLessonData): WelcomeLesson
     {
-        /** @var Subject $subject */
-        $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subject_id'], 'active' => Subject::STATUS_ACTIVE])->one();
-        if (!$subject) throw new Exception('Предмет не найден');
-        /** @var Teacher $teacher */
-        $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacher_id'], 'active' => Teacher::STATUS_ACTIVE])->one();
-        if (!$teacher) throw new Exception('Учитель не найден');
-        $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
-        if (!$teacherSubject) throw new Exception('Учитель не найден');
+        $welcomeLesson = new WelcomeLesson();
+
+        if ($welcomeLessonData['group_id']) {
+            /** @var Group $group */
+            $group = Group::find()->andWhere(['id' => $welcomeLessonData['group_id'], 'active' => Subject::STATUS_ACTIVE])->one();
+            if (!$group) throw new Exception('Группа не найдена');
+            $welcomeLesson->group_id = $group->id;
+        }
+        if ($welcomeLessonData['subject_id']) {
+            /** @var Subject $subject */
+            $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subject_id'], 'active' => Subject::STATUS_ACTIVE])->one();
+            if (!$subject) throw new Exception('Предмет не найден');
+            $welcomeLesson->subject_id = $subject->id;
+        }
+        if ($welcomeLessonData['teacher_id']) {
+            /** @var Teacher $teacher */
+            $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacher_id'], 'active' => Teacher::STATUS_ACTIVE])->one();
+            if (!$teacher) throw new Exception('Учитель не найден');
+            $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
+            if (!$teacherSubject) throw new Exception('Учитель не найден');
+            $welcomeLesson->teacher_id = $teacher->id;
+        }
+        
         $startDate = date_create_from_format('d.m.Y', $welcomeLessonData['date']);
         if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
-        $welcomeLesson = new WelcomeLesson();
-        $welcomeLesson->subject_id = $subject->id;
-        $welcomeLesson->teacher_id = $teacher->id;
         $welcomeLesson->user_id = $pupil->id;
         $welcomeLesson->lessonDateTime = $startDate;
 

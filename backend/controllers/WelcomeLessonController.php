@@ -38,6 +38,11 @@ class WelcomeLessonController extends AdminController
         $studentMap = [null => 'Все'];
         foreach ($users as $user) $studentMap[$user->id] = $user->name;
 
+        /** @var Group[] $groups */
+        $groups = Group::find()->where(['id' => WelcomeLesson::find()->select(['group_id'])->distinct()->asArray()->column()])->orderBy(['name' => SORT_ASC])->all();
+        $groupMap = [null => 'Все'];
+        foreach ($groups as $group) $groupMap[$group->id] = $group->name;
+
         /** @var Subject[] $subjects */
         $subjects = Subject::find()->orderBy('name')->all();
         $subjectMap = [null => 'Все'];
@@ -59,6 +64,7 @@ class WelcomeLessonController extends AdminController
             'studentMap' => $studentMap,
             'subjectMap' => $subjectMap,
             'teacherMap' => $teacherMap,
+            'groupMap' => $groupMap,
             'statusMap' => $statusMap,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->with('teacher')->orderBy(['name' => 'ASC'])->all(),
         ]);
@@ -108,18 +114,25 @@ class WelcomeLessonController extends AdminController
             if (!$welcomeLesson) $jsonData = self::getJsonErrorResult('Welcome lesson is not found');
             else {
                 $resultGroups = [];
-                /** @var Group[] $groups */
-                $groups = Group::find()
-                    ->andWhere([
-                        'active' => Group::STATUS_ACTIVE,
-                        'subject_id' => $welcomeLesson->subject_id,
-                        'teacher_id' => $welcomeLesson->teacher_id,
-                    ])
-                    ->limit(self::PROPOSE_GROUP_LIMIT)
-                    ->all();
-                foreach ($groups as $group) {
-                    $resultGroups[] = ['id' => $group->id, 'name' => $group->name, 'teacherName' => $welcomeLesson->teacher->name];
+                if ($welcomeLesson->group_id) {
+                    $resultGroups[] = ['id' => $welcomeLesson->group_id, 'name' => $welcomeLesson->group->name, 'teacherName' => $welcomeLesson->group->teacher->name];
                 }
+
+                if (empty($resultGroups)) {
+                    /** @var Group[] $groups */
+                    $groups = Group::find()
+                        ->andWhere([
+                            'active' => Group::STATUS_ACTIVE,
+                            'subject_id' => $welcomeLesson->subject_id,
+                            'teacher_id' => $welcomeLesson->teacher_id,
+                        ])
+                        ->limit(self::PROPOSE_GROUP_LIMIT)
+                        ->all();
+                    foreach ($groups as $group) {
+                        $resultGroups[] = ['id' => $group->id, 'name' => $group->name, 'teacherName' => $welcomeLesson->teacher->name];
+                    }
+                }
+                
                 if (empty($resultGroups)) {
                     /** @var Group[] $groups */
                     $groups = Group::find()
@@ -134,6 +147,7 @@ class WelcomeLessonController extends AdminController
                         $resultGroups[] = ['id' => $group->id, 'name' => $group->name, 'teacherName' => $group->teacher->name];
                     }
                 }
+                
                 $jsonData = self::getJsonOkResult([
                     'id' => $welcomeLesson->id,
                     'groups' => $resultGroups,

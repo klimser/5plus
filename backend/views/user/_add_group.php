@@ -47,8 +47,16 @@ $this->registerJs('User.init();');
 
 <div id="add_welcome_lesson" <?= $addWelcomeLesson ? '' : 'class="hidden"'; ?>>
     <div class="form-group">
+        <label for="welcome_lesson_group">Группа</label>
+        <select class="form-control" id="welcome_lesson_group" name="welcome_lesson[group_id]" onchange="User.setWelcomeLessonGroup(this);">
+            <option value="">Неизвестна</option>
+            <?= $getGroupOptionsList(array_key_exists('id', $groupData) ? intval($groupData['id']) : 0); ?>
+        </select>
+    </div>
+    <div class="form-group">
         <label for="welcome_lesson_subject">Предмет</label>
-        <select class="form-control" id="welcome_lesson_subject" name="welcome_lesson[subject_id]" onchange="User.loadTeacherSelect(this);">
+        <select class="form-control" id="welcome_lesson_subject" name="welcome_lesson[subject_id]" onchange="User.loadTeacherSelect(this);"
+            <?= $welcomeLessonData['group_id'] ? 'disabled' : ''; ?>>
             <?php foreach ($subjects as $subject): ?>
                 <option value="<?= $subject->id; ?>" <?= !empty($welcomeLessonData['subject_id']) && $welcomeLessonData['subject_id'] == $subject->id ? 'selected' : ''; ?>><?= $subject->name; ?> (<?= $subject->subjectCategory->name; ?>)</option>
             <?php endforeach; ?>
@@ -56,7 +64,8 @@ $this->registerJs('User.init();');
     </div>
     <div class="form-group">
         <label for="welcome_lesson_teacher">Учитель</label>
-        <select class="form-control" id="welcome_lesson_teacher" name="welcome_lesson[teacher_id]"></select>
+        <select class="form-control" id="welcome_lesson_teacher" name="welcome_lesson[teacher_id]"
+            <?= $welcomeLessonData['group_id'] ? 'disabled' : ''; ?>></select>
     </div>
     <div class="form-group">
         <label for="welcome_lesson_date">Дата</label>

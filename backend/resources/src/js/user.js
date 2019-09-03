@@ -131,6 +131,15 @@ let User = {
                 .find("input, select").prop("disabled", true);
         }
     },
+    setWelcomeLessonGroup: function(e) {
+        if ($(e).val().length === 0) {
+            $("#welcome_lesson_subject").prop("disabled", false);
+            $("#welcome_lesson_teacher").prop("disabled", false);
+        } else {
+            $("#welcome_lesson_subject").prop("disabled", true);
+            $("#welcome_lesson_teacher").prop("disabled", true);
+        }
+    },
     checkAddGroup: function(e) {
         let paymentSwitch = $("#add_payment_switch");
         let contractSwitch = $("#add_contract_switch");
