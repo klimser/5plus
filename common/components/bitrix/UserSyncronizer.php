@@ -5,6 +5,7 @@ namespace common\components\bitrix;
 use common\components\ComponentContainer;
 use common\models\GroupParam;
 use common\models\User;
+use Yii;
 
 class UserSyncronizer
 {
@@ -19,9 +20,17 @@ class UserSyncronizer
     public function formatUsers(): void
     {
         $affectedFields = ['NAME', 'LAST_NAME', 'PHONE'];
+        
+        $syncDateFilename = Yii::$app->runtimePath . DIRECTORY_SEPARATOR . 'bitrix_sync.data';
+        $params = ['select' => array_merge($affectedFields, ['DATE_MODIFY']), 'order' => ['DATE_MODIFY' => 'ASC']];
+        if (file_exists($syncDateFilename) && $dateFrom = file_get_contents($syncDateFilename)) {
+            $params['filter'] = ['>DATE_MODIFY' => $dateFrom];
+        }
+        $newSyncDate = '';
         $offset = 0;
         do {
-            $response = $this->client->call('crm.contact.list', ['select' => $affectedFields, 'start' => $offset], true);
+            $params['start'] = $offset;
+            $response = $this->client->call('crm.contact.list', $params, true);
             $userList = $response['result'];
             foreach ($userList as $user) {
                 $changedUser = array_filter($user, function($key) use ($affectedFields) { return in_array($key, $affectedFields); }, ARRAY_FILTER_USE_KEY);
@@ -50,9 +59,12 @@ class UserSyncronizer
                         ComponentContainer::getErrorLogger()->logError('bitrix/formatUsers', "id: $user[ID]", true);
                     }
                 }
+                $newSyncDate = $user['DATE_MODIFY'];
             }
             $offset = $response['next'] ?? 0;
         } while (isset($response['next']));
+        
+        file_put_contents($syncDateFilename, $newSyncDate);
     }
 
     private function processUserSearchResult($searchResults, User $pupil): bool
