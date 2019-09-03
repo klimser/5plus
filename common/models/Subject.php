@@ -64,7 +64,7 @@ class Subject extends ActiveRecord
             [['image'], 'string', 'max' => 255],
             [['content', 'description'], 'string'],
             [['imageFile', 'imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg', 'checkExtensionByMimeType' => true],
-            [['imageFile'], 'required', 'when' => function ($model, $attribute) {return $model->isNewRecord;}, 'whenClient' => "function (attribute, value) {
+            [['imageFile'], 'required', 'when' => function ($model) {return $model->isNewRecord;}, 'whenClient' => "function (attribute, value) {
                 return !$(attribute.input).data(\"id\");
             }"],
             ['name', 'unique', 'targetAttribute' => ['name', 'category_id']],
@@ -91,7 +91,7 @@ class Subject extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getWebpage()
     {
@@ -99,7 +99,7 @@ class Subject extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getSubjectCategory()
     {
@@ -107,7 +107,7 @@ class Subject extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getSubjectTeachers()
     {
@@ -115,7 +115,7 @@ class Subject extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getTeachers()
     {

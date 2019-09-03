@@ -109,7 +109,7 @@ class UserSyncronizer
                 }
             }
             $teachers[] = $groupParam ? $groupParam->teacher->name : $groupPupil->group->teacher->name;
-            $subjects[] = $this->client->getSubjectIdByGroup($groupPupil->group);
+            $subjects[] = $this->client->getSubjectIdByGroup($groupPupil->group, 'user');
         }
 
         $params = [

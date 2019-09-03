@@ -64,7 +64,7 @@ class PaymentSyncronizer
             'fields' => [
                 'OPPORTUNITY' => $toSync->amount,
                 Bitrix::DEAL_GROUP_PARAM => [$toSync->group->name],
-                Bitrix::DEAL_SUBJECT_PARAM => [$this->client->getSubjectIdByGroup($toSync->group)],
+                Bitrix::DEAL_SUBJECT_PARAM => [$this->client->getSubjectIdByGroup($toSync->group, 'deal')],
                 Bitrix::DEAL_TEACHER_PARAM => [$groupParam ? $groupParam->teacher->name : $toSync->group->teacher->name],
                 Bitrix::DEAL_WEEKDAYS_PARAM => $weekdays,
                 Bitrix::DEAL_WEEKTIME_PARAM => array_unique($weektimes),

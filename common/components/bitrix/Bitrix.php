@@ -6,30 +6,57 @@ use backend\models\WelcomeLesson;
 use common\models\Group;
 use common\models\User;
 use Psr\Log\LoggerInterface;
+use Throwable;
 use yii\base\BaseObject;
 
 class Bitrix extends BaseObject
 {
     const ORIGINATOR_ID = '5plus.uz';
 
-    const SUBJECT_LIST = [
-        64 => "general english",
-        65 => "ielts",
-        66 => "математика (на русском)",
-        67 => "математика (на английском)",
-        68 => "физика",
-        69 => "химия",
-        70 => "биология",
-        71 => "история",
-        72 => "русский язык и литература",
-        73 => "рус тили (начальный)",
-        74 => "sat",
-        75 => "toefl",
-        76 => "gmat, gre",
-        77 => "немецкий язык",
-        78 => "корейский язык",
-        79 => "5+ kids",
-        80 => "другое",
+    const DEAL_SUBJECT_LIST = [
+        "general english" => 64,
+        "ielts" => 65,
+        "математика (на русском)" => 66,
+        "математика (на английском)" => 67,
+        "физика" => 68,
+        "химия" => 69,
+        "биология" => 70,
+        "история" => 71,
+        "русский язык и литература" => 72,
+        "рус тили (начальный)" => 73,
+        "sat" => 74,
+        "toefl" => 75,
+        "gmat, gre" => 76,
+        "немецкий язык" => 77,
+        "корейский язык" => 78,
+        "5+ kids" => 79,
+        "другое" => 80,
+    ];
+    const USER_SUBJECT_LIST = [
+        "general english" => 297,
+        "ielts" => 298,
+        "математика (на русском)" => 299,
+        "математика (на английском)" => 300,
+        "физика" => 301,
+        "химия" => 302,
+        "биология" => 303,
+        "история" => 304,
+        "русский язык и литература" => 305,
+        "рус тили (начальный)" => 306,
+        "sat" => 307,
+        "toefl" => 308,
+        "gmat, gre" => 309,
+        "немецкий язык" => 310,
+        "корейский язык" => 311,
+        "5+ kids" => 312,
+        "другое" => 313,
+        "english westminster" => 345,
+        "математика ас" => 314,
+        "информатика (егэ и мгу)" => 334,
+        "обществознание" => 333,
+        "узбекский язык" => 346,
+        "китайский язык" => 347,
+        "японский язык" => 348,
     ];
 
     const DEAL_STATUS_NEW = 'NEW';
@@ -68,7 +95,8 @@ class Bitrix extends BaseObject
     const DEAL_WEEKDAYS_PARAM = 'UF_CRM_1565870276';
     const DEAL_WEEKTIME_PARAM = 'UF_CRM_1565613385';
 
-    const SUBJECT_OTHER = 80;
+    const DEAL_SUBJECT_OTHER = 80;
+    const USER_SUBJECT_OTHER = 313;
 
     const WEEKDAY_LIST = [
         290,
@@ -119,14 +147,38 @@ class Bitrix extends BaseObject
         $this->logger = $logger;
     }
 
-    public function getSubjectIdByGroup(Group $group): int
+    /**
+     * @param string $bitrixName
+     * @param string $listType
+     * @return int
+     */
+    private function getSubjectIdByBitrixName(string $bitrixName, string $listType): int
     {
-        return $group->subject->bitrix_id ?: Bitrix::SUBJECT_OTHER;
+        $source = [];
+        $other = 0;
+        switch (strtolower($listType)) {
+            case 'deal':
+                $source = self::DEAL_SUBJECT_LIST;
+                $other = self::DEAL_SUBJECT_OTHER;
+                break;
+            case 'user':
+                $source = self::USER_SUBJECT_LIST;
+                $other = self::USER_SUBJECT_OTHER;
+                break;
+        }
+
+        return array_key_exists($bitrixName, $source) ? $source[$bitrixName] : $other;
+    }
+    
+    public function getSubjectIdByGroup(Group $group, string $listType): int
+    {
+        return $this->getSubjectIdByBitrixName($group->subject->bitrix_id, $listType);
     }
 
-    public function getSubjectIdByWelcomeLesson(WelcomeLesson $lesson): int
+    public function getSubjectIdByWelcomeLesson(WelcomeLesson $lesson, string $listType): int
     {
-        return $lesson->subject->bitrix_id ?: Bitrix::SUBJECT_OTHER;
+        $subject = $lesson->group_id ? $lesson->group->subject : $lesson->subject;
+        return $this->getSubjectIdByBitrixName($subject->bitrix_id, $listType);
     }
 
     /**
@@ -167,7 +219,7 @@ class Bitrix extends BaseObject
                 $jsonData = json_decode($curlResult, true);
                 $result = array_key_exists('result', $jsonData) && !$rawResponse ? $jsonData['result'] : $jsonData;
             }
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             $this->logger->error($exception->getMessage(), ['method' => $method, 'params' => $params]);
             if (is_resource($curl)) curl_close($curl);
         }

@@ -30,7 +30,7 @@ class WelcomeLessonSyncronizer
 
         $params = [
             'fields' => [
-                Bitrix::DEAL_SUBJECT_PARAM => [$this->client->getSubjectIdByWelcomeLesson($toSync)],
+                Bitrix::DEAL_SUBJECT_PARAM => [$this->client->getSubjectIdByWelcomeLesson($toSync, 'deal')],
                 Bitrix::DEAL_TEACHER_PARAM => [$toSync->teacher->name],
                 Bitrix::DEAL_WEEKDAYS_PARAM => [Bitrix::WEEKDAY_LIST[$toSync->lessonDateTime->format('N') - 1]],
             ]
