@@ -78,7 +78,10 @@ class Teacher extends ActiveRecord
     {
         return [
             [['name', 'title', 'description'], 'trim'],
+            [['active', 'page_visibility'], 'default', 'value' => self::STATUS_ACTIVE],
+            [['title', 'phone', 'photo', 'description'], 'default', 'value' => null],
             [['name'], 'required'],
+            [['description'], 'required', 'when' => function(self $model) { return $model->active === Teacher::STATUS_ACTIVE; }],
             [['name'], 'string', 'max' => 127],
             [['title', 'photo'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 13],
@@ -87,8 +90,7 @@ class Teacher extends ActiveRecord
             [['photoFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg', 'checkExtensionByMimeType' => true],
             [['active', 'page_visibility', 'page_order'], 'integer'],
             [['active', 'page_visibility'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
-            [['active', 'page_visibility'], 'default', 'value' => self::STATUS_ACTIVE],
-            [['title', 'phone', 'photo', 'description'], 'default', 'value' => null],
+            
         ];
     }
 

@@ -119,7 +119,7 @@ class User extends ActiveRecord implements IdentityInterface
             [['username'], 'unique'],
             [['password_reset_token'], 'unique'],
             [['password'], 'safe'],
-            [['password'], 'required', 'on' => self::SCENARIO_ADMIN, 'when' => function ($model, $attribute) {return $model->isNewRecord;},
+            [['password'], 'required', 'on' => self::SCENARIO_ADMIN, 'when' => function ($model) {return $model->isNewRecord;},
                 'whenClient' => "function (attribute, value) {
                     return $(attribute.input).data(\"id\").length == 0;
                 }"],
