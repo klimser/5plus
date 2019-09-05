@@ -45,6 +45,9 @@ $this->beginPage();
         .text-center {
             text-align: center;
         }
+        .text-uppercase {
+            text-transform: uppercase;
+        }
     </style>
     <title>Договор</title>
     <?php $this->head() ?>
