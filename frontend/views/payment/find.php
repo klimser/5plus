@@ -1,16 +1,20 @@
 <?php
 
+use common\models\User;
 use yii\bootstrap\Html;
+use yii\helpers\Url;
+use yii\web\View;
 
 /* @var $this \frontend\components\extended\View */
-/* @var $user \common\models\User|null */
-/* @var $users \common\models\User[] */
+/* @var $user User|null */
+/* @var $users User[] */
+/* @var $webpage \common\models\Webpage */
 
-$this->params['breadcrumbs'][] = ['url' => \yii\helpers\Url::to(['payment/index']), 'label' => 'Онлайн оплата'];
+$this->params['breadcrumbs'][] = ['url' => Url::to(['webpage', 'id' => $webpage->id]), 'label' => 'Онлайн оплата'];
 $this->params['breadcrumbs'][] = $user !== null ? $user->name : 'Выбрать студента';
 
 $script = '';
-$getPupilButton = function(\common\models\User $pupil, bool $label = false) use (&$script) {
+$getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
     $script .= "Payment.users[{$pupil->id}] = {
         name: '{$pupil->name}',
         groups: []
@@ -60,7 +64,7 @@ $getPupilButton = function(\common\models\User $pupil, bool $label = false) use 
 <div id="payment_form" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <?= Html::beginForm(\yii\helpers\Url::to(['payment/create']), 'post', ['onsubmit' => 'return Payment.completePayment(this);']); ?>
+            <?= Html::beginForm(Url::to(['payment/create']), 'post', ['onsubmit' => 'return Payment.completePayment(this);']); ?>
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
                 <h4 class="modal-title">Оплатить</h4>
@@ -97,6 +101,6 @@ $getPupilButton = function(\common\models\User $pupil, bool $label = false) use 
         </div>
     </div>
 </div>
-<div class="container"></div>
+<div class="container">
 
-<?php $this->registerJs($script, \yii\web\View::POS_END); ?>
+<?php $this->registerJs($script, View::POS_END); ?>

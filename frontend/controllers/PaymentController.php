@@ -17,6 +17,7 @@ use common\models\PaymentLink;
 use common\models\User;
 use common\models\Webpage;
 use himiklab\yii2\recaptcha\ReCaptchaValidator;
+use Yii;
 use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
@@ -24,40 +25,54 @@ use yii\web\Response;
 
 class PaymentController extends Controller
 {
-    private function getPageParams(): array
+    private function getPageParams(?string $type): array
     {
         $moduleId = Module::getModuleIdByControllerAndAction('payment', 'index');
-        return [
-            'giftCardTypes' => GiftCardType::find()->andWhere(['active' => GiftCardType::STATUS_ACTIVE])->orderBy('name')->all(),
+        $params = [
             'webpage' => Webpage::find()->where(['module_id' => $moduleId])->one(),
             'hide_social' => true,
+            'h1' => 'Онлайн оплата',
         ];
+        switch ($type) {
+            case 'pupil':
+                $params['h1'] .= ' для учащихся';
+                break;
+            case 'new':
+                $params['h1'] .= ' для новых студентов';
+                $params['giftCardTypes'] = GiftCardType::find()->andWhere(['active' => GiftCardType::STATUS_ACTIVE])->orderBy('name')->all();
+                break;
+        }
+        return $params;
     }
 
     public function actionIndex()
     {
-        return $this->render('index', $this->getPageParams());
+        $type = Yii::$app->request->get('type');
+        if (!in_array($type, ['new', 'pupil'])) {
+            $type = null;
+        }
+        return $this->render('index' . ($type ? "-$type" : ''), $this->getPageParams($type));
     }
 
     public function actionFind()
     {
         $validator = new ReCaptchaValidator();
 
-        if (!$validator->validate(\Yii::$app->request->post('reCaptcha'))) {
-            \Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
-            return $this->render('index', $this->getPageParams());
+        if (!$validator->validate(Yii::$app->request->post('reCaptcha'))) {
+            Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
+            return $this->render('index', $this->getPageParams('pupil'));
         } else {
-            $phoneFull = '+998' . substr(preg_replace('#\D#', '', \Yii::$app->request->post('phoneFormatted')), -9);
+            $phoneFull = '+998' . substr(preg_replace('#\D#', '', Yii::$app->request->post('phoneFormatted')), -9);
             /** @var User[] $users */
             $users = User::find()
                 ->andWhere(['or', ['phone' => $phoneFull], ['phone2' => $phoneFull]])
                 ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY, User::ROLE_PUPIL]])
                 ->all();
             if (count($users) == 0) {
-                \Yii::$app->session->addFlash('error', 'По данному номеру студенты не найдены');
-                return $this->render('index', $this->getPageParams());
+                Yii::$app->session->addFlash('error', 'По данному номеру студенты не найдены');
+                return $this->render('index', $this->getPageParams('pupil'));
             } else {
-                $params = $this->getPageParams();
+                $params = $this->getPageParams('pupil');
                 $params['user'] = null;
                 $params['users'] = [];
                 if (count($users) == 1) {
@@ -81,7 +96,7 @@ class PaymentController extends Controller
         if ($paymentLink) {
             $groupPupils = GroupPupil::findAll(['group_id' => $paymentLink->group_id, 'user_id' => $paymentLink->user_id]);
         }
-        $params = $this->getPageParams();
+        $params = $this->getPageParams('pupil');
         $params['paymentLink'] = $paymentLink;
         $params['groupPupils'] = $groupPupils;
 
@@ -90,12 +105,12 @@ class PaymentController extends Controller
 
     public function actionCreate()
     {
-        if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
-        \Yii::$app->response->format = Response::FORMAT_JSON;
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $pupilId = \Yii::$app->request->post('pupil');
-        $groupId = \Yii::$app->request->post('group');
-        $amount = intval(\Yii::$app->request->post('amount'));
+        $pupilId = Yii::$app->request->post('pupil');
+        $groupId = Yii::$app->request->post('group');
+        $amount = intval(Yii::$app->request->post('amount'));
 
         if (!$pupilId) return self::getJsonErrorResult('No pupil ID');
         if (!$groupId) return self::getJsonErrorResult('No pupil ID');
@@ -112,7 +127,7 @@ class PaymentController extends Controller
         $groupPupil = GroupPupil::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
         if (!$groupPupil) return self::getJsonErrorResult('Для этого студента внесение оплаты невозможно');
 
-        $transaction = \Yii::$app->db->beginTransaction();
+        $transaction = Yii::$app->db->beginTransaction();
         try {
             $contract = MoneyComponent::addPupilContract(
                 Company::findOne(Company::COMPANY_SUPER_ID),
@@ -152,10 +167,10 @@ class PaymentController extends Controller
 
     public function actionCreateNew()
     {
-        if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
-        \Yii::$app->response->format = Response::FORMAT_JSON;
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $giftCardData = \Yii::$app->request->post('giftcard', []);
+        $giftCardData = Yii::$app->request->post('giftcard', []);
 
         if (!isset($giftCardData['pupil_name'])) return self::getJsonErrorResult('No pupil name');
         if (!isset($giftCardData['pupil_phone'])) return self::getJsonErrorResult('No pupil phone');
@@ -164,7 +179,7 @@ class PaymentController extends Controller
         $giftCardType = GiftCardType::findOne(['id' => $giftCardData['type'], 'active' => GiftCardType::STATUS_ACTIVE]);
         if (!$giftCardType) return self::getJsonErrorResult('Unknown type');
 
-        $transaction = \Yii::$app->db->beginTransaction();
+        $transaction = Yii::$app->db->beginTransaction();
         try {
             $giftCard = new GiftCard();
             $giftCard->name = $giftCardType->name;
@@ -210,14 +225,14 @@ class PaymentController extends Controller
     public function actionComplete()
     {
         $params = $this->getPageParams();
-        if ($giftCardCode = \Yii::$app->request->get('gc')) {
+        if ($giftCardCode = Yii::$app->request->get('gc')) {
             $giftCard = GiftCard::findOne(['code' => $giftCardCode]);
             if ($giftCard) {
                 $params['success'] = $giftCard->status == GiftCard::STATUS_PAID;
                 $params['amount'] = $giftCard->amount;
                 $params['giftCard'] = $giftCard;
             }
-        } elseif ($contractId = \Yii::$app->request->get('payment')) {
+        } elseif ($contractId = Yii::$app->request->get('payment')) {
             $contract = Contract::findOne($contractId);
             if ($contract) {
                 $params['success'] = $contract->status == Contract::STATUS_PAID;
@@ -232,11 +247,11 @@ class PaymentController extends Controller
 
     public function actionPrint()
     {
-        if ($giftCardCode = \Yii::$app->request->get('gc')) {
+        if ($giftCardCode = Yii::$app->request->get('gc')) {
             $giftCard = GiftCard::findOne(['code' => $giftCardCode]);
             if ($giftCard && $giftCard->status == GiftCard::STATUS_PAID) {
                 $giftCardDoc = new \common\resources\documents\GiftCard($giftCard);
-                return \Yii::$app->response->sendContentAsFile(
+                return Yii::$app->response->sendContentAsFile(
                     $giftCardDoc->save(),
                     'flyer.pdf',
                     ['inline' => true, 'mimeType' => 'application/pdf']

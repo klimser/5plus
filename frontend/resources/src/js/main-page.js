@@ -50,6 +50,8 @@ var MainPage = {
         if (stage) stage.width(Math.ceil(stage.width()) + 1);
     },
     init: function(carouselCount) {
+        $('[data-toggle="popover"]').popover();
+        
         for (var i = 0; i < carouselCount; i++) {
             $('#owl-carousel-' + i).owlCarousel({
                 margin:10,
