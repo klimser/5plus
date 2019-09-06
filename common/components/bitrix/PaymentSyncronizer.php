@@ -48,6 +48,7 @@ class PaymentSyncronizer
 
         if (!$toSync->user->bitrix_id) {
             ComponentContainer::getErrorLogger()->logError("bitrix/syncNextPayment", "User is not synced, id: {$toSync->user->id}", true);
+            return false;
         }
 
         $groupParam = GroupParam::findByDate($toSync->group, $toSync->createDate);

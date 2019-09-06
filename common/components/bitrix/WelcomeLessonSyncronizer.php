@@ -26,6 +26,7 @@ class WelcomeLessonSyncronizer
 
         if (!$toSync->user->bitrix_id) {
             ComponentContainer::getErrorLogger()->logError("bitrix/syncNextWelcomeLesson", "User is not synced, id: {$toSync->user->id}", true);
+            return false;
         }
 
         $params = [
