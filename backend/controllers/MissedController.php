@@ -164,7 +164,7 @@ class MissedController extends AdminController
                     if (!array_key_exists($eventMember->group_pupil_id, $dataMap)) {
                         $dataMap[$eventMember->group_pupil_id] = [0 => $eventMember->groupPupil->user->name];
                     }
-                    $dataMap[$eventMember->group_pupil_id][(int)$event->eventDateTime->format('j')] = $eventMember->status;
+                    $dataMap[$eventMember->group_pupil_id][(int)$event->eventDateTime->format('j')] = $eventMember->toArray();
                 }
             }
             usort($dataMap, function($a, $b) { return $a[0] <=> $b[0]; });
