@@ -1,7 +1,9 @@
 <?php
 
+use backend\models\EventMember;
 use yii\helpers\Html;
 use \common\components\helpers\Calendar;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $dataMap array */
@@ -19,10 +21,10 @@ $nextMonth->modify('+1 month');
 ?>
 <div class="missed-table-index">
     <h1>
-        <a href="<?= \yii\helpers\Url::to(['table', 'year' => $prevMonth->format('Y'), 'month' => $prevMonth->format('n'), 'groupId' => $group ? $group->id : 0]); ?>"
+        <a href="<?= Url::to(['table', 'year' => $prevMonth->format('Y'), 'month' => $prevMonth->format('n'), 'groupId' => $group ? $group->id : 0]); ?>"
         ><span class="fas fa-arrow-left"></span></a>
         <?= Html::encode($this->title) ?> <?= Calendar::$monthNames[$date->format('n')]; ?> <?= $date->format('Y'); ?>
-        <a href="<?= \yii\helpers\Url::to(['table', 'year' => $nextMonth->format('Y'), 'month' => $nextMonth->format('n'), 'groupId' => $group ? $group->id : 0]); ?>"
+        <a href="<?= Url::to(['table', 'year' => $nextMonth->format('Y'), 'month' => $nextMonth->format('n'), 'groupId' => $group ? $group->id : 0]); ?>"
         ><span class="fas fa-arrow-right"></span></a>
         <div class="pull-right">
             <form id="group-selector">
@@ -51,11 +53,13 @@ $nextMonth->modify('+1 month');
                 <td><?= $pupilData[0]; ?></td>
                 <?php for ($i = 1; $i <= $daysCount; $i++): ?><td<?php
                  if (array_key_exists($i, $pupilData)) {
-                     switch ($pupilData[$i]) {
-                         case \backend\models\EventMember::STATUS_MISS: echo ' class="danger"'; break;
-                         case \backend\models\EventMember::STATUS_ATTEND: echo ' class="success"'; break;
+                     switch ($pupilData[$i]['status']) {
+                         case EventMember::STATUS_MISS: echo ' class="danger"'; break;
+                         case EventMember::STATUS_ATTEND: echo ' class="success"'; break;
                      }
-                 } ?>></td><?php endfor; ?>
+                 } ?>>
+                    <?= $pupilData[$i]['mark']; ?>
+                </td><?php endfor; ?>
             </tr>
         <?php endforeach; ?>
         </table>
