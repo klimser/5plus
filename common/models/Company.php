@@ -16,6 +16,7 @@ use common\components\extended\ActiveRecord;
  * @property string $zip Индекс
  * @property string $city Город
  * @property string $address Адрес
+ * @property string $address_school Адрес школы
  * @property string $phone Телефон
  * @property string $tin ИНН
  * @property string $bank_data Банковские реквизиты
@@ -42,7 +43,7 @@ class Company extends ActiveRecord
     {
         return [
             [['first_name', 'second_name', 'licence', 'head_name', 'head_name_short', 'zip', 'city', 'address', 'phone', 'tin', 'bank_data', 'oked', 'mfo'], 'required'],
-            [['first_name', 'second_name', 'licence', 'head_name', 'head_name_short', 'address', 'bank_data'], 'string', 'max' => 255],
+            [['first_name', 'second_name', 'licence', 'head_name', 'head_name_short', 'address', 'address_school', 'bank_data'], 'string', 'max' => 255],
             [['zip'], 'string', 'max' => 15],
             [['city', 'phone'], 'string', 'max' => 100],
             [['tin', 'oked', 'mfo'], 'string', 'max' => 50],
@@ -64,6 +65,7 @@ class Company extends ActiveRecord
             'zip' => 'Индекс',
             'city' => 'Город',
             'address' => 'Адрес',
+            'address_school' => 'Адрес школы',
             'phone' => 'Телефон',
             'tin' => 'ИНН',
             'bank_data' => 'Банковские реквизиты',

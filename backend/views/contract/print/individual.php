@@ -30,8 +30,11 @@
                 <span class="placeholder" style="width: 9cm"></span><br>
 
                 Тел.: <span class="placeholder" style="width: 3cm;"><?= $contract->user->parent_id ? $contract->user->parent->phoneFull : $contract->user->phoneFull; ?></span>
-                <span class="placeholder" style="width: 3cm;"><?= $contract->user->parent_id ? $contract->user->parent->phone2Full : $contract->user->phone2Full; ?></span><br>
-                Тел. учащегося: <span class="placeholder" style="width: 3cm;"><?= $contract->user->phoneFull; ?></span><br><br><br>
+                <span class="placeholder" style="width: 3cm;"><?= $contract->user->parent_id ? $contract->user->parent->phone2Full : $contract->user->phone2Full; ?></span>
+                <?php if ($contract->user->parent_id): ?>
+                    <br>Тел. учащегося: <span class="placeholder" style="width: 3cm;"><?= $contract->user->phoneFull; ?></span>
+                <?php endif; ?>
+                <br><br><br>
 
                 <div class="text-right"><b> <span class="placeholder" style="width: 4cm;"></span> <?= $contract->user->parent_id ? $contract->user->parent->name : $contract->user->name; ?></b></div>
             </td>

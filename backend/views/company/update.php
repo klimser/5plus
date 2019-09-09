@@ -33,6 +33,8 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $form->field($company, 'city')->textInput(['maxlength' => true]) ?>
 
         <?= $form->field($company, 'address')->textInput(['maxlength' => true]) ?>
+        
+        <?= $form->field($company, 'address_school')->textInput(['maxlength' => true]) ?>
 
         <?= $form->field($company, 'phone')->textInput(['maxlength' => true]) ?>
 

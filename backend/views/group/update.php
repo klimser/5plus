@@ -81,6 +81,9 @@ SCRIPT
     <?= $form->field($group, 'lesson_price_discount', ['options' => ['class' => 'form-group col-xs-12 col-sm-6']])
         ->input('number', ['placeholder' => 'Только целое число, например: 18000']); ?>
 
+    <?= $form->field($group, 'lesson_duration', ['options' => ['class' => 'form-group col-xs-12', 'inputTemplate' => '<div class="input-group">{input}<span class="input-group-addon">мин</span></div>']])
+        ->input('number', ['placeholder' => 'Только целое число, например: 40', 'required' => true]); ?>
+
     <div class="form-group col-xs-12" id="group_date">
         <?php if (count($group->pupils) == 0):
             $options = ['required' => true];

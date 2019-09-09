@@ -19,6 +19,7 @@ use yii\db\ActiveQuery;
  * @property string $schedule
  * @property int $lesson_price
  * @property int $lesson_price_discount
+ * @property int $lesson_duration
  * @property double $teacher_rate
  * @property string $room_number
  * @property int $active
@@ -56,7 +57,7 @@ class Group extends ActiveRecord
     {
         return [
             [['name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'date_start'], 'required'],
-            [['subject_id', 'teacher_id', 'type_id', 'lesson_price', 'lesson_price_discount', 'active'], 'integer'],
+            [['subject_id', 'teacher_id', 'type_id', 'lesson_price', 'lesson_price_discount', 'lesson_duration', 'active'], 'integer'],
             [['teacher_rate'], 'number', 'min'=> 0, 'max' => 100],
             [['name', 'legal_name'], 'string', 'max' => 50],
             [['schedule'], 'string', 'max' => 255],
@@ -84,6 +85,7 @@ class Group extends ActiveRecord
             'schedule' => 'График занятий группы',
             'lesson_price' => 'Стоимость ОДНОГО занятия',
             'lesson_price_discount' => 'Стоимость ОДНОГО занятия со скидкой',
+            'lesson_duration' => 'прододжительность занятия',
             'teacher_rate' => 'Процент начислений зарплаты учителю',
             'room_number' => 'Номер кабинета',
             'active' => 'Занимается',

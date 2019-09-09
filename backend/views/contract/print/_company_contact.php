@@ -7,7 +7,7 @@
 
     <div class="text-center"><b><?= $contract->company->first_name; ?></b></div>
 
-    Юридический адрес: <?= $contract->company->zip; ?>, г. <?= $contract->company->city; ?>,<br>
+    Адрес: <?= $contract->company->zip; ?>, г. <?= $contract->company->city; ?>,<br>
     <?= $contract->company->address; ?>,<br>
     тел.: <?= $contract->company->phone; ?><br>
     ИНН <?= $contract->company->tin; ?>, ОКЭД <?= $contract->company->oked; ?><br>
