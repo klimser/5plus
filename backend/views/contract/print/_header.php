@@ -10,7 +10,7 @@
         </td>
     </tr>
     <tr>
-        <td class="text-center" colspan="2" style="padding-right: 5cm;"><b>ДОГОВОР</b></td>
+        <td class="text-center" colspan="2" style="padding-right: 2cm;"><b>ДОГОВОР</b> № <span class="placeholder"><?= $contract->number; ?></span></td>
     </tr>
     <tr>
         <td class="text-left">г. Ташкент</td>
@@ -20,7 +20,7 @@
                 <?= \common\components\helpers\Calendar::getMonthForm2($contract->createDate->format('n')); ?>
                 <?= $contract->createDate->format('Y'); ?> г.
             </span>
-            № <span class="placeholder"><?= $contract->number; ?></span>
+            
         </td>
     </tr>
 </table>

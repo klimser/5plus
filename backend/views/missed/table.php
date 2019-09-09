@@ -58,7 +58,7 @@ $nextMonth->modify('+1 month');
                          case EventMember::STATUS_ATTEND: echo ' class="success"'; break;
                      }
                  } ?>>
-                    <?= $pupilData[$i]['mark']; ?>
+                    <?= array_key_exists($i, $pupilData) ? $pupilData[$i]['mark'] : ''; ?>
                 </td><?php endfor; ?>
             </tr>
         <?php endforeach; ?>
