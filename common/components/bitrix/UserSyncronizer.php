@@ -20,13 +20,15 @@ class UserSyncronizer
     public function formatUsers(): void
     {
         $affectedFields = ['NAME', 'LAST_NAME', 'PHONE'];
-        
+
+        $newSyncDate = '';
         $syncDateFilename = Yii::$app->runtimePath . DIRECTORY_SEPARATOR . 'bitrix_sync.data';
         $params = ['select' => array_merge($affectedFields, ['DATE_MODIFY']), 'order' => ['DATE_MODIFY' => 'ASC']];
         if (file_exists($syncDateFilename) && $dateFrom = file_get_contents($syncDateFilename)) {
             $params['filter'] = ['>DATE_MODIFY' => $dateFrom];
+            $newSyncDate = $dateFrom;
         }
-        $newSyncDate = '';
+
         $offset = 0;
         do {
             $params['start'] = $offset;
@@ -71,8 +73,8 @@ class UserSyncronizer
     {
         if (!empty($searchResults)) {
             foreach ($searchResults as $bitrixUser) {
-                if (mb_strpos(mb_strtolower($pupil->name, 'UTF-8'), mb_strtolower($bitrixUser['NAME'], 'UTF-8'), 0, 'UTF-8')
-                    || mb_strpos(mb_strtolower($pupil->name, 'UTF-8'), mb_strtolower($bitrixUser['LAST_NAME'], 'UTF-8'), 0, 'UTF-8')) {
+                if ((!empty($bitrixUser['NAME']) && mb_strpos(mb_strtolower($pupil->name, 'UTF-8'), mb_strtolower($bitrixUser['NAME'], 'UTF-8'), 0, 'UTF-8'))
+                    || (!empty($bitrixUser['LAST_NAME']) && mb_strpos(mb_strtolower($pupil->name, 'UTF-8'), mb_strtolower($bitrixUser['LAST_NAME'], 'UTF-8'), 0, 'UTF-8'))) {
                     $pupil->bitrix_id = $bitrixUser['ID'];
                     if (!$pupil->save()) {
                         ComponentContainer::getErrorLogger()
