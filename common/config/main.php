@@ -6,7 +6,15 @@ $params = array_merge(
 
 return [
     'vendorPath' => dirname(dirname(__DIR__)) . '/vendor',
+    'container' => [
+        'definitions' => [
+            yii\caching\CacheInterface::class => [
+                'class' => \yii\caching\DummyCache::class,
+            ],
+        ],
+    ],
     'components' => [
+        'cache' => yii\caching\CacheInterface::class,
         'user' => [
             'identityClass' => \common\models\User::class,
             'enableAutoLogin' => true,
@@ -89,7 +97,10 @@ return [
             'login' => $params['paygram-login'],
             'password' => $params['paygram-password'],
             'templateMap' => $params['paygram-template-map'],
-        ]
+        ],
+        'groupParam' => [
+            'class' => \common\components\GroupParamComponent::class,
+        ],
     ],
     'aliases' => [
         '@uploads' => '@frontend/web/uploads',

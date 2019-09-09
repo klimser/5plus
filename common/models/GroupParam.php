@@ -4,6 +4,8 @@ namespace common\models;
 
 use common\components\extended\ActiveRecord;
 use common\models\traits\GroupParam as GroupParamTrait;
+use DateTime;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "{{%group_param}}".
@@ -12,6 +14,8 @@ use common\models\traits\GroupParam as GroupParamTrait;
  * @property int $group_id
  * @property int $year
  * @property int $month
+ * @property-read string $valid_from
+ * @property DateTime $validFromDateTime
  * @property int $lesson_price
  * @property int $lesson_price_discount
  * @property string $schedule
@@ -35,11 +39,12 @@ class GroupParam extends ActiveRecord
     public function rules()
     {
         return [
-            [['group_id', 'year', 'month', 'lesson_price', 'teacher_id', 'teacher_rate'], 'required'],
-            [['group_id', 'year', 'month', 'lesson_price', 'lesson_price_discount', 'teacher_id'], 'integer'],
+            [['group_id', 'valid_from', 'lesson_price', 'teacher_id', 'teacher_rate'], 'required'],
+            [['group_id', 'lesson_price', 'lesson_price_discount', 'teacher_id'], 'integer'],
             [['teacher_rate'], 'number'],
+            [['valid_from'], 'date', 'format' => 'yyyy-MM-dd'],
             [['schedule'], 'string', 'max' => 255],
-            [['group_id', 'year', 'month'], 'unique', 'targetAttribute' => ['group_id', 'year', 'month'], 'message' => 'The combination of Группа, год and месяц has already been taken.'],
+            [['group_id', 'valid_from'], 'unique', 'targetAttribute' => ['group_id', 'valid_from'], 'message' => 'Parameters can be set no more than 1 per day.'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
             [['teacher_id'], 'exist', 'targetRelation' => 'teacher'],
         ];
@@ -63,7 +68,7 @@ class GroupParam extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getGroup()
     {
@@ -71,7 +76,7 @@ class GroupParam extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getTeacher()
     {
@@ -79,11 +84,27 @@ class GroupParam extends ActiveRecord
     }
 
     /**
+     * @return DateTime
+     */
+    public function getValidFromDateTime(): ?DateTime
+    {
+        return DateTime::createFromFormat('Y-m-d', $this->valid_from) ?: null;
+    }
+
+    /**
+     * @param DateTime $validFrom
+     */
+    public function setValidFromDateTime(DateTime $validFrom)
+    {
+        $this->valid_from = $validFrom->format('Y-m-d');
+    }
+
+    /**
      * @param Group $group
-     * @param \DateTime $date
+     * @param DateTime $date
      * @return null|GroupParam|\yii\db\ActiveRecord
      */
-    public static function findByDate(Group $group, \DateTime $date)
+    public static function findByDate(Group $group, DateTime $date)
     {
         return self::find()->where(['group_id' => $group->id, 'year' => $date->format('Y'), 'month' => $date->format('n')])->one();
     }
