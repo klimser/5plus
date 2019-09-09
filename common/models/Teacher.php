@@ -81,7 +81,7 @@ class Teacher extends ActiveRecord
             [['active', 'page_visibility'], 'default', 'value' => self::STATUS_ACTIVE],
             [['title', 'phone', 'photo', 'description'], 'default', 'value' => null],
             [['name'], 'required'],
-            [['description'], 'required', 'when' => function(self $model) { return $model->active === Teacher::STATUS_ACTIVE; }],
+            [['description'], 'required', 'when' => function(self $model) { return $model->page_visibility === Teacher::STATUS_ACTIVE; }],
             [['name'], 'string', 'max' => 127],
             [['title', 'photo'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 13],
