@@ -5,7 +5,6 @@ namespace common\components\bitrix;
 use common\components\ComponentContainer;
 use common\models\GroupParam;
 use common\models\Payment;
-use common\models\User;
 
 class PaymentSyncronizer
 {
@@ -17,25 +16,12 @@ class PaymentSyncronizer
         $this->client = $client;
     }
 
-    private function findExistingOpenDeal(User $user): ?array
+    private function markPaymentSynced(Payment $payment): void
     {
-        $offset = 0;
-        do {
-            $response = ComponentContainer::getBitrix()->call(
-                'crm.deal.list',
-                ['filter' => ['CONTACT_ID' => $user->bitrix_id], 'start' => $offset],
-                true
-            );
-            foreach ($response['result'] as $deal) {
-                if (in_array($deal['STAGE_ID'], Bitrix::DEAL_OPEN_STATUSES)) {
-                    return $deal;
-                }
-            }
-
-            $offset = $response['next'] ?? 0;
-        } while (isset($response['next']));
-
-        return null;
+        $payment->bitrix_sync_status = Payment::STATUS_ACTIVE;
+        if (!$payment->save()) {
+            ComponentContainer::getErrorLogger()->logError("bitrix/sync", "id: $payment->id, errors: " . $payment->getErrorsAsString(), true);
+        }
     }
 
     public function syncNextPayment()
@@ -83,9 +69,31 @@ class PaymentSyncronizer
             $deal = reset($response);
             $params['id'] = $deal['ID'];
         } else {
-            $existingDeal = $this->findExistingOpenDeal($toSync->user);
-            if ($existingDeal) {
-                $params['id'] = $existingDeal['ID'];
+            $deals = ComponentContainer::getBitrix()->call(
+                'crm.deal.list',
+                ['filter' => [
+                    'CONTACT_ID' => $toSync->user->bitrix_id,
+                    'STAGE_ID' => Bitrix::DEAL_STATUS_STUDY,
+                    Bitrix::DEAL_SUBJECT_PARAM => [$this->client->getSubjectIdByGroup($toSync->group, 'deal')],
+                    ]]
+            );
+            if (!empty($deals)) {
+                $this->markPaymentSynced($toSync);
+                return true;
+            }
+            
+            $deals = ComponentContainer::getBitrix()->call(
+                'crm.deal.list',
+                [
+                    'filter' => [
+                        'CONTACT_ID' => $toSync->user->bitrix_id,
+                        'STAGE_ID' => Bitrix::DEAL_OPEN_STATUSES,
+                        Bitrix::DEAL_SUBJECT_PARAM => [$this->client->getSubjectIdByGroup($toSync->group, 'deal')],
+                    ]
+                ]
+            );
+            if (!empty($deals)) {
+                $params['id'] = reset($deals)['ID'];
             } else {
                 $method = 'crm.deal.add';
             }
@@ -103,13 +111,10 @@ class PaymentSyncronizer
         $res3 = ComponentContainer::getBitrix()->call($method, $params);
         if (!$res3) {
             ComponentContainer::getErrorLogger()->logError("bitrix/$method", "result: $res3, id: $toSync->id", true);
-        } else {
-            $toSync->bitrix_sync_status = Payment::STATUS_ACTIVE;
-            if (!$toSync->save()) {
-                ComponentContainer::getErrorLogger()->logError("bitrix/$method", "id: $toSync->id, errors: " . $toSync->getErrorsAsString(), true);
-            }
+            return true;
         }
 
+        $this->markPaymentSynced($toSync);
         return true;
     }
 }
