@@ -8,6 +8,7 @@ use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
+/* @var $deleteAllowed bool */
 
 $this->title = 'Учителя';
 $this->params['breadcrumbs'][] = $this->title;
@@ -46,7 +47,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'class' => ActionColumn::class,
-                'template' => '<span class="text-nowrap">{active}{user}</span>',
+                'template' => '<span class="text-nowrap">{active}{user}' . ($deleteAllowed ? '{delete}' : '') . '</span>',
                 'buttons' => [
                     'active' => function ($url, $model, $key) {
                         return $model->active === Teacher::STATUS_ACTIVE
@@ -58,6 +59,16 @@ $this->params['breadcrumbs'][] = $this->title;
                             return Html::a(Html::tag('span', '', ['class' => 'fas fa-user']), Url::to(['user/update', 'id' => $model->user->id]), ['class' => 'btn btn-default margin-right-10', 'title' => 'Пользователь']);
                         }
                         return Html::a(Html::tag('span', '', ['class' => 'fas fa-user-plus']), Url::to(['user/create-teacher', 'teacher_id' => $model->id]), ['class' => 'btn btn-default margin-right-10', 'title' => 'Создать пользователя']);
+                    },
+                    'delete' => function ($url, $model, $key) {
+                        if (!$model->deleteAllowed) return '';
+                        $options = [
+                            'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+                            'data-method' => 'post',
+                            'class' => 'btn btn-default',
+                        ];
+                        $icon = Html::tag('span', '', ['class' => "fas fa-times"]);
+                        return Html::a($icon, $url, $options);
                     },
                 ],
             ],

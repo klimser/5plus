@@ -16,6 +16,7 @@ return [
             'reportCash',
             'pupilChangePast',
             'moneyCorrection',
+            'deleteTeachers',
         ],
     ],
     'manager' => [
@@ -246,6 +247,10 @@ return [
     'pupilChangePast' => [
         'type' => 2,
         'description' => 'Edit pupils in groups in past dates',
+    ],
+    'deleteTeachers' => [
+        'type' => 2,
+        'description' => 'Delete teachers',
     ],
 
     /* SUPPORT */

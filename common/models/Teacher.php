@@ -30,6 +30,7 @@ use yii\db\ActiveQuery;
  * @property string $descriptionForEdit
  * @property int $page_order
  * @property string $noPhotoUrl
+ * @property-read bool $deleteAllowed
  *
  * @property Event[] $events
  * @property TeacherSubjectLink[] $teacherSubjects
@@ -342,6 +343,15 @@ class Teacher extends ActiveRecord
         return self::getVisibleListQuery()->all();
     }
 
+    /**
+     * @return bool
+     */
+    public function getDeleteAllowed(): bool
+    {
+        $groupParams = GroupParam::find()->andWhere(['teacher_id' => $this->id])->all();
+        return empty($groupParams);
+    }
+
     public function beforeValidate()
     {
         if (!parent::beforeValidate()) return false;
@@ -354,6 +364,13 @@ class Teacher extends ActiveRecord
     public function beforeDelete()
     {
         if (!parent::beforeDelete()) return false;
+        
+        foreach ($this->teacherSubjects as $teacherSubject) {
+            if (!$teacherSubject->delete()) {
+                $teacherSubject->moveErrorsToFlash();
+                return false;
+            }
+        }
 
         if ($this->webpage && !$this->webpage->delete()) {
             $this->webpage->moveErrorsToFlash();

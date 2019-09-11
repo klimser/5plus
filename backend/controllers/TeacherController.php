@@ -39,6 +39,7 @@ class TeacherController extends AdminController
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
+            'deleteAllowed' => Yii::$app->user->can('deleteTeachers'),
         ]);
     }
 
@@ -211,6 +212,42 @@ class TeacherController extends AdminController
     }
 
     /**
+     * Deletes an existing Teacher model.
+     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * @param string $id
+     * @return mixed
+     * @throws NotFoundHttpException
+     * @throws \Throwable
+     * @throws yii\db\Exception
+     * @throws yii\web\BadRequestHttpException
+     * @throws yii\web\ForbiddenHttpException
+     */
+    public function actionDelete($id)
+    {
+        if (!Yii::$app->user->can('deleteTeachers')) {
+            throw new yii\web\ForbiddenHttpException('Access denied');
+        }
+        $teacher = $this->findModel($id);
+        if (!$teacher->deleteAllowed) {
+            throw new yii\web\BadRequestHttpException('Unable to delete that teacher');
+        }
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$teacher->delete()) {
+                $teacher->moveErrorsToFlash();
+                $transaction->rollBack();
+            } else {
+                $transaction->commit();
+            }
+        } catch(\Exception $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        return $this->redirect(Yii::$app->request->referrer ?: ['index']);
+    }
+
+    /**
      * Finds the Teacher model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
@@ -222,7 +259,7 @@ class TeacherController extends AdminController
         if (($model = Teacher::findOne($id)) !== null) {
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException('The requested teacher does not exist.');
         }
     }
 }
