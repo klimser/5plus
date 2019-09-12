@@ -3,6 +3,8 @@
 namespace common\models\traits;
 use backend\components\TranslitComponent;
 use common\components\ComponentContainer;
+use Exception;
+use Yii;
 use yii\base\UnknownPropertyException;
 use yii\web\UploadedFile;
 
@@ -114,8 +116,8 @@ trait UploadImage
             }
             if ($this->getErrors($uploadedField)) return false;
 
-            if (!is_dir(\Yii::getAlias('@uploads/' . $config['imageFolder']))) {
-                mkdir(\Yii::getAlias('@uploads/' . $config['imageFolder']), 0755, true);
+            if (!is_dir(Yii::getAlias('@uploads/' . $config['imageFolder']))) {
+                mkdir(Yii::getAlias('@uploads/' . $config['imageFolder']), 0755, true);
             }
 
             $fileName = TranslitComponent::filename($this->$filenameBase);
@@ -125,7 +127,7 @@ trait UploadImage
             $fileName .= '.' . $this->$uploadedField->extension;
 
             $resizeImage = function(string $sourcePath, string $destPath, int $width, int $height = 0) use ($config) {
-                if ((!array_key_exists('skipTinify', $config) || !$config['skipTinify']) && $source = ComponentContainer::getTinifier()->getFromFile($sourcePath)) {
+                if (!empty($config['skipTinify']) && $source = ComponentContainer::getTinifier()->getFromFile($sourcePath)) {
                     $params = ['method' => 'scale', 'width' => $width];
                     if ($height > 0) {
                         $params['height'] = $height * 2;
@@ -143,7 +145,7 @@ trait UploadImage
                     $imageHeight = $params[1];
                     if ($params[2] == IMAGETYPE_PNG) $image = imagecreatefrompng($sourcePath);
                     elseif ($params[2] == IMAGETYPE_JPEG) $image = imagecreatefromjpeg($sourcePath);
-                    else throw new \Exception('Wrong image type');
+                    else throw new Exception('Wrong image type');
                     if ($image) {
                         $scaleWidth = $width;
                         if ($height == 0) $scaleHeight = -1;
@@ -168,7 +170,7 @@ trait UploadImage
                 if ($imageWidth >= $config['neededImageWidth'] * 2) {
                     $resizeImage(
                         $this->$uploadedField->tempName,
-                        \Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $fileName2x,
+                        Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $fileName2x,
                         $config['neededImageWidth'] * 2,
                         $config['neededImageHeight'] * 2
                     );
@@ -176,16 +178,16 @@ trait UploadImage
 
                 $resizeImage(
                     $this->$uploadedField->tempName,
-                    \Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $fileName,
+                    Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $fileName,
                     $config['neededImageWidth'],
                     $config['neededImageHeight']
                 );
 
                 if ($this->$imageField && $this->$imageField != $fileName) {
-                    self::deleteImages(\Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $this->$imageField);
+                    self::deleteImages(Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $this->$imageField);
                 }
                 $this->$imageField = $fileName;
-            } catch (\Exception $ex) {
+            } catch (Exception $ex) {
                 $this->addError($uploadedField, $ex->getMessage());
                 return false;
             }
@@ -202,13 +204,15 @@ trait UploadImage
     public function getImageUrl($config = []): string
     {
         if (empty($config)) $config = $this->getUploadImageConfig();
-        if (!array_key_exists('imageDBField', $config)) return '';
+        if (empty($config['imageDBField'])) {
+            return '';
+        }
         $imageField = $config['imageDBField'];
-        try {
-            $this->$imageField;
-        } catch (UnknownPropertyException $ex) {return '';}
+        if (empty($this->$imageField)) {
+            return '';
+        }
 
-        return \Yii::getAlias('@uploadsUrl') . '/' . $config['imageFolder'] . '/' . $this->$imageField;
+        return Yii::getAlias('@uploadsUrl') . '/' . $config['imageFolder'] . '/' . $this->$imageField;
     }
 
     /**
@@ -218,13 +222,15 @@ trait UploadImage
     public function deleteImage($config = []): bool
     {
         if (empty($config)) $config = $this->getUploadImageConfig();
-        if (!array_key_exists('imageDBField', $config)) return false;
+        if (empty($config['imageDBField'])) {
+            return false;
+        }
         $imageField = $config['imageDBField'];
-        try {
-            $this->$imageField;
-        } catch (UnknownPropertyException $ex) {return false;}
+        if (empty($this->$imageField)) {
+            return true;
+        }
 
-        self::deleteImages(\Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $this->$imageField);
+        self::deleteImages(Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $this->$imageField);
         $this->$imageField = null;
         return true;
     }
@@ -237,12 +243,7 @@ trait UploadImage
 
         foreach ($images as $image) {
             $imageConfig = $this->$image();
-            if (array_key_exists('imageDBField', $imageConfig)) {
-                $imageField = $imageConfig['imageDBField'];
-                try {
-                    if ($this->$imageField) self::deleteImages(\Yii::getAlias('@uploads/' . $imageConfig['imageFolder'] . '/') . $this->$imageField);
-                } catch (UnknownPropertyException $ex) {}
-            }
+            $this->deleteImage($imageConfig);
         }
     }
 }
