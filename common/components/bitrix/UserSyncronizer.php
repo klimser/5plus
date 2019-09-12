@@ -95,9 +95,7 @@ class UserSyncronizer
         ]);
         if (!$toSync) return false;
 
-        $groups = $teachers = $weekdays = $weektimes = [];
-        $subjects = [];
-        $phoneMap = [];
+        $groups = $teachers = $weekdays = $weektimes = $subjects = $phoneMap = [];
         if (!$toSync->bitrix_id) {
             $res = $this->processUserSearchResult(ComponentContainer::getBitrix()->call(
                 'crm.contact.list',
