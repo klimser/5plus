@@ -47,7 +47,7 @@ SCRIPT
         ->dropDownList(ArrayHelper::map($groupTypes, 'id', 'name'), ['required' => true]); ?>
 
     <?= $form->field($group, 'subject_id', ['options' => ['class' => 'form-group col-xs-12 col-sm-6']])
-        ->dropDownList(ArrayHelper::map($subjects, 'id', 'name'), ['onChange' => 'Group.loadTeacherSelect(this);', 'required' => true]); ?>
+        ->dropDownList(ArrayHelper::map($subjects, 'id', 'name'), ['onChange' => 'Group.loadTeacherSelect(this);', 'required' => true, 'disabled' => count($group->pupils) > 0]); ?>
     <?php
     if ($group->subject_id) $teachersList = ArrayHelper::map($group->subject->teachers, 'id', 'name');
     else $teachersList = [];
@@ -67,7 +67,8 @@ SCRIPT
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="weekday[<?= $i; ?>]" value="1" <?= empty($group->scheduleData[$i]) ? '' : 'checked'; ?> onchange="Group.toggleWeekday(this);">
-                        <?= Calendar::$weekDays[($i + 1) % 7]; ?>
+                        <span class="visible-xs"><?= Calendar::$weekDaysShort[($i + 1) % 7]; ?></span>
+                        <span class="hidden-xs"><?= Calendar::$weekDays[($i + 1) % 7]; ?></span>
                     </label>
                 </div>
                 <input class="form-control weektime" name="weektime[<?= $i; ?>]" value="<?= $group->scheduleData[$i]; ?>" placeholder="Время" pattern="\d{2}:\d{2}" maxlength="5" required <?= empty($group->scheduleData[$i]) ? 'disabled' : ''; ?>>
