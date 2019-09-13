@@ -41,7 +41,7 @@ trait Phone2
 
     public function getPhone2International(): ?string
     {
-        $digits = $this->getPhoneDigitsOnly();
+        $digits = $this->getPhone2DigitsOnly();
         if (!$digits || strlen($digits) !== 12) return $digits;
 
         return "+$digits";

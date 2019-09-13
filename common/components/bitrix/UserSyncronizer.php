@@ -95,7 +95,7 @@ class UserSyncronizer
         ]);
         if (!$toSync) return false;
 
-        $groups = $teachers = $weekdays = $weektimes = $subjects = $phoneMap = [];
+        $groups = $teachers = $weekdays = $weektimes = $subjects = $phoneMap = $phones = [];
         if (!$toSync->bitrix_id) {
             $res = $this->processUserSearchResult(ComponentContainer::getBitrix()->call(
                 'crm.contact.list',
@@ -109,10 +109,15 @@ class UserSyncronizer
                 ),
                     $toSync);
             }
-        } else {
+        }
+        if ($toSync->bitrix_id) {
             $bitrixUser = $this->client->call('crm.contact.get', [ 'id' => $toSync->bitrix_id ]);
             foreach ($bitrixUser['PHONE'] as $phone) {
-                $phoneMap[$phone['VALUE_TYPE']] = $phone['ID'];
+                if (array_key_exists($phone['VALUE_TYPE'], $phoneMap)) {
+                    $phones[] = ['ID' => $phone['ID'], 'VALUE' => null];
+                } else {
+                    $phoneMap[$phone['VALUE_TYPE']] = $phone['ID'];
+                }
             }
         }
 
@@ -121,7 +126,7 @@ class UserSyncronizer
         if (array_key_exists('MOBILE', $phoneMap)) {
             $mobilePhone['ID'] = $phoneMap['MOBILE'];
         }
-        $phones = [$mobilePhone];
+        $phones[] = $mobilePhone;
         if ($toSync->phone2 || array_key_exists('HOME', $phoneMap)) {
             $homePhone = ['VALUE' => $toSync->phone2International, 'VALUE_TYPE' => 'HOME'];
             if (array_key_exists('HOME', $phoneMap)) {
