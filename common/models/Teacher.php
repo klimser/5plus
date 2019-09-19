@@ -203,7 +203,6 @@ class Teacher extends ActiveRecord
      * @param string $maskPath
      * @param string $framePath
      * @return string
-     * @throws \ImagickException
      */
     private function addPhotoFrame(string $imagePath, string $maskPath, string $framePath): string
     {
@@ -257,7 +256,7 @@ class Teacher extends ActiveRecord
             imagecopy($newPicture, $over, 0, 0, 0, 0, $overInfo[0], $overInfo[1]);
             imagepng($newPicture, $fileName);
 
-            $source = \Tinify\fromFile($fileName);
+            $source = ComponentContainer::getTinifier()->getFromFile($fileName);
             $source->toFile($fileName);
         } else {
             $arr = explode('/', $imagePath);
