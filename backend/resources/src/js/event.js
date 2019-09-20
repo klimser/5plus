@@ -48,11 +48,13 @@ let Event = {
     },
     lockStatusButtons: function(eventId) {
         $('#event_details_' + eventId).find(".status_block button").prop("disabled", true);
+        this.processingEventId = eventId;
     },
     unlockStatusButtons: function() {
         $(".status_block").each(function() {
             $(this).find("button").prop("disabled", false);
         });
+        this.processingEventId = null;
     },
     changeStatus: function(eventId, status) {
         this.lockStatusButtons(eventId);
@@ -76,12 +78,12 @@ let Event = {
                     }
                     $(pupilsBlock).removeClass("hidden");
                 } else {
-                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+                    Main.throwFlashMessage('#messages_place_event_' + Event.processingEventId, 'Ошибка: ' + data.message, 'alert-danger');
                     Event.unlockStatusButtons();
                 }
             },
             error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+                Main.throwFlashMessage('#messages_place_event_' + Event.processingEventId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
                 Event.unlockStatusButtons();
             }
         });
@@ -121,11 +123,13 @@ let Event = {
         }
         return '';
     },
-    lockMemberButtons: function() {
+    lockMemberButtons: function(memberId) {
         $(".pupils_block").find("button").prop("disabled", true);
+        this.processingEventMemberId = memberId;
     },
     unlockMemberButtons: function() {
         $(".pupils_block").find("button").prop("disabled", false);
+        this.processingEventMemberId = null;
     },
     revertMissStatus: function(e, memberId) {
         let memberRow = $("#event_member_" + memberId);
@@ -133,7 +137,7 @@ let Event = {
             .html(this.getButtonsColumn(memberId, this.isAttendEditAllowed(memberId) ? this.memberStatusUnknown : this.memberStatusMiss, $(memberRow).data('mark')));
     },
     setPupilAttendStatus: function(memberId, status) {
-        this.lockMemberButtons();
+        this.lockMemberButtons(memberId);
         $.ajax({
             url: '/event/set-pupil-status?memberId=' + memberId,
             type: 'post',
@@ -147,12 +151,12 @@ let Event = {
                     $(memberBlock).data("status", data.memberStatus);
                     Event.fillMemberButtons(data.memberId);
                 } else {
-                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+                    Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
                 }
                 Event.unlockMemberButtons();
             },
             error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+                Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
                 Event.unlockMemberButtons();
             }
         });
@@ -160,7 +164,7 @@ let Event = {
     setPupilMark: function(e, memberId) {
         let mark = parseInt($(e).find("input[name='mark']").val());
         if (!mark || mark <= 0 || mark > 5) {
-            Main.throwFlashMessage('#messages_place', "Укажите оценку от 1 до 5", 'alert-danger');
+            Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, "Укажите оценку от 1 до 5", 'alert-danger');
             return false;
         }
         this.lockMemberButtons(memberId);
@@ -176,12 +180,12 @@ let Event = {
                     $("#event_member_" + data.memberId).data('mark', data.memberMark);
                     Event.fillMemberButtons(data.memberId);
                 } else {
-                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+                    Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
                     Event.unlockMemberButtons();
                 }
             },
             error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+                Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
                 Event.unlockMemberButtons();
             }
         });

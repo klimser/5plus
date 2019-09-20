@@ -99,6 +99,7 @@ $this->registerJs('Event.init(' . time() . ');');
                             </div>
                         </div>
                         <?php if ($event->status == Event::STATUS_UNKNOWN && $event->eventDateTime <= $limitDate): ?>
+                            <div id="messages_place_event_<?= $event->id; ?>"></div>
                             <div class="row status_block">
                                 <div class="col-xs-6">
                                     <button class="btn btn-success full-width" title="Состоялось" onclick="Event.changeStatus(<?= $event->id; ?>, <?= Event::STATUS_PASSED; ?>);">
@@ -121,6 +122,7 @@ $this->registerJs('Event.init(' . time() . ');');
                                         </thead>
                                         <tbody>
                                             <?php foreach ($event->members as $member): ?>
+                                                <tr><td id="messages_place_event_member_<?= $member->id; ?>" colspan="2"></td></tr>
                                                 <tr id="event_member_<?= $member->id; ?>" class="event_member <?php
                                                     if ($member->status == EventMember::STATUS_ATTEND) echo ' success ';
                                                     if ($member->status == EventMember::STATUS_MISS) echo ' danger ';
