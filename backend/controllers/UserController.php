@@ -119,8 +119,8 @@ class UserController extends AdminController
 
                         if (Yii::$app->user->can('moneyManagement') && $addPayment) {
                             $this->addPupilMoneyIncome($company, $groupPupil, $amount, $paymentData);
-                            MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                         }
+                        MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                     } elseif ($addWelcomeLesson) {
                         $this->addPupilToWelcomeLesson($pupil, $welcomeLessonData);
                     }

@@ -44,4 +44,8 @@ class ComponentContainer
     {
         return \Yii::$app->bitrix;
     }
+    public static function getPyBot(): PyBot
+    {
+        return \Yii::$app->pyBot;
+    }
 }

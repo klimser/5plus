@@ -120,6 +120,9 @@ class EventController extends AdminController
 
                                 foreach ($event->members as $member) {
                                     MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
+                                    if ($member->groupPupil->user->getDebt($member->groupPupil->group)) {
+                                        ComponentContainer::getPyBot()->lowBalance($member->groupPupil);
+                                    }
                                 }
                                 break;
                             case Event::STATUS_CANCELED:
@@ -170,6 +173,9 @@ class EventController extends AdminController
             } else {
                 $eventMember->status = $status;
                 if ($eventMember->save()) {
+                    if ($status === EventMember::STATUS_ATTEND) {
+                        ComponentContainer::getPyBot()->attendance($eventMember);
+                    }
                     $jsonData = self::getJsonOkResult([
                         'memberId' => $eventMember->id,
                         'memberStatus' => $eventMember->status,
@@ -204,6 +210,7 @@ class EventController extends AdminController
         else {
             $eventMember->mark = $mark;
             if ($eventMember->save()) {
+                ComponentContainer::getPyBot()->mark($eventMember);
                 $jsonData = self::getJsonOkResult([
                     'memberId' => $eventMember->id,
                     'memberMark' => $eventMember->mark,
