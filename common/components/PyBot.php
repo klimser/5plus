@@ -32,7 +32,6 @@ class PyBot extends BaseObject
      * @param string $urlAddon
      * @param array $params
      * @return mixed
-     * @throws \Exception
      */
     private function execute(string $urlAddon, array $params = [])
     {
@@ -52,7 +51,8 @@ class PyBot extends BaseObject
             curl_close($curl);
         } catch (\Throwable $ex) {
             if (is_resource($curl)) curl_close($curl);
-            throw new \Exception($ex->getMessage(), $ex->getCode(), $ex);
+            return null;
+//            throw new \Exception($ex->getMessage(), $ex->getCode(), $ex);
         }
 
         return $response;
@@ -61,7 +61,6 @@ class PyBot extends BaseObject
     /**
      * @param EventMember $eventMember
      * @return mixed
-     * @throws \Exception
      */
     public function attendance(EventMember $eventMember)
     {
@@ -74,7 +73,6 @@ class PyBot extends BaseObject
     /**
      * @param EventMember $eventMember
      * @return mixed
-     * @throws \Exception
      */
     public function mark(EventMember $eventMember)
     {
@@ -88,7 +86,6 @@ class PyBot extends BaseObject
     /**
      * @param GroupPupil $groupPupil
      * @return mixed
-     * @throws \Exception
      */
     public function lowBalance(GroupPupil $groupPupil)
     {
