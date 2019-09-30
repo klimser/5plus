@@ -181,8 +181,8 @@ let Event = {
                     Event.fillMemberButtons(data.memberId);
                 } else {
                     Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
-                    Event.unlockMemberButtons();
                 }
+                Event.unlockMemberButtons();
             },
             error: function(xhr, textStatus, errorThrown) {
                 Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
