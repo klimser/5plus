@@ -88,9 +88,9 @@ class UserController extends AdminController
 
             $transaction = User::getDb()->beginTransaction();
             try {
-//                if (UserComponent::isPhoneUsed(User::ROLE_PUPIL, $pupil->phone, $pupil->phone2)) {
-//                    throw new \Exception('Студент с таким номером телефона уже существует!');
-//                }
+                if (UserComponent::isPhoneUsed(User::ROLE_PUPIL, $pupil->phone, $pupil->phone2)) {
+                    throw new \Exception('Студент с таким номером телефона уже существует!');
+                }
 
                 $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
                 switch ($personType) {
