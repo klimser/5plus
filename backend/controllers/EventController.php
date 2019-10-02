@@ -173,7 +173,7 @@ class EventController extends AdminController
             } else {
                 $eventMember->status = $status;
                 if ($eventMember->save()) {
-                    if ($status === EventMember::STATUS_ATTEND) {
+                    if ($eventMember->event->eventDateTime >= date_create('midnight')) {
                         ComponentContainer::getPyBot()->attendance($eventMember);
                     }
                     $jsonData = self::getJsonOkResult([

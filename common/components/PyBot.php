@@ -67,6 +67,7 @@ class PyBot extends BaseObject
         return $this->execute('/bot_info/attendance', [
             'phone' => $eventMember->groupPupil->user->phone,
             'group_id' => $eventMember->groupPupil->group_id,
+            'status' => $eventMember->status === EventMember::STATUS_ATTEND ? 1 : 0,
         ]);
     }
 
