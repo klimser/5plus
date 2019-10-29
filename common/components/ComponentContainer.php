@@ -36,6 +36,10 @@ class ComponentContainer
     {
         return \Yii::$app->paygramApi;
     }
+    public static function getTelegramAdminNotifier(): Telegram
+    {
+        return \Yii::$app->telegramAdminNotifier;
+    }
     public static function getTelegramPublic(): Telegram
     {
         return \Yii::$app->telegramPublic;

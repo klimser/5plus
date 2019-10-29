@@ -5,6 +5,7 @@ namespace common\models;
 use backend\models\Event;
 use common\components\extended\ActiveRecord;
 use common\models\traits\GroupParam as GroupParamTrait;
+use DateTime;
 use yii\db\ActiveQuery;
 
 /**
@@ -25,8 +26,8 @@ use yii\db\ActiveQuery;
  * @property int $active
  * @property string $date_start
  * @property string $date_end
- * @property \DateTime $startDateObject
- * @property \DateTime $endDateObject
+ * @property DateTime $startDateObject
+ * @property DateTime $endDateObject
  *
  * @property User[] $pupils
  * @property GroupPupil[] $groupPupils
@@ -56,6 +57,7 @@ class Group extends ActiveRecord
     public function rules()
     {
         return [
+            [['name', 'legal_name', 'room_number'], 'trim'],
             [['name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'date_start'], 'required'],
             [['subject_id', 'teacher_id', 'type_id', 'lesson_price', 'lesson_price_discount', 'lesson_duration', 'active'], 'integer'],
             [['teacher_rate'], 'number', 'min'=> 0, 'max' => 100],
@@ -140,10 +142,10 @@ class Group extends ActiveRecord
     }
 
     /**
-     * @param \DateTime $eventDate
+     * @param DateTime $eventDate
      * @return Event|null
      */
-    public function hasEvent(\DateTime $eventDate): ?Event
+    public function hasEvent(DateTime $eventDate): ?Event
     {
         return array_key_exists($eventDate->format('Y-m-d'), $this->eventsByDateMap)
             ? $this->eventsByDateMap[$eventDate->format('Y-m-d')]
@@ -209,21 +211,31 @@ class Group extends ActiveRecord
         return $this->hasMany(User::class, ['id' => 'user_id'])
             ->via('groupPupils');
     }
-
-    /**
-     * @return \DateTime|null
-     */
-    public function getStartDateObject()
+    
+    public function setStartDateObject(?DateTime $startDate): void
     {
-        return empty($this->date_start) ? null : new \DateTime($this->date_start . ' midnight');
+        $this->date_start = $startDate ? $startDate->format('Y-m-d') : null;
     }
 
     /**
-     * @return \DateTime|null
+     * @return DateTime|null
      */
-    public function getEndDateObject()
+    public function getStartDateObject(): ?DateTime
     {
-        return empty($this->date_end) ? null : new \DateTime($this->date_end . ' midnight');
+        return empty($this->date_start) ? null : new DateTime($this->date_start . ' midnight');
+    }
+
+    public function setEndDateObject(?DateTime $endDate): void
+    {
+        $this->date_end = $endDate ? $endDate->format('Y-m-d') : null;
+    }
+    
+    /**
+     * @return DateTime|null
+     */
+    public function getEndDateObject(): ?DateTime
+    {
+        return empty($this->date_end) ? null : new DateTime($this->date_end . ' midnight');
     }
 
     /**
@@ -232,14 +244,5 @@ class Group extends ActiveRecord
     public function isKids(): bool
     {
         return preg_match('#kids#i', $this->name) || preg_match('#кидс#iu', $this->name);
-    }
-
-    public function beforeValidate()
-    {
-        if (!parent::beforeValidate()) return false;
-
-        $this->name = trim($this->name);
-        $this->legal_name = trim($this->legal_name);
-        return true;
     }
 }

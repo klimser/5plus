@@ -228,7 +228,7 @@ class SalaryComponent
                     $spreadsheet->getActiveSheet()->mergeCells("I$startRow:I" . ($row - 1));
 
                     $spreadsheet->getActiveSheet()->setCellValueExplicit("E$startRow", $totalByTeacher, DataType::TYPE_NUMERIC);
-                    $spreadsheet->getActiveSheet()->setCellValue("F$startRow", "=E$startRow*0.305");
+                    $spreadsheet->getActiveSheet()->setCellValue("F$startRow", "=E$startRow*0.12");
                     $spreadsheet->getActiveSheet()->setCellValue("I$startRow", "=E$startRow-F$startRow-G$startRow");
                 }
 

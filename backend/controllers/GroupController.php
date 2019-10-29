@@ -34,6 +34,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
+        if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
 //        $user = User::findOne(3819);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
@@ -55,6 +56,7 @@ class GroupController extends AdminController
 //            MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
 //        }
 //        GroupComponent::calculateTeacherSalary($group);
+        }
 
 
         return $this->renderList(['active' => Group::STATUS_ACTIVE]);
@@ -149,14 +151,16 @@ class GroupController extends AdminController
             $groupVal = Yii::$app->request->post('Group', []);
             $newPupils = Yii::$app->request->post('pupil', []);
             $error = false;
-            if (array_key_exists('date_start', $groupVal) && $groupVal['date_start']) {
+            if (array_key_exists('date_start', $groupVal)) {
                 if (!empty($group->groupPupils)) {
                     Yii::$app->session->addFlash('error', 'Вы не можете изменять дату начала занятий группы');
                     $error = true;
-                } else $group->date_start = date_create_from_format('d.m.Y', $groupVal['date_start'])->format('Y-m-d');
+                } else {
+                    $group->startDateObject = $groupVal['date_start'] ? date_create_from_format('d.m.Y', $groupVal['date_start']) : null;
+                }
             }
-            if (array_key_exists('date_end', $groupVal) && $groupVal['date_end']) {
-                $group->date_end = date_create_from_format('d.m.Y', $groupVal['date_end'])->format('Y-m-d');
+            if (array_key_exists('date_end', $groupVal)) {
+                $group->endDateObject = $groupVal['date_end'] ? date_create_from_format('d.m.Y', $groupVal['date_end']) : null;
             }
             if (!$group->date_start && !empty($newPupils)) {
                 Yii::$app->session->addFlash('error', 'Введите дату начала занятий группы!');
@@ -167,6 +171,9 @@ class GroupController extends AdminController
             } elseif ($group->date_end && $group->date_end <= $group->date_start) {
                 Yii::$app->session->addFlash('error', 'Введённые даты начала и завершения занятий группы недопустимы');
                 $error = true;
+            }
+            if (!$group->date_end || $group->endDateObject > new \DateTime()) {
+                $group->active = Group::STATUS_ACTIVE;
             }
 
             $weekday = Yii::$app->request->post('weekday', []);

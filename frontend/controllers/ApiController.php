@@ -4,13 +4,14 @@ namespace frontend\controllers;
 
 use common\components\ComponentContainer;
 use common\components\MoneyComponent;
-use common\components\Telegram;
 use common\models\Contract;
 use common\models\GiftCard;
 use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\TelegramLog;
+use Yii;
 use yii\web\Controller;
 use yii\web\HttpException;
+use yii\web\Response;
 
 /**
  * ApiController is used to provide API-messaging
@@ -21,12 +22,11 @@ class ApiController extends Controller
 
     public function actionTgAdminBot()
     {
-        \Yii::$app->db->open();
+        Yii::$app->db->open();
         try {
-            /** @var Telegram $telegram */
-            $telegram = \Yii::$app->telegramAdminNotifier;
+            $telegram = ComponentContainer::getTelegramAdminNotifier();
 
-            if (!$telegram->checkAccess(\Yii::$app->request)) throw new HttpException(403, 'Access denied');
+            if (!$telegram->checkAccess(Yii::$app->request)) throw new HttpException(403, 'Access denied');
 
             $telegram->telegram->handle();
         } catch (TelegramException $e) {
@@ -36,12 +36,11 @@ class ApiController extends Controller
 
     public function actionTgPublicBot()
     {
-        \Yii::$app->db->open();
+        Yii::$app->db->open();
         try {
-            /** @var Telegram $telegram */
-            $telegram = \Yii::$app->telegramPublic;
+            $telegram = ComponentContainer::getTelegramPublic();
 
-            if (!$telegram->checkAccess(\Yii::$app->request)) throw new HttpException(403, 'Access denied');
+            if (!$telegram->checkAccess(Yii::$app->request)) throw new HttpException(403, 'Access denied');
 
             $telegram->telegram->handle();
         } catch (TelegramException $e) {
@@ -54,16 +53,16 @@ class ApiController extends Controller
         $jsonData = ['status' => 0];
         $whiteList = ['185.8.212.47', '185.8.212.48'];
 
-        if (!\Yii::$app->request->isPost) {
+        if (!Yii::$app->request->isPost) {
             $jsonData['message'] = 'Request should be POST';
             return $jsonData;
         }
-        if (!in_array(\Yii::$app->request->remoteIP, $whiteList)) {
+        if (!in_array(Yii::$app->request->remoteIP, $whiteList)) {
             $jsonData['message'] = 'Wrong server IP';
             return $jsonData;
         }
 
-        $params = json_decode(\Yii::$app->request->rawBody, true);
+        $params = json_decode(Yii::$app->request->rawBody, true);
 
         if ($params === false
             || !array_key_exists('store_id', $params)
@@ -100,7 +99,7 @@ class ApiController extends Controller
                 return $jsonData;
             }
 
-            $transaction = \Yii::$app->db->beginTransaction();
+            $transaction = Yii::$app->db->beginTransaction();
             try {
                 $giftCard->status = GiftCard::STATUS_PAID;
                 $giftCard->paid_at = array_key_exists('transaction_time', $params) ? $params['transaction_time'] : date('Y-m-d H:i:s');
@@ -138,7 +137,7 @@ class ApiController extends Controller
                 return $jsonData;
             }
 
-            $transaction = \Yii::$app->db->beginTransaction();
+            $transaction = Yii::$app->db->beginTransaction();
             try {
                 MoneyComponent::payContract(
                     $contract,
@@ -162,13 +161,13 @@ class ApiController extends Controller
 
     public function actionPaymoComplete()
     {
-        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
         $jsonData = $this->processPaymoRequest();
         if (!array_key_exists('status', $jsonData) || $jsonData['status'] != 1) {
             ComponentContainer::getErrorLogger()->logError(
                 'api/paymo',
-                print_r(\Yii::$app->request, true) . "\n" . print_r($jsonData, true),
+                print_r(Yii::$app->request, true) . "\n" . print_r($jsonData, true),
                 true
             );
         }
