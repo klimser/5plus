@@ -308,9 +308,6 @@ class User extends ActiveRecord implements IdentityInterface
             if ($this->password_hash === null) {
                 $this->password_hash = '';
             }
-            if (empty($this->note)) {
-                $this->note = null;
-            }
             return true;
         } else {
             return false;
