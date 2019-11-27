@@ -20,6 +20,7 @@ use common\models\Teacher;
  * @property-read string $eventTime
  * @property-read  int $limitAttendTimestamp
  * @property \DateTime $eventDateTime
+ * @property-read \DateTime $teacherEditLimitDate
  *
  * @property Group $group
  * @property EventMember[] $members
@@ -109,6 +110,14 @@ class Event extends ActiveRecord
         $limitDate = clone $this->eventDateTime;
         $limitDate->modify('+1 hour');
         return $limitDate->getTimestamp();
+    }
+    
+    public function getTeacherEditLimitDate(): \DateTime
+    {
+        $limitDate = clone $this->eventDateTime;
+        $lessonDuration = $this->group->lesson_duration ?: 90;
+        $limitDate->modify("+{$lessonDuration} minutes")->modify('+1 hour');
+        return $limitDate;
     }
 
     /**

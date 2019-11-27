@@ -170,6 +170,9 @@ class EventController extends AdminController
                 || $eventMember->event->eventDateTime > $this->getLimitDate()
                 || ($eventMember->status != EventMember::STATUS_UNKNOWN && ($eventMember->status != EventMember::STATUS_MISS || $eventMember->event->limitAttendTimestamp < time()))) {
                 $jsonData = self::getJsonErrorResult('Pupil edit denied!');
+            } elseif (Yii::$app->user->can('teacher')
+                && $eventMember->event->teacherEditLimitDate < new \DateTime()) {
+                $jsonData = self::getJsonErrorResult('Прошло слишком много времени после завершения занятия! Обратитесь в администрацию');
             } else {
                 $eventMember->status = $status;
                 if ($eventMember->save()) {
@@ -206,8 +209,12 @@ class EventController extends AdminController
         if (!$eventMember) $jsonData = self::getJsonErrorResult('Pupil not found');
         elseif (!$this->isTeacherHasAccess($eventMember->event) || $eventMember->status != EventMember::STATUS_ATTEND) {
             $jsonData = self::getJsonErrorResult('Pupil edit denied!');
-        } elseif ($mark <= 0 || $mark > 5) $jsonData = self::getJsonErrorResult('Wrong mark!');
-        else {
+        } elseif ($mark <= 0 || $mark > 5) {
+            $jsonData = self::getJsonErrorResult('Wrong mark!');
+        } elseif (Yii::$app->user->can('teacher')
+            && $eventMember->event->teacherEditLimitDate < new \DateTime()) {
+            $jsonData = self::getJsonErrorResult('Прошло слишком много времени после завершения занятия! Обратитесь в администрацию');
+        }else {
             $eventMember->mark = $mark;
             if ($eventMember->save()) {
                 ComponentContainer::getPyBot()->mark($eventMember);
