@@ -25,7 +25,7 @@ use yii\web\Response;
 
 class PaymentController extends Controller
 {
-    private function getPageParams(?string $type): array
+    private function getPageParams(?string $type = null): array
     {
         $moduleId = Module::getModuleIdByControllerAndAction('payment', 'index');
         $params = [
