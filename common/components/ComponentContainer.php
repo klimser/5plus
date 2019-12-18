@@ -48,8 +48,8 @@ class ComponentContainer
     {
         return \Yii::$app->bitrix;
     }
-    public static function getPyBot(): PyBot
+    public static function getBotPush(): BotPush
     {
-        return \Yii::$app->pyBot;
+        return \Yii::$app->botPush;
     }
 }

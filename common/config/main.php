@@ -13,7 +13,7 @@ return [
         ],
         'db' => [
             'class' => \yii\db\Connection::class,
-            'charset' => 'utf8',
+            'charset' => 'utf8mb4',
             'dsn' => $params['db-dsn'],
             'username' => $params['db-username'],
             'password' => $params['db-password'],
@@ -89,7 +89,10 @@ return [
             'login' => $params['paygram-login'],
             'password' => $params['paygram-password'],
             'templateMap' => $params['paygram-template-map'],
-        ]
+        ],
+        'botPush' => [
+            'class' => \common\components\BotPush::class,
+        ],
     ],
     'aliases' => [
         '@uploads' => '@frontend/web/uploads',

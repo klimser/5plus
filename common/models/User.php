@@ -3,6 +3,7 @@ namespace common\models;
 
 use backend\models\Action;
 use backend\models\EventMember;
+use common\components\helpers\MaskString;
 use common\models\traits\InsertedUpdated;
 use common\models\traits\Phone;
 use common\models\traits\Phone2;
@@ -29,6 +30,8 @@ use yii\web\IdentityInterface;
  * @property int $parent_id
  * @property int $teacher_id
  * @property int $tg_chat_id
+ * @property-read string $tg_params
+ * @property array $telegramSettings
  * @property int $bitrix_id
  * @property int $bitrix_sync_status
  * @property string $password write-only password
@@ -45,6 +48,7 @@ use yii\web\IdentityInterface;
  * @property Payment[] $payments
  * @property Payment[] $paymentsAsAdmin
  * @property Debt[] $debts
+ * @property string nameHidden
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -108,7 +112,7 @@ class User extends ActiveRecord implements IdentityInterface
                 }
                 return true;
             }"],
-            [['status', 'money', 'role', 'parent_id', 'teacher_id', 'bitrix_id'], 'integer'],
+            [['status', 'money', 'role', 'parent_id', 'teacher_id', 'bitrix_id', 'tg_chat_id'], 'integer'],
             [['username', 'note', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
             [['name'], 'string', 'max' => 127],
             [['auth_key'], 'string', 'max' => 32],
@@ -276,6 +280,22 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
+     * @return string[]
+     */
+    public function getTelegramSettings(): array
+    {
+        return json_decode($this->getAttribute('tg_params'), true) ?: [];
+    }
+
+    /**
+     * @param string[] $value
+     */
+    public function setTelegramSettings(array $value)
+    {
+        $this->setAttribute('tg_params', json_encode($value));
+    }
+
+    /**
      * @param Group $group
      * @return Debt|null
      */
@@ -295,6 +315,16 @@ class User extends ActiveRecord implements IdentityInterface
             return [$parts[0], $parts[1], implode(' ', array_slice($parts, 2))];
         }
         return $parts;
+    }
+    
+    public function getNameHidden(): string
+    {
+        $nameParts = $this->nameParts;
+        $userName = MaskString::generate($nameParts[0], 2, 1);
+        if (!empty($nameParts[1])) {
+            $userName .= ' ' . MaskString::generate($nameParts[1], 1, 0);
+        }
+        return $userName;
     }
 
     public function beforeValidate() {

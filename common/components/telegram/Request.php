@@ -2,14 +2,17 @@
 
 namespace common\components\telegram;
 
-use common\components\telegram\exception\TelegramHttpException;
+use GuzzleHttp\Promise\PromiseInterface;
 use Longman\TelegramBot\DB;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use Longman\TelegramBot\Entities\File;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Exception\InvalidBotTokenException;
 use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\Telegram;
 use Longman\TelegramBot\TelegramLog;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Request
@@ -88,6 +91,13 @@ class Request
      * @var string
      */
     private static $api_base_uri = 'https://api.telegram.org';
+
+    /**
+     * Guzzle Client object
+     *
+     * @var \GuzzleHttp\Client
+     */
+    private static $client;
 
     /**
      * Input value of the request
@@ -208,6 +218,23 @@ class Request
         }
 
         self::$telegram = $telegram;
+        self::setClient(new Client());
+    }
+
+    /**
+     * Set a custom Guzzle HTTP Client object
+     *
+     * @param Client $client
+     *
+     * @throws TelegramException
+     */
+    public static function setClient(Client $client)
+    {
+        if (!($client instanceof Client)) {
+            throw new TelegramException('Invalid GuzzleHttp\Client pointer!');
+        }
+
+        self::$client = $client;
     }
 
     /**
@@ -329,43 +356,31 @@ class Request
             $data['reply_markup'] = json_encode($data['reply_markup']);
         }
 
-        $result = null;
-        $request_params = self::setUpRequestParams($data);
+        $result                  = null;
+        $request_params          = self::setUpRequestParams($data);
         $request_params['debug'] = TelegramLog::getDebugLogTempStream();
 
-        $curl = curl_init(self::$api_base_uri . '/bot' . self::$telegram->getApiKey() . '/' . $action);
-
-        $options = [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => null,
-            CURLOPT_POSTFIELDS => null,
-            CURLOPT_TIMEOUT => 30,
-        ];
-        if ($data) {
-            $options[CURLOPT_POST] = true;
-            $options[CURLOPT_POSTFIELDS] = $data;
-        }
-
-        curl_setopt_array($curl, $options);
-
         try {
-            $response = curl_exec($curl);
-            $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            curl_close($curl);
-        } catch (\Throwable $ex) {
-            if (is_resource($curl)) curl_close($curl);
-            throw new TelegramHttpException($ex->getMessage());
+            /** @var ResponseInterface|PromiseInterface $response */
+            $response = self::$client->post(
+                self::$api_base_uri . '/bot' . self::$telegram->getApiKey() . '/' . $action,
+                $request_params
+            );
+            $result = (string)$response->getBody();
+
+            //Logging getUpdates Update
+            if ($action === 'getUpdates') {
+                TelegramLog::update($result);
+            }
+            
+        } catch (RequestException $e) {
+            $result = ($e->getResponse()) ? (string) $e->getResponse()->getBody() : '';
+        } finally {
+            //Logging verbose debug output
+            TelegramLog::endDebugLogTempStream('Verbose HTTP Request output:' . PHP_EOL . '%s' . PHP_EOL);
         }
 
-
-
-//        if ($code != 200 && $code != 304) throw new TelegramHttpException("Worng HTTP-code: $code");
-//        else
-            if ($action === 'getUpdates') { //Logging getUpdates Update
-            TelegramLog::update($response);
-        }
-
-        return $response;
+        return $result;
     }
 
     /**
@@ -392,24 +407,21 @@ class Request
             throw new TelegramException('Directory ' . $file_dir . ' can\'t be created');
         }
 
-        $remoteFile = self::$api_base_uri . '/file/bot' . self::$telegram->getApiKey() . '/' . $tg_file_path;
-        $fp = fopen($file_path, 'w');
+        $debug_handle = TelegramLog::getDebugLogTempStream();
 
-        if ($fp === false) {
-            throw new TelegramException('Could not open: ' . $file_path);
+        try {
+            self::$client->get(
+                self::$api_base_uri . '/file/bot' . self::$telegram->getApiKey() . '/' . $tg_file_path,
+                ['debug' => $debug_handle, 'sink' => $file_path]
+            );
+
+            return filesize($file_path) > 0;
+        } catch (RequestException $e) {
+            return ($e->getResponse()) ? (string) $e->getResponse()->getBody() : '';
+        } finally {
+            //Logging verbose debug output
+            TelegramLog::endDebugLogTempStream('Verbose HTTP File Download Request output:' . PHP_EOL . '%s' . PHP_EOL);
         }
-
-        $ch = curl_init($remoteFile);
-        curl_setopt($ch, CURLOPT_FILE, $fp);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_exec($ch);
-        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if (curl_errno($ch)) {
-            throw new TelegramHttpException(curl_error($ch));
-        }
-
-        return $statusCode == 200;
     }
 
     /**
@@ -444,22 +456,22 @@ class Request
      */
     public static function send($action, array $data = [])
     {
-        self::ensureValidAction($action);
-        self::addDummyParamIfNecessary($action, $data);
+        static::ensureValidAction($action);
+        static::addDummyParamIfNecessary($action, $data);
 
-        $bot_username = self::$telegram->getBotUsername();
+        $bot_username = static::$telegram->getBotUsername();
 
         if (defined('PHPUNIT_TESTSUITE')) {
-            $fake_response = self::generateGeneralFakeServerResponse($data);
+            $fake_response = static::generateGeneralFakeServerResponse($data);
 
             return new ServerResponse($fake_response, $bot_username);
         }
 
-        self::ensureNonEmptyData($data);
+        static::ensureNonEmptyData($data);
 
-        self::limitTelegramRequests($action, $data);
+        static::limitTelegramRequests($action, $data);
 
-        $raw_response = self::execute($action, $data);
+        $raw_response = static::execute($action, $data);
 
         $response = json_decode($raw_response, true);
 

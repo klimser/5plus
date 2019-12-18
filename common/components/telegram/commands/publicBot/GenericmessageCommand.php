@@ -3,8 +3,10 @@
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use common\components\telegram\Request;
+use common\components\telegram\text\PublicMain;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Commands\SystemCommand;
+use Longman\TelegramBot\TelegramLog;
 
 /**
  * Generic message command
@@ -52,6 +54,10 @@ class GenericmessageCommand extends SystemCommand
     {
         $message = $this->getMessage();
 
+        if ($message->getText() === PublicMain::TO_MAIN) {
+            return $this->telegram->executeCommand('start');
+        }
+
         //If a conversation is busy, execute the conversation command after handling the message
         $conversation = new Conversation(
             $message->getFrom()->getId(),
@@ -63,8 +69,26 @@ class GenericmessageCommand extends SystemCommand
             return $this->telegram->executeCommand($command);
         }
 
-        return Request::emptyResponse();
+        TelegramLog::debug("TEXT: {$message->getText()}");
+
+        switch ($message->getText()) {
+            case PublicMain::BUTTON_CONTACT:
+                return $this->telegram->executeCommand('contact');
+                break;
+            case PublicMain::BUTTON_INFO:
+                return $this->telegram->executeCommand('info');
+                break;
+            case PublicMain::BUTTON_ORDER:
+                return $this->telegram->executeCommand('order');
+                break;
+            case PublicMain::BUTTON_REGISTER:
+                return $this->telegram->executeCommand('register');
+                break;
+            case PublicMain::BUTTON_ACCOUNT:
+                return $this->telegram->executeCommand('account');
+                break;
+            default:
+                return $this->telegram->executeCommand('start');
+        }
     }
-
-
 }

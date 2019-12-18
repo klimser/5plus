@@ -44,6 +44,8 @@ class Teacher extends ActiveRecord
     use UploadImage {
         upload as protected uploadBasic;
     }
+    
+    const CHIEF_OF_THE_BOARD_ID = 1;
 
     /**
      * @return array

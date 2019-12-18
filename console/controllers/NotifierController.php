@@ -7,6 +7,8 @@ use common\components\helpers\WordForm;
 use common\components\paygram\PaygramApiException;
 use common\components\PaymentComponent;
 use common\components\telegram\Request;
+use common\components\telegram\text\PublicMain;
+use common\models\BotPush;
 use common\models\GroupPupil;
 use common\models\Notify;
 use common\models\User;
@@ -44,8 +46,14 @@ class NotifierController extends Controller
         $quantity = 0;
         $startTime = microtime(true);
         while (true) {
+            $currentTime = microtime(true);
+            if($quantity >= self::QUANTITY_LIMIT || $currentTime - $startTime > self::TIME_LIMIT) break;
+            
             $toSend = Notify::findOne($condition);
-            if (!$toSend) break;
+            if (!$toSend) {
+                sleep(1);
+                continue;
+            }
 
             $toSend->status = Notify::STATUS_SENDING;
             $toSend->save();
@@ -64,26 +72,31 @@ class NotifierController extends Controller
                         break;
                     case Notify::TEMPLATE_PARENT_DEBT:
                         $child = User::findOne($toSend->parameters['child_id']);
-                        $message = "У студента {$child->name} задолженность в группе \"{$toSend->group->legal_name}\" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt'])
+                        $message = 'У студента ' . ($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden) . " задолженность в группе \"{$toSend->group->legal_name}\" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt'])
                             . '. [Оплатить онлайн](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PARENT_LOW:
                         $child = User::findOne($toSend->parameters['child_id']);
-                        $message = "У студента {$child->name} в группе \"{$toSend->group->legal_name}\" осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons'])
+                        $message = 'У студента ' . ($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden) . " в группе \"{$toSend->group->legal_name}\" осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons'])
                             . ' [Оплатить онлайн](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
                         break;
                 }
                 if ($message) {
-                    /** @var \Longman\TelegramBot\Entities\ServerResponse $response */
-                    $response = Request::sendMessage([
-                        'chat_id' => $toSend->user->tg_chat_id,
-                        'parse_mode' => 'Markdown',
-                        'text' => $message
-                    ]);
-                    if ($response->isOk()) {
-                        $sendSms = false;
+                    $sendSms = false;
+                    $push = new BotPush();
+                    $push->chat_id = $toSend->user->tg_chat_id;
+                    $push->messageArray = [
+                        'text' => $message,
+                        'parse_mode' => 'markdown',
+                        'disable_web_page_preview' => true,
+                    ];
+                    if ($push->save()) {
                         $toSend->status = Notify::STATUS_SENT;
                         $toSend->sent_at = date('Y-m-d H:i:s');
+                        $toSend->save();
+                    } else {
+                        ComponentContainer::getErrorLogger()->logError('notify/send', $push->getErrorsAsString(), true);
+                        $toSend->status = Notify::STATUS_ERROR;
                         $toSend->save();
                     }
                 }
@@ -131,11 +144,8 @@ class NotifierController extends Controller
                         ->logError('notifier/send', $exception->getMessage(), true);
                 }
                 $toSend->save();
+                $quantity++;
             }
-
-            $quantity++;
-            $currentTime = microtime(true);
-            if($quantity >= self::QUANTITY_LIMIT || $currentTime - $startTime > self::TIME_LIMIT) break;
         }
         return yii\console\ExitCode::OK;
     }
@@ -154,16 +164,17 @@ class NotifierController extends Controller
             ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE])
             ->andWhere(['<', GroupPupil::tableName() . '.paid_lessons', 0])
             ->andWhere(['!=', User::tableName() . '.status', User::STATUS_LOCKED])
-            ->with(['user', 'group'])
+            ->with('group')
             ->all();
         foreach ($groupPupils as $groupPupil) {
 
             /*----------------------  TEMPLATE ID 1 ---------------------------*/
-            $queuedNotifications = Notify::find()
+            /** @var Notify $queuedNotification */
+            $queuedNotification = Notify::find()
                 ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id, 'template_id' => Notify::TEMPLATE_PUPIL_DEBT])
                 ->andWhere(['!=', 'status', Notify::STATUS_SENT])
                 ->one();
-            if (empty($queuedNotifications)) {
+            if (!$queuedNotification) {
                 /** @var Notify[] $sentNotifications */
                 $sentNotifications = Notify::find()
                     ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id, 'template_id' => Notify::TEMPLATE_PUPIL_DEBT])
@@ -256,12 +267,12 @@ class NotifierController extends Controller
                 [GroupPupil::tableName() . '.date_end' => null],
                 ['>', GroupPupil::tableName() . '.date_end', $nextWeek->format('Y-m-d')]
             ])
-            ->with(['user', 'group'])
+            ->with('group')
             ->all();
         foreach ($groupPupils as $groupPupil) {
 
             /*----------------------  TEMPLATE ID 3 ---------------------------*/
-            $queuedNotifications = Notify::find()
+            $queuedNotification = Notify::find()
                 ->andWhere([
                     'user_id' => $groupPupil->user_id,
                     'group_id' => $groupPupil->group_id,
@@ -269,7 +280,7 @@ class NotifierController extends Controller
                 ])
                 ->andWhere(['!=', 'status', Notify::STATUS_SENT])
                 ->one();
-            if (empty($queuedNotifications)) {
+            if (!$queuedNotification) {
                 /** @var Notify[] $sentNotifications */
                 $sentNotifications = Notify::find()
                     ->andWhere([

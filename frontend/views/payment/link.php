@@ -7,12 +7,12 @@ use yii\bootstrap\Html;
 /* @var $groupPupils \common\models\GroupPupil[] */
 
 $this->params['breadcrumbs'][] = ['url' => \yii\helpers\Url::to(['payment/index']), 'label' => 'Онлайн оплата'];
-$this->params['breadcrumbs'][] = $paymentLink !== null ? $paymentLink->user->name : 'Не найден';
+$this->params['breadcrumbs'][] = $paymentLink !== null ? $paymentLink->user->nameHidden : 'Не найден';
 
 if ($paymentLink) {
     $script ="
         Payment.users[{$paymentLink->user_id}] = {
-            name: '{$paymentLink->user->name}',
+            name: '{$paymentLink->user->nameHidden}',
             groups: []
         };
         Payment.user = {$paymentLink->user_id};
@@ -39,7 +39,7 @@ if ($paymentLink) {
             }
         ?>
         <h4>
-            <?= $paymentLink->user->name; ?> | <?= $paymentLink->group->name; ?> <?= $debt ? '' : '<small>оплачено до ' . ($payDate ? $payDate->format('d.m.Y') :'') . '</small>'; ?>
+            <?= $paymentLink->user->nameHidden; ?> | <?= $paymentLink->group->name; ?> <?= $debt ? '' : '<small>оплачено до ' . ($payDate ? $payDate->format('d.m.Y') :'') . '</small>'; ?>
         </h4>
         <?php if ($debt > 0): ?>
             <div class="col-xs-12 col-sm-6 col-md-4">

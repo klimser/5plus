@@ -53,7 +53,7 @@ class Notify extends ActiveRecord
             [['user_id', 'template_id', 'params'], 'required'],
             [['user_id', 'group_id' , 'template_id', 'status', 'attempts'], 'integer'],
             [['params'], 'string'],
-            ['status', 'in', 'range' => [self::STATUS_NEW, self::STATUS_SENT, self::STATUS_ERROR]],
+            ['status', 'in', 'range' => [self::STATUS_NEW, self::STATUS_SENDING, self::STATUS_SENT, self::STATUS_ERROR]],
             ['status', 'default', 'value' => self::STATUS_NEW],
             [['created_at', 'sent_at'], 'safe'],
             [['user_id'], 'exist', 'targetRelation' => 'user'],

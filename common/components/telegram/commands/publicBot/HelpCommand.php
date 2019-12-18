@@ -2,6 +2,7 @@
 
 namespace Longman\TelegramBot\Commands\UserCommands;
 
+use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\Request;
 use Longman\TelegramBot\Commands\Command;
 use Longman\TelegramBot\Commands\UserCommand;
@@ -12,6 +13,8 @@ use Longman\TelegramBot\Commands\UserCommand;
  */
 class HelpCommand extends UserCommand
 {
+    use ConversationTrait;
+    
     /**
      * @var string
      */

@@ -6,7 +6,7 @@
 /* @var $teachersWebpage common\models\Webpage */
 
 $this->params['breadcrumbs'][] = ['url' => Yii::$app->homeUrl . $teachersWebpage->url, 'label' => 'Команда'];
-$this->params['breadcrumbs'][] = $teacher->name;
+$this->params['breadcrumbs'][] = $teacher->officialName;
 ?>
 
 <div class="row">

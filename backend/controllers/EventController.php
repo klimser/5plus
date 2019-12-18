@@ -121,7 +121,7 @@ class EventController extends AdminController
                                 foreach ($event->members as $member) {
                                     MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
                                     if ($member->groupPupil->user->getDebt($member->groupPupil->group)) {
-                                        ComponentContainer::getPyBot()->lowBalance($member->groupPupil);
+                                        ComponentContainer::getBotPush()->lowBalance($member->groupPupil);
                                     }
                                 }
                                 break;
@@ -177,7 +177,7 @@ class EventController extends AdminController
                 $eventMember->status = $status;
                 if ($eventMember->save()) {
                     if ($eventMember->event->eventDateTime >= date_create('midnight')) {
-                        ComponentContainer::getPyBot()->attendance($eventMember);
+                        ComponentContainer::getBotPush()->attendance($eventMember);
                     }
                     $jsonData = self::getJsonOkResult([
                         'memberId' => $eventMember->id,
@@ -217,7 +217,7 @@ class EventController extends AdminController
         }else {
             $eventMember->mark = $mark;
             if ($eventMember->save()) {
-                ComponentContainer::getPyBot()->mark($eventMember);
+                ComponentContainer::getBotPush()->mark($eventMember);
                 $jsonData = self::getJsonOkResult([
                     'memberId' => $eventMember->id,
                     'memberMark' => $eventMember->mark,

@@ -3,6 +3,7 @@
 namespace common\components;
 
 use common\components\telegram\Request;
+use Longman\TelegramBot\Commands\SystemCommands\CallbackqueryCommand;
 use Longman\TelegramBot\TelegramLog;
 use yii\base\BaseObject;
 use common\components\telegram\Telegram as TelegramBot;
@@ -18,6 +19,7 @@ class Telegram extends BaseObject
     protected $apiGateway;
     protected $tablePrefix;
     protected $webhookKey;
+    protected $callbackHandlers = [];
 
     /**
      * @param mixed $apiKey
@@ -67,6 +69,16 @@ class Telegram extends BaseObject
         $this->tablePrefix = $tablePrefix;
     }
 
+    /**
+     * @param array $callbackHandlers
+     */
+    public function setCallbackHandlers(array $callbackHandlers): void
+    {
+        $this->callbackHandlers = $callbackHandlers;
+    }
+    
+    
+
     private $bot;
 
     public function getTelegram(): TelegramBot
@@ -75,10 +87,15 @@ class Telegram extends BaseObject
             $this->bot = new TelegramBot($this->apiKey, $this->botName);
             if ($this->tablePrefix) $this->bot->enableExternalMySql(\Yii::$app->db->pdo, $this->tablePrefix);
             $this->bot->addCommandsPath(\Yii::getAlias($this->commandsPath));
+            foreach ($this->callbackHandlers as $callbackHandler) {
+                CallbackqueryCommand::addCallbackHandler($callbackHandler);
+            }
             if ($this->apiGateway) Request::setBaseUri($this->apiGateway);
             TelegramLog::initErrorLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_error.log');
-            TelegramLog::initDebugLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_debug.log');
             TelegramLog::initUpdateLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_update.log');
+            if (YII_ENV === 'dev') {
+                TelegramLog::initDebugLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_debug.log');
+            }
         }
         return $this->bot;
     }

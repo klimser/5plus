@@ -19,6 +19,8 @@ use \common\components\extended\ActiveRecord;
 class Page extends ActiveRecord
 {
     use Inserted;
+    
+    const PRICE_PAGE_URL = 'price';
 
     public static function tableName()
     {

@@ -11,7 +11,7 @@ $this->title = $name;
 ?>
 <div class="site-error">
 
-    <?php if ($exception->statusCode == 404): ?>
+    <?php if (property_exists($exception, 'statusCode') && $exception->statusCode == 404): ?>
         <h1>Приносим извинения, но данная страница не существует.</h1>
         <hr>
         <?= \frontend\components\widgets\SubjectListWidget::widget(); ?>
