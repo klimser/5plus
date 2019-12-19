@@ -20,7 +20,10 @@ $previousDate->modify('-1 day');
 $nextDate = clone $startDate;
 $nextDate->modify('+1 day');
 
-$this->registerJs('Event.init(' . time() . ');');
+$this->registerJs('
+Event.init(' . time() . ');
+$(\'[data-toggle="tooltip"]\').tooltip();
+');
 
 ?>
 <div class="events-index">
@@ -129,6 +132,18 @@ $this->registerJs('Event.init(' . time() . ');');
                                                 ?>" data-id="<?= $member->id; ?>" data-status="<?= $member->status; ?>" data-mark="<?= $member->mark; ?>">
                                                     <td>
                                                         <?= $member->groupPupil->user->name; ?>
+                                                        <?php
+                                                            $noteRows = [];
+                                                            if ($member->groupPupil->user->note) {
+                                                                $noteRows[] = $member->groupPupil->user->note;
+                                                            }
+                                                            if ($member->groupPupil->paid_lessons < 0) {
+                                                                $noteRows[] = 'долг ' . (0 - $member->groupPupil->paid_lessons) . ' занятий!';
+                                                            }
+                                                            if (!empty($noteRows)):
+                                                        ?>
+                                                            <span class="fas fa-info-circle text-danger" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= implode('<br>', $noteRows); ?>"></span>
+                                                        <?php endif; ?>
                                                     </td>
                                                     <td class="buttons-column text-right"></td>
                                                 </tr>
