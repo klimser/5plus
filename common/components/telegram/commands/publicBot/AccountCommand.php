@@ -712,12 +712,14 @@ class AccountCommand extends UserCommand
         $phoneSet = [];
         foreach ($untrustedUsers as $untrustedUser) {
             $phoneSet[$untrustedUser->phone] = true;
-            $phoneSet[$untrustedUser->phone2] = true;
+            if ($untrustedUser->phone2) {
+                $phoneSet[$untrustedUser->phone2] = true;
+            }
         }
 
         $buttons = [];
         foreach ($phoneSet as $phone => $devNull) {
-            $buttons[] = [$phone];
+            $buttons[] = $phone;
         }
         $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
 
