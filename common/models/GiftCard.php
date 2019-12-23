@@ -3,6 +3,7 @@
 namespace common\models;
 
 use common\components\extended\ActiveRecord;
+use common\components\helpers\StringGenerator;
 use common\models\traits\Inserted;
 use common\models\traits\Phone;
 use DateTime;
@@ -159,7 +160,8 @@ class GiftCard extends ActiveRecord
         if (parent::beforeValidate()) {
             if ($this->isNewRecord) {
                 do {
-                    $this->code = substr(hash('md5', $this->name . mt_rand(1000, mt_getrandmax())), 0, 8);
+                    $this->code = StringGenerator::generate(8, true, true);
+//                    $this->code = substr(hash('md5', $this->name . mt_rand(1000, mt_getrandmax())), 0, 8);
                 } while (self::find()->andWhere(['code' => $this->code])->count('id') > 0);
             }
             return true;

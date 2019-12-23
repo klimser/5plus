@@ -4,12 +4,16 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 
 use backend\models\Event;
 use backend\models\EventMember;
+use common\components\ComponentContainer;
+use common\components\paygram\PaygramApiException;
 use common\components\PaymentComponent;
+use common\components\SmsConfirmation;
 use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
 use common\components\telegram\Request;
 use common\components\telegram\text\PublicMain;
 use common\models\BotPush;
+use common\models\ConfirmationCode;
 use common\models\GroupPupil;
 use common\models\Payment;
 use common\models\User;
@@ -506,62 +510,249 @@ class AccountCommand extends UserCommand
     private function accountConfirm(Conversation $conversation)
     {
         $message = $this->getMessage();
-        $text = PublicMain::ACCOUNT_CONFIRM_TEXT;
-        if ($message->getContact()) {
-            $phone = $message->getContact()->getPhoneNumber();
-            $phoneDigits = preg_replace('#\D#', '', $phone);
-            $phoneFull = '+998' . substr($phoneDigits, -9);
+        
+        $filterUntrusted = function(User $user) {
+            return !$user->telegramSettings['trusted'];
+        };
+        
+        /** @var User[] $users */
+        $users = User::find()
+            ->andWhere([
+                'role' => [User::ROLE_PUPIL, User::ROLE_PARENTS],
+                'tg_chat_id' => $message->getChat()->getId(),
+            ])
+            ->andWhere(['!=', 'status', User::STATUS_LOCKED])
+            ->all();
+        /** @var User[] $untrustedUsers */
+        $untrustedUsers = array_filter($users, $filterUntrusted);
 
-            /** @var User[] $users */
-            $users = User::find()
-                ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
-                ->andWhere(['!=', 'status', User::STATUS_LOCKED])
-                ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $phoneFull])
-                ->all();
-            if (count($users) === 0) {
-                $text = PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND;
-                $conversation->notes['step']--;
-                $conversation->update();
-            } else {
-                $affected = false;
-                $rows = [];
-                foreach ($users as $user) {
-                    if ($user->tg_chat_id === $message->getChat()->getId()) {
-                        continue;
+        if (empty($untrustedUsers)) {
+            Request::sendMessage([
+                'chat_id' => $message->getChat()->getId(),
+                'text' => PublicMain::ACCOUNT_CONFIRM_NO_USERS,
+            ]);
+            
+            return $this->stepBack($conversation);
+        }
+
+        $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_CONFIRM);
+        switch ($conversation->notes['step']) {
+            case 2:
+                return [
+                    'text' => PublicMain::ACCOUNT_CONFIRM_TEXT,
+                    'reply_markup' => PublicMain::getPhoneKeyboard([PublicMain::ACCOUNT_CONFIRM_SMS]),
+                ];
+                break;
+            case 3:
+                if ($message->getContact()) {
+                    $phone = $message->getContact()->getPhoneNumber();
+                    $phoneDigits = preg_replace('#\D#', '', $phone);
+                    $phoneFull = '+998' . substr($phoneDigits, -9);
+
+                    $conversation->notes['step']--;
+                    $conversation->update();
+
+                    /** @var User[] $users */
+                    $users = User::find()
+                        ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
+                        ->andWhere(['!=', 'status', User::STATUS_LOCKED])
+                        ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $phoneFull])
+                        ->all();
+                    if (count($users) === 0) {
+                        return [
+                            'text' => PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND,
+                            'reply_markup' => PublicMain::getPhoneKeyboard([PublicMain::ACCOUNT_CONFIRM_SMS]),
+                        ];
                     }
-                    if ($user->tg_chat_id && $user->tg_chat_id !== $message->getChat()->getId()) {
-                        if ($user->telegramSettings['trusted']) {
-                            $rows[] = $user->nameHidden . ' - ' . PublicMain::REGISTER_STEP_2_LOCKED;
-                            continue;
-                        } else {
-                            $push = new BotPush();
-                            $push->chat_id = $user->tg_chat_id;
-                            $push->messageArray = ['text' => PublicMain::REGISTER_RESET_BY_TRUSTED];
-                            $push->save();
+                    
+                    [$affected, $rows] = $this->confirmUsers($users);
+                    if (!$affected) {
+                        $rows[] = PublicMain::ACCOUNT_CHECK_SUCCESS_NONE;
+                    }
+
+                    Request::sendMessage([
+                        'chat_id' => $message->getChat()->getId(),
+                        'text' => implode("\n", $rows),
+                    ]);
+
+                    return $this->stepBack($conversation);
+                } else {
+                    return [
+                        'text' => PublicMain::ACCOUNT_CONFIRM_STEP_3_TEXT,
+                        'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
+                    ];
+                }
+                break;
+            case 4:
+                $phoneFull = '+' . preg_replace('#/D#', '', $message->getText());
+                /** @var User[] $users */
+                $users = User::find()
+                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
+                    ->andWhere(['!=', 'status', User::STATUS_LOCKED])
+                    ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $phoneFull])
+                    ->all();
+                $untrustedPhoneUsers = array_filter($users, $filterUntrusted);
+                
+                $errorMessage = null;
+                if (count($users) === 0) {
+                    $errorMessage = PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND;
+                } elseif (count($untrustedPhoneUsers) === 0) {
+                    $errorMessage = PublicMain::ACCOUNT_CHECK_SUCCESS_NONE;
+                } else {
+                    foreach ($untrustedPhoneUsers as $untrustedPhoneUser) {
+                        $smsData = $untrustedPhoneUser->telegramSettings['sms_data'][$phoneFull] ?? [];
+                        if ($smsData['sms_sent'] ?? 0 >= 3) {
+                            $errorMessage = PublicMain::ACCOUNT_CONFIRM_SMS_LOCKED;
+                            break;
                         }
                     }
-                    $user->tg_chat_id = $message->getChat()->getId();
-                    $user->save();
-                    $rows[] = $user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS;
-                    $affected = true;
                 }
+                
+                if ($errorMessage) {
+                    $conversation->notes['step']--;
+                    $conversation->update();
+                    
+                    return [
+                        'text' => $errorMessage,
+                        'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
+                    ];
+                }
+                
+                if (SmsConfirmation::add($phoneFull, 10)) {
+                    $this->addNote($conversation, 'sms_confirm_phone', $phoneFull);
+                    $this->addNote($conversation, 'sms_confirm_attempts', 0);
+                    
+                    foreach ($untrustedPhoneUsers as $untrustedPhoneUser) {
+                        $telegramData = $untrustedPhoneUser->telegramSettings;
+                        $smsData = $telegramData['sms_data'][$phoneFull] ?? [];
+                        $smsSent = 0;
+                        if (empty($smsData['sms_date']) || $smsData['sms_date'] !== date('Y-m-d')) {
+                            $smsData['sms_date'] = date('Y-m-d');
+                        } else {
+                            $smsSent = $smsData['sms_sent'] ?? 0;
+                        }
+                        $smsData['sms_sent'] = $smsSent + 1;
+                        $telegramData['sms_data'][$phoneFull] = $smsData;
+                        $untrustedPhoneUser->telegramSettings = $telegramData;
+                        if (!$untrustedPhoneUser->save()) {
+                            ComponentContainer::getErrorLogger()
+                                ->logError('bot/confirm', $untrustedPhoneUser->getErrorsAsString(), true);
+                        }
+                    }
+                    
+                    return [
+                        'text' => PublicMain::ACCOUNT_CONFIRM_STEP_4_TEXT,
+                        'reply_markup' => Keyboard::remove(),
+                    ];
+                } else {
+                    $conversation->notes['step']--;
+                    $conversation->update();
+                    
+                    return [
+                        'text' => PublicMain::ACCOUNT_CONFIRM_STEP_4_FAILED,
+                        'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
+                    ];
+                }
+                break;
+            case 5:
+                $errorMessage = null;
+                if (empty($conversation->notes['sms_confirm_phone'])) {
+                    $errorMessage = PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND;
+                } elseif ($conversation->notes['sms_confirm_attempts'] ?? 0 >= 5) {
+                    $errorMessage = PublicMain::ACCOUNT_CONFIRM_SMS_TOO_MUCH_ATTEMPTS;
+                    SmsConfirmation::invalidate($conversation->notes['sms_confirm_phone']);
+                } elseif (!SmsConfirmation::validate($conversation->notes['sms_confirm_phone'], trim($message->getText()))) {
+                    $errorMessage = PublicMain::ACCOUNT_CHECK_FAILED_CODE_INVALID;
+                    $this->addNote($conversation, 'sms_confirm_attempts', ($conversation->notes['sms_confirm_attempts'] ?? 0) + 1);
+                }
+
+                if ($errorMessage) {
+                    $conversation->notes['step']--;
+                    $conversation->update();
+
+                    return [
+                        'text' => $errorMessage,
+                        'reply_markup' => PublicMain::getBackAndMainKeyboard(),
+                    ];
+                }
+
+                /** @var User[] $users */
+                $users = User::find()
+                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
+                    ->andWhere(['!=', 'status', User::STATUS_LOCKED])
+                    ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['sms_confirm_phone']])
+                    ->all();
+                [$affected, $rows] = $this->confirmUsers($users);
                 if (!$affected) {
                     $rows[] = PublicMain::ACCOUNT_CHECK_SUCCESS_NONE;
+                } else {
+                    SmsConfirmation::invalidate($conversation->notes['sms_confirm_phone']);
                 }
 
                 Request::sendMessage([
                     'chat_id' => $message->getChat()->getId(),
                     'text' => implode("\n", $rows),
                 ]);
-                
+                $this->addNote($conversation, 'step', 3);
+
                 return $this->stepBack($conversation);
-            }
+                break;
+            default:
+                return $this->stepBack($conversation);
+        }
+    }
+
+    /**
+     * @param User[] $untrustedUsers
+     * @return Keyboard
+     * @throws \Longman\TelegramBot\Exception\TelegramException
+     */
+    private function getPhonesListKeyboard(array $untrustedUsers): Keyboard
+    {
+        $phoneSet = [];
+        foreach ($untrustedUsers as $untrustedUser) {
+            $phoneSet[$untrustedUser->phone] = true;
+            $phoneSet[$untrustedUser->phone2] = true;
         }
 
-        $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_CONFIRM);
-        return [
-            'text' => $text,
-            'reply_markup' => PublicMain::getPhoneKeyboard(),
-        ];
+        $buttons = [];
+        foreach ($phoneSet as $phone => $devNull) {
+            $buttons[] = [$phone];
+        }
+        $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
+
+        $keyboard = new Keyboard(...$buttons);
+        $keyboard->setResizeKeyboard(true)->setSelective(false);
+        
+        return $keyboard;
+    }
+    
+    private function confirmUsers(array $users): array
+    {
+        $affected = 0;
+        $rows = [];
+        $chatId = $this->getMessage()->getChat()->getId();
+        foreach ($users as $user) {
+            if ($user->tg_chat_id === $chatId) {
+                continue;
+            }
+            if ($user->tg_chat_id && $user->tg_chat_id !== $chatId) {
+                if ($user->telegramSettings['trusted']) {
+                    $rows[] = $user->nameHidden . ' - ' . PublicMain::REGISTER_STEP_2_LOCKED;
+                    continue;
+                } else {
+                    $push = new BotPush();
+                    $push->chat_id = $user->tg_chat_id;
+                    $push->messageArray = ['text' => PublicMain::REGISTER_RESET_BY_TRUSTED];
+                    $push->save();
+                }
+            }
+            $user->tg_chat_id = $chatId;
+            $user->save();
+            $rows[] = $user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS;
+            $affected++;
+        }
+        
+        return [$affected, $rows];
     }
 }

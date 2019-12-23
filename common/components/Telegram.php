@@ -92,8 +92,8 @@ class Telegram extends BaseObject
             }
             if ($this->apiGateway) Request::setBaseUri($this->apiGateway);
             TelegramLog::initErrorLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_error.log');
-            TelegramLog::initUpdateLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_update.log');
             if (YII_ENV === 'dev') {
+                TelegramLog::initUpdateLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_update.log');
                 TelegramLog::initDebugLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_debug.log');
             }
         }

@@ -27,7 +27,6 @@ class BotPushController extends Controller
         $currentTime = intval(date('H'));
         if (!array_key_exists('telegramPublic', \Yii::$app->components)
             || $currentTime >= 20 || $currentTime < 9) {
-            echo $currentTime;
             return yii\console\ExitCode::OK;
         }
 

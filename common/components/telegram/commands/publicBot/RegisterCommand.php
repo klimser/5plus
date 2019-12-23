@@ -184,10 +184,10 @@ class RegisterCommand extends UserCommand
      * @param Conversation $conversation
      * @param User $user
      * @param bool $trusted
-     * @return array
+     * @return array|ServerResponse
      * @throws \Longman\TelegramBot\Exception\TelegramException
      */
-    private function setUserRegister(Conversation $conversation, User $user, bool $trusted = false): array
+    private function setUserRegister(Conversation $conversation, User $user, bool $trusted = false)
     {
         if ($user->tg_chat_id === $this->getMessage()->getChat()->getId()) {
             $this->flushConversation();

@@ -21,7 +21,7 @@ class Tinifier extends BaseObject
     {
         parent::init();
 
-        if (array_key_exists('tinifyKey', \Yii::$app->params)) \Tinify\setKey(\Yii::$app->params['tinifyKey']);
+        if ($this->apiKey) \Tinify\setKey($this->apiKey);
     }
 
     /**

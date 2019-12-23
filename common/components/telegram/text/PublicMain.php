@@ -123,10 +123,18 @@ MESSAGE;
     const PUPILS_TEXT = 'Вы можете добавить несколько студентов на один Telegram аккаунт';
     const PUPILS_ADD = '👤➕Добавить';
     
-    const ACCOUNT_CONFIRM_TEXT = '✔️Вы можете подтвердить свой аккаунт нажав на кнопку ' . self::SEND_PHONE_BUTTON;
+    const ACCOUNT_CONFIRM_TEXT = '✔️Вы можете подтвердить свой аккаунт нажав на кнопку ' . self::SEND_PHONE_BUTTON . ' или при помощи SMS';
+    const ACCOUNT_CONFIRM_SMS = '📄Подтвердить по SMS';
+    const ACCOUNT_CONFIRM_NO_USERS = '✔️Все студенты уже подтверждены';
     const ACCOUNT_CHECK_FAILED_NOT_FOUND = '😢Не найдено совпадений';
+    const ACCOUNT_CHECK_FAILED_CODE_INVALID = 'Неверный код подтверждения';
     const ACCOUNT_CHECK_SUCCESS = '😃Подтверждён';
     const ACCOUNT_CHECK_SUCCESS_NONE = 'Для этого номера телефона все студенты уже подтверждены';
+    const ACCOUNT_CONFIRM_STEP_3_TEXT = '☎️Выберите телефон для отправки SMS';
+    const ACCOUNT_CONFIRM_STEP_4_FAILED = '🙁Не удалось отправить SMS. Попробуйте снова.';
+    const ACCOUNT_CONFIRM_SMS_LOCKED = '🙅‍♂️Номер заблокирован, отправить SMS снова можно будет через 1 день';
+    const ACCOUNT_CONFIRM_SMS_TOO_MUCH_ATTEMPTS = '🙅‍♂️Слишком много неудачных попыток. Код подтверждения заблокирован, отправьте новый код';
+    const ACCOUNT_CONFIRM_STEP_4_TEXT = 'Введите код подтверждения из SMS.';
     
     const ATTENDANCE_ATTEND = '✅%s присутствует на занятии "%s"';
     const ATTENDANCE_MISS = '❌%s отсутствует на занятии "%s"';
@@ -139,12 +147,11 @@ MESSAGE;
         return $keyboard;
     }
     
-    public static function getPhoneKeyboard()
+    public static function getPhoneKeyboard(array $buttons = [])
     {
-        $keyboard = new Keyboard(
-            [['text' => PublicMain::SEND_PHONE_BUTTON, 'request_contact' => true]],
-            [PublicMain::TO_BACK, PublicMain::TO_MAIN]
-        );
+        $buttons[] = [['text' => PublicMain::SEND_PHONE_BUTTON, 'request_contact' => true]];
+        $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
+        $keyboard = new Keyboard(...$buttons);
         $keyboard->setResizeKeyboard(true)->setSelective(false);
         return $keyboard;
     }
