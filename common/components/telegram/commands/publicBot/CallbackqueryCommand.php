@@ -15,7 +15,6 @@ use common\components\telegram\Request;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\Telegram;
-use Longman\TelegramBot\TelegramLog;
 
 /**
  * Callback query command
@@ -58,7 +57,6 @@ class CallbackqueryCommand extends SystemCommand
      * Command execute method
      *
      * @return mixed
-     * @throws \Longman\TelegramBot\Exception\TelegramException
      */
     public function execute()
     {

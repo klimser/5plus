@@ -13,6 +13,7 @@ use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
+use Longman\TelegramBot\Exception\TelegramException;
 
 /**
  * Register command
@@ -45,7 +46,7 @@ class RegisterCommand extends UserCommand
      * Command execute method
      *
      * @return mixed
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     public function execute()
     {
@@ -64,7 +65,7 @@ class RegisterCommand extends UserCommand
     /**
      * @param Conversation $conversation
      * @return array|ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     private function process(Conversation $conversation)
     {
@@ -100,18 +101,49 @@ class RegisterCommand extends UserCommand
                 }
 
                 $trusted = !empty($conversation->notes['trusted']);
-                $users = User::find()
-                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
+                $parents = User::find()
+                    ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['phone']])
                     ->andWhere(['or', ['tg_chat_id' => null], ['!=', 'tg_chat_id', $message->getChat()->getId()]])
                     ->all();
                 
-                if (count($users) === 1) {
-                    return $this->setUserRegister($conversation, $users[0], $trusted);
+                if (count($parents) === 1) {
+                    return $this->setUserRegister($conversation, $parents[0], $trusted);
                 }
                 
-                if (count($users) <= 0) {
+                if (count($parents) > 1) {
+                    $this->addNote($conversation, 'role', User::ROLE_PARENTS);
+                    $data = [
+                        'text' => PublicMain::REGISTER_STEP_2_MULTIPLE,
+                        'reply_markup' => Keyboard::remove(),
+                    ];
+                    if ($trusted) {
+                        $buttons = [];
+                        foreach ($parents as $parent) {
+                            $buttons[] = $parent->name;
+                        }
+                        $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
+                        $keyboard = new Keyboard(...$buttons);
+                        $keyboard->setResizeKeyboard(true)->setSelective(false);
+                        $data['reply_markup'] = $keyboard;
+                    }
+
+                    return $data;
+                }
+                
+                $pupils = User::find()
+                    ->andWhere(['role' => User::ROLE_PUPIL])
+                    ->andWhere(['!=', 'status', User::STATUS_LOCKED])
+                    ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['phone']])
+                    ->andWhere(['or', ['tg_chat_id' => null], ['!=', 'tg_chat_id', $message->getChat()->getId()]])
+                    ->all();
+                
+                if (count($pupils) === 1) {
+                    return $this->setUserRegister($conversation, $pupils[0], $trusted);
+                }
+                
+                if (count($pupils) === 0) {
                     $conversation->notes['step']--;
                     $conversation->update();
                     
@@ -120,15 +152,16 @@ class RegisterCommand extends UserCommand
                         'reply_markup' => PublicMain::getPhoneKeyboard(),
                     ];
                 }
-                
+
+                $this->addNote($conversation, 'role', User::ROLE_PUPIL);
                 $data = [
                     'text' => PublicMain::REGISTER_STEP_2_MULTIPLE,
                     'reply_markup' => Keyboard::remove(),
                 ];
                 if ($trusted) {
                     $buttons = [];
-                    foreach ($users as $user) {
-                        $buttons[] = $user->name;
+                    foreach ($pupils as $pupil) {
+                        $buttons[] = $pupil->name;
                     }
                     $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
                     $keyboard = new Keyboard(...$buttons);
@@ -141,7 +174,7 @@ class RegisterCommand extends UserCommand
             case 3:
                 $trusted = !empty($conversation->notes['trusted']);
                 $users = User::find()
-                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
+                    ->andWhere(['role' => $conversation->notes['role'] === User::ROLE_PUPIL ? User::ROLE_PUPIL : [User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['phone']])
                     ->andWhere(['or', ['tg_chat_id' => null], ['!=', 'tg_chat_id', $message->getChat()->getId()]])
@@ -185,18 +218,12 @@ class RegisterCommand extends UserCommand
      * @param User $user
      * @param bool $trusted
      * @return array|ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     private function setUserRegister(Conversation $conversation, User $user, bool $trusted = false)
     {
         if ($user->tg_chat_id === $this->getMessage()->getChat()->getId()) {
-            $this->flushConversation();
-            $keyboard = new Keyboard([PublicMain::TO_MAIN]);
-            $keyboard->setResizeKeyboard(true)->setSelective(false);
-            return [
-                'text' => PublicMain::REGISTER_SUCCESS,
-                'reply_markup' => $keyboard,
-            ];
+            return $this->telegram->executeCommand('account');
         }
         
         if ($user->tg_chat_id) {

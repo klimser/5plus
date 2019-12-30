@@ -48,7 +48,7 @@ class BotPushController extends Controller
             $botPush->save();
             
             if (empty($botPush->messageArray)) {
-                $botPush->dataArray = array_merge($botPush->dataArray, ['error_message' => 'Empty message!']);
+                $botPush->dataArray = array_merge($botPush->dataArray ?? [], ['error_message' => 'Empty message!']);
                 $botPush->status = BotPush::STATUS_ERROR;
                 $botPush->save();
             }
@@ -60,7 +60,7 @@ class BotPushController extends Controller
             } else {
                 $botPush->status = BotPush::STATUS_ERROR;
                 $botPush->dataArray = array_merge(
-                    $botPush->dataArray,
+                    $botPush->dataArray ?? [],
                     [
                         'error_code' => $response->getErrorCode(),
                         'error_message' => $response->getDescription(),

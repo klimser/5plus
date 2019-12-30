@@ -14,6 +14,7 @@ use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
+use Longman\TelegramBot\Exception\TelegramException;
 
 /**
  * Order command
@@ -62,7 +63,7 @@ class OrderCommand extends UserCommand
     /**
      * @param Conversation $conversation
      * @return array
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     private function addOrder(Conversation $conversation): array
     {
@@ -100,7 +101,7 @@ class OrderCommand extends UserCommand
     /**
      * @param Conversation $conversation
      * @return array|ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     private function process(Conversation $conversation)
     {

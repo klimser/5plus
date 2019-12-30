@@ -21,74 +21,91 @@ class BotPush extends BaseObject
 
     /**
      * @param EventMember $eventMember
-     * @return bool
      */
     public function attendance(EventMember $eventMember)
     {
         $user = $eventMember->groupPupil->user;
-        if (!$user->tg_chat_id || !$user->telegramSettings['subscribe']) {
-            return true;
+        if ($user->tg_chat_id && $user->telegramSettings['subscribe']) {
+            $message = sprintf(
+                $eventMember->status === EventMember::STATUS_ATTEND ? PublicMain::ATTENDANCE_ATTEND : PublicMain::ATTENDANCE_MISS,
+                $user->telegramSettings['trusted'] ? $user->name : $user->nameHidden,
+                $eventMember->event->group->legal_name
+            );
+
+            $this->add($user->tg_chat_id, ['text' => $message]);
         }
-        
-        $message = sprintf(
-            $eventMember->status === EventMember::STATUS_ATTEND ? PublicMain::ATTENDANCE_ATTEND : PublicMain::ATTENDANCE_MISS,
-            $user->telegramSettings['trusted'] ? $user->name : $user->nameHidden,
-            $eventMember->event->group->legal_name
-        );
-        
-        if ($this->add($user->tg_chat_id, ['text' => $message])) {
-            return true;
+
+        if ($user->parent_id && $user->parent->tg_chat_id && $user->parent->telegramSettings['subscribe']) {
+            $message = sprintf(
+                $eventMember->status === EventMember::STATUS_ATTEND ? PublicMain::ATTENDANCE_ATTEND : PublicMain::ATTENDANCE_MISS,
+                $user->parent->telegramSettings['trusted'] ? $user->name : $user->nameHidden,
+                $eventMember->event->group->legal_name
+            );
+
+            $this->add($user->parent->tg_chat_id, ['text' => $message]);
         }
-        return false;
     }
 
     /**
      * @param EventMember $eventMember
-     * @return bool
      */
     public function mark(EventMember $eventMember)
     {
         $user = $eventMember->groupPupil->user;
-        if (!$user->tg_chat_id || !$user->telegramSettings['subscribe']) {
-            return true;
-        }
-        
-        $usersCount = User::find()->andWhere(['tg_chat_id' => $user->tg_chat_id])->count();
+        if ($user->tg_chat_id && $user->telegramSettings['subscribe']) {
+            $usersCount = User::find()->andWhere(['tg_chat_id' => $user->tg_chat_id])->count();
 
-        $message = sprintf(
-            PublicMain::ATTENDANCE_MARK,
-            $usersCount > 1 ? ($user->telegramSettings['trusted'] ? $user->name : $user->nameHidden) . ': ' : '',
-            $eventMember->mark,
-            $eventMember->event->group->legal_name
-        );
+            $message = sprintf(
+                PublicMain::ATTENDANCE_MARK,
+                $usersCount > 1 ? ($user->telegramSettings['trusted'] ? $user->name : $user->nameHidden) . ': ' : '',
+                $eventMember->mark,
+                $eventMember->event->group->legal_name
+            );
 
-        if ($this->add($user->tg_chat_id, ['text' => $message])) {
-            return true;
+            $this->add($user->tg_chat_id, ['text' => $message]);
         }
-        return false;
+
+        if ($user->parent_id && $user->parent->tg_chat_id && $user->parent->telegramSettings['subscribe']) {
+            $message = sprintf(
+                PublicMain::ATTENDANCE_MARK,
+                $user->parent->telegramSettings['trusted'] ? $user->name : $user->nameHidden,
+                $eventMember->mark,
+                $eventMember->event->group->legal_name
+            );
+
+            $this->add($user->parent->tg_chat_id, ['text' => $message]);
+        }
     }
 
     /**
      * @param GroupPupil $groupPupil
-     * @return bool
      */
     public function lowBalance(GroupPupil $groupPupil)
     {
         $user = $groupPupil->user;
-        if (!$user->tg_chat_id || !$user->telegramSettings['subscribe']) {
-            return true;
-        }
-
+        
         $lessonDebt = GroupPupil::find()
             ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
             ->andWhere(['<', 'paid_lessons', 0])
             ->select('SUM(paid_lessons)')
             ->scalar();
-        return ComponentContainer::getNotifyQueue()->add(
-            $groupPupil->user,
-            Notify::TEMPLATE_PUPIL_DEBT,
-            ['debt' => abs($lessonDebt)],
-            $groupPupil->group
-        );
+        
+        if ($user->tg_chat_id && $user->telegramSettings['subscribe']) {
+            ComponentContainer::getNotifyQueue()->add(
+                $user,
+                Notify::TEMPLATE_PUPIL_DEBT,
+                ['debt' => abs($lessonDebt)],
+                $groupPupil->group
+            );
+        }
+
+        if ($user->parent_id && $user->parent->tg_chat_id && $user->parent->telegramSettings['subscribe']) {
+            ComponentContainer::getNotifyQueue()->add(
+                $user->parent,
+                Notify::TEMPLATE_PARENT_DEBT,
+                ['debt' => abs($lessonDebt)],
+                $groupPupil->group
+            );
+        }
     }
 }

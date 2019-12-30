@@ -51,12 +51,6 @@ class StartCommand extends SystemCommand
         return $keyboard;
     }
 
-    /**
-     * Command execute method
-     *
-     * @return mixed
-     * @throws \Longman\TelegramBot\Exception\TelegramException
-     */
     public function execute()
     {
         $this->flushConversation();

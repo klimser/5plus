@@ -6,6 +6,8 @@ use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\Request;
 use Longman\TelegramBot\Commands\Command;
 use Longman\TelegramBot\Commands\UserCommand;
+use Longman\TelegramBot\Exception\TelegramException;
+
 /**
  * User "/help" command
  *
@@ -76,10 +78,12 @@ class HelpCommand extends UserCommand
         $data['text'] = 'Справка недоступна: Команда /' . $commandStr . ' не найдена';
         return Request::sendMessage($data);
     }
+
     /**
      * Get all available User and Admin commands to display in the help list.
      *
      * @return Command[][]
+     * @throws TelegramException
      */
     protected function getUserAdminCommands()
     {

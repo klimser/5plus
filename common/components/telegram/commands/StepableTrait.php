@@ -15,20 +15,13 @@ use Longman\TelegramBot\Entities\ServerResponse;
  */
 trait StepableTrait
 {
-    /**
-     * @param Message $message
-     * @return Conversation|null
-     * @throws \Longman\TelegramBot\Exception\TelegramException
-     */
     protected function handleMessage(Message $message): ?Conversation
     {
-        //If a conversation is busy, execute the conversation command after handling the message
         $conversation = new Conversation(
             $message->getFrom()->getId(),
             $message->getChat()->getId()
         );
 
-        //Fetch conversation command if it exists and execute it
         if (!$conversation->exists() || $conversation->getCommand() !== $this->name) {
             $conversation = new Conversation(
                 $message->getFrom()->getId(),

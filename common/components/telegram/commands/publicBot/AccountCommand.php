@@ -5,7 +5,6 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 use backend\models\Event;
 use backend\models\EventMember;
 use common\components\ComponentContainer;
-use common\components\paygram\PaygramApiException;
 use common\components\PaymentComponent;
 use common\components\SmsConfirmation;
 use common\components\telegram\commands\ConversationTrait;
@@ -13,14 +12,14 @@ use common\components\telegram\commands\StepableTrait;
 use common\components\telegram\Request;
 use common\components\telegram\text\PublicMain;
 use common\models\BotPush;
-use common\models\ConfirmationCode;
-use common\models\GroupPupil;
 use common\models\Payment;
 use common\models\User;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
+use Longman\TelegramBot\Exception\TelegramException;
+use yii\db\Query;
 
 /**
  * Account command
@@ -53,7 +52,7 @@ class AccountCommand extends UserCommand
      * Command execute method
      *
      * @return mixed
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     public function execute()
     {
@@ -80,7 +79,7 @@ class AccountCommand extends UserCommand
     /**
      * @param Conversation $conversation
      * @return array|ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     private function process(Conversation $conversation)
     {
@@ -150,52 +149,59 @@ class AccountCommand extends UserCommand
                 break;
         }
     }
-    
-    
-    
-    private function processUserSelect(Conversation $conversation)
+
+    /**
+     * @return string[]
+     */
+    private function getPupilList(): array
     {
         /** @var User[] $users */
         $users = User::find()
-            ->andWhere(['tg_chat_id' => $this->getMessage()->getChat()->getId()])
-            ->orderBy(['name' => SORT_ASC])
+            ->alias('u')
+            ->joinWith('children u2')
+            ->andWhere(['u.tg_chat_id' => $this->getMessage()->getChat()->getId()])
+            ->orderBy(['u.name' => SORT_ASC, 'u2.name' => SORT_ASC])
             ->all();
 
-        if (count($users) === 1) {
-            return $users[0];
-        }
-        switch ($conversation->notes['step']) {
-            case 3:
-                if (preg_match('#^(\d+)\D*#', $this->getMessage()->getText(), $matches)) {
-                    /** @var User $user */
-                    $user = User::find()
-                        ->andWhere(['tg_chat_id' => $this->getMessage()->getChat()->getId()])
-                        ->orderBy(['name' => SORT_ASC])
-                        ->offset($matches[1] - 1)
-                        ->limit(1)
-                        ->one();
-                    if ($user) {
-                        return $user;
-                    }
+        $pupils = [];
+        foreach ($users as $user) {
+            $trusted = $user->telegramSettings['trusted'];
+            if ($user->role === User::ROLE_PUPIL) {
+                $pupils[] = $trusted ? $user->name : $user->nameHidden;
+            } else {
+                foreach ($user->children as $child) {
+                    $pupils[] = $trusted ? $child->name : $child->nameHidden;
                 }
+            }
+        }
+        
+        return $pupils;
+    }
+    
+    private function processUserSelect(Conversation $conversation)
+    {
+        $pupils = $this->getPupilList();
+
+        if (count($pupils) === 1) {
+            return $pupils[0];
+        }
+        if ($conversation->notes['step'] === 3
+            && preg_match('#^(\d+)\D*#', $this->getMessage()->getText(), $matches)
+            && isset($pupils[$matches[1] - 1])) {
+            return $pupils[$matches[1] - 1];
+        }
                 
-                $conversation->notes['step'] = 2;
-                $conversation->update();
-                return $this->processUserSelect($conversation);
-                break;
-            default:
-                $buttons = [];
-                foreach ($users as $i => $user) {
-                    $buttons[] = ($i + 1) . ' ' . ($user->telegramSettings['trusted'] ? $user->name : $user->nameHidden);
-                }
-                $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
-                $keyboard = new Keyboard(...$buttons);
-                $keyboard->setResizeKeyboard(true)->setSelective(false);
-                return [
-                    'text' => PublicMain::ACCOUNT_STEP_2_SELECT_USER,
-                    'reply_markup' => $keyboard,
-                ];
+        $buttons = [];
+        foreach ($pupils as $i => $pupilName) {
+            $buttons[] = ($i + 1) . ' ' . $pupilName;
         }
+        $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
+        $keyboard = new Keyboard(...$buttons);
+        $keyboard->setResizeKeyboard(true)->setSelective(false);
+        return [
+            'text' => PublicMain::ACCOUNT_STEP_2_SELECT_USER,
+            'reply_markup' => $keyboard,
+        ];
     }
 
     private function processAttend(Conversation $conversation)
@@ -213,16 +219,17 @@ class AccountCommand extends UserCommand
 
         /** @var EventMember[] $eventMembers */
         $eventMembers = EventMember::find()
-            ->joinWith('event', true)
-            ->joinWith('groupPupil')
+            ->alias('em')
+            ->joinWith('event e', true)
+            ->joinWith('groupPupil gp')
             ->andWhere([
-                Event::tableName() . '.status' => Event::STATUS_PASSED,
-                EventMember::tableName() . '.status' => EventMember::STATUS_MISS,
-                GroupPupil::tableName() . '.user_id' => $userResult->id,
+                'e.status' => Event::STATUS_PASSED,
+                'em.status' => EventMember::STATUS_MISS,
+                'gp.user_id' => $userResult->id,
             ])
-            ->andWhere(['>', Event::tableName() . '.event_date', date_create('-90 days')->format('Y-m-d H:i:s')])
+            ->andWhere(['>', 'e.event_date', date_create('-90 days')->format('Y-m-d H:i:s')])
             ->with('event.group')
-            ->orderBy([Event::tableName() . '.group_id' => SORT_ASC, Event::tableName() . '.event_date' => SORT_ASC])
+            ->orderBy(['e.group_id' => SORT_ASC, 'e.event_date' => SORT_ASC])
             ->all();
         
         $rows = [];
@@ -264,17 +271,18 @@ class AccountCommand extends UserCommand
 
         /** @var EventMember[] $eventMembers */
         $eventMembers = EventMember::find()
-            ->joinWith('event', true)
-            ->joinWith('groupPupil')
+            ->alias('em')
+            ->joinWith('event e', true)
+            ->joinWith('groupPupil gp')
             ->andWhere([
-                Event::tableName() . '.status' => Event::STATUS_PASSED,
-                EventMember::tableName() . '.status' => EventMember::STATUS_ATTEND,
-                GroupPupil::tableName() . '.user_id' => $userResult->id,
+                'e.status' => Event::STATUS_PASSED,
+                'em.status' => EventMember::STATUS_ATTEND,
+                'gp.user_id' => $userResult->id,
             ])
-            ->andWhere(['not', [EventMember::tableName() . '.mark' => null]])
-            ->andWhere(['>', Event::tableName() . '.event_date', date_create('-30 days')->format('Y-m-d H:i:s')])
+            ->andWhere(['not', ['em.mark' => null]])
+            ->andWhere(['>', 'e.event_date', date_create('-30 days')->format('Y-m-d H:i:s')])
             ->with('event.group')
-            ->orderBy([Event::tableName() . '.group_id' => SORT_ASC, Event::tableName() . '.event_date' => SORT_ASC])
+            ->orderBy(['e.group_id' => SORT_ASC, 'e.event_date' => SORT_ASC])
             ->all();
 
         $rows = [];
@@ -393,36 +401,41 @@ class AccountCommand extends UserCommand
         if (($conversation->notes['step'] ?? 0) > 3) {
             return $this->stepBack($conversation);
         }
+
+        /** @var User[] $users */
+        $users = User::find()
+            ->andWhere(['tg_chat_id' => $this->getMessage()->getChat()->getId()])
+            ->orderBy(['name' => SORT_ASC])
+            ->with(['children' => function(Query $query) { $query->orderBy(['name' => SORT_ASC]); }])
+            ->all();
         
         if ($conversation->notes['step'] === 3) {
             if (preg_match('#^(\d+) ([' . PublicMain::ICON_CHECK . PublicMain::ICON_CROSS . '])#u', $this->getMessage()->getText(), $matches)
                 || (preg_match('#^([' . PublicMain::ICON_CHECK . PublicMain::ICON_CROSS . '])#u', $this->getMessage()->getText(), $matches))) {
+                
                 $offset = count($matches) > 2 ? $matches[1] - 1 : 0;
                 $icon = count($matches) > 2 ? $matches[2] : $matches[1];
-                /** @var User $user */
-                $user = User::find()
-                    ->andWhere(['tg_chat_id' => $this->getMessage()->getChat()->getId()])
-                    ->orderBy(['name' => SORT_ASC])
-                    ->offset($offset)
-                    ->limit(1)
-                    ->one();
-                if ($user) {
-                    $settings = $user->telegramSettings;
+
+                $pupils = [];
+                foreach ($users as $user) {
+                    if ($user->role === User::ROLE_PUPIL || count($user->children) > 0) {
+                        $pupils[] = $user;
+                    }
+                }
+
+                if (isset($pupils[$offset])) {
+                    /** @var User $pupil */
+                    $pupil = $pupils[$offset];
+                    $settings = $pupil->telegramSettings;
                     $settings['subscribe'] = ($icon === PublicMain::ICON_CHECK);
-                    $user->telegramSettings = $settings;
-                    $user->save();
+                    $pupil->telegramSettings = $settings;
+                    $pupil->save();
                 }
             }
 
             $conversation->notes['step']--;
             $conversation->update();
         }
-
-        /** @var User[] $users */
-        $users = User::find()
-            ->andWhere(['tg_chat_id' => $this->getMessage()->getChat()->getId()])
-            ->orderBy(['name' => SORT_ASC])
-            ->all();
         
         if (count($users) === 1) {
             $text = $users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_YES : PublicMain::SUBSCRIPTION_NO;
@@ -434,11 +447,27 @@ class AccountCommand extends UserCommand
             $keyboard->setResizeKeyboard(true)->setSelective(false);
         } else {
             $rows = $buttons = [];
-            foreach ($users as $i => $user) {
-                $rows[] = ($user->telegramSettings['trusted'] ? $user->name : $user->nameHidden) . ' - '
-                    . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CHECK : PublicMain::ICON_CROSS);
-                $buttons[] = ($i + 1) . ' ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CROSS : PublicMain::ICON_CHECK)
-                    . ' ' . ($user->telegramSettings['trusted'] ? $user->name : $user->nameHidden);
+            $i = 1;
+            foreach ($users as $user) {
+                $trusted = $user->telegramSettings['trusted'];
+                $name = null;
+                if ($user->role === User::ROLE_PUPIL) {
+                    $name = $trusted ? $user->name : $user->nameHidden;
+                } else {
+                    if (count($user->children) > 0) {
+                        $child = $user->children[0];
+                        $name = ($trusted ? $child->name : $child->nameHidden);
+                        if (count($user->children) > 1) {
+                            $name .= ' +' . (count($user->children) - 1);
+                        }
+                    }
+                }
+                
+                if ($name) {
+                    $rows[] = $name . ' - ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CHECK : PublicMain::ICON_CROSS);
+                    $buttons[] = $i . ' ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CROSS : PublicMain::ICON_CHECK) . ' ' . $name;
+                    $i++;
+                }
             }
             $text = implode("\n", $rows);
             $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
@@ -518,7 +547,7 @@ class AccountCommand extends UserCommand
         /** @var User[] $users */
         $users = User::find()
             ->andWhere([
-                'role' => [User::ROLE_PUPIL, User::ROLE_PARENTS],
+                'role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY],
                 'tg_chat_id' => $message->getChat()->getId(),
             ])
             ->andWhere(['!=', 'status', User::STATUS_LOCKED])
@@ -554,7 +583,7 @@ class AccountCommand extends UserCommand
 
                     /** @var User[] $users */
                     $users = User::find()
-                        ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
+                        ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]])
                         ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                         ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $phoneFull])
                         ->all();
@@ -565,8 +594,8 @@ class AccountCommand extends UserCommand
                         ];
                     }
                     
-                    [$affected, $rows] = $this->confirmUsers($users);
-                    if (!$affected) {
+                    $rows = $this->confirmUsers($users);
+                    if (empty($rows)) {
                         $rows[] = PublicMain::ACCOUNT_CHECK_SUCCESS_NONE;
                     }
 
@@ -587,7 +616,7 @@ class AccountCommand extends UserCommand
                 $phoneFull = '+' . preg_replace('#/D#', '', $message->getText());
                 /** @var User[] $users */
                 $users = User::find()
-                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
+                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $phoneFull])
                     ->all();
@@ -678,15 +707,16 @@ class AccountCommand extends UserCommand
 
                 /** @var User[] $users */
                 $users = User::find()
-                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
+                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['sms_confirm_phone']])
                     ->all();
-                [$affected, $rows] = $this->confirmUsers($users);
-                if (!$affected) {
+                $rows = $this->confirmUsers($users);
+                if (empty($rows)) {
                     $rows[] = PublicMain::ACCOUNT_CHECK_SUCCESS_NONE;
                 } else {
                     SmsConfirmation::invalidate($conversation->notes['sms_confirm_phone']);
+                    $this->removeNote($conversation, 'sms_confirm_phone');
                 }
 
                 Request::sendMessage([
@@ -705,7 +735,7 @@ class AccountCommand extends UserCommand
     /**
      * @param User[] $untrustedUsers
      * @return Keyboard
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @throws TelegramException
      */
     private function getPhonesListKeyboard(array $untrustedUsers): Keyboard
     {
@@ -731,30 +761,19 @@ class AccountCommand extends UserCommand
     
     private function confirmUsers(array $users): array
     {
-        $affected = 0;
         $rows = [];
         $chatId = $this->getMessage()->getChat()->getId();
         foreach ($users as $user) {
-            if ($user->tg_chat_id === $chatId) {
+            if ($user->tg_chat_id !== $chatId) {
                 continue;
             }
-            if ($user->tg_chat_id && $user->tg_chat_id !== $chatId) {
-                if ($user->telegramSettings['trusted']) {
-                    $rows[] = $user->nameHidden . ' - ' . PublicMain::REGISTER_STEP_2_LOCKED;
-                    continue;
-                } else {
-                    $push = new BotPush();
-                    $push->chat_id = $user->tg_chat_id;
-                    $push->messageArray = ['text' => PublicMain::REGISTER_RESET_BY_TRUSTED];
-                    $push->save();
-                }
+            if (!$user->telegramSettings['trusted']) {
+                $user->telegramSettings = array_merge($user->telegramSettings, ['trusted' => true]);
+                $user->save();
+                $rows[] = $user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS;
             }
-            $user->tg_chat_id = $chatId;
-            $user->save();
-            $rows[] = $user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS;
-            $affected++;
         }
         
-        return [$affected, $rows];
+        return $rows;
     }
 }
