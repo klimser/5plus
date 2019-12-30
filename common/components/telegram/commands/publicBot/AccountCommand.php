@@ -11,7 +11,6 @@ use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
 use common\components\telegram\Request;
 use common\components\telegram\text\PublicMain;
-use common\models\BotPush;
 use common\models\Payment;
 use common\models\User;
 use Longman\TelegramBot\Commands\UserCommand;
@@ -167,10 +166,10 @@ class AccountCommand extends UserCommand
         foreach ($users as $user) {
             $trusted = $user->telegramSettings['trusted'];
             if ($user->role === User::ROLE_PUPIL) {
-                $pupils[] = $trusted ? $user->name : $user->nameHidden;
+                $pupils[] = ['name' => $trusted ? $user->name : $user->nameHidden, 'entity' => $user];
             } else {
                 foreach ($user->children as $child) {
-                    $pupils[] = $trusted ? $child->name : $child->nameHidden;
+                    $pupils[] = ['name' => $trusted ? $child->name : $child->nameHidden, 'entity' => $child];
                 }
             }
         }
@@ -183,17 +182,17 @@ class AccountCommand extends UserCommand
         $pupils = $this->getPupilList();
 
         if (count($pupils) === 1) {
-            return $pupils[0];
+            return $pupils[0]['entity'];
         }
         if ($conversation->notes['step'] === 3
             && preg_match('#^(\d+)\D*#', $this->getMessage()->getText(), $matches)
             && isset($pupils[$matches[1] - 1])) {
-            return $pupils[$matches[1] - 1];
+            return $pupils[$matches[1] - 1]['entity'];
         }
                 
         $buttons = [];
-        foreach ($pupils as $i => $pupilName) {
-            $buttons[] = ($i + 1) . ' ' . $pupilName;
+        foreach ($pupils as $i => $pupilData) {
+            $buttons[] = ($i + 1) . ' ' . $pupilData['name'];
         }
         $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
         $keyboard = new Keyboard(...$buttons);
@@ -215,6 +214,9 @@ class AccountCommand extends UserCommand
         if (!$userResult instanceof User) {
             $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_ATTEND);
             return $userResult;
+        }
+        if ($conversation->notes['step'] > 2) {
+            $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_ATTEND);
         }
 
         /** @var EventMember[] $eventMembers */
@@ -267,6 +269,9 @@ class AccountCommand extends UserCommand
         if (!$userResult instanceof User) {
             $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_MARKS);
             return $userResult;
+        }
+        if ($conversation->notes['step'] > 2) {
+            $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_MARKS);
         }
 
         /** @var EventMember[] $eventMembers */
@@ -321,6 +326,9 @@ class AccountCommand extends UserCommand
             $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_BALANCE);
             return $userResult;
         }
+        if ($conversation->notes['step'] > 2) {
+            $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_BALANCE);
+        }
 
         $rows = $groupSet = [];
         foreach ($userResult->groupPupils as $groupPupil) {
@@ -362,6 +370,9 @@ class AccountCommand extends UserCommand
         if (!$userResult instanceof User) {
             $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_PAYMENT);
             return $userResult;
+        }
+        if ($conversation->notes['step'] > 2) {
+            $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_PAYMENT);
         }
 
         /** @var Payment[] $payments */
