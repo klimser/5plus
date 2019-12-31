@@ -59,7 +59,7 @@ class NotifierController extends Controller
             $toSend->save();
 
             $sendSms = true;
-            if ($tryTelegram && $toSend->user->tg_chat_id) {
+            if ($tryTelegram && $toSend->user->tg_chat_id && $toSend->user->telegramSettings['subscribe']) {
                 $message = null;
                 switch ($toSend->template_id) {
                     case Notify::TEMPLATE_PUPIL_DEBT:

@@ -6,6 +6,7 @@ use common\components\ComponentContainer;
 use common\components\telegram\Request;
 use common\models\BotPush;
 use common\models\Notify;
+use common\models\User;
 use yii;
 use yii\console\Controller;
 
@@ -66,7 +67,16 @@ class BotPushController extends Controller
                         'error_message' => $response->getDescription(),
                         'result' => $response->getResult(),
                     ]
-                    );
+                );
+                if ($response->getDescription() === 'Forbidden: bot was blocked by the user') {
+                    $users = User::findAll(['tg_chat_id' => $botPush->chat_id]);
+                    foreach ($users as $user) {
+                        $telegramSettings = $user->telegramSettings;
+                        $telegramSettings['subscribe'] = false;
+                        $user->telegramSettings = $telegramSettings;
+                        $user->save();
+                    }
+                }
             }
             $botPush->save();
         }
