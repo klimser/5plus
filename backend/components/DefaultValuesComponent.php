@@ -24,6 +24,7 @@ class DefaultValuesComponent extends Component
             'options' => ['rows' => 6],
             'language' => 'ru',
             'clientOptions' => [
+                'element_format' => 'html',
                 'plugins' => [
                     'advlist autolink lists link charmap preview anchor',
                     'searchreplace visualblocks code fullscreen',

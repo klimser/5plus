@@ -17,6 +17,7 @@ return [
             'pupilChangePast',
             'moneyCorrection',
             'deleteTeachers',
+            'sendPush',
         ],
     ],
     'manager' => [
@@ -251,6 +252,10 @@ return [
     'deleteTeachers' => [
         'type' => 2,
         'description' => 'Delete teachers',
+    ],
+    'sendPush' => [
+        'type' => 2,
+        'description' => 'Send custom push-messages',
     ],
 
     /* SUPPORT */
