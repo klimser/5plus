@@ -129,6 +129,7 @@ class EventController extends AdminController
                                 foreach ($event->members as $member) {
                                     $member->status = EventMember::STATUS_MISS;
                                     $member->save();
+                                    MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
                                 }
                                 break;
                         }
