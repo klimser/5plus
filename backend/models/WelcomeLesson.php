@@ -96,7 +96,7 @@ class WelcomeLesson extends ActiveRecord
             'lesson_date' => 'Дата',
             'subject_id' => 'Предмет',
             'teacher_id' => 'Учитель',
-            'grouop_id' => 'Группа',
+            'group_id' => 'Группа',
             'status' => 'Статус занятия',
         ];
     }
@@ -123,6 +123,14 @@ class WelcomeLesson extends ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getGroup()
+    {
+        return $this->hasOne(Group::class, ['id' => 'group_id']);
     }
 
     /**

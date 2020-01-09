@@ -249,14 +249,15 @@ class UserController extends AdminController
             $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subject_id'], 'active' => Subject::STATUS_ACTIVE])->one();
             if (!$subject) throw new Exception('Предмет не найден');
             $welcomeLesson->subject_id = $subject->id;
-        }
-        if ($welcomeLessonData['teacher_id']) {
-            /** @var Teacher $teacher */
-            $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacher_id'], 'active' => Teacher::STATUS_ACTIVE])->one();
-            if (!$teacher) throw new Exception('Учитель не найден');
-            $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
-            if (!$teacherSubject) throw new Exception('Учитель не найден');
-            $welcomeLesson->teacher_id = $teacher->id;
+
+            if ($welcomeLessonData['teacher_id']) {
+                /** @var Teacher $teacher */
+                $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacher_id'], 'active' => Teacher::STATUS_ACTIVE])->one();
+                if (!$teacher) throw new Exception('Учитель не найден');
+                $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
+                if (!$teacherSubject) throw new Exception('Учитель не найден');
+                $welcomeLesson->teacher_id = $teacher->id;
+            }
         }
         
         $startDate = date_create_from_format('d.m.Y', $welcomeLessonData['date']);
@@ -453,7 +454,7 @@ class UserController extends AdminController
                     if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT)) {
                         $newRules = Yii::$app->request->post('acl', []);
                         foreach (UserComponent::ACL_RULES as $key => $devNull) {
-                            $role = $auth->getRole($key);
+                            $role = $auth->getRole($key) ?? $auth->getPermission($key);
                             if (array_key_exists($key, $newRules)) {
                                 if (!$auth->getAssignment($role->name, $user->id)) $auth->assign($role, $user->id);
                             } else {

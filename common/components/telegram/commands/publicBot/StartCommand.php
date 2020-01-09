@@ -62,7 +62,8 @@ class StartCommand extends SystemCommand
 
         $data = [
             'chat_id' => $this->getMessage()->getChat()->getId(),
-            'text'    => PublicMain::GREETING,
+            'text'    => Request::escapeMarkdownV2(PublicMain::GREETING),
+            'parse_mode' => 'MarkdownV2',
             'reply_markup' => $this->getKeyboard(),
         ];
 

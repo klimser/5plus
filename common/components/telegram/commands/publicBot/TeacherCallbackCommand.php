@@ -24,13 +24,13 @@ class TeacherCallbackCommand
                         'caption' => $teacher->officialName,
                     ]);
                 } else {
-                    $message .= "*{$teacher->officialName}*\n";
+                    $message .= '*' . Request::escapeMarkdownV2($teacher->officialName) . "*\n";
                 }
                 
-                $message .= str_replace(['{{', '}}'], '*', $teacher->descriptionForEdit);
+                $message .= str_replace(['{{', '}}'], '*', Request::escapeMarkdownV2($teacher->descriptionForEdit));
                 Request::sendMessage([
                     'chat_id' => $callbackQuery->getMessage()->getChat()->getId(),
-                    'parse_mode' => 'markdown',
+                    'parse_mode' => 'MarkdownV2',
                     'text' => $message,
                 ]);
             }

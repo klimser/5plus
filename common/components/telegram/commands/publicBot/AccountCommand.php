@@ -5,6 +5,7 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 use backend\models\Event;
 use backend\models\EventMember;
 use common\components\ComponentContainer;
+use common\components\helpers\WordForm;
 use common\components\PaymentComponent;
 use common\components\SmsConfirmation;
 use common\components\telegram\commands\ConversationTrait;
@@ -108,7 +109,8 @@ class AccountCommand extends UserCommand
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
                 
                 return [
-                    'text' => PublicMain::ACCOUNT_STEP_1_TEXT,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_1_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -198,7 +200,8 @@ class AccountCommand extends UserCommand
         $keyboard = new Keyboard(...$buttons);
         $keyboard->setResizeKeyboard(true)->setSelective(false);
         return [
-            'text' => PublicMain::ACCOUNT_STEP_2_SELECT_USER,
+            'parse_mode' => 'MarkdownV2',
+            'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_2_SELECT_USER),
             'reply_markup' => $keyboard,
         ];
     }
@@ -236,16 +239,16 @@ class AccountCommand extends UserCommand
         
         $rows = [];
         if (count($eventMembers) === 0) {
-            $rows[] = PublicMain::ATTEND_NO_MISSED;
+            $rows[] = Request::escapeMarkdownV2(PublicMain::ATTEND_NO_MISSED);
         } else {
-            $rows[] = sprintf(PublicMain::ATTEND_HAS_MISSED, count($eventMembers));
+            $rows[] = Request::escapeMarkdownV2(sprintf(PublicMain::ATTEND_HAS_MISSED, count($eventMembers)));
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
                 if ($eventMember->event->group_id != $groupId) {
-                    $rows[] = "*{$eventMember->event->group->legal_name}*";
+                    $rows[] = '*' . Request::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
                     $groupId = $eventMember->event->group_id;
                 }
-                $rows[] = $eventMember->event->eventDateTime->format('d.m.Y H:i');
+                $rows[] = Request::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i'));
             }
         }
 
@@ -253,7 +256,7 @@ class AccountCommand extends UserCommand
         $conversation->update();
         
         return [
-            'parse_mode' => 'markdown',
+            'parse_mode' => 'MarkdownV2',
             'text' => implode("\n", $rows),
         ];
     }
@@ -292,16 +295,16 @@ class AccountCommand extends UserCommand
 
         $rows = [];
         if (count($eventMembers) === 0) {
-            $rows[] = PublicMain::MARKS_NONE;
+            $rows[] = Request::escapeMarkdownV2(PublicMain::MARKS_NONE);
         } else {
-            $rows[] = PublicMain::MARKS_TEXT;
+            $rows[] = Request::escapeMarkdownV2(PublicMain::MARKS_TEXT);
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
                 if ($eventMember->event->group_id != $groupId) {
-                    $rows[] = "*{$eventMember->event->group->legal_name}*";
+                    $rows[] = '*' . Request::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
                     $groupId = $eventMember->event->group_id;
                 }
-                $rows[] = $eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - *' . $eventMember->mark . '*';
+                $rows[] = Request::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - ') . "*{$eventMember->mark}*";
             }
         }
 
@@ -309,7 +312,7 @@ class AccountCommand extends UserCommand
         $conversation->update();
 
         return [
-            'parse_mode' => 'markdown',
+            'parse_mode' => 'MarkdownV2',
             'text' => implode("\n", $rows),
         ];
     }
@@ -340,22 +343,22 @@ class AccountCommand extends UserCommand
                     ->scalar();
                 if ($groupPupil->active || $balance < 0) {
                     $rows[] = Request::escapeMarkdownV2($groupPupil->group->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
-                        . '(*' . abs($groupPupil->paid_lessons) . '* ' . PublicMain::LESSONS . ') '
+                        . '\\(*' . abs($groupPupil->paid_lessons) . '* ' . WordForm::getLessonsForm(abs($groupPupil->paid_lessons)) . '\\) '
                         . '[' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($groupPupil->user_id, $groupPupil->group_id)->url . ')';
                 }
             }
         }
         if (!empty($rows)) {
-            array_unshift($rows, '*' . PublicMain::BANALCE_TEXT . '*');
+            array_unshift($rows, '*' . Request::escapeMarkdownV2(PublicMain::BANALCE_TEXT) . '*');
         }
 
         $conversation->notes['step']--;
         $conversation->update();
 
         return [
-            'parse_mode' => 'markdownV2',
+            'parse_mode' => 'MarkdownV2',
             'disable_web_page_preview' => true,
-            'text' => empty($rows) ? PublicMain::BALANCE_NO_GROUP : implode("\n", $rows),
+            'text' => empty($rows) ? Request::escapeMarkdownV2(PublicMain::BALANCE_NO_GROUP) : implode("\n", $rows),
         ];
     }
 
@@ -393,15 +396,15 @@ class AccountCommand extends UserCommand
             $rows[] = Request::escapeMarkdownV2($payment->createDate->format('d.m.Y') . ' - ' . abs($payment->amount) . PublicMain::CURRENCY_SIGN);
         }
         if (!empty($rows)) {
-            array_unshift($rows, '*' . PublicMain::PAYMENT_TEXT . '*');
+            array_unshift($rows, '*' . Request::escapeMarkdownV2(PublicMain::PAYMENT_TEXT) . '*');
         }
 
         $conversation->notes['step']--;
         $conversation->update();
 
         return [
-            'parse_mode' => 'markdownV2',
-            'text' => empty($rows) ? PublicMain::PAYMENT_NO_PAYMENTS : implode("\n", $rows),
+            'parse_mode' => 'MarkdownV2',
+            'text' => empty($rows) ? Request::escapeMarkdownV2(PublicMain::PAYMENT_NO_PAYMENTS) : implode("\n", $rows),
         ];
     }
     
@@ -449,7 +452,7 @@ class AccountCommand extends UserCommand
         }
         
         if (count($users) === 1) {
-            $text = $users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_YES : PublicMain::SUBSCRIPTION_NO;
+            $text = Request::escapeMarkdownV2($users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_YES : PublicMain::SUBSCRIPTION_NO);
             $buttons = [
                 $users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_DISABLE : PublicMain::SUBSCRIPTION_ENABLE,
                 [PublicMain::TO_BACK, PublicMain::TO_MAIN]
@@ -475,7 +478,7 @@ class AccountCommand extends UserCommand
                 }
                 
                 if ($name) {
-                    $rows[] = $name . ' - ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CHECK : PublicMain::ICON_CROSS);
+                    $rows[] = Request::escapeMarkdownV2($name . ' - ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CHECK : PublicMain::ICON_CROSS));
                     $buttons[] = $i . ' ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CROSS : PublicMain::ICON_CHECK) . ' ' . $name;
                     $i++;
                 }
@@ -487,6 +490,7 @@ class AccountCommand extends UserCommand
         }
 
         return [
+            'parse_mode' => 'MarkdownV2',
             'text' => $text,
             'reply_markup' => $keyboard,
         ];
@@ -496,7 +500,7 @@ class AccountCommand extends UserCommand
     {
         $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_EDIT_PUPILS);
         
-        $text = PublicMain::PUPILS_TEXT;
+        $text = Request::escapeMarkdownV2(PublicMain::PUPILS_TEXT);
         
         if ($conversation->notes['step'] === 3) {
             if ($this->getMessage()->getText() === PublicMain::PUPILS_ADD) {
@@ -542,6 +546,7 @@ class AccountCommand extends UserCommand
         $keyboard->setResizeKeyboard(true)->setSelective(false);
         
         return [
+            'parse_mode' => 'MarkdownV2',
             'text' => $text,
             'reply_markup' => $keyboard,
         ];
@@ -579,7 +584,8 @@ class AccountCommand extends UserCommand
         switch ($conversation->notes['step']) {
             case 2:
                 return [
-                    'text' => PublicMain::ACCOUNT_CONFIRM_TEXT,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_TEXT),
                     'reply_markup' => PublicMain::getPhoneKeyboard([PublicMain::ACCOUNT_CONFIRM_SMS]),
                 ];
                 break;
@@ -600,7 +606,8 @@ class AccountCommand extends UserCommand
                         ->all();
                     if (count($users) === 0) {
                         return [
-                            'text' => PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND,
+                            'parse_mode' => 'MarkdownV2',
+                            'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND),
                             'reply_markup' => PublicMain::getPhoneKeyboard([PublicMain::ACCOUNT_CONFIRM_SMS]),
                         ];
                     }
@@ -611,6 +618,7 @@ class AccountCommand extends UserCommand
                     }
 
                     Request::sendMessage([
+                        'parse_mode' => 'MarkdownV2',
                         'chat_id' => $message->getChat()->getId(),
                         'text' => implode("\n", $rows),
                     ]);
@@ -618,7 +626,8 @@ class AccountCommand extends UserCommand
                     return $this->stepBack($conversation);
                 } else {
                     return [
-                        'text' => PublicMain::ACCOUNT_CONFIRM_STEP_3_TEXT,
+                        'parse_mode' => 'MarkdownV2',
+                        'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_3_TEXT),
                         'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
                     ];
                 }
@@ -653,7 +662,8 @@ class AccountCommand extends UserCommand
                     $conversation->update();
                     
                     return [
-                        'text' => $errorMessage,
+                        'parse_mode' => 'MarkdownV2',
+                        'text' => Request::escapeMarkdownV2($errorMessage),
                         'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
                     ];
                 }
@@ -681,7 +691,8 @@ class AccountCommand extends UserCommand
                     }
                     
                     return [
-                        'text' => PublicMain::ACCOUNT_CONFIRM_STEP_4_TEXT,
+                        'parse_mode' => 'MarkdownV2',
+                        'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_TEXT),
                         'reply_markup' => Keyboard::remove(),
                     ];
                 } else {
@@ -689,7 +700,8 @@ class AccountCommand extends UserCommand
                     $conversation->update();
                     
                     return [
-                        'text' => PublicMain::ACCOUNT_CONFIRM_STEP_4_FAILED,
+                        'parse_mode' => 'MarkdownV2',
+                        'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_FAILED),
                         'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
                     ];
                 }
@@ -711,7 +723,8 @@ class AccountCommand extends UserCommand
                     $conversation->update();
 
                     return [
-                        'text' => $errorMessage,
+                        'parse_mode' => 'MarkdownV2',
+                        'text' => Request::escapeMarkdownV2($errorMessage),
                         'reply_markup' => PublicMain::getBackAndMainKeyboard(),
                     ];
                 }
@@ -724,13 +737,14 @@ class AccountCommand extends UserCommand
                     ->all();
                 $rows = $this->confirmUsers($users);
                 if (empty($rows)) {
-                    $rows[] = PublicMain::ACCOUNT_CHECK_SUCCESS_NONE;
+                    $rows[] = Request::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_SUCCESS_NONE);
                 } else {
                     SmsConfirmation::invalidate($conversation->notes['sms_confirm_phone']);
                     $this->removeNote($conversation, 'sms_confirm_phone');
                 }
 
                 Request::sendMessage([
+                    'parse_mode' => 'MarkdownV2',
                     'chat_id' => $message->getChat()->getId(),
                     'text' => implode("\n", $rows),
                 ]);
@@ -781,7 +795,7 @@ class AccountCommand extends UserCommand
             if (!$user->telegramSettings['trusted']) {
                 $user->telegramSettings = array_merge($user->telegramSettings, ['trusted' => true]);
                 $user->save();
-                $rows[] = $user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS;
+                $rows[] = Request::escapeMarkdownV2($user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS);
             }
         }
         

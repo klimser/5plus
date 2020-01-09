@@ -38,12 +38,10 @@ class StartCommand extends SystemCommand
      */
     public function execute()
     {
-        $message = $this->getMessage();
-        $chat_id = $message->getChat()->getId();
-        $text    = "Привет!\nЯ буду присылать вам оповещения о новых заявках, отзывах и сообщениях!\nЯ не принимаю никаких команд";
         $data = [
-            'chat_id' => $chat_id,
-            'text'    => $text,
+            'chat_id' => $this->getMessage()->getChat()->getId(),
+            'text'    => Request::escapeMarkdownV2("Привет!\nЯ буду присылать вам оповещения о новых заявках, отзывах и сообщениях!\nЯ не принимаю никаких команд"),
+            'parse_mode' => 'MarkdownV2',
         ];
         return Request::sendMessage($data);
     }

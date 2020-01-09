@@ -73,6 +73,13 @@ class OrderCommand extends UserCommand
         $order->phone = $conversation->notes['phone'];
         $order->user_comment = $conversation->notes['comment'];
 
+        $keyboard = new Keyboard([PublicMain::TO_MAIN]);
+        $keyboard->setResizeKeyboard(true)->setSelective(false);
+        $data = [
+            'parse_mode' => 'MarkdownV2',
+            'reply_markup' => $keyboard,
+        ];
+        
         if (!$order->save(true)) {
             ComponentContainer::getErrorLogger()
                 ->logError('Order.create', $order->getErrorsAsString() , true);
@@ -84,16 +91,12 @@ class OrderCommand extends UserCommand
                 'vcard' => PublicMain::CONTACT_VCARD,
             ]);
             
-            $data['text'] = 'К сожалению, не удалось добавить заявку. Наши технические специалисты уже получили уведомление и как можно скорее устранят проблему. Можете позвонить нашим менеджерам и записаться на занятие у них.';
+            $data['text'] = Request::escapeMarkdownV2('К сожалению, не удалось добавить заявку. Наши технические специалисты уже получили уведомление и как можно скорее устранят проблему. Можете позвонить нашим менеджерам и записаться на занятие у них.');
         } else {
             $order->notifyAdmin();
-            $data['text'] = PublicMain::ORDER_STEP_6_TEXT;
+            $data['text'] = Request::escapeMarkdownV2(PublicMain::ORDER_STEP_6_TEXT);
             $conversation->stop();
         }
-
-        $keyboard = new Keyboard([PublicMain::TO_MAIN]);
-        $keyboard->setResizeKeyboard(true)->setSelective(false);
-        $data['reply_markup'] = $keyboard;
 
         return $data;
     }
@@ -130,7 +133,8 @@ class OrderCommand extends UserCommand
                     $keyboard = Keyboard::remove();
                 }
                 return [
-                    'text' => PublicMain::ORDER_STEP_1_TEXT,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::ORDER_STEP_1_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -139,7 +143,8 @@ class OrderCommand extends UserCommand
                     $this->addNote($conversation, 'name', $message->getText());
                 }
                 return [
-                    'text' => PublicMain::ORDER_STEP_2_TEXT,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::ORDER_STEP_2_TEXT),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
                 break;
@@ -150,12 +155,18 @@ class OrderCommand extends UserCommand
                     if (preg_match('#^\+#', $phone) && !preg_match('#^\+998#', $phone)) {
                         $conversation->notes['step']--;
                         $conversation->update();
-                        return ['text' => PublicMain::ERROR_PHONE_PREFIX];
+                        return [
+                            'parse_mode' => 'MarkdownV2',
+                            'text' => Request::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
+                        ];
                     }
                     if (strlen($phoneDigits) < 9 || (preg_match('#^\+998#', $phone) && strlen($phoneDigits) < 12)) {
                         $conversation->notes['step']--;
                         $conversation->update();
-                        return ['text' => PublicMain::ERROR_PHONE_LENGTH];
+                        return [
+                            'parse_mode' => 'MarkdownV2',
+                            'text' => Request::escapeMarkdownV2(PublicMain::ERROR_PHONE_LENGTH),
+                        ];
                     }
 
                     $this->addNote($conversation, 'phone', '+998' . substr($phoneDigits, -9));
@@ -173,7 +184,8 @@ class OrderCommand extends UserCommand
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
                 
                 return [
-                    'text' => PublicMain::ORDER_STEP_3_TEXT,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::ORDER_STEP_3_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -184,7 +196,10 @@ class OrderCommand extends UserCommand
                     if (!$subjectCategory) {
                         $conversation->notes['step']--;
                         $conversation->update();
-                        return ['text' => PublicMain::ORDER_STEP_3_ERROR];
+                        return [
+                            'parse_mode' => 'MarkdownV2',
+                            'text' => Request::escapeMarkdownV2(PublicMain::ORDER_STEP_3_ERROR),
+                        ];
                     }
 
                     $this->addNote($conversation, 'category_id', $subjectCategory->id);
@@ -207,7 +222,8 @@ class OrderCommand extends UserCommand
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
                 
                 return [
-                    'text' => PublicMain::ORDER_STEP_4_TEXT,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::ORDER_STEP_4_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -218,7 +234,10 @@ class OrderCommand extends UserCommand
                     if (!$subject) {
                         $conversation->notes['step']--;
                         $conversation->update();
-                        return ['text' => PublicMain::ORDER_STEP_4_ERROR];
+                        return [
+                            'parse_mode' => 'MarkdownV2',
+                            'text' => Request::escapeMarkdownV2(PublicMain::ORDER_STEP_4_ERROR),
+                        ];
                     }
 
                     $this->addNote($conversation, 'subject', $subject->name);
@@ -227,7 +246,8 @@ class OrderCommand extends UserCommand
                 $keyboard = new Keyboard([PublicMain::ORDER_STEP_5_BUTTON], [PublicMain::TO_BACK, PublicMain::TO_MAIN]);
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
                 return [
-                    'text' => PublicMain::ORDER_STEP_5_TEXT,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::ORDER_STEP_5_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;

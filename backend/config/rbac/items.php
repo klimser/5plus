@@ -17,7 +17,6 @@ return [
             'pupilChangePast',
             'moneyCorrection',
             'deleteTeachers',
-            'sendPush',
         ],
     ],
     'manager' => [

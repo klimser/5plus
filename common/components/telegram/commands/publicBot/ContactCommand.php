@@ -49,7 +49,7 @@ class ContactCommand extends UserCommand
 
         return Request::sendMessage([
             'chat_id' => $chatId,
-            'parse_mode' => 'markdown',
+            'parse_mode' => 'MarkdownV2',
             'text' => PublicMain::CONTACT_MESSAGE,
             'disable_web_page_preview' => true,
         ]);

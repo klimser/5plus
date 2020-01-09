@@ -69,7 +69,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'group_id',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->group->name;
+                    return $model->group_id ? $model->group->name : '-';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

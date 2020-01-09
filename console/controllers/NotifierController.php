@@ -63,22 +63,28 @@ class NotifierController extends Controller
                 $message = null;
                 switch ($toSend->template_id) {
                     case Notify::TEMPLATE_PUPIL_DEBT:
-                        $message = "У вас задолженность в группе \"{$toSend->group->legal_name}\" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt'])
-                            . '. [Оплатить онлайн](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url . ')';
+                        $message = 'У вас задолженность в группе *' . Request::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . Request::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
+                            . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PUPIL_LOW:
-                        $message = "В группе \"{$toSend->group->legal_name}\" у вас осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons'])
-                            . ' [Оплатить онлайн](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url . ')';
+                        $message = 'В группе *' . Request::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . Request::escapeMarkdownV2(" у вас осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
+                            . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PARENT_DEBT:
                         $child = User::findOne($toSend->parameters['child_id']);
-                        $message = 'У студента ' . ($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden) . " задолженность в группе \"{$toSend->group->legal_name}\" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt'])
-                            . '. [Оплатить онлайн](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
+                        $message = 'У студента ' . Request::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
+                            . ' задолженность в группе *' . Request::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . Request::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
+                            . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PARENT_LOW:
                         $child = User::findOne($toSend->parameters['child_id']);
-                        $message = 'У студента ' . ($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden) . " в группе \"{$toSend->group->legal_name}\" осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons'])
-                            . ' [Оплатить онлайн](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
+                        $message = 'У студента ' . Request::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
+                            . ' в группе *' . Request::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . Request::escapeMarkdownV2(" осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
+                            . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
                         break;
                 }
                 if ($message) {
@@ -87,7 +93,7 @@ class NotifierController extends Controller
                     $push->chat_id = $toSend->user->tg_chat_id;
                     $push->messageArray = [
                         'text' => $message,
-                        'parse_mode' => 'markdown',
+                        'parse_mode' => 'MarkdownV2',
                         'disable_web_page_preview' => true,
                     ];
                     if ($push->save()) {

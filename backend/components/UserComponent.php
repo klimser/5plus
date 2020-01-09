@@ -26,6 +26,7 @@ class UserComponent extends Component
         'accountant' => 'Бухгалтер (зарплата)',
         'support' => 'Техподдержка (заявки и т п)',
         'content' => 'Контент-менеджер',
+        'sendPush' => 'Отправлять сообщения подписчикам в Telegram',
     ];
 
     /**
@@ -54,8 +55,7 @@ class UserComponent extends Component
      */
     public static function getStartYears(): array
     {
-        $years = Yii::$app->cache->get('user.years');
-        if (!$years) {
+        return Yii::$app->cache->getOrSet('user.years', function() {
             /** @var User[] $users */
             $years = User::find()
                 ->select(['SUBSTR(created_at, 1, 4)'])
@@ -65,9 +65,9 @@ class UserComponent extends Component
                 ->column();
             array_walk($years, function(&$value){$value = intval($value);});
             sort($years);
-            Yii::$app->cache->set('user.years', $years);
-        }
-        return $years;
+            
+            return $years;
+        });
     }
 
     public static function clearSearchCache()

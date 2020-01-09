@@ -12,7 +12,6 @@ class PublicMain
 
     const CURRENCY_SIGN = 'сум';
     const DEBT = 'долг';
-    const LESSONS = 'занятий';
     const PAY_ONLINE = 'Оплатить онлайн';
     
     const BUTTON_INFO = '📚Про Ваш "Пять с Плюсом"';
@@ -53,7 +52,7 @@ VCARD;
 🏢Наш адрес: *г.Ташкент, ул. Ойбек, 16*
 [Мы в Facebook](https://www.facebook.com/education85)
 [Мы в Инстаграм](https://www.instagram.com/5plus_studycenter/)
-Наши телеграм-каналы:
+Наши телеграм\-каналы:
  Пять с Плюсом @fiveplus
  Пять с Плюсом KIDS @fivepluskids
 MESSAGE;

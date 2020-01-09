@@ -43,19 +43,19 @@ class HelpCommand extends UserCommand
         $safeToShow = $message->getChat()->isPrivateChat();
         $data = [
             'chat_id'    => $chatId,
-            'parse_mode' => 'markdown',
+            'parse_mode' => 'MarkdownV2',
         ];
         [$allCommands, $userCommands, $adminCommands] = $this->getUserAdminCommands();
         // If no command parameter is passed, show the list.
         if ($commandStr === '') {
             $data['text'] = '*Команды*:' . PHP_EOL;
             foreach ($userCommands as $user_command) {
-                $data['text'] .= '/' . $user_command->getName() . ' - ' . $user_command->getDescription() . PHP_EOL;
+                $data['text'] .= Request::escapeMarkdownV2('/' . $user_command->getName() . ' - ' . $user_command->getDescription() . PHP_EOL);
             }
             if ($safeToShow && count($adminCommands) > 0) {
                 $data['text'] .= PHP_EOL . '*Команды администратора*:' . PHP_EOL;
                 foreach ($adminCommands as $admin_command) {
-                    $data['text'] .= '/' . $admin_command->getName() . ' - ' . $admin_command->getDescription() . PHP_EOL;
+                    $data['text'] .= Request::escapeMarkdownV2('/' . $admin_command->getName() . ' - ' . $admin_command->getDescription() . PHP_EOL);
                 }
             }
             $data['text'] .= PHP_EOL . 'Для конкретной команды введите: /help <command>';
@@ -64,7 +64,7 @@ class HelpCommand extends UserCommand
         $commandStr = str_replace('/', '', $commandStr);
         if (isset($allCommands[$commandStr]) && ($safeToShow || !$allCommands[$commandStr]->isAdminCommand())) {
             $command      = $allCommands[$commandStr];
-            $data['text'] = sprintf(
+            $data['text'] = Request::escapeMarkdownV2(sprintf(
                 'Команда: %s (v%s)' . PHP_EOL .
                 'Описание: %s' . PHP_EOL .
                 'Использование: %s',
@@ -72,10 +72,10 @@ class HelpCommand extends UserCommand
                 $command->getVersion(),
                 $command->getDescription(),
                 $command->getUsage()
-            );
+            ));
             return Request::sendMessage($data);
         }
-        $data['text'] = 'Справка недоступна: Команда /' . $commandStr . ' не найдена';
+        $data['text'] = Request::escapeMarkdownV2('Справка недоступна: Команда /' . $commandStr . ' не найдена');
         return Request::sendMessage($data);
     }
 

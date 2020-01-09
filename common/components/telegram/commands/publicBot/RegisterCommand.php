@@ -73,7 +73,8 @@ class RegisterCommand extends UserCommand
         switch ($conversation->notes['step']) {
             case 1:
                 return [
-                    'text' => PublicMain::REGISTER_STEP_1_TEXT,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_1_TEXT),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
                 break;
@@ -84,12 +85,18 @@ class RegisterCommand extends UserCommand
                     if (preg_match('#^\+#', $phone) && !preg_match('#^\+998#', $phone)) {
                         $conversation->notes['step']--;
                         $conversation->update();
-                        return ['text' => PublicMain::ERROR_PHONE_PREFIX];
+                        return [
+                            'parse_mode' => 'MarkdownV2',
+                            'text' => Request::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
+                        ];
                     }
                     if (strlen($phoneDigits) < 9 || (preg_match('#^\+998#', $phone) && strlen($phoneDigits) < 12)) {
                         $conversation->notes['step']--;
                         $conversation->update();
-                        return ['text' => PublicMain::ERROR_PHONE_LENGTH];
+                        return [
+                            'parse_mode' => 'MarkdownV2',
+                            'text' => Request::escapeMarkdownV2(PublicMain::ERROR_PHONE_LENGTH),
+                        ];
                     }
                     $this->addNote($conversation, 'phone', '+998' . substr($phoneDigits, -9));
                     
@@ -115,7 +122,8 @@ class RegisterCommand extends UserCommand
                 if (count($parents) > 1) {
                     $this->addNote($conversation, 'role', User::ROLE_PARENTS);
                     $data = [
-                        'text' => PublicMain::REGISTER_STEP_2_MULTIPLE,
+                        'parse_mode' => 'MarkdownV2',
+                        'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_MULTIPLE),
                         'reply_markup' => Keyboard::remove(),
                     ];
                     if ($trusted) {
@@ -148,14 +156,16 @@ class RegisterCommand extends UserCommand
                     $conversation->update();
                     
                     return [
-                        'text' => PublicMain::REGISTER_STEP_2_FAILED,
+                        'parse_mode' => 'MarkdownV2',
+                        'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_FAILED),
                         'reply_markup' => PublicMain::getPhoneKeyboard(),
                     ];
                 }
 
                 $this->addNote($conversation, 'role', User::ROLE_PUPIL);
                 $data = [
-                    'text' => PublicMain::REGISTER_STEP_2_MULTIPLE,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_MULTIPLE),
                     'reply_markup' => Keyboard::remove(),
                 ];
                 if ($trusted) {
@@ -197,14 +207,17 @@ class RegisterCommand extends UserCommand
                     $keyboard = Keyboard::remove();
                 }
 
-                $data = ['reply_markup' => $keyboard];
+                $data = [
+                    'parse_mode' => 'MarkdownV2',
+                    'reply_markup' => $keyboard,
+                ];
                 if (count($users) <= 0) {
                     $conversation->notes['step']--;
                     $conversation->update();
 
-                    $data['text'] = PublicMain::REGISTER_STEP_3_FAILED;
+                    $data['text'] = Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_3_FAILED);
                 } else {
-                    $data['text'] = PublicMain::REGISTER_STEP_3_MULTIPLE;
+                    $data['text'] = Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_3_MULTIPLE);
                 }
                 
                 return $data;
@@ -231,7 +244,8 @@ class RegisterCommand extends UserCommand
                 $conversation->notes['step']--;
                 $conversation->update();
                 return [
-                    'text' => PublicMain::REGISTER_STEP_2_LOCKED,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_LOCKED),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
             }
@@ -245,7 +259,8 @@ class RegisterCommand extends UserCommand
                 $conversation->notes['step']--;
                 $conversation->update();
                 return [
-                    'text' => PublicMain::REGISTER_STEP_2_LOCKED_UNTRUSTED,
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_LOCKED_UNTRUSTED),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
             }
@@ -268,8 +283,9 @@ class RegisterCommand extends UserCommand
             $keyboard = new Keyboard([PublicMain::TO_MAIN]);
             $keyboard->setResizeKeyboard(true)->setSelective(false);
             $data = [
+                'parse_mode' => 'MarkdownV2',
                 'reply_markup' => $keyboard,
-                'text' => 'Произошла ошибка, не удалось привязать аккаунт, мы уже знаем о случившемся и как можно скорее исправим это.',
+                'text' => Request::escapeMarkdownV2('Произошла ошибка, не удалось привязать аккаунт, мы уже знаем о случившемся и как можно скорее исправим это.'),
             ];
         }
         
