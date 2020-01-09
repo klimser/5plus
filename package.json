@@ -28,6 +28,6 @@
     "nestedSortable": "^1.3.4",
     "owl.carousel": "^2.3.4",
     "time-grunt": "1.x.x",
-    "yarn": "^1.7.0"
+    "yarn": "^1.17.3"
   }
 }
