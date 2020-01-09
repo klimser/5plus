@@ -5,7 +5,6 @@ namespace console\controllers;
 use common\components\ComponentContainer;
 use common\components\telegram\Request;
 use common\models\BotPush;
-use common\models\Notify;
 use common\models\User;
 use yii;
 use yii\console\Controller;
@@ -45,7 +44,7 @@ class BotPushController extends Controller
                 continue;
             }
 
-            $botPush->status = Notify::STATUS_SENDING;
+            $botPush->status = BotPush::STATUS_SENDING;
             $botPush->save();
             
             if (empty($botPush->messageArray)) {

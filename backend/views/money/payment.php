@@ -44,7 +44,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         ? '<span class="label label-danger">деньги не получены</span> '
                         : ''
                     )
-                    . ($model->admin ? $model->admin->name : '');
+                    . ($model->admin_id ? $model->admin->name : '');
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

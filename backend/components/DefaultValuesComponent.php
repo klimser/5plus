@@ -15,6 +15,7 @@ class DefaultValuesComponent extends Component
                 'format' => 'dd.mm.yyyy',
                 'language' => 'ru',
                 'weekStart' => 1,
+                'todayHighlight' => true,
             ]
         ];
     }

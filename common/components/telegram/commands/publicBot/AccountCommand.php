@@ -242,7 +242,7 @@ class AccountCommand extends UserCommand
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
                 if ($eventMember->event->group_id != $groupId) {
-                    $rows[] = "*{$eventMember->event->group->name}*";
+                    $rows[] = "*{$eventMember->event->group->legal_name}*";
                     $groupId = $eventMember->event->group_id;
                 }
                 $rows[] = $eventMember->event->eventDateTime->format('d.m.Y H:i');
@@ -298,7 +298,7 @@ class AccountCommand extends UserCommand
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
                 if ($eventMember->event->group_id != $groupId) {
-                    $rows[] = "*{$eventMember->event->group->name}*";
+                    $rows[] = "*{$eventMember->event->group->legal_name}*";
                     $groupId = $eventMember->event->group_id;
                 }
                 $rows[] = $eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - *' . $eventMember->mark . '*';
@@ -339,7 +339,7 @@ class AccountCommand extends UserCommand
                     ->select('SUM(amount)')
                     ->scalar();
                 if ($groupPupil->active || $balance < 0) {
-                    $rows[] = $groupPupil->group->name . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
+                    $rows[] = Request::escapeMarkdownV2($groupPupil->group->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
                         . '(*' . abs($groupPupil->paid_lessons) . '* ' . PublicMain::LESSONS . ') '
                         . '[' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($groupPupil->user_id, $groupPupil->group_id)->url . ')';
                 }
@@ -353,7 +353,7 @@ class AccountCommand extends UserCommand
         $conversation->update();
 
         return [
-            'parse_mode' => 'markdown',
+            'parse_mode' => 'markdownV2',
             'disable_web_page_preview' => true,
             'text' => empty($rows) ? PublicMain::BALANCE_NO_GROUP : implode("\n", $rows),
         ];
@@ -388,9 +388,9 @@ class AccountCommand extends UserCommand
         foreach ($payments as $payment) {
             if (!array_key_exists($payment->group_id, $groupSet)) {
                 $groupSet[$payment->group_id] = true;
-                $rows[] = "\n*" . $payment->group->name . '*';
+                $rows[] = "\n*" . Request::escapeMarkdownV2($payment->group->legal_name) . '*';
             }
-            $rows[] = $payment->createDate->format('d.m.Y') . ' - ' . abs($payment->amount) . PublicMain::CURRENCY_SIGN;
+            $rows[] = Request::escapeMarkdownV2($payment->createDate->format('d.m.Y') . ' - ' . abs($payment->amount) . PublicMain::CURRENCY_SIGN);
         }
         if (!empty($rows)) {
             array_unshift($rows, '*' . PublicMain::PAYMENT_TEXT . '*');
@@ -400,7 +400,7 @@ class AccountCommand extends UserCommand
         $conversation->update();
 
         return [
-            'parse_mode' => 'markdown',
+            'parse_mode' => 'markdownV2',
             'text' => empty($rows) ? PublicMain::PAYMENT_NO_PAYMENTS : implode("\n", $rows),
         ];
     }

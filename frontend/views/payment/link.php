@@ -24,7 +24,7 @@ if ($paymentLink) {
 <?php if (!$paymentLink): ?>
     <h3>Неверная ссылка!</h3>
 <?php else: ?>
-    <div id="payment-<?= $paymentLink->group_id; ?>" class="group-payments" data-groupid="<?= $paymentLink->group_id; ?>" data-groupname="<?= $paymentLink->group->name; ?>">
+    <div id="payment-<?= $paymentLink->group_id; ?>" class="group-payments" data-groupid="<?= $paymentLink->group_id; ?>" data-groupname="<?= $paymentLink->group->legal_name; ?>">
         <br>
         <?php
             $debt = $paymentLink->user->getDebt($paymentLink->group);
@@ -39,7 +39,7 @@ if ($paymentLink) {
             }
         ?>
         <h4>
-            <?= $paymentLink->user->nameHidden; ?> | <?= $paymentLink->group->name; ?> <?= $debt ? '' : '<small>оплачено до ' . ($payDate ? $payDate->format('d.m.Y') :'') . '</small>'; ?>
+            <?= $paymentLink->user->nameHidden; ?> | <?= $paymentLink->group->legal_name; ?> <?= $debt ? '' : '<small>оплачено до ' . ($payDate ? $payDate->format('d.m.Y') :'') . '</small>'; ?>
         </h4>
         <?php if ($debt > 0): ?>
             <div class="col-xs-12 col-sm-6 col-md-4">

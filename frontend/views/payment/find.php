@@ -24,7 +24,7 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
         $debt = $debt ? $debt->amount : 0;
         $script .= "Payment.users[{$pupil->id}].groups.push({
                 id: {$groupPupil->group_id},
-                name: '{$groupPupil->group->name}',
+                name: '{$groupPupil->group->legal_name}',
                 price: {$groupPupil->group->priceMonth},
                 priceDiscount: {$groupPupil->group->price3Month},
                 debt: {$debt},

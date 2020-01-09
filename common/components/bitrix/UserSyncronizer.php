@@ -33,6 +33,9 @@ class UserSyncronizer
         do {
             $params['start'] = $offset;
             $response = $this->client->call('crm.contact.list', $params, true);
+            if (!$response) {
+                return;
+            }
             $userList = $response['result'];
             foreach ($userList as $user) {
                 $changedUser = array_filter($user, function($key) use ($affectedFields) { return in_array($key, $affectedFields); }, ARRAY_FILTER_USE_KEY);
