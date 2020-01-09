@@ -80,7 +80,7 @@ class Group extends ActiveRecord
         return [
             'id' => 'ID группы',
             'name' => 'Название группы',
-            'legal_name' => 'Официальное название (для договора)',
+            'legal_name' => 'Официальное название (договор, сайт, бот)',
             'subject_id' => 'Предмет',
             'teacher_id' => 'Учитель',
             'type_id' => 'Тип группы',
