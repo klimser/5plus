@@ -138,7 +138,8 @@ $(\'[data-toggle="tooltip"]\').tooltip();
                                                                 $noteRows[] = $member->groupPupil->user->note;
                                                             }
                                                             if ($member->groupPupil->paid_lessons < 0) {
-                                                                $noteRows[] = 'долг ' . (0 - $member->groupPupil->paid_lessons) . ' занятий!';
+                                                                $noteRows[] = 'долг ' . (0 - $member->groupPupil->paid_lessons)
+                                                                    . ' ' . \common\components\helpers\WordForm::getLessonsForm(0 - $member->groupPupil->paid_lessons) . '!';
                                                             }
                                                             if (!empty($noteRows)):
                                                         ?>
