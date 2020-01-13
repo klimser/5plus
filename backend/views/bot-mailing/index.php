@@ -27,6 +27,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'message_image',
                 'format' => 'html',
+                'contentOptions' => ['style' => 'width: 20%;'],
                 'content' => function ($model, $key, $index, $column) {
                     return $model->message_image ? Html::img(Yii::getAlias('@uploadsUrl') . $model->message_image, ['class' => 'max-width-100']) : '-';
                 },

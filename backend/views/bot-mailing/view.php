@@ -35,7 +35,9 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'message_image',
                 'format' => 'html',
                 'value' => function ($model, $widget) {
-                    return $model->message_image ? Html::img(Yii::getAlias('@uploadsUrl') . $model->message_image, ['class' => 'max-width-100']) : '-';
+                    return $model->message_image
+                        ? Html::img(Yii::getAlias('@uploadsUrl') . $model->message_image, ['class' => 'max-width-100', 'style' => 'max-width: 200px;'])
+                        : '-';
                 },  
             ],
             [
