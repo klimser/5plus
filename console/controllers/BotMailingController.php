@@ -58,11 +58,10 @@ class BotMailingController extends Controller
             $photoId = $processResult['photoId'] ?? null;
             $userResultMap = $processResult['userResult'] ?? [];
             
-//            /** @var User[] $users */
-//            $users = User::find()->andWhere(['not', ['tg_chat_id' => null]])->all();
-//            $users = array_filter($users, function($value) { return $value->telegramSettings['subscribe']; });
+            /** @var User[] $users */
+            $users = User::find()->andWhere(['not', ['tg_chat_id' => null]])->all();
+            $users = array_filter($users, function($value) { return $value->telegramSettings['subscribe']; });
 
-            $users = User::find()->andWhere(['id' => [1, 2]])->all();
             foreach ($users as $user) {
                 if (array_key_exists($user->tg_chat_id, $userResultMap)) {
                     continue;

@@ -13,6 +13,8 @@ use yii\web\UploadedFile;
  */
 class BotMailingController extends AdminController
 {
+    protected $accessRule = 'manager';
+    
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([

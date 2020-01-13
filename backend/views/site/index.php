@@ -319,6 +319,14 @@ $this->title = 'Панель управления';
                         </a>
                     </li>
                 <?php endif; ?>
+
+                <?php if ($admin->can('manager')): ?>
+                    <li role="presentation">
+                        <a href="<?= Url::to(['bot-mailing/index']); ?>">
+                            <span class="fas fa-mail-bulk"></span> Рассылки 
+                        </a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </div>
     </div>
