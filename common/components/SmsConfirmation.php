@@ -51,8 +51,8 @@ class SmsConfirmation extends BaseObject
     public static function validate(string $phone, string $code): bool
     {
         $confirmationCode = ConfirmationCode::find()
-            ->andWhere(['phone' => $conversation->notes['sms_confirm_phone'] ?? null, 'code' => $code])
-            ->andWhere(['>', 'valid_until' => date('Y-m-d H:i:s')])
+            ->andWhere(['phone' => $phone, 'code' => $code])
+            ->andWhere(['>', 'valid_until', date('Y-m-d H:i:s')])
             ->one();
         return $confirmationCode !== null;
     }

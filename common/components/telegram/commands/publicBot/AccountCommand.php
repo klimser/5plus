@@ -622,6 +622,7 @@ class AccountCommand extends UserCommand
                         'chat_id' => $message->getChat()->getId(),
                         'text' => implode("\n", $rows),
                     ]);
+                    $this->addNote($conversation, 'step', 2);
 
                     return $this->stepBack($conversation);
                 } else {
@@ -633,7 +634,7 @@ class AccountCommand extends UserCommand
                 }
                 break;
             case 4:
-                $phoneFull = '+' . preg_replace('#/D#', '', $message->getText());
+                $phoneFull = '+' . preg_replace('#\D#', '', $message->getText());
                 /** @var User[] $users */
                 $users = User::find()
                     ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]])
@@ -650,7 +651,7 @@ class AccountCommand extends UserCommand
                 } else {
                     foreach ($untrustedPhoneUsers as $untrustedPhoneUser) {
                         $smsData = $untrustedPhoneUser->telegramSettings['sms_data'][$phoneFull] ?? [];
-                        if ($smsData['sms_sent'] ?? 0 >= 3) {
+                        if (($smsData['sms_sent'] ?? 0) >= 3) {
                             $errorMessage = PublicMain::ACCOUNT_CONFIRM_SMS_LOCKED;
                             break;
                         }
@@ -710,7 +711,7 @@ class AccountCommand extends UserCommand
                 $errorMessage = null;
                 if (empty($conversation->notes['sms_confirm_phone'])) {
                     $errorMessage = PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND;
-                } elseif ($conversation->notes['sms_confirm_attempts'] ?? 0 >= 5) {
+                } elseif (($conversation->notes['sms_confirm_attempts'] ?? 0) >= 5) {
                     $errorMessage = PublicMain::ACCOUNT_CONFIRM_SMS_TOO_MUCH_ATTEMPTS;
                     SmsConfirmation::invalidate($conversation->notes['sms_confirm_phone']);
                 } elseif (!SmsConfirmation::validate($conversation->notes['sms_confirm_phone'], trim($message->getText()))) {
@@ -748,7 +749,7 @@ class AccountCommand extends UserCommand
                     'chat_id' => $message->getChat()->getId(),
                     'text' => implode("\n", $rows),
                 ]);
-                $this->addNote($conversation, 'step', 3);
+                $this->addNote($conversation, 'step', 2);
 
                 return $this->stepBack($conversation);
                 break;
