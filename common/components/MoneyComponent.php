@@ -514,18 +514,21 @@ class MoneyComponent extends Component
                 $toCharge = [];
                 while ($rate > 0) {
                     if (!empty($payments)) {
-                        $lessonPrice = $payments[0]['discount'] ? $groupParamMap[$key]->lesson_price_discount : $groupParamMap[$key]->lesson_price;
+                        $isDiscount = $payments[0]['discount'] && $groupParamMap[$key]->lesson_price_discount;
+                        $lessonPrice = $isDiscount ? $groupParamMap[$key]->lesson_price_discount : $groupParamMap[$key]->lesson_price;
 
-                        $toPay = round($rate * $lessonPrice);
+                        $toPay = intval(round($rate * $lessonPrice));
+                        $toChargeItem = ['id' => $payments[0]['id'], 'discount' => $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE];
                         if ($payments[0]['amount'] >= $toPay) {
-                            $toCharge[] = ['id' => $payments[0]['id'], 'discount' => $payments[0]['discount'], 'amount' => $toPay];
+                            $toChargeItem['amount'] = $toPay;
                             $payments[0]['amount'] -= $toPay;
                             $rate = 0;
                         } else {
-                            $toCharge[] = ['id' => $payments[0]['id'], 'discount' => $payments[0]['discount'], 'amount' => $payments[0]['amount']];
-                            $rate -= $payments[0]['amount'] / $lessonPrice;
+                            $toChargeItem['amount'] = $payments[0]['amount'];
                             $payments[0]['amount'] = 0;
+                            $rate -= $payments[0]['amount'] / $lessonPrice;
                         }
+                        $toCharge[] = $toChargeItem;
 
                         if ($payments[0]['amount'] <= 0) array_shift($payments);
                     } else {
