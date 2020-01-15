@@ -76,3 +76,7 @@ let Main = {
         $(selector).inputmask({"mask": "99 999-9999"});
     }
 };
+
+$(function() {
+    $('[data-toggle="tooltip"]').tooltip();
+});

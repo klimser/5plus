@@ -85,7 +85,7 @@ class GenericmessageCommand extends SystemCommand
                 return $this->telegram->executeCommand('order');
                 break;
             case PublicMain::BUTTON_REGISTER:
-                return $this->telegram->executeCommand('register');
+                return $this->telegram->executeCommand('login');
                 break;
             case PublicMain::BUTTON_ACCOUNT:
                 return $this->telegram->executeCommand('account');

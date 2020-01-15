@@ -38,12 +38,11 @@ class StartCommand extends SystemCommand
 
     private function getKeyboard(): Keyboard
     {
-        $user = User::findOne(['tg_chat_id' => $this->getMessage()->getChat()->getId()]);
         $buttons = [
             PublicMain::BUTTON_INFO,
-            $user ? PublicMain::BUTTON_ACCOUNT : PublicMain::BUTTON_REGISTER,
             PublicMain::BUTTON_CONTACT,
-            PublicMain::BUTTON_ORDER
+            PublicMain::BUTTON_ORDER,
+            PublicMain::BUTTON_ACCOUNT,
         ];
         $keyboard = new Keyboard(...$buttons);
         $keyboard->setResizeKeyboard(true)

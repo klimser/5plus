@@ -63,6 +63,7 @@ var Payment = {
     },
     lockPayButton: function() {
         $(".pay_button").prop("disabled", true);
+        Main.throwFlashMessage('#message_board', "Подготовка к оплате. Пожалуйста, подождите...", 'alert-info');
     },
     unlockPayButton: function() {
         $(".pay_button").prop("disabled", false);

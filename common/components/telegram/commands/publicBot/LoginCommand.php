@@ -16,26 +16,26 @@ use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Exception\TelegramException;
 
 /**
- * Register command
+ * Login command
  */
-class RegisterCommand extends UserCommand
+class LoginCommand extends UserCommand
 {
     use StepableTrait, ConversationTrait;
     
     /**
      * @var string
      */
-    protected $name = 'register';
+    protected $name = 'login';
 
     /**
      * @var string
      */
-    protected $description = 'Зарегистрироваться';
+    protected $description = 'Авторизация';
 
     /**
      * @var string
      */
-    protected $usage = '/register';
+    protected $usage = '/login';
 
     /**
      * @var string
@@ -74,7 +74,7 @@ class RegisterCommand extends UserCommand
             case 1:
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_1_TEXT),
+                    'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_1_TEXT),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
                 break;
@@ -116,14 +116,14 @@ class RegisterCommand extends UserCommand
                     ->all();
                 
                 if (count($parents) === 1) {
-                    return $this->setUserRegister($conversation, $parents[0], $trusted);
+                    return $this->setUserLoggedIn($conversation, $parents[0], $trusted);
                 }
                 
                 if (count($parents) > 1) {
                     $this->addNote($conversation, 'role', User::ROLE_PARENTS);
                     $data = [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_MULTIPLE),
+                        'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
                         'reply_markup' => Keyboard::remove(),
                     ];
                     if ($trusted) {
@@ -148,7 +148,7 @@ class RegisterCommand extends UserCommand
                     ->all();
                 
                 if (count($pupils) === 1) {
-                    return $this->setUserRegister($conversation, $pupils[0], $trusted);
+                    return $this->setUserLoggedIn($conversation, $pupils[0], $trusted);
                 }
                 
                 if (count($pupils) === 0) {
@@ -157,7 +157,7 @@ class RegisterCommand extends UserCommand
                     
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_FAILED),
+                        'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_FAILED),
                         'reply_markup' => PublicMain::getPhoneKeyboard(),
                     ];
                 }
@@ -165,7 +165,7 @@ class RegisterCommand extends UserCommand
                 $this->addNote($conversation, 'role', User::ROLE_PUPIL);
                 $data = [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_MULTIPLE),
+                    'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
                     'reply_markup' => Keyboard::remove(),
                 ];
                 if ($trusted) {
@@ -192,7 +192,7 @@ class RegisterCommand extends UserCommand
                     ->all();
 
                 if (count($users) === 1) {
-                    return $this->setUserRegister($conversation, $users[0], $trusted);
+                    return $this->setUserLoggedIn($conversation, $users[0], $trusted);
                 }
                 
                 if ($trusted) {
@@ -215,9 +215,9 @@ class RegisterCommand extends UserCommand
                     $conversation->notes['step']--;
                     $conversation->update();
 
-                    $data['text'] = Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_3_FAILED);
+                    $data['text'] = Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_FAILED);
                 } else {
-                    $data['text'] = Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_3_MULTIPLE);
+                    $data['text'] = Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_MULTIPLE);
                 }
                 
                 return $data;
@@ -233,7 +233,7 @@ class RegisterCommand extends UserCommand
      * @return array|ServerResponse
      * @throws TelegramException
      */
-    private function setUserRegister(Conversation $conversation, User $user, bool $trusted = false)
+    private function setUserLoggedIn(Conversation $conversation, User $user, bool $trusted = false)
     {
         if ($user->tg_chat_id === $this->getMessage()->getChat()->getId()) {
             return $this->telegram->executeCommand('account');
@@ -245,7 +245,7 @@ class RegisterCommand extends UserCommand
                 $conversation->update();
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_LOCKED),
+                    'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
             }
@@ -253,14 +253,14 @@ class RegisterCommand extends UserCommand
             if ($trusted) {
                 $push = new BotPush();
                 $push->chat_id = $user->tg_chat_id;
-                $push->messageArray = ['text' => PublicMain::REGISTER_RESET_BY_TRUSTED];
+                $push->messageArray = ['text' => PublicMain::LOGIN_RESET_BY_TRUSTED];
                 $push->save();
             } else {
                 $conversation->notes['step']--;
                 $conversation->update();
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::REGISTER_STEP_2_LOCKED_UNTRUSTED),
+                    'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED_UNTRUSTED),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
             }
@@ -273,10 +273,9 @@ class RegisterCommand extends UserCommand
         $user->telegramSettings = $telegramSettings;
         if ($user->save()) {
             return $this->telegram->executeCommand('account');
-//            $data['text'] = PublicMain::REGISTER_SUCCESS;
         } else {
             ComponentContainer::getErrorLogger()
-                ->logError('public-bot/register', $user->getErrorsAsString() . ', ChatID: ' . $this->getMessage()->getChat()->getId(), true);
+                ->logError('public-bot/login', $user->getErrorsAsString() . ', ChatID: ' . $this->getMessage()->getChat()->getId(), true);
 
             $conversation->notes['step']--;
             $conversation->update();

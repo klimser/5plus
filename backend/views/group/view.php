@@ -61,7 +61,7 @@ $this->params['breadcrumbs'][] = $group->name;
 </div>
 <div class="row">
     <div class="col-xs-12">
-        <h4>Ученики:</h4>
+        <h4>Студенты:</h4>
         <table class="table table-condensed table-striped">
             <thead>
             <tr>
@@ -82,6 +82,11 @@ $this->params['breadcrumbs'][] = $group->name;
                             <span class="fas fa-file-invoice-dollar"></span>
                         </a>
                         <?= $groupPupil->user->name; ?>
+                        <?php if ($groupPupil->user->parent_id): ?>
+                            <span class="fas fa-user-friends point" data-toggle="tooltip" data-placement="top" data-trigger="click hover focus" data-html="true"
+                                  title="<?= $groupPupil->user->parent->name; ?><br>
+                                  <?= $groupPupil->user->parent->phone . ($groupPupil->user->parent->phone2 ? ', ' . $groupPupil->user->parent->phone2 : ''); ?>"></span>
+                        <?php endif; ?>
                         <?php if ($groupPupil->user->note): ?>
                             <br><small><?= nl2br($groupPupil->user->note); ?></small>
                         <?php endif; ?>

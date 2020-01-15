@@ -59,9 +59,9 @@ class AccountCommand extends UserCommand
         $message = $this->getMessage();
         $chatId = $message->getChat()->getId();
 
-        $user = User::findOne(['tg_chat_id' => $chatId]);
+        $user = User::findOne(['status' => User::STATUS_ACTIVE, 'tg_chat_id' => $chatId]);
         if (!$user) {
-            return $this->telegram->executeCommand('register');
+            return $this->telegram->executeCommand('login');
         }
         
         if (!$conversation = $this->handleMessage($this->getMessage())) {
@@ -86,7 +86,7 @@ class AccountCommand extends UserCommand
         $message = $this->getMessage();
         $chatId = $message->getChat()->getId();
         /** @var User[] $users */
-        $users = User::find()->andWhere(['tg_chat_id' => $chatId])->orderBy(['name' => SORT_ASC])->all();
+        $users = User::find()->andWhere(['status' => User::STATUS_ACTIVE, 'tg_chat_id' => $chatId])->orderBy(['name' => SORT_ASC])->all();
         switch ($conversation->notes['step']) {
             case 1:
                 $this->removeNote($conversation, 'step2');
@@ -160,7 +160,7 @@ class AccountCommand extends UserCommand
         $users = User::find()
             ->alias('u')
             ->joinWith('children u2')
-            ->andWhere(['u.tg_chat_id' => $this->getMessage()->getChat()->getId()])
+            ->andWhere(['status' => User::STATUS_ACTIVE, 'u.tg_chat_id' => $this->getMessage()->getChat()->getId()])
             ->orderBy(['u.name' => SORT_ASC, 'u2.name' => SORT_ASC])
             ->all();
 
@@ -418,7 +418,7 @@ class AccountCommand extends UserCommand
 
         /** @var User[] $users */
         $users = User::find()
-            ->andWhere(['tg_chat_id' => $this->getMessage()->getChat()->getId()])
+            ->andWhere(['status' => User::STATUS_ACTIVE, 'tg_chat_id' => $this->getMessage()->getChat()->getId()])
             ->orderBy(['name' => SORT_ASC])
             ->with(['children' => function(Query $query) { $query->orderBy(['name' => SORT_ASC]); }])
             ->all();
@@ -504,13 +504,13 @@ class AccountCommand extends UserCommand
         
         if ($conversation->notes['step'] === 3) {
             if ($this->getMessage()->getText() === PublicMain::PUPILS_ADD) {
-                return $this->telegram->executeCommand('register');
+                return $this->telegram->executeCommand('login');
             }
 
             if (preg_match('#^(\d+) ' . PublicMain::ICON_REMOVE . '#u', $this->getMessage()->getText(), $matches)) {
                 /** @var User $user */
                 $user = User::find()
-                    ->andWhere(['tg_chat_id' => $this->getMessage()->getChat()->getId()])
+                    ->andWhere(['status' => User::STATUS_ACTIVE, 'tg_chat_id' => $this->getMessage()->getChat()->getId()])
                     ->orderBy(['name' => SORT_ASC])
                     ->offset($matches[1] - 1)
                     ->limit(1)
@@ -527,7 +527,7 @@ class AccountCommand extends UserCommand
 
         /** @var User[] $users */
         $users = User::find()
-            ->andWhere(['tg_chat_id' => $this->getMessage()->getChat()->getId()])
+            ->andWhere(['status' => User::STATUS_ACTIVE, 'tg_chat_id' => $this->getMessage()->getChat()->getId()])
             ->orderBy(['name' => SORT_ASC])
             ->all();
         
@@ -563,10 +563,10 @@ class AccountCommand extends UserCommand
         /** @var User[] $users */
         $users = User::find()
             ->andWhere([
+                'status' => User::STATUS_ACTIVE,
                 'role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY],
                 'tg_chat_id' => $message->getChat()->getId(),
             ])
-            ->andWhere(['!=', 'status', User::STATUS_LOCKED])
             ->all();
         /** @var User[] $untrustedUsers */
         $untrustedUsers = array_filter($users, $filterUntrusted);

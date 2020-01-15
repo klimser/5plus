@@ -22,7 +22,6 @@ $nextDate->modify('+1 day');
 
 $this->registerJs('
 Event.init(' . time() . ');
-$(\'[data-toggle="tooltip"]\').tooltip();
 ');
 
 ?>
