@@ -65,7 +65,9 @@ class EventController extends AdminController
             $eventsQuery->joinWith(['group' => function(yii\db\ActiveQuery $query) { $query->alias('g'); }])
                 ->leftJoin(
                     ['gp' => GroupParam::tableName()],
-                    ['g.id' => 'gp.group_id', 'gp.year' => (int)$startDate->format('Y'), 'gp.month' => (int)$startDate->format('n')])
+                    'g.id = gp.group_id AND gp.year = :year AND gp.month = :month',
+                    [':year' => (int)$startDate->format('Y'), ':month' => (int)$startDate->format('n')]
+                )
                 ->andWhere([
                     'or',
                     ['gp.teacher_id' => $teacherId],
