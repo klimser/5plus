@@ -12,18 +12,19 @@ abstract class AdminController extends Controller
     
     public function beforeAction($action)
     {
-        if (parent::beforeAction($action)) {
-            if (Yii::$app->user->isGuest) {
-                $this->redirect(['site/login']);
-                return false;
-            }
-            if ($this->accessRule) {
-                if (Yii::$app->user->can($this->accessRule)) return true;
-                else throw new yii\web\ForbiddenHttpException('Access denied!');
-            }
-            return true;
-        } else {
+        if (!parent::beforeAction($action)) {
             return false;
         }
+
+        if (Yii::$app->user->isGuest) {
+            $this->redirect(['site/login']);
+            return false;
+        }
+
+        if ($this->accessRule && !Yii::$app->user->can($this->accessRule)) {
+            throw new yii\web\ForbiddenHttpException('Access denied!');
+        }
+
+        return true;
     }
 }

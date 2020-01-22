@@ -20,14 +20,14 @@ class TeacherController extends AdminController
 {
     use Active, Sortable;
 
-    protected $accessRule = 'manageTeachers';
-
     /**
      * Lists all Teacher models.
      * @return mixed
      */
     public function actionIndex()
     {
+        if (!Yii::$app->user->can('manageTeachers')) throw new yii\web\ForbiddenHttpException('Access denied!');
+        
         $dataProvider = new ActiveDataProvider([
             'query' => Teacher::find()->with(['subjects', 'user'])->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC]),
             'pagination' => ['pageSize' => 50,],
@@ -70,8 +70,10 @@ class TeacherController extends AdminController
      * @return string|yii\web\Response
      * @throws \Exception
      */
-    public function processTeacherData(Teacher $teacher)
+    private function processTeacherData(Teacher $teacher)
     {
+        if (!Yii::$app->user->can('manageTeachers')) throw new yii\web\ForbiddenHttpException('Access denied!');
+        
         if (\Yii::$app->request->isPost) {
             $isNew = $teacher->isNewRecord;
             $transaction = \Yii::$app->db->beginTransaction();
@@ -156,6 +158,8 @@ class TeacherController extends AdminController
 
     public function actionPage()
     {
+        if (!Yii::$app->user->can('manageTeachers')) throw new yii\web\ForbiddenHttpException('Access denied!');
+        
         $prefix = 'teacher_';
         $webpage = null;
         $moduleId = Module::getModuleIdByControllerAndAction('teacher', 'index');
@@ -191,8 +195,13 @@ class TeacherController extends AdminController
     /**
      * @param int|null $subject
      * @return Response
+     * @throws yii\web\ForbiddenHttpException
      */
     public function actionListJson($subject = null) {
+        if (!Yii::$app->user->can('manageTeachers') && !Yii::$app->user->can('welcomeLessons')) {
+            throw new yii\web\ForbiddenHttpException('Access denied!');
+        }
+        
         $jsonData = [];
         if (Yii::$app->request->isAjax) {
             $query = Teacher::find()->andWhere(['active' => Teacher::STATUS_ACTIVE]);
@@ -224,7 +233,7 @@ class TeacherController extends AdminController
      */
     public function actionDelete($id)
     {
-        if (!Yii::$app->user->can('deleteTeachers')) {
+        if (!Yii::$app->user->can('manageTeachers') || !Yii::$app->user->can('deleteTeachers')) {
             throw new yii\web\ForbiddenHttpException('Access denied');
         }
         $teacher = $this->findModel($id);

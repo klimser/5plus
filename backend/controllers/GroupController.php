@@ -35,7 +35,7 @@ class GroupController extends AdminController
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
         if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
-//        $user = User::findOne(3819);
+//        $user = User::findOne(6523);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
@@ -391,7 +391,7 @@ class GroupController extends AdminController
             if (!$groupPupilFrom->endDateObject || $groupPupilFrom->endDateObject > $moveDate) {
                 $groupPupilFrom->date_end = $moveDate->format('Y-m-d');
                 $groupPupilFrom->moved = GroupPupil::STATUS_ACTIVE;
-                if ($groupPupilFrom->date_end < date('Y-m-d')) $groupPupilFrom->active = GroupPupil::STATUS_INACTIVE;
+                $groupPupilFrom->active = GroupPupil::STATUS_INACTIVE;
                 if ($groupPupilFrom->save()) {
                     EventComponent::fillSchedule($groupFrom);
                     GroupComponent::calculateTeacherSalary($groupFrom);

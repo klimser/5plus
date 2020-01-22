@@ -1,5 +1,7 @@
 <?php
 
+use common\components\helpers\WordForm;
+use dosamigos\datepicker\DatePicker;
 use yii\helpers\Html;
 use common\components\helpers\Calendar;
 use \backend\models\Event;
@@ -9,7 +11,7 @@ use yii\helpers\Url;
 /* @var $this yii\web\View */
 /* @var $startDate \DateTime */
 /* @var $endDate \DateTime */
-/* @var $events \backend\models\Event[] */
+/* @var $events Event[] */
 /* @var $limitDate \DateTime */
 
 $this->title = 'Расписание ' . $startDate->format('d.m.Y');
@@ -33,9 +35,9 @@ Event.init(' . time() . ');
         <div class="col-xs-12 col-md-6 form-group">
             <div class="row">
                 <div class="col-xs-7 col-md-10">
-                    <?= \dosamigos\datepicker\DatePicker::widget([
+                    <?= DatePicker::widget([
                         'name' => 'date',
-                        'value' => date('d.m.Y'),
+                        'value' => $startDate->format('d.m.Y'),
                         'options' => ['id' => 'jump_to_date'],
                         'clientOptions' => [
                             'autoclose' => true,
@@ -138,7 +140,7 @@ Event.init(' . time() . ');
                                                             }
                                                             if ($member->groupPupil->paid_lessons < 0) {
                                                                 $noteRows[] = 'долг ' . (0 - $member->groupPupil->paid_lessons)
-                                                                    . ' ' . \common\components\helpers\WordForm::getLessonsForm(0 - $member->groupPupil->paid_lessons) . '!';
+                                                                    . ' ' . WordForm::getLessonsForm(0 - $member->groupPupil->paid_lessons) . '!';
                                                             }
                                                             if (!empty($noteRows)):
                                                         ?>
