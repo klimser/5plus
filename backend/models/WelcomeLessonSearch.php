@@ -14,7 +14,7 @@ class WelcomeLessonSearch extends WelcomeLesson
     public function rules()
     {
         return [
-            [['subject_id', 'teacher_id', 'group_id', 'user_id', 'status'], 'integer'],
+            [['subject_id', 'teacher_id', 'group_id', 'user_id', 'status', 'deny_reason'], 'integer'],
             [['lesson_date'], 'string'],
             [['lessonDateTime'], 'safe'],
         ];
@@ -81,6 +81,7 @@ class WelcomeLessonSearch extends WelcomeLesson
         // grid filtering conditions
         $query->andFilterWhere([
             self::tableName() . '.status' => $this->status,
+            'deny_reason' => $this->deny_reason,
             'subject_id' => $this->subject_id,
             'teacher_id' => $this->teacher_id,
             'group_id' => $this->group_id,

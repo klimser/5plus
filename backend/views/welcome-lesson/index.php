@@ -21,6 +21,7 @@ use yii\web\View;
 /* @var $teacherMap Teacher[] */
 /* @var $groupMap Group[] */
 /* @var $statusMap string[] */
+/* @var $reasonsMap string[] */
 /* @var $groups Group[] */
 
 $this->title = 'Пробные уроки';
@@ -36,7 +37,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
         'rowOptions' => function ($model, $index, $widget, $grid) {
-            $return = ['class' => 'welcome-row', 'data' => ['status' => $model->status]];
+            $return = ['class' => 'welcome-row', 'data' => ['status' => $model->status, 'deny-reason' => $model->deny_reason]];
             switch ($model->status) {
                 case WelcomeLesson::STATUS_PASSED:
                     $return['class'] .= ' success';
@@ -130,6 +131,23 @@ $this->params['breadcrumbs'][] = $this->title;
                 )
             ],
             [
+                'attribute' => 'deny_reason',
+                'content' => function ($model, $key, $index, $column) {
+                    if (!$model->deny_reason) return '';
+                    $content = WelcomeLesson::DENY_REASON_LABELS[$model->deny_reason];
+                    if ($model->comment) {
+                        $content .= '<br><div class="label label-info"><small>' . nl2br($model->comment) . '</small></div>';
+                    }
+                    return $content;
+                },
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'deny_reason',
+                    $reasonsMap,
+                    ['class' => 'form-control']
+                )
+            ],
+            [
                 'class' => Column::class,
                 'header' => 'Действия',
                 'content' => function ($model, $key, $index, $column) {
@@ -143,7 +161,7 @@ $this->params['breadcrumbs'][] = $this->title;
     $this->registerJs(<<<SCRIPT
     $("table tr.welcome-row").each(function() {
         if ($(this).find("td:last-child").html().length === 0) {
-            WelcomeLesson.setButtons($(this).find("td:last-child"), $(this).data("key"), $(this).data("status"));
+            WelcomeLesson.setButtons($(this).find("td:last-child"), $(this).data("key"), $(this).data("status"), $(this).data("deny-reason"));
         }
     });
 SCRIPT

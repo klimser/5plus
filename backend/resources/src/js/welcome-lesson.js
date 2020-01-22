@@ -4,14 +4,23 @@ let WelcomeLesson = {
     statusMissed: 3,
     statusCanceled: 4,
     statusDenied: 5,
+    
+    denyReasonTeacher: 1,
+    denyReasonLevelTooLow: 2,
+    denyReasonLevelTooHigh: 3,
+    denyReasonOtherGroup: 4,
+    denyReasonTooCrowded: 5,
+    denyReasonSubject: 6,
+    denyReasonOther: 7,
+    
     changeStatusHandler: function(e, id, status) {
         return Main.changeEntityStatus('welcome-lesson', id, status, e, function(data) {
             if (data.status === 'ok') {
-                WelcomeLesson.setButtons($('tr[data-key="' + data.id + '"] td:last-child'), data.id, data.state);
+                WelcomeLesson.setButtons($('tr[data-key="' + data.id + '"] td:last-child'), data.id, data.state, data.denyReason);
             }
         });
     },
-    setButtons: function(e, id, status) {
+    setButtons: function(e, id, status, denyReason) {
         let contents = '';
         switch (status) {
             case this.statusUnknown:
@@ -34,6 +43,22 @@ let WelcomeLesson = {
                     '<a href="#" title="Не будет ходить" class="btn btn-danger" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusDenied + ')">' +
                     '<span class="fas fa-running"></span>' +
                     '</a>';
+                break;
+            case this.statusDenied:
+                if (!denyReason) {
+                    contents =
+                        '<form method="post" class="deny-details-form" onsubmit="return WelcomeLesson.setDenyDetails(' + id + ', this);">' +
+                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonTeacher + '"> не понравился учитель</label></div>' +
+                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonLevelTooLow + '"> нужен уровень выше</label></div>' +
+                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonLevelTooHigh + '"> нужен уровень ниже</label></div>' +
+                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonOtherGroup + '"> придет в другую группу</label></div>' +
+                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonTooCrowded + '"> слишком большая группа</label></div>' +
+                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonSubject + '"> не нужен предмет для поступления</label></div>' +
+                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonOther + '"> другое</label></div>' +
+                            '<textarea name="comment" class="form-control" rows="3" placeholder="Комментарий"></textarea><br>' +
+                            '<button name="set_deny_reason" class="btn btn-primary">сохранить</button> ' +
+                        '</form>';
+                }
                 break;
         }
         $(e).html('<span class="text-nowrap welcome-lesson-buttons">' + contents + '</span>');
@@ -78,6 +103,12 @@ let WelcomeLesson = {
     unlockMovingFormButtons: function() {
         $("#moving-form").find('button').prop("disabled", false);
     },
+    lockDenyDetailsFormButtons: function() {
+        $(".deny-details-form button").prop("disabled", true);
+    },
+    unlockDenyDetailsFormButtons: function() {
+        $(".deny-details-form button").prop("disabled", false);
+    },
     movePupil: function(form) {
         this.lockMovingFormButtons();
         $.ajax({
@@ -98,5 +129,28 @@ let WelcomeLesson = {
                 WelcomeLesson.unlockMovingFormButtons();
             }
         });
+        return false;
+    },
+    setDenyDetails: function(id, form) {
+        this.lockDenyDetailsFormButtons();
+        $.ajax({
+            url: '/welcome-lesson/set-deny-details?id=' + id,
+            type: 'post',
+            dataType: 'json',
+            data: $(form).serialize(),
+            success: function(data) {
+                WelcomeLesson.unlockDenyDetailsFormButtons();
+                if (data.status === 'ok') {
+                    WelcomeLesson.setButtons($('tr[data-key="' + data.id + '"] td:last-child'), data.id, data.state, data.denyReason);
+                } else {
+                    Main.throwFlashMessage('#messages_place', "Ошибка: " + data.message, 'alert-danger');
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+                WelcomeLesson.unlockDenyDetailsFormButtons();
+            }
+        });
+        return false;
     }
 };

@@ -58,6 +58,11 @@ class WelcomeLessonController extends AdminController
             $statusMap[$value] = $label;
         }
 
+        $reasonsMap = [null => 'Все'];
+        foreach (WelcomeLesson::DENY_REASON_LABELS as $value => $label) {
+            $reasonsMap[$value] = $label;
+        }
+
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
@@ -66,6 +71,7 @@ class WelcomeLessonController extends AdminController
             'teacherMap' => $teacherMap,
             'groupMap' => $groupMap,
             'statusMap' => $statusMap,
+            'reasonsMap' => $reasonsMap,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->with('teacher')->orderBy(['name' => 'ASC'])->all(),
         ]);
     }
@@ -86,7 +92,7 @@ class WelcomeLessonController extends AdminController
                 && ($welcomeLesson->status != WelcomeLesson::STATUS_PASSED
                     || !in_array($newStatus, [WelcomeLesson::STATUS_MISSED, WelcomeLesson::STATUS_DENIED]))) {
                 $jsonData = self::getJsonErrorResult(
-                    'Статус "' . WelcomeLesson::STATUS_LABELS[$newStatus] . '" не может быть установлен сообщению со статусом "' . WelcomeLesson::STATUS_LABELS[$welcomeLesson->status] . '"'
+                    'Статус "' . WelcomeLesson::STATUS_LABELS[$newStatus] . '" не может быть установлен занятию со статусом "' . WelcomeLesson::STATUS_LABELS[$welcomeLesson->status] . '"'
                 );
             } else {
                 $welcomeLesson->status = $newStatus;
@@ -95,8 +101,35 @@ class WelcomeLessonController extends AdminController
                     $jsonData = self::getJsonOkResult([
                         'id' => $welcomeLesson->id,
                         'state' => $welcomeLesson->status,
+                        'denyReason' => $welcomeLesson->deny_reason,
                     ]);
                 } else $jsonData = self::getJsonErrorResult($welcomeLesson->getErrorsAsString('status'));
+            }
+        }
+        return $this->asJson($jsonData);
+    }
+    
+    public function actionSetDenyDetails($id)
+    {
+        $jsonData = [];
+        if (Yii::$app->request->isAjax) {
+            $welcomeLesson = $this->findModel($id);
+
+            $denyReason = intval(Yii::$app->request->post('deny_reason'));
+            if ($welcomeLesson->status !== WelcomeLesson::STATUS_DENIED) {
+                $jsonData = self::getJsonErrorResult(
+                    'Причина может быть установлена только в статусе "' . WelcomeLesson::STATUS_LABELS[WelcomeLesson::STATUS_DENIED] . '"'
+                );
+            } else {
+                $welcomeLesson->deny_reason = $denyReason;
+                $welcomeLesson->comment = Yii::$app->request->post('comment') ?: null;
+                if ($welcomeLesson->save()) {
+                    $jsonData = self::getJsonOkResult([
+                        'id' => $welcomeLesson->id,
+                        'state' => $welcomeLesson->status,
+                        'denyReason' => $welcomeLesson->deny_reason,
+                    ]);
+                } else $jsonData = self::getJsonErrorResult($welcomeLesson->getErrorsAsString());
             }
         }
         return $this->asJson($jsonData);
