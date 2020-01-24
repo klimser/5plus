@@ -13,6 +13,7 @@ use yii\helpers\Url;
 /* @var $endDate \DateTime */
 /* @var $events Event[] */
 /* @var $limitDate \DateTime */
+/* @var $isTeacher bool */
 
 $this->title = 'Расписание ' . $startDate->format('d.m.Y');
 $this->params['breadcrumbs'][] = $this->title;
@@ -88,20 +89,22 @@ Event.init(' . time() . ');
                         </div>
                     </div>
                     <div class="event_details hidden" id="event_details_<?= $event->id; ?>" data-status="<?= $event->status; ?>" data-limit-attend-timestamp="<?= $event->limitAttendTimestamp; ?>">
-                        <div class="row teacher-block">
-                            <div class="col-xs-8 col-sm-9 col-md-8 col-lg-9">
-                                <span class="fas fa-user-tie"></span>
-                                <?= $event->teacher->name; ?>
+                        <?php if (!$isTeacher): ?>
+                            <div class="row teacher-block">
+                                <div class="col-xs-8 col-sm-9 col-md-8 col-lg-9">
+                                    <span class="fas fa-user-tie"></span>
+                                    <?= $event->teacher->name; ?>
+                                </div>
+                                <div class="col-xs-4 col-sm-3 col-md-4 col-lg-3">
+                                    <a href="<?= Url::to(['group/view', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
+                                        <span class="fas fa-dollar-sign"></span>
+                                    </a>
+                                    <a href="<?= Url::to(['group/update', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
+                                        <span class="fas fa-pencil-alt"></span>
+                                    </a>
+                                </div>
                             </div>
-                            <div class="col-xs-4 col-sm-3 col-md-4 col-lg-3">
-                                <a href="<?= Url::to(['group/view', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
-                                    <span class="fas fa-dollar-sign"></span>
-                                </a>
-                                <a href="<?= Url::to(['group/update', 'id' => $event->group->id]); ?>" class="btn btn-default btn-sm">
-                                    <span class="fas fa-pencil-alt"></span>
-                                </a>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                         <?php if ($event->status == Event::STATUS_UNKNOWN && $event->eventDateTime <= $limitDate): ?>
                             <div id="messages_place_event_<?= $event->id; ?>"></div>
                             <div class="row status_block">

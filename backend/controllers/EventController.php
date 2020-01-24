@@ -82,6 +82,7 @@ class EventController extends AdminController
             'endDate' => $endDate,
             'events' => $events,
             'limitDate' => $this->getLimitDate(),
+            'isTeacher' => Yii::$app->user->can('teacher'),
         ]);
     }
 
