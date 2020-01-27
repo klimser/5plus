@@ -132,7 +132,7 @@ SCRIPT
             $script = 'Group.isNew = ' . (count($group->pupils) ? 'false' : 'true') . ";\n";
             if ($group->date_start) $script .= 'Group.startDate = "' . $group->startDateObject->format('d.m.Y') . '";' . "\n";
             foreach ($group->activeGroupPupils as $groupPupil): ?>
-                <div class="row">
+                <div class="row" id="pupil_row_<?= $groupPupil->id; ?>">
                     <?= Html::hiddenInput('pupil[]', $groupPupil->user->id); ?>
                     <div class="col-xs-12">
                         <div class="pull-left">
@@ -156,12 +156,32 @@ SCRIPT
                                 'value' => $groupPupil->date_start ? $groupPupil->startDateObject->format('d.m.Y') : null,
                                 'nameTo' => 'pupil_end[]',
                                 'valueTo' => $groupPupil->date_end ? $groupPupil->endDateObject->format('d.m.Y') : null,
-                                'options' => ['required' => true, 'class' => 'pupil-start'],
-                                'optionsTo' => ['class' => 'pupil-end'],
+                                'options' => ['required' => true, 'class' => 'pupil-start', 'autocomplete' => 'off'],
+                                'optionsTo' => ['class' => 'pupil-end', 'autocomplete' => 'off'],
                                 'language' => 'ru',
                                 'labelTo' => 'ДО',
                                 'clientEvents' => [
-                                    'changeDate' => 'function(e) {if ($(e.target).attr("name") == "pupil_end[]" && e.format() == $(e.currentTarget).find("input[name=\'pupil_start[]\']").val()) $(e.target).datepicker("clearDates");}',
+                                    'changeDate' => 'function(e) {
+                                    if ($(e.target).attr("name") == "pupil_end[]") {
+                                        if (e.format() == $(e.currentTarget).find("input[name=\'pupil_start[]\']").val()) {
+                                            $(e.target).datepicker("clearDates");
+                                        }
+                                        if ($(e.target).val()) {
+                                            $("#end-reason-form").find("input[name=group_pupil_id]").val(' . $groupPupil->id . ');
+                                            $("#end-reason-form").find("input[name=reason_id]").prop("checked", false);
+                                            let commentText = "";
+                                            let pupilRow = $("#pupil_row_' . $groupPupil->id . '");
+                                            reasonIdInput = $(pupilRow).find(\'input[name="reason_id[' . $groupPupil->id . ']"]\');
+                                            if (reasonIdInput.length > 0) {
+                                                $("#end-reason-form").find("input[name=reason_id][value=" + $(reasonIdInput).val() + "]").prop("checked", true);
+                                                let reasonCommentInput = $(pupilRow).find(\'input[name="reason_comment[' . $groupPupil->id . ']"]\');
+                                                commentText = $(reasonCommentInput).val();
+                                            }
+                                            $("#end-reason-form").find("input[name=reason_comment]").val(commentText);
+                                            $("#end-reason-modal").modal("show");
+                                        }
+                                    }
+                                }',
                                 ]
                             ]));?>
                         </div>
@@ -215,4 +235,40 @@ SCRIPT
     </div>
 
     <?php ActiveForm::end(); ?>
+
+    <div class="modal fade" id="end-reason-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="end-reason-form" onsubmit="Group.setEndReason(this); return false;">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Причина</h4>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="group_pupil_id" value="0">
+                        <?php foreach (\common\models\GroupPupil::END_REASON_LABELS as $id => $label): ?>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="reason_id" value="<?= $id; ?>" required> <?= $label; ?>
+                                </label>
+                            </div>
+                        <?php endforeach; ?>
+                        <textarea name="reason_comment" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary">OK</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php 
+        $this->registerJs(<<<SCRIPT
+    $('#end-reason-modal').on('hide.bs.modal', function (e) {
+        if (!Group.setEndReason($("#end-reason-form"), false)) {
+            e.preventDefault();
+        }
+    });
+SCRIPT
+        );
+    ?>
 </div>

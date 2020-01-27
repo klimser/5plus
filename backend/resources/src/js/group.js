@@ -272,5 +272,32 @@ var Group = {
     },
     unlockMoveButton: function () {
         $("#move_pupil_button").removeAttr('disabled');
+    },
+    setEndReason: function(form, triggerHide) {
+        if (triggerHide === undefined) triggerHide = true;
+        let groupPupilId = $(form).find("input[name=group_pupil_id]").val();
+        if (groupPupilId <= 0) return false;
+        let pupilRow = $("#pupil_row_" + groupPupilId);
+        
+        let reasonIdInput = $(pupilRow).find('input[name="reason_id[' + groupPupilId + ']"]');
+        if (reasonIdInput.length === 0) {
+            $(pupilRow).append('<input type="hidden" name="reason_id[' + groupPupilId + ']">');
+            $(pupilRow).append('<input type="hidden" name="reason_comment[' + groupPupilId + ']">');
+        }
+
+        reasonIdInput = $(pupilRow).find('input[name="reason_id[' + groupPupilId + ']"]');
+        let reasonCommentInput = $(pupilRow).find('input[name="reason_comment[' + groupPupilId + ']"]');
+        let reasonId = $(form).find("input[name=reason_id]:checked").val();
+
+        $(reasonIdInput).val(reasonId);
+        $(reasonCommentInput).val($(form).find("input[name=reason_comment]").val());
+        
+        if (reasonId > 0) {
+            if (triggerHide) {
+                $('#end-reason-modal').modal('hide');
+            }
+            return true;
+        }
+        return false;
     }
 };

@@ -16,6 +16,8 @@ use common\components\extended\ActiveRecord;
  * @property string $date_start
  * @property string $date_end
  * @property int $moved
+ * @property int $end_reason
+ * @property string $comment
  * @property string $date_charge_till
  * @property int $paid_lessons
  * @property \DateTime $startDateObject
@@ -29,6 +31,36 @@ use common\components\extended\ActiveRecord;
  */
 class GroupPupil extends ActiveRecord
 {
+    public const END_REASON_FINISH = 1;
+    public const END_REASON_TEACHER = 2;
+    public const END_REASON_LEVEL_TOO_LOW = 3;
+    public const END_REASON_LEVEL_TOO_HIGH = 4;
+    public const END_REASON_OTHER_GROUP = 5;
+    public const END_REASON_TOO_CROWDED = 6;
+    public const END_REASON_SUBJECT = 7;
+    public const END_REASON_OTHER = 8;
+    
+    public const END_REASON_LIST = [
+        self::END_REASON_FINISH,
+        self::END_REASON_TEACHER,
+        self::END_REASON_LEVEL_TOO_LOW,
+        self::END_REASON_LEVEL_TOO_HIGH,
+        self::END_REASON_OTHER_GROUP,
+        self::END_REASON_TOO_CROWDED,
+        self::END_REASON_SUBJECT,
+        self::END_REASON_OTHER,
+    ];
+
+    public const END_REASON_LABELS = [
+        self::END_REASON_FINISH => 'курс завершился',
+        self::END_REASON_TEACHER => 'не понравился учитель',
+        self::END_REASON_LEVEL_TOO_LOW => 'нужен уровень выше',
+        self::END_REASON_LEVEL_TOO_HIGH => 'нужен уровень ниже',
+        self::END_REASON_OTHER_GROUP => 'придет в другую группу',
+        self::END_REASON_TOO_CROWDED => 'слишком большая группа',
+        self::END_REASON_SUBJECT => 'не нужен предмет для поступления',
+        self::END_REASON_OTHER => 'другое',
+    ];
 
     public static function tableName()
     {
@@ -40,13 +72,15 @@ class GroupPupil extends ActiveRecord
     {
         return [
             [['user_id', 'group_id', 'date_start'], 'required'],
-            [['user_id', 'group_id', 'active'], 'integer'],
+            [['user_id', 'group_id', 'active', 'moved', 'end_reason', 'paid_lessons'], 'integer'],
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
+            [['comment'], 'string'],
             [['user_id'], 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
             [['active', 'moved'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
             [['active'], 'default', 'value' => self::STATUS_ACTIVE],
             [['moved'], 'default', 'value' => self::STATUS_INACTIVE],
+            ['end_reason', 'in', 'range' => self::END_REASON_LIST],
         ];
     }
 
@@ -59,6 +93,8 @@ class GroupPupil extends ActiveRecord
             'group_id' => 'ID группы',
             'active' => 'Активен ли студент',
             'moved' => 'Студент перешел в другую группу',
+            'end_reason' => 'Причина ухода',
+            'comment' => 'Комментарий',
             'date_start' => 'Дата начала занятий в группе',
             'date_end' => 'Дата завершения занятий в группе',
             'date_charge_till' => 'Стоимость списана до этой даты',
