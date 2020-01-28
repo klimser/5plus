@@ -177,7 +177,8 @@ SCRIPT
                                                 let reasonCommentInput = $(pupilRow).find(\'input[name="reason_comment[' . $groupPupil->id . ']"]\');
                                                 commentText = $(reasonCommentInput).val();
                                             }
-                                            $("#end-reason-form").find("input[name=reason_comment]").val(commentText);
+                                            console.log(commentText);
+                                            $("#end-reason-form").find("textarea[name=reason_comment]").val(commentText);
                                             $("#end-reason-modal").modal("show");
                                         }
                                     }
@@ -214,7 +215,12 @@ SCRIPT
             <table class="table table-condensed">
                 <?php foreach ($group->finishedGroupPupils as $groupPupil): ?>
                     <tr>
-                        <td><?= $groupPupil->user->name; ?></td>
+                        <td>
+                            <?= $groupPupil->user->name; ?>
+                            <?php if ($groupPupil->end_reason): ?>
+                                <span class="fas fa-info-circle text-info" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= \common\models\GroupPupil::END_REASON_LABELS[$groupPupil->end_reason] . '<br>' . nl2br($groupPupil->comment); ?>"></span>
+                            <?php endif; ?>
+                        </td>
                         <td class="text-right">
                             <?= $groupPupil->startDateObject->format('d.m.Y'); ?> - <?= $groupPupil->endDateObject->format('d.m.Y'); ?>
                             <?php if ($canMoveMoney && $groupPupil->moneyLeft > 0): ?>
