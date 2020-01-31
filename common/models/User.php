@@ -320,9 +320,9 @@ class User extends ActiveRecord implements IdentityInterface
     public function getNameHidden(): string
     {
         $nameParts = $this->nameParts;
-        $userName = MaskString::generate($nameParts[0], 2, 1);
+        $userName = MaskString::generate($nameParts[0], 2, 1, 4);
         if (!empty($nameParts[1])) {
-            $userName .= ' ' . MaskString::generate($nameParts[1], 1, 0);
+            $userName .= ' ' . MaskString::generate($nameParts[1], 1, 0, 4);
         }
         return $userName;
     }

@@ -14,6 +14,7 @@ use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Exception\TelegramException;
+use Longman\TelegramBot\TelegramLog;
 
 /**
  * Login command
@@ -184,7 +185,7 @@ class LoginCommand extends UserCommand
             case 3:
                 $trusted = !empty($conversation->notes['trusted']);
                 $users = User::find()
-                    ->andWhere(['role' => $conversation->notes['role'] === User::ROLE_PUPIL ? User::ROLE_PUPIL : [User::ROLE_PARENTS, User::ROLE_COMPANY]])
+                    ->andWhere(['role' => $conversation->notes['role'] == User::ROLE_PUPIL ? User::ROLE_PUPIL : [User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['phone']])
                     ->andWhere(['or', ['tg_chat_id' => null], ['!=', 'tg_chat_id', $message->getChat()->getId()]])
@@ -211,10 +212,9 @@ class LoginCommand extends UserCommand
                     'parse_mode' => 'MarkdownV2',
                     'reply_markup' => $keyboard,
                 ];
+                $conversation->notes['step']--;
+                $conversation->update();
                 if (count($users) <= 0) {
-                    $conversation->notes['step']--;
-                    $conversation->update();
-
                     $data['text'] = Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_FAILED);
                 } else {
                     $data['text'] = Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_MULTIPLE);

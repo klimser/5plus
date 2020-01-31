@@ -8,7 +8,7 @@ class PublicMain
 {
     const ICON_CHECK = '✅';
     const ICON_CROSS = '❌';
-    const ICON_REMOVE = '🔚';
+    const ICON_REMOVE = 'Сбросить';
 
     const CURRENCY_SIGN = 'сум';
     const DEBT = 'долг';
