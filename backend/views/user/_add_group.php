@@ -53,19 +53,21 @@ $this->registerJs('User.init();');
             <?= $getGroupOptionsList(array_key_exists('id', $groupData) ? intval($groupData['id']) : 0); ?>
         </select>
     </div>
-    <div class="form-group">
-        <label for="welcome_lesson_subject">Предмет</label>
-        <select class="form-control" id="welcome_lesson_subject" name="welcome_lesson[subject_id]" onchange="User.loadTeacherSelect(this);"
-            <?= !empty($welcomeLessonData['group_id']) ? 'disabled' : ''; ?>>
-            <?php foreach ($subjects as $subject): ?>
-                <option value="<?= $subject->id; ?>" <?= !empty($welcomeLessonData['subject_id']) && $welcomeLessonData['subject_id'] == $subject->id ? 'selected' : ''; ?>><?= $subject->name; ?> (<?= $subject->subjectCategory->name; ?>)</option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="welcome_lesson_teacher">Учитель</label>
-        <select class="form-control" id="welcome_lesson_teacher" name="welcome_lesson[teacher_id]"
-            <?= !empty($welcomeLessonData['group_id']) ? 'disabled' : ''; ?>></select>
+    <div id="welcome_lesson_custom" <?= array_key_exists('id', $groupData) ? 'class="hidden"' : ''; ?>>
+        <div class="form-group">
+            <label for="welcome_lesson_subject">Предмет</label>
+            <select class="form-control" id="welcome_lesson_subject" name="welcome_lesson[subject_id]" onchange="User.loadTeacherSelect(this);"
+                <?= !empty($welcomeLessonData['group_id']) ? 'disabled' : ''; ?>>
+                <?php foreach ($subjects as $subject): ?>
+                    <option value="<?= $subject->id; ?>" <?= !empty($welcomeLessonData['subject_id']) && $welcomeLessonData['subject_id'] == $subject->id ? 'selected' : ''; ?>><?= $subject->name; ?> (<?= $subject->subjectCategory->name; ?>)</option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="welcome_lesson_teacher">Учитель</label>
+            <select class="form-control" id="welcome_lesson_teacher" name="welcome_lesson[teacher_id]"
+                <?= !empty($welcomeLessonData['group_id']) ? 'disabled' : ''; ?>></select>
+        </div>
     </div>
     <div class="form-group">
         <label for="welcome_lesson_date">Дата</label>

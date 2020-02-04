@@ -135,9 +135,11 @@ let User = {
         if ($(e).val().length === 0) {
             $("#welcome_lesson_subject").prop("disabled", false);
             $("#welcome_lesson_teacher").prop("disabled", false);
+            $("#welcome_lesson_custom").removeClass('hidden');
         } else {
             $("#welcome_lesson_subject").prop("disabled", true);
             $("#welcome_lesson_teacher").prop("disabled", true);
+            $("#welcome_lesson_custom").addClass('hidden');
         }
     },
     checkAddGroup: function(e) {
