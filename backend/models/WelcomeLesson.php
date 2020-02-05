@@ -168,19 +168,19 @@ class WelcomeLesson extends ActiveRecord
     }
 
     /**
-     * @return DateTime
+     * @return DateTime|null
      */
     public function getLessonDateTime()
     {
-        return new DateTime($this->lesson_date);
+        return $this->lesson_date ? new DateTime($this->lesson_date) : null;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getLessonDateString()
     {
-        return $this->lessonDateTime->format('Y-m-d');
+        return $this->lessonDateTime ? $this->lessonDateTime->format('Y-m-d') : null;
     }
 
     public function setLessonDateTime(DateTime $newDate)

@@ -56,15 +56,11 @@ class WelcomeLessonSearch extends WelcomeLesson
         ];
 
         if ($params) {
-            if (isset($params['WelcomeLessonSearch'], $params['WelcomeLessonSearch']['lessonDateTime'])) {
-                if ($params['WelcomeLessonSearch']['lessonDateTime']) {
-                    $params['WelcomeLessonSearch']['lesson_date'] = $params['WelcomeLessonSearch']['lessonDateTime'] . ' 00:00:00';
+            if (isset($params['WelcomeLessonSearch'], $params['WelcomeLessonSearch']['lessonDateString'])) {
+                if ($params['WelcomeLessonSearch']['lessonDateString']) {
+                    $params['WelcomeLessonSearch']['lesson_date'] = $params['WelcomeLessonSearch']['lessonDateString'] . ' 00:00:00';
                 }
-                unset($params['WelcomeLessonSearch']['lessonDateTime']);
-            }
-            if (array_key_exists('sort', $params)) {
-                if ($params['sort'] == 'lessonDateTime') $params['sort'] = 'lesson_date';
-                if ($params['sort'] == '-lessonDateTime') $params['sort'] = '-lesson_date';
+                unset($params['WelcomeLessonSearch']['lessonDateTimeString']);
             }
         }
 
@@ -81,11 +77,11 @@ class WelcomeLessonSearch extends WelcomeLesson
         // grid filtering conditions
         $query->andFilterWhere([
             self::tableName() . '.status' => $this->status,
-            'deny_reason' => $this->deny_reason,
-            'subject_id' => $this->subject_id,
-            'teacher_id' => $this->teacher_id,
-            'group_id' => $this->group_id,
-            'user_id' => $this->user_id,
+            self::tableName() . '.deny_reason' => $this->deny_reason,
+            self::tableName() . '.subject_id' => $this->subject_id,
+            self::tableName() . '.teacher_id' => $this->teacher_id,
+            self::tableName() . '.group_id' => $this->group_id,
+            self::tableName() . '.user_id' => $this->user_id,
         ]);
         if (!$this->status) {
             $query->andWhere(['not', [self::tableName() . '.status' => [self::STATUS_DENIED, self::STATUS_SUCCESS]]]);
