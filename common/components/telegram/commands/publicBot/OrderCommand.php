@@ -252,7 +252,7 @@ class OrderCommand extends UserCommand
                 ];
                 break;
             case 6:
-                $this->addNote($conversation, 'comment', $message->getText() === PublicMain::ORDER_STEP_5_BUTTON ? null : $message->getText());
+                $this->addNote($conversation, 'comment', $message->getText() === PublicMain::ORDER_STEP_5_BUTTON ? '' : $message->getText());
                 return $this->addOrder($conversation);
                 break;
         }
