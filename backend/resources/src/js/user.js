@@ -1,4 +1,9 @@
 let User = {
+    consultationList: [],
+    welcomeLessonList: [],
+    subjectList: [],
+    groupList: [],
+    paymentList: [],
     teacherList: [],
     teacherMap: [],
     teacherElement: $("#welcome_lesson_teacher"),

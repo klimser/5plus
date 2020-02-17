@@ -35,8 +35,36 @@ $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
     return $list;
 };
 
-$this->registerJs('User.init();');
+$jsGroups = [];
+foreach ($groups as $group) {
+    $endDate = $group->endDateObject ? $group->endDateObject->format('d.m.Y') : '';
+    $jsGroups[] = "{id: $group->id, name: '$group->name', price: $group->priceMonth, price3: $group->price3Month, start_date: '{$group->startDateObject->format('d.m.Y')}', end_date: '$endDate'}";
+}
+$initialJs = 'User.groupList = [' . implode(",\n", $jsGroups) . "];\n";
+
+$jsSubjects = [];
+foreach ($subjects as $subject) {
+    $jsSubjects[] = "{id: $subject->id, name: '$subject->name', category: '{$subject->subjectCategory->name}'}";
+}
+$initialJs .= 'User.subjectList = [' . implode(",\n", $jsSubjects) . "];\n";
+
+$initialJs .= 'User.init();';
+$this->registerJs($initialJs);
 ?>
+<ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#consultation-tab" aria-controls="consultation-tab" role="tab" data-toggle="tab">консультация</a></li>
+    <li role="presentation"><a href="#welcome_lesson-tab" aria-controls="welcome_lesson-tab" role="tab" data-toggle="tab">пробный урок</a></li>
+    <li role="presentation"><a href="#group-tab" aria-controls="group-tab" role="tab" data-toggle="tab">добавить в группу</a></li>
+</ul>
+
+<div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="consultation-tab">
+        <div id="consultation-mandatory"></div>
+        <div id="consultation-optional"></div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab">...</div>
+    <div role="tabpanel" class="tab-pane" id="group-tab">...</div>
+</div>
 
 <div class="checkbox">
     <label>

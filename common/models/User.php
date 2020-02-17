@@ -71,11 +71,13 @@ class User extends ActiveRecord implements IdentityInterface
 
     const SCENARIO_ADMIN = 'admin';
     const SCENARIO_USER = 'user';
+    const SCENARIO_CUSTOMER = 'customer';
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'role', 'password', 'teacher_id'];
+        $scenarios[self::SCENARIO_CUSTOMER] = ['name', 'note', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'password'];
         $scenarios[self::SCENARIO_USER] = ['name', 'note', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'password'];
         return $scenarios;
     }
@@ -125,21 +127,21 @@ class User extends ActiveRecord implements IdentityInterface
             [['password'], 'safe'],
             [['password'], 'required', 'on' => self::SCENARIO_ADMIN, 'when' => function ($model) {return $model->isNewRecord;},
                 'whenClient' => "function (attribute, value) {
-                    return $(attribute.input).data(\"id\").length == 0;
+                    return $(attribute.input).data(\"id\").length === 0;
                 }"],
             [['phoneFormatted'], 'required', 'on' => self::SCENARIO_USER,
                 'whenClient' => "function (attribute, value) {
                     var parentExpr = /\[parent\].*/;
                     var companyExpr = /\[parentCompany\].*/;
-                    if (parentExpr.test(attribute.name)
-                        && ($('input[name=\"person_type\"]:checked').val() != \"" . self::ROLE_PARENTS . "\" || $('input[name=\"parent_type\"]:checked').val() != \"new\")) {
-                        return false;
+                    if ((parentExpr.test(attribute.name)
+                        && $('input[name=\"person_type\"]:checked').val() === \"" . self::ROLE_PARENTS . "\"
+                        && $('input[name=\"parent_type\"]:checked').val() === \"new\")
+                    || (companyExpr.test(attribute.name)
+                        && $('input[name=\"person_type\"]:checked').val() === \"" . self::ROLE_COMPANY . "\"
+                        && $('input[name=\"company_type\"]:checked').val() === \"new\")) {
+                        return true;
                     }
-                    if (companyExpr.test(attribute.name)
-                        && ($('input[name=\"person_type\"]:checked').val() != \"" . self::ROLE_COMPANY . "\" || $('input[name=\"company_type\"]:checked').val() != \"new\")) {
-                        return false;
-                    }
-                    return true;
+                    return false;
                 }"],
 
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_LOCKED]],
