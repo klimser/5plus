@@ -270,6 +270,8 @@ class GroupController extends AdminController
         } else {
             $pupilStartDates = Yii::$app->request->post('pupil_start', []);
             $pupilEndDates = Yii::$app->request->post('pupil_end', []);
+            $reasonIds = Yii::$app->request->post('reason_id', []);
+            $reasonComments = Yii::$app->request->post('reason_comment', []);
             foreach ($newPupils as $key => $pupilId) {
                 $startDate = date_create_from_format('d.m.Y H:i:s', $pupilStartDates[$key] . ' 00:00:00');
                 $pupil = User::findOne($pupilId);
@@ -293,6 +295,10 @@ class GroupController extends AdminController
                     $groupPupil->date_start = $pupilsMap[$groupPupil->user_id]['startDate']->format('Y-m-d');
                     $groupPupil->date_end = $pupilsMap[$groupPupil->user_id]['endDate'] ? $pupilsMap[$groupPupil->user_id]['endDate']->format('Y-m-d') : null;
 
+                    if ($groupPupil->date_end !== null && !empty($reasonIds[$groupPupil->id])) {
+                        $groupPupil->end_reason = $reasonIds[$groupPupil->id];
+                        $groupPupil->comment = $reasonComments[$groupPupil->id];
+                    }
                     ComponentContainer::getActionLogger()->log(
                         Action::TYPE_GROUP_PUPIL_UPDATED,
                         $groupPupil->user,

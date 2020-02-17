@@ -290,7 +290,7 @@ var Group = {
         let reasonId = $(form).find("input[name=reason_id]:checked").val();
 
         $(reasonIdInput).val(reasonId);
-        $(reasonCommentInput).val($(form).find("input[name=reason_comment]").val());
+        $(reasonCommentInput).val($(form).find("textarea[name=reason_comment]").val());
         
         if (reasonId > 0) {
             if (triggerHide) {
