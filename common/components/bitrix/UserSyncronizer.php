@@ -115,11 +115,13 @@ class UserSyncronizer
         }
         if ($toSync->bitrix_id) {
             $bitrixUser = $this->client->call('crm.contact.get', [ 'id' => $toSync->bitrix_id ]);
-            foreach ($bitrixUser['PHONE'] as $phone) {
-                if (array_key_exists($phone['VALUE_TYPE'], $phoneMap)) {
-                    $phones[] = ['ID' => $phone['ID'], 'VALUE' => null];
-                } else {
-                    $phoneMap[$phone['VALUE_TYPE']] = $phone['ID'];
+            if (!empty($bitrixUser['PHONE'])) {
+                foreach ($bitrixUser['PHONE'] as $phone) {
+                    if (array_key_exists($phone['VALUE_TYPE'], $phoneMap)) {
+                        $phones[] = ['ID' => $phone['ID'], 'VALUE' => null];
+                    } else {
+                        $phoneMap[$phone['VALUE_TYPE']] = $phone['ID'];
+                    }
                 }
             }
         }
