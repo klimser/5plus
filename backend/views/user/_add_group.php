@@ -6,6 +6,7 @@ use yii\bootstrap\Html;
 use yii\helpers\ArrayHelper;
 
 /* @var $this \yii\web\View */
+/* @var $requestData array */
 /* @var $groups \common\models\Group[] */
 /* @var $subjects \common\models\Subject[] */
 /* @var $groupData array */
@@ -35,19 +36,6 @@ $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
     return $list;
 };
 
-$jsGroups = [];
-foreach ($groups as $group) {
-    $endDate = $group->endDateObject ? $group->endDateObject->format('d.m.Y') : '';
-    $jsGroups[] = "{id: $group->id, name: '$group->name', price: $group->priceMonth, price3: $group->price3Month, start_date: '{$group->startDateObject->format('d.m.Y')}', end_date: '$endDate'}";
-}
-$initialJs = 'User.groupList = [' . implode(",\n", $jsGroups) . "];\n";
-
-$jsSubjects = [];
-foreach ($subjects as $subject) {
-    $jsSubjects[] = "{id: $subject->id, name: '$subject->name', category: '{$subject->subjectCategory->name}'}";
-}
-$initialJs .= 'User.subjectList = [' . implode(",\n", $jsSubjects) . "];\n";
-
 $initialJs .= 'User.init();';
 $this->registerJs($initialJs);
 ?>
@@ -62,8 +50,13 @@ $this->registerJs($initialJs);
         <div id="consultation-mandatory"></div>
         <div id="consultation-optional"></div>
     </div>
-    <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab">...</div>
-    <div role="tabpanel" class="tab-pane" id="group-tab">...</div>
+    <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab">
+        <div id="welcome_lessons"></div>
+        <button type="button" class="btn btn-success" onclick="User.addWelcomeLesson();"><span class="fas fa-plus"></span> добавить</button>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="group-tab">
+        
+    </div>
 </div>
 
 <div class="checkbox">

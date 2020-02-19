@@ -7,6 +7,7 @@ use yii\helpers\ArrayHelper;
 
 
 /* @var $this yii\web\View */
+/* @var $requestData array */
 /* @var $parent User */
 /* @var $parentCompany User */
 /* @var $pupil User */
@@ -64,6 +65,7 @@ SCRIPT
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
 
                 <?= $this->render('_add_group', [
+                    'requestData' => $requestData,
                     'groups' => $groups,
                     'subjects' => $subjects,
                     'groupData' => $groupData,

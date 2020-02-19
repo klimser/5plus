@@ -155,6 +155,7 @@ class UserController extends AdminController
         }
 
         return $this->render('create-pupil', [
+            'requestData' => Yii::$app->request->post(),
             'parent' => $parent,
             'parentCompany' => $parentCompany,
             'pupil' => $pupil,

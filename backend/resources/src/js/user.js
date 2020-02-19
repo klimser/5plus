@@ -1,25 +1,79 @@
 let User = {
     consultationList: [],
     welcomeLessonList: [],
+    subjectCategoryMap: [],
     subjectList: [],
+    subjectMap: [],
     groupList: [],
     paymentList: [],
     teacherList: [],
     teacherMap: [],
     teacherElement: $("#welcome_lesson_teacher"),
-    loadTeacherMap: function () {
-        if (this.teacherMap.length === 0) {
-            $.get({
-                url: '/teacher/list-json',
-                dataType: 'json',
-                success: function (data) {
-                    data.forEach(function(teacher) {
-                        User.teacherMap[teacher.id] = teacher.name;
-                    });
-                    User.loadTeacherSelect($("#welcome_lesson_subject"));
-                }
+    loadGroups: function() {
+        if (this.groupList.length > 0) {
+            return new Promise(function(resolve, reject) {
+                return resolve(User.groupList);
             });
         }
+        
+        let promise = $.getJSON('/ajax-info/groups', {filter: {active: 1}});
+        promise.done(function(data) {
+            User.groupList = data;
+        });
+        return promise;
+    },
+    loadTeachers: function () {
+        if (this.teacherMap.length > 0) {
+            return new Promise(function(resolve, reject) {
+                return resolve(User.teacherMap);
+            });
+        }
+
+        return new Promise(function(resolve, reject) {
+            $.getJSON('/ajax-info/teachers', {filter: {active: 1}})
+            .done(function(data) {
+                data.forEach(function(teacher) {
+                    User.teacherMap[teacher.id] = teacher.name;
+                    teacher.subjectIds.forEach(function(subjectId) {
+                        if (typeof User.teacherList[subjectId] === 'undefined') {
+                            User.teacherList[subjectId] = [];
+                        }
+                        User.teacherList[subjectId].push(teacher.id);
+                    });
+                });
+                return resolve(User.teacherMap);
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                return reject(jqXHR, textStatus, errorThrown);
+            });
+        });
+    },
+    loadSubjects: function () {
+        if (this.subjectMap.length > 0) {
+            return new Promise(function(resolve, reject) {
+                return resolve(User.subjectMap);
+            });
+        }
+
+        return new Promise(function(resolve, reject) {
+            $.getJSON('/ajax-info/subjects', {filter: {active: 1}})
+            .done(function(data) {
+                data.forEach(function(subject) {
+                    User.subjectMap[subject.id] = subject.name;
+                    if (typeof User.subjectCategoryMap[subject.categoryId] === 'undefined') {
+                        User.subjectCategoryMap[subject.categoryId] = subject.category;
+                    }
+                    if (typeof User.subjectList[subject.categoryId] === 'undefined') {
+                        User.subjectList[subject.categoryId] = [];
+                    }
+                    User.subjectList[subject.categoryId].push(subject.id);
+                });
+                return resolve(User.subjectMap);
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                return reject(jqXHR, textStatus, errorThrown);
+            });
+        });
     },
     loadTeacherSelect: function (e) {
         let subjectId = $(e).val();
@@ -39,6 +93,15 @@ let User = {
                 }
             });
         } else this.fillTeacherSelect(subjectId);
+    },
+    addWelcomeLesson: function(data) {
+        if (data === undefined) {
+            data = {};
+        }
+        let blockHtml = '<div class="welcome-lesson-item">';
+        blockHtml += '</div>';
+        
+        $("#welcome_lessons").append(blockHtml);
     },
     fillTeacherSelect: function (subjectId) {
         if ($(this.teacherElement).data("subject") === subjectId) {
@@ -234,7 +297,7 @@ let User = {
                 if (!User.phoneCheckInput) return;
                 if ($(User.phoneCheckInput).val() !== data.phone) return;
 
-                let messageBlock = $(User.phoneCheckInput);
+                let messageBlock = $(User.phoneCheckInput).closest(".input-group").find(".help-block");
                 if (data.pupils !== undefined && data.pupils.length > 0) {
                     let pupilList = '';
                     Money.pupils = {};
@@ -255,7 +318,11 @@ let User = {
         );
     },
     init: function() {
-        this.loadTeacherMap();
+        $.when(this.loadSubjects(), this.loadGroups(), this.loadTeachers())
+            .done(function(subjectMap, groupList, teacherMap) {
+                
+            });
+        
         if ($("#add_group_switch").is(":checked")) this.setAmountHelperButtons($("#group"));
         else if ($("#add_contract_switch").is(":checked")) this.setAmountHelperButtons($("#contract_group"));
     }
