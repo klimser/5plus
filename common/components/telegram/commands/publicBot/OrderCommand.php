@@ -72,6 +72,9 @@ class OrderCommand extends UserCommand
         $order->name = $conversation->notes['name'];
         $order->phone = $conversation->notes['phone'];
         $order->user_comment = $conversation->notes['comment'];
+        if ($this->getMessage()->getChat()->getUsername()) {
+            $order->tg_login = $this->getMessage()->getChat()->getUsername();
+        }
 
         $keyboard = new Keyboard([PublicMain::TO_MAIN]);
         $keyboard->setResizeKeyboard(true)->setSelective(false);
