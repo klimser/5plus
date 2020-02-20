@@ -10,12 +10,6 @@ use common\models\User;
 $this->title = 'Добавить сотрудника';
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = 'Новый сотрудник';
-
-$this->registerJs(<<<SCRIPT
-    Main.initPhoneFormatted();
-SCRIPT
-);
-
 ?>
 <div class="user-create">
     <h1><?= Html::encode($this->title); ?></h1>

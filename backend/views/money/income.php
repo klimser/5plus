@@ -7,10 +7,6 @@ use yii\bootstrap\Html;
 /* @var $companies \common\models\Company[] */
 /* @var $groups \common\models\Group[] */
 
-$this->registerJs(<<<SCRIPT
-    Main.initPhoneFormatted();
-SCRIPT
-);
 $searchValue = '';
 if (isset($user)) {
     $this->registerJs(<<<SCRIPT

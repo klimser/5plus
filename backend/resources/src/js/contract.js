@@ -24,9 +24,9 @@ let Contract = {
     renderGroupsBlock: function () {
         let pupil = Money.pupils[Money.pupilId];
         let blockHtml = '<div class="panel panel-default"><div class="panel-body">';
-        for (var i = 0; i < pupil.groups.length; i++) {
-            blockHtml += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="group-' + pupil.groups[i] + '" onclick="Contract.setGroup(' + pupil.groups[i] + ');">' + Money.groups[pupil.groups[i]].name + '</button>';
-        }
+        pupil.groups.forEach(function(groupId) {
+            blockHtml += '<button class="contract-group-btn btn btn-default btn-lg margin-right-10" type="button" id="group-' + groupId + '" onclick="Contract.setGroup(' + groupId + ');">' + Money.groups[groupId].name + '</button>';
+        });
         blockHtml += '<div class="col-xs-12 col-sm-6 col-md-3"><label for="new_group">Ещё не занимается, просто выдать договор:</label><br>' +
             '<select id="new_group" class="form-control">';
         for (i = 0; i < this.groups.length; i++) {
@@ -38,21 +38,19 @@ let Contract = {
             '<button type="button" class="btn btn-default" id="new_group_button" onclick="Contract.setGroup(parseInt($(\'#new_group\').val()));">Выбрать</button></div>';
         blockHtml += '</div></div>';
         $("#groups_block").html(blockHtml);
-        if (pupil.groups.length === 1) $("#groups_block").find('button:first').click();
+        if (pupil.groups.length === 1) $("#groups_block").find('.contract-group-btn:first').click();
     },
     getGroup: function(groupId) {
-        let group = null;
         if (groupId in Money.groups) {
-            group = Money.groups[groupId];
+            return Money.groups[groupId];
         } else {
-            for (var i = 0; i < this.groups.length; i++) {
-                if (this.groups[i].id === groupId) {
-                    group = this.groups[i];
-                    break;
+            for (let i = 0; i < Main.groupList.length; i++) {
+                if (Main.groupList[i].id === groupId) {
+                    return Main.groupList[i];
                 }
             }
         }
-        return group;
+        return null;
     },
     setGroup: function (groupId) {
         Money.groupId = groupId;

@@ -28,12 +28,6 @@ use yii\helpers\ArrayHelper;
 $this->title = 'Добавить студента и родителей';
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
-
-$this->registerJs(<<<SCRIPT
-    Main.initPhoneFormatted();
-SCRIPT
-);
-
 ?>
 <div class="user-create">
     <h1><?= Html::encode($this->title) ?></h1>

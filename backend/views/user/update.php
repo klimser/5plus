@@ -15,11 +15,6 @@ use yii\bootstrap\ActiveForm;
 /* @var $existedParents User[] */
 /* @var $parent User */
 
-$this->registerJs(<<<SCRIPT
-    Main.initPhoneFormatted();
-SCRIPT
-);
-
 /** @var \yii\web\User $currentUser */
 $currentUser = Yii::$app->user;
 
