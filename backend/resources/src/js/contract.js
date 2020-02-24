@@ -1,20 +1,5 @@
 let Contract = {
-    groups: [],
     paymentType: null,
-    loadGroups: function () {
-        $.ajax({
-            url: '/group/list-json',
-            data: {},
-            dataType: 'json',
-            success: function (data) {
-                Contract.groups = [];
-                if (data.length > 0) {
-                    if (!Array.isArray(data)) data = [data];
-                    Contract.groups = data;
-                }
-            }
-        });
-    },
     setPupil: function (pupilId) {
         Money.pupilId = pupilId;
         $("#pupils_block").find("button").removeClass("btn-primary");
@@ -29,11 +14,11 @@ let Contract = {
         });
         blockHtml += '<div class="col-xs-12 col-sm-6 col-md-3"><label for="new_group">Ещё не занимается, просто выдать договор:</label><br>' +
             '<select id="new_group" class="form-control">';
-        for (i = 0; i < this.groups.length; i++) {
-            if (pupil.groups.indexOf(this.groups[i].id) < 0) {
-                blockHtml += '<option value="' + this.groups[i].id + '">' + this.groups[i].name + '</option>';
+        Main.groupList.forEach(function(group) {
+            if (pupil.groups.indexOf(group.id) < 0) {
+                blockHtml += '<option value="' + group.id + '">' + group.name + '</option>';
             }
-        }
+        });
         blockHtml += '</select><br>' +
             '<button type="button" class="btn btn-default" id="new_group_button" onclick="Contract.setGroup(parseInt($(\'#new_group\').val()));">Выбрать</button></div>';
         blockHtml += '</div></div>';
@@ -94,5 +79,9 @@ let Contract = {
         $("#group_input").val(Money.groupId);
         $("#discount_input").val(Money.paymentType);
         return true;
+    },
+    init: function() {
+        Money.className = 'Contract';
+        Main.loadGroups();
     }
 };
