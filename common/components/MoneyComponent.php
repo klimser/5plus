@@ -368,7 +368,8 @@ class MoneyComponent extends Component
         foreach ($events as $event) {
             foreach ($event->members as $member) {
                 foreach ($member->payments as $payment) {
-                    if ($payment->discount && $moneyDiscount > 0) {
+                    $groupParam = GroupComponent::getGroupParam($group, $event->eventDateTime);
+                    if ($moneyDiscount > 0 && ($payment->discount || !$groupParam->lesson_price_discount)) {
                         $moneyDiscount += $payment->amount;
                     } else {
                         $money += $payment->amount;
