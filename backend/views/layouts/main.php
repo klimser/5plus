@@ -9,6 +9,12 @@ use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
 use common\widgets\Alert;
 
+$this->registerJs(<<<SCRIPT
+    Main.initTooltip();
+    Main.initPhoneFormatted();
+SCRIPT
+);
+
 $this->beginPage();
 $this->render('/grunt-assets');
 ?>

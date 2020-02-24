@@ -7,9 +7,7 @@ use yii\bootstrap\Html;
 /* @var $companies \common\models\Company[] */
 
 $this->registerJs(<<<SCRIPT
-    Main.initPhoneFormatted();
-    Contract.loadGroups();
-    Money.className = 'Contract';
+    Contract.init();
 SCRIPT
 );
 $searchValue = '';
