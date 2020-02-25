@@ -249,11 +249,13 @@ let User = {
     init: function() {
         $.when(Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
             .done(function(subjectList, groupList, teacherList) {
-                console.log(subjectList);
-                Main.loadActiveSubjects()
-                    .done(function(sbj) {
-                        console.log(sbj);
-                    });
+                
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+                Main.throwFlashMessage('#messages_place', 'Unable to load data, details in console log', 'alert-danger');
             });
         
         if ($("#add_group_switch").is(":checked")) this.setAmountHelperButtons($("#group"));

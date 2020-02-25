@@ -79,110 +79,81 @@ let Main = {
         $(selector).inputmask({"mask": "99 999-9999"});
     },
 
-    cacheDeferred: {},
-    createCache: function(key, requestFunction) {
-        if (!this.cacheDeferred[key]) {
-            this.cacheDeferred[key] = $.Deferred(function(defer) {
-                requestFunction(defer);
-            });
-        }
-        return this.cacheDeferred[key];
-    },    
     groupActiveList: [],
     groupMap: {},
     loadActiveGroups: function() {
-        return $.Deferred(function(defer) {
-            if (Main.groupActiveList.length > 0) {
-                defer.resolve(Main.groupActiveList);
-            } else {
-                $.getJSON('/ajax-info/groups', {filter: {active: 1}})
-                .done(function(data) {
-                    data.forEach(function(group) {
+        if (Main.groupActiveList.length > 0) {
+            let defer = $.Deferred();
+            defer.resolve(Main.groupActiveList);
+            return defer;
+        }
+        
+        return $.Deferred(function (defer) {
+            $.getJSON('/ajax-info/groups', {filter: {active: 1}})
+                .done(function (data) {
+                    data.forEach(function (group) {
                         Main.groupActiveList.push(group.id);
                         Main.groupMap[group.id] = group;
                     });
                     defer.resolve(Main.groupActiveList);
                 })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                    defer.reject(jqXHR, textStatus, errorThrown);
-                });
-            }
+                .fail(defer.reject);
         });
     },
 
     teacherActiveList: {},
     teacherMap: {},
     loadActiveTeachers: function () {
-        return $.Deferred(function(defer) {
-            if (Main.teacherActiveList.length > 0) {
-                defer.resolve(Main.teacherActiveList);
-            } else {
-                $.getJSON('/ajax-info/teachers', {filter: {active: 1}})
-                    .done(function(data) {
-                        data.forEach(function(teacher) {
-                            Main.teacherMap[teacher.id] = teacher;
-                            teacher.subjectIds.forEach(function(subjectId) {
-                                if (typeof Main.teacherActiveList[subjectId] === 'undefined') {
-                                    Main.teacherActiveList[subjectId] = [];
-                                }
-                                Main.teacherActiveList[subjectId].push(teacher.id);
-                            });
+        if (Main.teacherActiveList.length > 0) {
+            let defer = $.Deferred();
+            defer.resolve(Main.teacherActiveList);
+            return defer;
+        }
+
+        return $.Deferred(function (defer) {
+            $.getJSON('/ajax-info/teachers', {filter: {active: 1}})
+                .done(function (data) {
+                    data.forEach(function (teacher) {
+                        Main.teacherMap[teacher.id] = teacher;
+                        teacher.subjectIds.forEach(function (subjectId) {
+                            if (typeof Main.teacherActiveList[subjectId] === 'undefined') {
+                                Main.teacherActiveList[subjectId] = [];
+                            }
+                            Main.teacherActiveList[subjectId].push(teacher.id);
                         });
-                        defer.resolve(Main.teacherActiveList);
-                    })
-                    .fail(function(jqXHR, textStatus, errorThrown) {
-                        defer.reject(jqXHR, textStatus, errorThrown);
                     });
-            }
+                    defer.resolve(Main.teacherActiveList);
+                })
+                .fail(defer.reject);
         });
     },
     
     subjectActiveList: {},
     subjectCategoryMap: {},
     subjectMap: {},
-    loadActiveSubjects: function(defer, query) {
-        return this.createCache('loadActiveSubjects', function(defer) {
+    loadActiveSubjects: function() {
+        if (Main.subjectActiveList.length > 0) {
+            let defer = $.Deferred();
+            defer.resolve(Main.subjectActiveList);
+            return defer;
+        }
+
+        return $.Deferred(function (defer) {
             $.getJSON('/ajax-info/subjects', {filter: {active: 1}})
-            .done(function(data) {
-                data.forEach(function(subject) {
-                    Main.subjectMap[subject.id] = subject;
-                    if (typeof Main.subjectCategoryMap[subject.categoryId] === 'undefined') {
-                        Main.subjectCategoryMap[subject.categoryId] = subject.category;
-                    }
-                    if (typeof Main.subjectActiveList[subject.categoryId] === 'undefined') {
-                        Main.subjectActiveList[subject.categoryId] = [];
-                    }
-                    Main.subjectActiveList[subject.categoryId].push(subject.id);
-                });
-                defer.resolve(Main.subjectActiveList);
-            })
-            .fail(defer.reject);
+                .done(function (data) {
+                    data.forEach(function (subject) {
+                        Main.subjectMap[subject.id] = subject;
+                        if (typeof Main.subjectCategoryMap[subject.categoryId] === 'undefined') {
+                            Main.subjectCategoryMap[subject.categoryId] = subject.category;
+                        }
+                        if (typeof Main.subjectActiveList[subject.categoryId] === 'undefined') {
+                            Main.subjectActiveList[subject.categoryId] = [];
+                        }
+                        Main.subjectActiveList[subject.categoryId].push(subject.id);
+                    });
+                    defer.resolve(Main.subjectActiveList);
+                })
+                .fail(defer.reject);
         });
     }
-    // loadActiveSubjects: function () {
-    //     return $.Deferred(function(defer) {
-    //         if (Main.subjectActiveList.length > 0) {
-    //             console.log('Cached');
-    //             defer.resolve(Main.subjectActiveList);
-    //         } else {
-    //             $.getJSON('/ajax-info/subjects', {filter: {active: 1}})
-    //                 .done(function(data) {
-    //                     data.forEach(function(subject) {
-    //                         Main.subjectMap[subject.id] = subject;
-    //                         if (typeof Main.subjectCategoryMap[subject.categoryId] === 'undefined') {
-    //                             Main.subjectCategoryMap[subject.categoryId] = subject.category;
-    //                         }
-    //                         if (typeof Main.subjectActiveList[subject.categoryId] === 'undefined') {
-    //                             Main.subjectActiveList[subject.categoryId] = [];
-    //                         }
-    //                         Main.subjectActiveList[subject.categoryId].push(subject.id);
-    //                     });
-    //                     defer.resolve(Main.subjectActiveList);
-    //                 })
-    //                 .fail(function(jqXHR, textStatus, errorThrown) {
-    //                     defer.reject(jqXHR, textStatus, errorThrown);
-    //                 });
-    //         }
-    //     });
-    // }
 };
