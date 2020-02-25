@@ -36,7 +36,7 @@ $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
     return $list;
 };
 
-$initialJs .= 'User.init();';
+$initialJs = 'User.init();';
 $this->registerJs($initialJs);
 ?>
 <ul class="nav nav-tabs" role="tablist">

@@ -1,7 +1,6 @@
 let User = {
     consultationList: [],
     welcomeLessonList: [],
-    subjectCategoryMap: [],
     paymentList: [],
     teacherElement: $("#welcome_lesson_teacher"),
     
@@ -248,9 +247,13 @@ let User = {
         );
     },
     init: function() {
-        $.when(Main.loadSubjects(), Main.loadGroups(), Main.loadTeachers())
-            .done(function(subjectMap, groupList, teacherMap) {
-                
+        $.when(Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
+            .done(function(subjectList, groupList, teacherList) {
+                console.log(subjectList);
+                Main.loadActiveSubjects()
+                    .done(function(sbj) {
+                        console.log(sbj);
+                    });
             });
         
         if ($("#add_group_switch").is(":checked")) this.setAmountHelperButtons($("#group"));

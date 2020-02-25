@@ -79,78 +79,110 @@ let Main = {
         $(selector).inputmask({"mask": "99 999-9999"});
     },
 
-    groupList: [],
-    groupMap: [],
-    loadGroups: function() {
-        if (this.groupList.length > 0) {
-            return new Promise(function(resolve, reject) {
-                return resolve(User.groupList);
+    cacheDeferred: {},
+    createCache: function(key, requestFunction) {
+        if (!this.cacheDeferred[key]) {
+            this.cacheDeferred[key] = $.Deferred(function(defer) {
+                requestFunction(defer);
             });
         }
-
-        let promise = $.getJSON('/ajax-info/groups', {filter: {active: 1}});
-        promise.done(function(data) {
-            User.groupList = data;
-        });
-        return promise;
-    },
-
-    teacherList: [],
-    teacherMap: [],
-    loadTeachers: function () {
-        if (this.teacherMap.length > 0) {
-            return new Promise(function(resolve, reject) {
-                return resolve(User.teacherMap);
-            });
-        }
-
-        return new Promise(function(resolve, reject) {
-            $.getJSON('/ajax-info/teachers', {filter: {active: 1}})
+        return this.cacheDeferred[key];
+    },    
+    groupActiveList: [],
+    groupMap: {},
+    loadActiveGroups: function() {
+        return $.Deferred(function(defer) {
+            if (Main.groupActiveList.length > 0) {
+                defer.resolve(Main.groupActiveList);
+            } else {
+                $.getJSON('/ajax-info/groups', {filter: {active: 1}})
                 .done(function(data) {
-                    data.forEach(function(teacher) {
-                        User.teacherMap[teacher.id] = teacher.name;
-                        teacher.subjectIds.forEach(function(subjectId) {
-                            if (typeof User.teacherList[subjectId] === 'undefined') {
-                                User.teacherList[subjectId] = [];
-                            }
-                            User.teacherList[subjectId].push(teacher.id);
-                        });
+                    data.forEach(function(group) {
+                        Main.groupActiveList.push(group.id);
+                        Main.groupMap[group.id] = group;
                     });
-                    return resolve(User.teacherMap);
+                    defer.resolve(Main.groupActiveList);
                 })
                 .fail(function(jqXHR, textStatus, errorThrown) {
-                    return reject(jqXHR, textStatus, errorThrown);
+                    defer.reject(jqXHR, textStatus, errorThrown);
                 });
+            }
+        });
+    },
+
+    teacherActiveList: {},
+    teacherMap: {},
+    loadActiveTeachers: function () {
+        return $.Deferred(function(defer) {
+            if (Main.teacherActiveList.length > 0) {
+                defer.resolve(Main.teacherActiveList);
+            } else {
+                $.getJSON('/ajax-info/teachers', {filter: {active: 1}})
+                    .done(function(data) {
+                        data.forEach(function(teacher) {
+                            Main.teacherMap[teacher.id] = teacher;
+                            teacher.subjectIds.forEach(function(subjectId) {
+                                if (typeof Main.teacherActiveList[subjectId] === 'undefined') {
+                                    Main.teacherActiveList[subjectId] = [];
+                                }
+                                Main.teacherActiveList[subjectId].push(teacher.id);
+                            });
+                        });
+                        defer.resolve(Main.teacherActiveList);
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        defer.reject(jqXHR, textStatus, errorThrown);
+                    });
+            }
         });
     },
     
-    subjectList: [],
-    subjectMap: [],
-    loadSubjects: function () {
-        if (this.subjectMap.length > 0) {
-            return new Promise(function(resolve, reject) {
-                return resolve(User.subjectMap);
-            });
-        }
-
-        return new Promise(function(resolve, reject) {
+    subjectActiveList: {},
+    subjectCategoryMap: {},
+    subjectMap: {},
+    loadActiveSubjects: function(defer, query) {
+        return this.createCache('loadActiveSubjects', function(defer) {
             $.getJSON('/ajax-info/subjects', {filter: {active: 1}})
-                .done(function(data) {
-                    data.forEach(function(subject) {
-                        User.subjectMap[subject.id] = subject.name;
-                        if (typeof User.subjectCategoryMap[subject.categoryId] === 'undefined') {
-                            User.subjectCategoryMap[subject.categoryId] = subject.category;
-                        }
-                        if (typeof User.subjectList[subject.categoryId] === 'undefined') {
-                            User.subjectList[subject.categoryId] = [];
-                        }
-                        User.subjectList[subject.categoryId].push(subject.id);
-                    });
-                    return resolve(User.subjectMap);
-                })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                    return reject(jqXHR, textStatus, errorThrown);
+            .done(function(data) {
+                data.forEach(function(subject) {
+                    Main.subjectMap[subject.id] = subject;
+                    if (typeof Main.subjectCategoryMap[subject.categoryId] === 'undefined') {
+                        Main.subjectCategoryMap[subject.categoryId] = subject.category;
+                    }
+                    if (typeof Main.subjectActiveList[subject.categoryId] === 'undefined') {
+                        Main.subjectActiveList[subject.categoryId] = [];
+                    }
+                    Main.subjectActiveList[subject.categoryId].push(subject.id);
                 });
+                defer.resolve(Main.subjectActiveList);
+            })
+            .fail(defer.reject);
         });
     }
+    // loadActiveSubjects: function () {
+    //     return $.Deferred(function(defer) {
+    //         if (Main.subjectActiveList.length > 0) {
+    //             console.log('Cached');
+    //             defer.resolve(Main.subjectActiveList);
+    //         } else {
+    //             $.getJSON('/ajax-info/subjects', {filter: {active: 1}})
+    //                 .done(function(data) {
+    //                     data.forEach(function(subject) {
+    //                         Main.subjectMap[subject.id] = subject;
+    //                         if (typeof Main.subjectCategoryMap[subject.categoryId] === 'undefined') {
+    //                             Main.subjectCategoryMap[subject.categoryId] = subject.category;
+    //                         }
+    //                         if (typeof Main.subjectActiveList[subject.categoryId] === 'undefined') {
+    //                             Main.subjectActiveList[subject.categoryId] = [];
+    //                         }
+    //                         Main.subjectActiveList[subject.categoryId].push(subject.id);
+    //                     });
+    //                     defer.resolve(Main.subjectActiveList);
+    //                 })
+    //                 .fail(function(jqXHR, textStatus, errorThrown) {
+    //                     defer.reject(jqXHR, textStatus, errorThrown);
+    //                 });
+    //         }
+    //     });
+    // }
 };
