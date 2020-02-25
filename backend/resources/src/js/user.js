@@ -23,14 +23,87 @@ let User = {
             });
         } else this.fillTeacherSelect(subjectId);
     },
-    addWelcomeLesson: function(data) {
-        if (data === undefined) {
-            data = {};
+    getGroupOptions: function(selectedValue, addEmpty) {
+        if (typeof addEmpty !== 'boolean') {
+            addEmpty = false;
         }
+        let optionsHtml = '';
+        if (addEmpty) {
+            optionsHtml += '<option value="0" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестна</option>';
+        }
+        Main.groupActiveList.forEach(function(groupId) {
+            optionsHtml += '<option value="' + groupId + '" ' + (selectedValue === groupId ? 'selected' : '') + '>'
+                + Main.groupMap[groupId].name + '</option>';
+        });
+        return optionsHtml;
+    },
+    getSubjectOptions: function(selectedValue, addEmpty) {
+        if (typeof addEmpty !== 'boolean') {
+            addEmpty = false;
+        }
+        let optionsHtml = '';
+        if (addEmpty) {
+            optionsHtml += '<option value="0" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестен</option>';
+        }
+        Object.keys(Main.subjectActiveList).forEach(function(categoryId) {
+            optionsHtml += '<optgroup label="' + Main.subjectCategoryMap[categoryId] + '">';
+            Main.subjectActiveList[categoryId].forEach(function(subjectId) {
+                optionsHtml += '<option value="' + subjectId + '" ' + (selectedValue === subjectId ? 'selected' : '') + '>'
+                    + Main.subjectMap[subjectId].name + '</option>';
+            });
+        });
+        return optionsHtml;
+    },
+    getTeacherOptions: function(subjectId, selectedValue, addEmpty) {
+        if (typeof addEmpty !== 'boolean') {
+            addEmpty = false;
+        }
+        let optionsHtml = '';
+        if (addEmpty) {
+            optionsHtml += '<option value="0" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестен</option>';
+        }
+        if (Main.teacherActiveList.hasOwnProperty(subjectId)) {
+            Main.teacherActiveList[subjectId].forEach(function (teacherId) {
+                optionsHtml += '<option value="' + teacherId + '" ' + (selectedValue === teacherId ? 'selected' : '') + '>'
+                    + Main.teacherMap[teacherId].name + '</option>';
+            });
+        }
+        return optionsHtml;
+    },
+    addWelcomeLesson: function addWelcomeLesson(data) {
+        if (data === undefined) {
+            data = {groupId: 0, subjectId: 0, teacherId: 0, date: ''};
+        }
+
         let blockHtml = '<div class="welcome-lesson-item">';
+        blockHtml += '<div class="form-group">' +
+            '<label>Группа</label>' +
+            '<select class="form-control" name="welcome_lesson[groupId][]" onchange="User.setWelcomeLessonGroup(this);">' +
+            this.getGroupOptions(data.groupId, true) +
+            '</select>' +
+            '</div>';
+        blockHtml += '<div class="form-group">' +
+            '<label>Предмет</label>' +
+            '<select class="form-control" name="welcome_lesson[subjectId][]" onchange="User.loadTeacherSelect(this);' +
+            (data.groupId > 0 ? ' disabled' : '') + '>' + this.getSubjectOptions(data.subjectId) + '</select>' +
+            '</div>';
+        blockHtml += '<div class="form-group">' +
+            '<label>Учитель</label>' +
+            '<select class="form-control" name="welcome_lesson[teacherId][]"' + (data.groupId > 0 ? ' disabled' : '') + '>' +
+            this.getTeacherOptions(data.subjectId, data.teacherId) + '</select>' +
+            '</div>';
+        blockHtml += '<div class="form-group">' +
+            '<label>Дата</label>' +
+            '<div class="input-group date">' +
+            '<input type="text" class="form-control" name="welcome_leson[date][]" value="' + data.date + '" required>' +
+            '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
+            '</div>' +
+            '</div>';
         blockHtml += '</div>';
-        
-        $("#welcome_lessons").append(blockHtml);
+        let container = $("#welcome_lessons");
+        $(container).append(blockHtml);
+        $(container).find('.welcome-lesson-item:last').find(".date")
+            .datepicker({autoclose: true, format: "dd.mm.yyyy", language: "ru", weekStart: 1});
     },
     fillTeacherSelect: function (subjectId) {
         if ($(this.teacherElement).data("subject") === subjectId) {

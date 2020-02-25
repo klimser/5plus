@@ -65,7 +65,7 @@ let Main = {
         });
     },
     submitSortableForm: function (form) {
-        var sortable = $(form).find(".ui-sortable");
+        let sortable = $(form).find(".ui-sortable");
         if (sortable.length) {
             $(form).append('<input type="hidden" name="sorted-list" value="' + $(sortable).sortable("toArray") + '">');
         }
