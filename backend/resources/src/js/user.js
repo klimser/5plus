@@ -4,25 +4,6 @@ let User = {
     paymentList: [],
     teacherElement: $("#welcome_lesson_teacher"),
     
-    loadTeacherSelect: function (e) {
-        let subjectId = $(e).val();
-        $(this.teacherElement).data("subject", subjectId);
-
-        if (typeof this.teacherList[subjectId] === 'undefined') {
-            $.get({
-                url: '/teacher/list-json',
-                dataType: 'json',
-                data: {subject: subjectId},
-                success: function (data) {
-                    User.teacherList[data.subjectId] = [];
-                    data.teachers.forEach(function(teacherId) {
-                        User.teacherList[data.subjectId].push(teacherId);
-                    });
-                    User.fillTeacherSelect(data.subjectId);
-                }
-            });
-        } else this.fillTeacherSelect(subjectId);
-    },
     getGroupOptions: function(selectedValue, addEmpty) {
         if (typeof addEmpty !== 'boolean') {
             addEmpty = false;
@@ -78,24 +59,24 @@ let User = {
         let blockHtml = '<div class="welcome-lesson-item">';
         blockHtml += '<div class="form-group">' +
             '<label>Группа</label>' +
-            '<select class="form-control" name="welcome_lesson[groupId][]" onchange="User.setWelcomeLessonGroup(this);">' +
+            '<select class="form-control group-select" name="welcome_lesson[groupId][]" onchange="User.setWelcomeLessonGroup(this);">' +
             this.getGroupOptions(data.groupId, true) +
             '</select>' +
             '</div>';
         blockHtml += '<div class="form-group">' +
             '<label>Предмет</label>' +
-            '<select class="form-control" name="welcome_lesson[subjectId][]" onchange="User.loadTeacherSelect(this);' +
+            '<select class="form-control subject-select" name="welcome_lesson[subjectId][]" onchange="User.setWelcomeLessonSubject(this);"' +
             (data.groupId > 0 ? ' disabled' : '') + '>' + this.getSubjectOptions(data.subjectId) + '</select>' +
             '</div>';
         blockHtml += '<div class="form-group">' +
             '<label>Учитель</label>' +
-            '<select class="form-control" name="welcome_lesson[teacherId][]"' + (data.groupId > 0 ? ' disabled' : '') + '>' +
+            '<select class="form-control teacher-select" name="welcome_lesson[teacherId][]"' + (data.groupId > 0 ? ' disabled' : '') + '>' +
             this.getTeacherOptions(data.subjectId, data.teacherId) + '</select>' +
             '</div>';
         blockHtml += '<div class="form-group">' +
             '<label>Дата</label>' +
             '<div class="input-group date">' +
-            '<input type="text" class="form-control" name="welcome_leson[date][]" value="' + data.date + '" required>' +
+            '<input type="text" class="form-control date-select" name="welcome_leson[date][]" value="' + data.date + '" required>' +
             '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
             '</div>' +
             '</div>';
@@ -104,18 +85,7 @@ let User = {
         $(container).append(blockHtml);
         $(container).find('.welcome-lesson-item:last').find(".date")
             .datepicker({autoclose: true, format: "dd.mm.yyyy", language: "ru", weekStart: 1});
-    },
-    fillTeacherSelect: function (subjectId) {
-        if ($(this.teacherElement).data("subject") === subjectId) {
-            $(this.teacherElement).html(this.getTeachersOptions(subjectId)).removeData("subject");
-        }
-    },
-    getTeachersOptions: function (subjectId) {
-        let list = '';
-        this.teacherList[subjectId].forEach(function(teacherId) {
-            list += '<option value="' + teacherId + '">' + User.teacherMap[teacherId] + '</option>';
-        });
-        return list;
+        this.setWelcomeLessonSubject($(container).find('.welcome-lesson-item:last').find("select.subject-select"));
     },
     findByPhone: function(phoneString, successHandler, errorHandler) {
         $.ajax({
@@ -202,13 +172,22 @@ let User = {
         }
     },
     setWelcomeLessonGroup: function(e) {
-        if ($(e).val().length === 0) {
-            $("#welcome_lesson_subject").prop("disabled", false);
-            $("#welcome_lesson_teacher").prop("disabled", false);
+        let container = $(e).closest('.welcome-lesson-item');
+        if ($(e).val() > 0) {
+            let group = Main.groupMap[$(e).val()];
+            $(container).find(".subject-select").prop("disabled", true)
+                .find('option[value=' + group.subjectId + ']').prop('selected', true);
+            this.setWelcomeLessonSubject($(container).find(".subject-select"));
+            $(container).find(".teacher-select").prop("disabled", true)
+                .find('option[value=' + group.teacherId + ']').prop('selected', true);
         } else {
-            $("#welcome_lesson_subject").prop("disabled", true);
-            $("#welcome_lesson_teacher").prop("disabled", true);
+            $(container).find(".subject-select").prop("disabled", false);
+            $(container).find(".teacher-select").prop("disabled", false);
         }
+    },
+    setWelcomeLessonSubject: function(e) {
+        $(e).closest('.welcome-lesson-item').find(".teacher-select")
+            .html(this.getTeacherOptions($(e).val()));
     },
     checkAddGroup: function(e) {
         let paymentSwitch = $("#add_payment_switch");
