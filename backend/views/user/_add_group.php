@@ -12,6 +12,7 @@ use yii\helpers\ArrayHelper;
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */
+/* @var $consultationData array */
 /* @var $welcomeLessonData array */
 /* @var $companies \common\models\Company[] */
 /* @var $amount int */
@@ -36,7 +37,19 @@ $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
     return $list;
 };
 
-$initialJs = 'User.init();';
+
+$initialJs = '';
+// Consultations
+foreach ($consultationData as $consultationSubjectId) {
+    $initialJs .= "User.consultationList.push({$consultationSubjectId});\n";
+}
+
+// Welcome lessons
+foreach ($welcomeLessonData as $welcomeLesson) {
+    $initialJs .= "User.welcomeLessonList.push(" . json_encode($welcomeLesson) . ");\n";
+}
+
+$initialJs .= "User.init();\n";
 $this->registerJs($initialJs);
 ?>
 <ul class="nav nav-tabs" role="tablist">
@@ -57,50 +70,6 @@ $this->registerJs($initialJs);
     </div>
     <div role="tabpanel" class="tab-pane" id="group-tab">
         
-    </div>
-</div>
-
-<div class="checkbox">
-    <label>
-        <input type="checkbox" id="welcome_lesson_switch" value="1" name="welcome_lesson[add]" onchange="User.checkWelcomeLesson(this);" <?= $addWelcomeLesson ? 'checked' : ''; ?> autocomplete="off">
-        Пробный урок
-    </label>
-</div>
-
-<div id="add_welcome_lesson" <?= $addWelcomeLesson ? '' : 'class="hidden"'; ?>>
-    <div class="form-group">
-        <label for="welcome_lesson_group">Группа</label>
-        <select class="form-control" id="welcome_lesson_group" name="welcome_lesson[group_id]" onchange="User.setWelcomeLessonGroup(this);">
-            <option value="">Неизвестна</option>
-            <?= $getGroupOptionsList(array_key_exists('id', $groupData) ? intval($groupData['id']) : 0); ?>
-        </select>
-    </div>
-    <div id="welcome_lesson_custom" <?= array_key_exists('id', $groupData) ? 'class="hidden"' : ''; ?>>
-        <div class="form-group">
-            <label for="welcome_lesson_subject">Предмет</label>
-            <select class="form-control" id="welcome_lesson_subject" name="welcome_lesson[subject_id]" onchange="User.loadTeacherSelect(this);"
-                <?= !empty($welcomeLessonData['group_id']) ? 'disabled' : ''; ?>>
-                <?php foreach ($subjects as $subject): ?>
-                    <option value="<?= $subject->id; ?>" <?= !empty($welcomeLessonData['subject_id']) && $welcomeLessonData['subject_id'] == $subject->id ? 'selected' : ''; ?>><?= $subject->name; ?> (<?= $subject->subjectCategory->name; ?>)</option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="welcome_lesson_teacher">Учитель</label>
-            <select class="form-control" id="welcome_lesson_teacher" name="welcome_lesson[teacher_id]"
-                <?= !empty($welcomeLessonData['group_id']) ? 'disabled' : ''; ?>></select>
-        </div>
-    </div>
-    <div class="form-group">
-        <label for="welcome_lesson_date">Дата</label>
-        <?= DatePicker::widget(array_merge(
-                DefaultValuesComponent::getDatePickerSettings(),
-                [
-                    'name' => 'welcome_lesson[date]',
-                    'value' => array_key_exists('date', $welcomeLessonData) ? $welcomeLessonData['date'] : date('d.m.Y'),
-                    'options' => ['id' => 'welcome_lesson_date', 'required' => true, 'disabled' => !$addWelcomeLesson],
-                ]
-        ));?>
     </div>
 </div>
 

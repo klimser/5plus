@@ -69,6 +69,7 @@ class UserController extends AdminController
         $parent = new User(['scenario' => User::SCENARIO_USER]);
         $parentCompany = new User(['scenario' => User::SCENARIO_USER]);
         $pupil = new User(['scenario' => User::SCENARIO_USER]);
+        $consultationData = [];
         $groupData = [];
         $paymentData = [];
         $contractData = [];
@@ -79,6 +80,7 @@ class UserController extends AdminController
         if (Yii::$app->request->isPost) {
             User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
+            $consultationData = Yii::$app->request->post('consultation', []);
             $groupData = Yii::$app->request->post('group', []);
             $welcomeLessonData = Yii::$app->request->post('welcome_lesson', []);
             $paymentData = Yii::$app->request->post('payment', []);
@@ -159,6 +161,7 @@ class UserController extends AdminController
             'parent' => $parent,
             'parentCompany' => $parentCompany,
             'pupil' => $pupil,
+            'consultationData' => $consultationData,
             'groupData' => $groupData,
             'paymentData' => $paymentData,
             'contractData' => $contractData,

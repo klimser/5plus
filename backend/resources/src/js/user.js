@@ -321,7 +321,17 @@ let User = {
     init: function() {
         $.when(Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
             .done(function(subjectList, groupList, teacherList) {
-                
+                if (User.consultationList.length > 0) {
+                    User.consultationList.forEach(function(subjectId) {
+                        User.addConsultation(subjectId);
+                    });
+                } else {
+                    User.addConsultation();
+                }
+
+                User.welcomeLessonList.forEach(function(welcomeLessonData) {
+                    User.addWelcomeLesson(welcomeLessonData);
+                });
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR);

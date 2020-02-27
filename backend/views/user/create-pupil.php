@@ -18,6 +18,7 @@ use yii\helpers\ArrayHelper;
 /* @var $groupData array */
 /* @var $paymentData array */
 /* @var $contractData array */
+/* @var $consultationData array */
 /* @var $welcomeLessonData array */
 /* @var $amount int */
 /* @var $companyId int */
@@ -122,7 +123,25 @@ $this->params['breadcrumbs'][] = $this->title;
                 </div>
             </div>
         </div>
-        <div
+        <div class="row">
+            <div class="col-xs-12">
+                <?= $this->render('_add_group', [
+                    'requestData' => $requestData,
+                    'groups' => $groups,
+                    'subjects' => $subjects,
+                    'groupData' => $groupData,
+                    'paymentData' => $paymentData,
+                    'contractData' => $contractData,
+                    'consultationData' => $consultationData,
+                    'welcomeLessonData' => $welcomeLessonData,
+                    'companies' => $companies,
+                    'amount' => $amount,
+                    'companyId' => $companyId,
+                    'incomeAllowed' => $incomeAllowed,
+                    'contractAllowed' => $contractAllowed,
+                ]) ?>
+            </div>
+        </div>
         <div class="row">
             <div class="form-group col-xs-12">
                 <?= Html::submitButton('Добавить', ['class' => 'btn btn-primary pull-right']); ?>
