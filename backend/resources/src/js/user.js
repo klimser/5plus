@@ -1,4 +1,5 @@
 let User = {
+    iterator: 1,
     consultationList: [],
     welcomeLessonList: [],
     paymentList: [],
@@ -59,33 +60,52 @@ let User = {
         let blockHtml = '<div class="welcome-lesson-item">';
         blockHtml += '<div class="form-group">' +
             '<label>Группа</label>' +
-            '<select class="form-control group-select" name="welcome_lesson[groupId][]" onchange="User.setWelcomeLessonGroup(this);">' +
+            '<select class="form-control group-select" name="welcome_lesson[groupId][' + this.iterator + ']" onchange="User.setWelcomeLessonGroup(this);">' +
             this.getGroupOptions(data.groupId, true) +
             '</select>' +
             '</div>';
         blockHtml += '<div class="form-group">' +
             '<label>Предмет</label>' +
-            '<select class="form-control subject-select" name="welcome_lesson[subjectId][]" onchange="User.setWelcomeLessonSubject(this);"' +
+            '<select class="form-control subject-select" name="welcome_lesson[subjectId][' + this.iterator + ']" onchange="User.setWelcomeLessonSubject(this);"' +
             (data.groupId > 0 ? ' disabled' : '') + '>' + this.getSubjectOptions(data.subjectId) + '</select>' +
             '</div>';
         blockHtml += '<div class="form-group">' +
             '<label>Учитель</label>' +
-            '<select class="form-control teacher-select" name="welcome_lesson[teacherId][]"' + (data.groupId > 0 ? ' disabled' : '') + '>' +
+            '<select class="form-control teacher-select" name="welcome_lesson[teacherId][' + this.iterator + ']"' + (data.groupId > 0 ? ' disabled' : '') + '>' +
             this.getTeacherOptions(data.subjectId, data.teacherId) + '</select>' +
             '</div>';
         blockHtml += '<div class="form-group">' +
             '<label>Дата</label>' +
             '<div class="input-group date">' +
-            '<input type="text" class="form-control date-select" name="welcome_leson[date][]" value="' + data.date + '" required>' +
+            '<input type="text" class="form-control date-select" name="welcome_leson[date][' + this.iterator + ']" value="' + data.date + '" required>' +
             '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
             '</div>' +
             '</div>';
+        blockHtml += '<span class="point">&times;</span>';
         blockHtml += '</div>';
         let container = $("#welcome_lessons");
         $(container).append(blockHtml);
+        this.iterator++;
         $(container).find('.welcome-lesson-item:last').find(".date")
             .datepicker({autoclose: true, format: "dd.mm.yyyy", language: "ru", weekStart: 1});
         this.setWelcomeLessonSubject($(container).find('.welcome-lesson-item:last').find("select.subject-select"));
+    },
+    addConsultation: function(subjectId) {
+        if (subjectId === undefined) {
+            subjectId = 0;
+        }
+
+        let blockHtml = '<div class="consultation-item">';
+        blockHtml += '<div class="form-group">' +
+            '<label>Предмет</label>' +
+            '<select class="form-control subject-select" name="consultation[]">' + this.getSubjectOptions(subjectId) + '</select>' +
+            '</div>';
+        blockHtml += '</div>';
+        let container = $("#consultation-mandatory");
+        if ($(container).html().length > 0) {
+            container = $("#consultation-optional");
+        }
+        $(container).append(blockHtml);
     },
     findByPhone: function(phoneString, successHandler, errorHandler) {
         $.ajax({

@@ -53,25 +53,10 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?= $form->field($pupil, '[pupil]note')->textarea(['maxlength' => true, 'htmlOptions' => ['rows' => 3]]); ?>
 
                 <?= $form->field($pupil, '[pupil]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
-                    ->textInput(['required' => true, 'maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
+                    ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
 
                 <?= $form->field($pupil, '[pupil]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
-
-                <?= $this->render('_add_group', [
-                    'requestData' => $requestData,
-                    'groups' => $groups,
-                    'subjects' => $subjects,
-                    'groupData' => $groupData,
-                    'paymentData' => $paymentData,
-                    'contractData' => $contractData,
-                    'welcomeLessonData' => $welcomeLessonData,
-                    'companies' => $companies,
-                    'amount' => $amount,
-                    'companyId' => $companyId,
-                    'incomeAllowed' => $incomeAllowed,
-                    'contractAllowed' => $contractAllowed,
-                ]) ?>
             </div>
 
             <hr class="visible-xs visible-sm">
@@ -137,6 +122,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 </div>
             </div>
         </div>
+        <div
         <div class="row">
             <div class="form-group col-xs-12">
                 <?= Html::submitButton('Добавить', ['class' => 'btn btn-primary pull-right']); ?>

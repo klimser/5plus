@@ -129,20 +129,6 @@ class User extends ActiveRecord implements IdentityInterface
                 'whenClient' => "function (attribute, value) {
                     return $(attribute.input).data(\"id\").length === 0;
                 }"],
-            [['phoneFormatted'], 'required', 'on' => self::SCENARIO_USER,
-                'whenClient' => "function (attribute, value) {
-                    var parentExpr = /\[parent\].*/;
-                    var companyExpr = /\[parentCompany\].*/;
-                    if ((parentExpr.test(attribute.name)
-                        && $('input[name=\"person_type\"]:checked').val() === \"" . self::ROLE_PARENTS . "\"
-                        && $('input[name=\"parent_type\"]:checked').val() === \"new\")
-                    || (companyExpr.test(attribute.name)
-                        && $('input[name=\"person_type\"]:checked').val() === \"" . self::ROLE_COMPANY . "\"
-                        && $('input[name=\"company_type\"]:checked').val() === \"new\")) {
-                        return true;
-                    }
-                    return false;
-                }"],
 
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_LOCKED]],
             ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER, self::ROLE_TEACHER]],
