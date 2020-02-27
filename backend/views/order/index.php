@@ -57,7 +57,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'phone',
                 'header' => 'Телефон',
-                'content' => function ($model, $key, $index, $column) { return "<span class='text-nowrap'>{$model->phoneFull}</span>"; },
+//                'content' => function ($model, $key, $index, $column) { return "<span class='text-nowrap'>{$model->phoneFull}</span>"; },
             ],
             [
                 'attribute' => 'user_comment',

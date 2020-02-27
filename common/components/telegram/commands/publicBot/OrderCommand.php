@@ -155,15 +155,15 @@ class OrderCommand extends UserCommand
                 if ($message->getText() !== PublicMain::TO_BACK) {
                     $phone = $message->getContact() ? $message->getContact()->getPhoneNumber() : $message->getText();
                     $phoneDigits = preg_replace('#\D#', '', $phone);
-                    if (preg_match('#^\+#', $phone) && !preg_match('#^\+998#', $phone)) {
-                        $conversation->notes['step']--;
-                        $conversation->update();
-                        return [
-                            'parse_mode' => 'MarkdownV2',
-                            'text' => Request::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
-                        ];
-                    }
-                    if (strlen($phoneDigits) < 9 || (preg_match('#^\+998#', $phone) && strlen($phoneDigits) < 12)) {
+//                    if (preg_match('#^\+#', $phone) && !preg_match('#^\+998#', $phone)) {
+//                        $conversation->notes['step']--;
+//                        $conversation->update();
+//                        return [
+//                            'parse_mode' => 'MarkdownV2',
+//                            'text' => Request::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
+//                        ];
+//                    }
+                    if (strlen($phone) > 50 || strlen($phoneDigits) < 9 || (preg_match('#^\+998#', $phone) && strlen($phoneDigits) < 12)) {
                         $conversation->notes['step']--;
                         $conversation->update();
                         return [
@@ -172,7 +172,7 @@ class OrderCommand extends UserCommand
                         ];
                     }
 
-                    $this->addNote($conversation, 'phone', '+998' . substr($phoneDigits, -9));
+                    $this->addNote($conversation, 'phone', $phone);
                 }
 
                 /** @var SubjectCategory[] $categories */

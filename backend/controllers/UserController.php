@@ -243,6 +243,8 @@ class UserController extends AdminController
             $group = Group::find()->andWhere(['id' => $welcomeLessonData['group_id'], 'active' => Subject::STATUS_ACTIVE])->one();
             if (!$group) throw new Exception('Группа не найдена');
             $welcomeLesson->group_id = $group->id;
+            $welcomeLesson->subject_id = $group->subject_id;
+            $welcomeLesson->teacher_id = $group->teacher_id;
         }
         if (!empty($welcomeLessonData['subject_id'])) {
             /** @var Subject $subject */

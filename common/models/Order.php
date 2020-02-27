@@ -51,9 +51,9 @@ class Order extends ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'phoneFormatted', 'status', 'user_comment', 'admin_comment'];
+        $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'status', 'user_comment', 'admin_comment'];
         $scenarios[self::SCENARIO_FRONTEND] = ['source', 'subject', 'name', 'phone', 'phoneFormatted', 'user_comment', 'reCaptcha'];
-        $scenarios[self::SCENARIO_TELEGRAM] = ['source', 'subject', 'name', 'phone', 'phoneFormatted', 'user_comment'];
+        $scenarios[self::SCENARIO_TELEGRAM] = ['source', 'subject', 'name', 'phone', 'user_comment'];
         return $scenarios;
     }
 
@@ -74,8 +74,8 @@ class Order extends ActiveRecord
             [['status'], 'string'],
             [['subject'], 'string', 'max' => 127],
             [['tg_login'], 'string', 'max' => 32],
-            [['phone'], 'string', 'min' => 13, 'max' => 13],
-            [['phone'], 'match', 'pattern' => '#^\+998\d{9}$#'],
+            [['phone'], 'string', 'max' => 50],
+            [['phone'], 'match', 'pattern' => '#^\+998\d{9}$#', 'on' => [self::SCENARIO_FRONTEND]],
             [['phoneFormatted'], 'string', 'min' => 11, 'max' => 11],
             [['phoneFormatted'], 'match', 'pattern' => '#^\d{2} \d{3}-\d{4}$#'],
             [['source', 'name'], 'string', 'max' => 50],

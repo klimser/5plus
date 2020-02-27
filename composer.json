@@ -35,7 +35,8 @@
     "picqer/php-barcode-generator": "^0.2.2",
     "setasign/fpdi": "^2.2",
     "setasign/fpdi-tcpdf": "^2.2",
-    "2amigos/yii2-date-time-picker-widget": "^1.0"
+    "2amigos/yii2-date-time-picker-widget": "^1.0",
+    "chillerlan/php-qrcode": "^3.2"
   },
   "require-dev": {
     "yiisoft/yii2-debug": "*",
