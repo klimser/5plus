@@ -77,10 +77,13 @@ class PaymentController extends Controller
                 $params['users'] = [];
                 if (count($users) == 1) {
                     $user = reset($users);
-                    if ($user->role == User::ROLE_PUPIL) $params['user'] = $user;
-                    else {
-                        if (count($user->children) == 1) $params['user'] = reset($user->children);
-                        else $params['users'] = $user->children;
+                    if ($user->role == User::ROLE_PUPIL) {
+                        $params['user'] = $user;
+                    } elseif (count($user->children) == 1) {
+                        $children = $user->children;
+                        $params['user'] = reset($children);
+                    } else {
+                        $params['users'] = $user->children;
                     }
                 } else $params['users'] = $users;
 

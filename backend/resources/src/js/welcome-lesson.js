@@ -78,13 +78,15 @@ let WelcomeLesson = {
                     form.find("#pupil").html(data.pupilName);
                     form.find("#start_date").html(data.lessonDate);
                     let proposals = '';
+                    let checkProposal = (data.groups.length === 1);
                     data.groups.forEach(function(group) {
                         proposals += '<div class="radio"><label>' +
-                            '<input type="radio" name="group_proposal" value="' + group.id + '" onchange="WelcomeLesson.groupChange(this);"> ' + group.name + ' (' + group.teacherName + ')' +
-                            '</label></div>';
+                            '<input type="radio" name="group_proposal" value="' + group.id + '" onchange="WelcomeLesson.groupChange(this);" ' + (checkProposal ? ' checked' : '') + '> '
+                            + group.name + ' (' + group.teacherName + ')' + '</label></div>';
                     });
                     form.find("#group_proposal").html(proposals);
                     $("#moving-modal").modal('show');
+                    
                 } else {
                     Main.throwFlashMessage('#messages_place', "Ошибка: " + data.message, 'alert-danger');
                 }

@@ -17,6 +17,7 @@ use yii;
  * @property string $subject
  * @property string $name
  * @property string $phone
+ * @property string $tg_login
  * @property string $status
  * @property string $user_comment
  * @property string $admin_comment
@@ -50,9 +51,9 @@ class Order extends ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'phoneFormatted', 'status', 'user_comment', 'admin_comment'];
+        $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'status', 'user_comment', 'admin_comment'];
         $scenarios[self::SCENARIO_FRONTEND] = ['source', 'subject', 'name', 'phone', 'phoneFormatted', 'user_comment', 'reCaptcha'];
-        $scenarios[self::SCENARIO_TELEGRAM] = ['source', 'subject', 'name', 'phone', 'phoneFormatted', 'user_comment'];
+        $scenarios[self::SCENARIO_TELEGRAM] = ['source', 'subject', 'name', 'phone', 'user_comment'];
         return $scenarios;
     }
 
@@ -72,8 +73,9 @@ class Order extends ActiveRecord
             [['subject', 'name', 'phone'], 'required'],
             [['status'], 'string'],
             [['subject'], 'string', 'max' => 127],
-            [['phone'], 'string', 'min' => 13, 'max' => 13],
-            [['phone'], 'match', 'pattern' => '#^\+998\d{9}$#'],
+            [['tg_login'], 'string', 'max' => 32],
+            [['phone'], 'string', 'max' => 50],
+            [['phone'], 'match', 'pattern' => '#^\+998\d{9}$#', 'on' => [self::SCENARIO_FRONTEND]],
             [['phoneFormatted'], 'string', 'min' => 11, 'max' => 11],
             [['phoneFormatted'], 'match', 'pattern' => '#^\d{2} \d{3}-\d{4}$#'],
             [['source', 'name'], 'string', 'max' => 50],
@@ -82,7 +84,7 @@ class Order extends ActiveRecord
             [['reCaptcha'], ReCaptchaValidator::class, 'on' => self::SCENARIO_FRONTEND],
             ['source', 'default', 'value' => 'Сайт', 'on' => self::SCENARIO_FRONTEND],
             ['source', 'default', 'value' => 'Telegram бот', 'on' => self::SCENARIO_TELEGRAM],
-            [['name', 'user_comment'], 'default', 'value' => null],
+            [['name', 'user_comment', 'tg_login'], 'default', 'value' => null],
         ];
     }
 
@@ -95,6 +97,7 @@ class Order extends ActiveRecord
             'subject' => 'Предмет',
             'name' => 'Имя',
             'phone' => 'Номер телефона',
+            'tg_login' => 'Telegram username',
             'created_at' => 'Дата подачи',
             'status' => 'Статус заявки',
             'user_comment' => 'Дополнительные сведения, пожелания',

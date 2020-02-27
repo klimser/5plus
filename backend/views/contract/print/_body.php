@@ -266,7 +266,7 @@
         <tr>
             <td class="number">4.1.</td>
             <td>
-                4.1.	Стоимость образовательных услуг в рамках настоящего Договора составляет <span class="placeholder"><?= $contract->amount; ?></span> сум (<span class="placeholder"><?= $contract->amountString; ?></span> сум)
+                Стоимость образовательных услуг в рамках настоящего Договора составляет <span class="placeholder"><?= $contract->amount; ?></span> сум (<span class="placeholder"><?= $contract->amountString; ?></span> сум)
             </td>
         </tr>
         <tr>

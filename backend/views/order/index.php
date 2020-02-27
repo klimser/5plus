@@ -46,11 +46,18 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'name',
                 'header' => 'Имя',
+                'content' => function ($model, $key, $index, $column) {
+                    $name = $model->name;
+                    if ($model->tg_login) {
+                        return Html::a($name, 'https://t.me/' . $model->tg_login, ['target' => '_blank']);
+                    }
+                    return $name;
+                }
             ],
             [
                 'attribute' => 'phone',
                 'header' => 'Телефон',
-                'content' => function ($model, $key, $index, $column) { return "<span class='text-nowrap'>{$model->phoneFull}</span>"; },
+//                'content' => function ($model, $key, $index, $column) { return "<span class='text-nowrap'>{$model->phoneFull}</span>"; },
             ],
             [
                 'attribute' => 'user_comment',

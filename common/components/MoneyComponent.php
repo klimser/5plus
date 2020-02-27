@@ -368,7 +368,8 @@ class MoneyComponent extends Component
         foreach ($events as $event) {
             foreach ($event->members as $member) {
                 foreach ($member->payments as $payment) {
-                    if ($payment->discount && $moneyDiscount > 0) {
+                    $groupParam = GroupComponent::getGroupParam($group, $event->eventDateTime);
+                    if ($moneyDiscount > 0 && ($payment->discount || !$groupParam->lesson_price_discount)) {
                         $moneyDiscount += $payment->amount;
                     } else {
                         $money += $payment->amount;
@@ -430,8 +431,8 @@ class MoneyComponent extends Component
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
                         } elseif (!empty($item['param']->scheduleData[($w + 6) % 7])) {
-                            if ($item['param']->lesson_price_discount && $moneyDiscount > 0) {
-                                $moneyDiscount -= $item['param']->lesson_price_discount;
+                            if ($moneyDiscount > 0) {
+                                $moneyDiscount -= $item['param']->lesson_price_discount ?? $item['param']->lesson_price;
                                 $item['entity']->paid_lessons++;
                             } else {
                                 if ($money > 0) $item['entity']->paid_lessons++;

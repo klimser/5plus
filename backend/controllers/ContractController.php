@@ -2,6 +2,8 @@
 
 namespace backend\controllers;
 
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 use common\components\ComponentContainer;
 use common\models\Company;
 use common\models\Contract;
@@ -50,6 +52,22 @@ class ContractController extends AdminController
         return \Yii::$app->response->sendContentAsFile(
             $generator->getBarcode($contract->number, $generator::TYPE_CODE_128),
             "barcode.svg",
+            ['mimeType' => 'image/svg+xml', 'inline' => true]
+        );
+    }
+
+    public function actionQr()
+    {
+        $link = 'https://t.me/fiveplus_public_bot?start=account';
+        $options = new QROptions([
+            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+            'addQuietzone' => false,
+        ]);
+        $generator = new QRCode($options);
+
+        return \Yii::$app->response->sendContentAsFile(
+            $generator->render($link),
+            "qrcode.svg",
             ['mimeType' => 'image/svg+xml', 'inline' => true]
         );
     }

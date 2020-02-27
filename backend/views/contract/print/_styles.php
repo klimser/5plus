@@ -4,7 +4,7 @@
         margin: 0;
     }
     body {
-        font-size: 3mm;
+        font-size: 2.9mm;
         max-width: 20cm;
     }
     .page {
