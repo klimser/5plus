@@ -20,6 +20,7 @@ use yii\helpers\ArrayHelper;
 /* @var $contractData array */
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
+/* @var $pupilLimitDate DateTime|null */
 /* @var $amount int */
 /* @var $companyId int */
 /* @var $companies \common\models\Company[] */
@@ -135,6 +136,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'consultationData' => $consultationData,
                     'welcomeLessonData' => $welcomeLessonData,
                     'companies' => $companies,
+                    'pupilLimitDate' => $pupilLimitDate,
                     'amount' => $amount,
                     'companyId' => $companyId,
                     'incomeAllowed' => $incomeAllowed,

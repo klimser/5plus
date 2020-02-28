@@ -166,6 +166,7 @@ class UserController extends AdminController
             'paymentData' => $paymentData,
             'contractData' => $contractData,
             'welcomeLessonData' => $welcomeLessonData,
+            'pupilLimitDate' => GroupComponent::getPupilLimitDate(),
             'amount' => $amount,
             'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
             'contractAllowed' => Yii::$app->user->can('contractManagement'),

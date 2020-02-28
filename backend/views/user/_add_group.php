@@ -14,6 +14,7 @@ use yii\helpers\ArrayHelper;
 /* @var $contractData array */
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
+/* @var $pupilLimitDate DateTime|null */
 /* @var $companies \common\models\Company[] */
 /* @var $amount int */
 /* @var $companyId int */
@@ -38,7 +39,11 @@ $getGroupOptionsList = function(int $selectedValue) use ($groups): string {
 };
 
 
-$initialJs = '';
+$initialJs = 'User.contractAllowed = ' . ($contractAllowed ? 'true' : 'false') . ";\n";
+$initialJs .= 'User.incomeAllowed = ' . ($incomeAllowed ? 'true' : 'false') . ";\n";
+if ($pupilLimitDate !== null) {
+    $initialJs .= "User.pupilLimitDate = '{$pupilLimitDate->format('Y-m-d')}';\n";
+}
 // Consultations
 foreach ($consultationData as $consultationSubjectId) {
     $initialJs .= "User.consultationList.push({$consultationSubjectId});\n";
@@ -47,6 +52,11 @@ foreach ($consultationData as $consultationSubjectId) {
 // Welcome lessons
 foreach ($welcomeLessonData as $welcomeLesson) {
     $initialJs .= "User.welcomeLessonList.push(" . json_encode($welcomeLesson) . ");\n";
+}
+
+// Groups
+foreach ($groupData as $group) {
+    $initialJs .= "User.groupList.push(" . json_encode($group) . ");\n";
 }
 
 $initialJs .= "User.init();\n";
@@ -69,88 +79,7 @@ $this->registerJs($initialJs);
         <button type="button" class="btn btn-success" onclick="User.addWelcomeLesson();"><span class="fas fa-plus"></span> добавить</button>
     </div>
     <div role="tabpanel" class="tab-pane" id="group-tab">
-        
+        <div id="groups"></div>
+        <button type="button" class="btn btn-success" onclick="User.addGroup();"><span class="fas fa-plus"></span> добавить</button>
     </div>
-</div>
-
-<div class="checkbox">
-    <label>
-        <input type="checkbox" id="add_group_switch" value="1" name="group[add]" onchange="User.checkAddGroup(this);" <?= $addGroup ? 'checked' : ''; ?> autocomplete="off">
-        Добавить в группу
-    </label>
-</div>
-
-<div id="add_group" <?= $addGroup ? '' : 'class="hidden"'; ?>>
-    <div class="form-group">
-        <label for="group">Группа</label>
-        <select class="form-control" id="group" name="group[id]" onchange="User.setAmountHelperButtons(this, true);">
-            <?= $getGroupOptionsList(array_key_exists('id', $groupData) ? intval($groupData['id']) : 0); ?>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="group_date_from">Начало занятий</label>
-        <?= DatePicker::widget(array_merge(
-                DefaultValuesComponent::getDatePickerSettings(),
-                [
-                    'name' => 'group[date_from]',
-                    'value' => array_key_exists('date_from', $groupData) ? $groupData['date_from'] : date('d.m.Y'),
-                    'options' => ['id' => 'group_date_from', 'required' => true, 'disabled' => !$addGroup],
-                ]
-        ));?>
-    </div>
-</div>
-
-<div class="row">
-    <?php if ($incomeAllowed): ?>
-        <div class="col-xs-12 col-sm-6">
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" value="1" name="payment[add]" id="add_payment_switch" onchange="User.checkAddPayment(this);" <?= $addPayment ? 'checked' : ($addGroup ? '' :  'disabled'); ?> autocomplete="off">
-                    Внести платёж
-                </label>
-            </div>
-        </div>
-    <?php endif; ?>
-    <?php if ($contractAllowed): ?>
-        <div class="col-xs-12 col-sm-6">
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" value="1" name="contract[add]" id="add_contract_switch" onchange="User.checkAddContract(this);" <?= $addContract ? 'checked' : ''; ?> autocomplete="off">
-                    Добавить договор
-                </label>
-            </div>
-        </div>
-    <?php endif; ?>
-</div>
-
-<div id="add_payment" <?= $addPayment ? '' : 'class="hidden"'; ?>>
-    <div class="form-group">
-        <label for="comment">Комментарий к платежу</label>
-        <input id="comment" class="form-control" name="payment[comment]"
-            <?= array_key_exists('comment', $paymentData) ? 'value="' . $paymentData['comment'] . '"' : ''; ?>>
-    </div>
-</div>
-
-<div id="add_contract" <?= $addContract ? '' : 'class="hidden"'; ?>>
-    <div id="contract_group_block" class="form-group <?= $addGroup ? 'class="hidden"' : ''; ?>">
-        <label for="contract_group">Группа</label>
-        <select id="contract_group" class="form-control" name="contract[group]" onchange="User.setAmountHelperButtons(this, true);">
-            <?= $getGroupOptionsList(array_key_exists('group', $contractData) ? intval($contractData['group']) : 0); ?>
-        </select>
-    </div>
-</div>
-
-<div id="amount_block" <?= $addPayment || $addContract ? '' : 'class="hidden"'; ?>>
-    <div class="form-group">
-        <label for="amount">Сумма</label>
-        <input id="amount" class="form-control" name="amount" type="number" step="1000" min="1000" required
-            <?= $amount ? 'value="' . $amount . '"' : 'disabled'; ?>>
-        <div id="amount_helper_buttons"></div>
-    </div>
-    <?= Html::radioList(
-        'company_id',
-        $companyId,
-        ArrayHelper::map($companies, 'id', 'second_name'),
-        ['class' => 'form-group', 'itemOptions' => ['required' => true, 'disabled' => !$addPayment && !$addContract]]
-    ); ?>
 </div>

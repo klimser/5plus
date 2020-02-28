@@ -155,5 +155,23 @@ let Main = {
                 })
                 .fail(defer.reject);
         });
+    },
+    
+    companyList: [],
+    loadCompanies: function() {
+        if (Main.companyList.length > 0) {
+            let defer = $.Deferred();
+            defer.resolve(Main.companyList);
+            return defer;
+        }
+
+        return $.Deferred(function (defer) {
+            $.getJSON('/ajax-info/companies')
+                .done(function (data) {
+                    Main.companyList = data;
+                    defer.resolve(Main.companyList);
+                })
+                .fail(defer.reject);
+        });
     }
 };

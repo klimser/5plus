@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\models\Company;
 use common\models\Group;
 use common\models\Teacher;
 use yii;
@@ -100,6 +101,8 @@ class AjaxInfoController extends AdminController
                 'teacher' => $group->teacher->name,
                 'price' => $group->priceMonth,
                 'price3' => $group->price3Month,
+                'dateStart' => $group->date_start,
+                'dateEnd' => $group->date_end,
             ];
         }
 
@@ -137,5 +140,16 @@ class AjaxInfoController extends AdminController
         }
 
         return $this->asJson($resultArray);
+    }
+
+    public function actionCompanies()
+    {
+        $companies = Company::find()
+            ->orderBy(['second_name' => SORT_ASC])
+            ->select(['id', 'first_name', 'second_name'])
+            ->asArray()
+            ->all();
+
+        return $this->asJson($companies);
     }
 }
