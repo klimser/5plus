@@ -34,6 +34,7 @@ use yii\web\IdentityInterface;
  * @property array $telegramSettings
  * @property int $bitrix_id
  * @property int $bitrix_sync_status
+ * @property int $created_by
  * @property string $password write-only password
  * @property array $nameParts
  * @property User $parent
@@ -48,7 +49,8 @@ use yii\web\IdentityInterface;
  * @property Payment[] $payments
  * @property Payment[] $paymentsAsAdmin
  * @property Debt[] $debts
- * @property string nameHidden
+ * @property string $nameHidden
+ * @property User $createdAdmin
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -82,7 +84,6 @@ class User extends ActiveRecord implements IdentityInterface
         return $scenarios;
     }
 
-
     public static function tableName()
     {
         return '{{%user}}';
@@ -114,6 +115,7 @@ class User extends ActiveRecord implements IdentityInterface
                 }
                 return true;
             }"],
+            [['created_by'], 'required'],
             [['status', 'money', 'role', 'parent_id', 'teacher_id', 'bitrix_id', 'tg_chat_id'], 'integer'],
             [['username', 'note', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
             [['name'], 'string', 'max' => 127],
@@ -134,9 +136,9 @@ class User extends ActiveRecord implements IdentityInterface
             ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER, self::ROLE_TEACHER]],
             ['bitrix_sync_status', 'in', 'range' => [0, 1]],
             ['teacher_id', 'exist', 'targetRelation' => 'teacher'],
+            ['created_by', 'exist', 'targetRelation' => 'createdAdmin'],
         ];
     }
-
 
     public function attributeLabels()
     {
@@ -316,20 +318,23 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     public function beforeValidate() {
-        if (parent::beforeValidate()) {
-            if ($this->isNewRecord) {
-                $this->generateAuthKey();
-            }
-            if ($this->password) {
-                $this->setPassword($this->password);
-            }
-            if ($this->password_hash === null) {
-                $this->password_hash = '';
-            }
-            return true;
-        } else {
+        if (!parent::beforeValidate()) {
             return false;
         }
+            
+        if ($this->isNewRecord) {
+            $this->generateAuthKey();
+            $this->created_by = Yii::$app->user->id;
+        } elseif (!$this->created_by) {
+            $this->created_by = Yii::$app->user->id;
+        }
+        if ($this->password) {
+            $this->setPassword($this->password);
+        }
+        if ($this->password_hash === null) {
+            $this->password_hash = '';
+        }
+        return true;
     }
 
 

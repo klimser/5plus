@@ -80,12 +80,13 @@ class UserComponent extends Component
     {
         if (empty($phone)) throw new \Exception('Phone is mandatory');
         $qB = User::find()
-            ->orWhere(['phone' => $phone])
-            ->orWhere(['phone2' => $phone]);
+            ->alias('u')
+            ->andWhere('u.phone IN (:phones) OR u.phone2 IN (:phones)');
+        $phones = [$phone];
         if ($phone2) {
-            $qB->orWhere(['phone' => $phone2])
-                ->orWhere(['phone2' => $phone2]);
+            $phones[] = $phone2;
         }
+        $qB->addParams([':phones' => $phones]);
         $qB->andWhere(['role' => $role]);
         return null !== $qB->one();
     }

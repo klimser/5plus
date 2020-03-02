@@ -1,43 +1,13 @@
 <?php
 
-use backend\components\DefaultValuesComponent;
-use dosamigos\datepicker\DatePicker;
-use yii\bootstrap\Html;
-use yii\helpers\ArrayHelper;
-
 /* @var $this \yii\web\View */
-/* @var $requestData array */
-/* @var $groups \common\models\Group[] */
-/* @var $subjects \common\models\Subject[] */
-/* @var $groupData array */
-/* @var $paymentData array */
-/* @var $contractData array */
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
+/* @var $groupData array */
 /* @var $pupilLimitDate DateTime|null */
 /* @var $companies \common\models\Company[] */
-/* @var $amount int */
-/* @var $companyId int */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
-
-/** @var bool $addGroup */
-$addGroup = array_key_exists('add', $groupData) && $groupData['add'];
-$addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
-$addContract = array_key_exists('add', $contractData) && $contractData['add'];
-$addWelcomeLesson = array_key_exists('add', $welcomeLessonData) && $welcomeLessonData['add'];
-
-$getGroupOptionsList = function(int $selectedValue) use ($groups): string {
-    $list = '';
-    foreach ($groups as $group) {
-        $list .= "<option value=\"{$group->id}\" " . ($selectedValue == $group->id ? 'selected' : '')
-            . " data-price=\"{$group->priceMonth}\" data-price3=\"{$group->price3Month}\">{$group->name} (с {$group->startDateObject->format('d.m.Y')}"
-            . ($group->endDateObject ? "по {$group->endDateObject->format('d.m.Y')}" : '')
-            . ")</option>";
-    }
-    return $list;
-};
-
 
 $initialJs = 'User.contractAllowed = ' . ($contractAllowed ? 'true' : 'false') . ";\n";
 $initialJs .= 'User.incomeAllowed = ' . ($incomeAllowed ? 'true' : 'false') . ";\n";

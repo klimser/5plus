@@ -118,7 +118,7 @@ let User = {
         let blockHtml = '<div class="group-item">';
         blockHtml += '<div class="form-group">' +
             '<label>Группа</label>' +
-            '<select class="form-control group-select" name="group[groupId][' + this.iterator + ']" onchange="User.setGroup(this, true);">' +
+            '<select class="form-control group-select" name="group[groupId][' + this.iterator + ']" onchange="User.setGroup(this, true);" required>' +
             this.getGroupOptions(data.groupId, true) +
             '</select>' +
             '</div>';
@@ -126,13 +126,13 @@ let User = {
             '<label>Начало занятий</label>' +
             '<div class="radio">' +
             '<label>' +
-            '<input type="radio" name="group[dateDefined][' + this.iterator + ']" value="0"' + (data.date.length > 0 ? '' : ' checked') + ' onchange="User.setGroupDateType(this);">' +
+            '<input type="radio" name="group[dateDefined][' + this.iterator + ']" value="0"' + (data.date.length > 0 ? '' : ' checked') + ' onchange="User.setGroupDateType(this);" required>' +
             'ещё не решил (не добавлять в группу)' +
             '</label>' +
             '</div>' +
             '<div class="radio">' +
             '<label>' +
-            '<input type="radio" name="group[dateDefined][' + this.iterator + ']" value="1"' + (data.date.length > 0 ? ' checked' : '') + ' onchange="User.setGroupDateType(this);">' +
+            '<input type="radio" name="group[dateDefined][' + this.iterator + ']" value="1"' + (data.date.length > 0 ? ' checked' : '') + ' onchange="User.setGroupDateType(this);" required>' +
             'дата ' +
             '<div class="input-group datepicker">' +
             '<input type="text" class="form-control date-select" name="group[date][' + this.iterator + ']" value="' + data.date + '" disabled required>' +
@@ -163,7 +163,7 @@ let User = {
             Main.companyList.forEach(function(company) {
                 blockHtml += '<div class="radio">' +
                     '<label>' +
-                    '<input type="radio" name="group[company][' + User.iterator + ']" value="' + company.id + '" ' + (data.company === company.id ? ' checked' : '') + '>' +
+                    '<input type="radio" class="company-input" name="group[company][' + User.iterator + ']" value="' + company.id + '" ' + (data.company === company.id ? ' checked' : '') + ' required>' +
                     company.second_name +
                     '</label>' +
                     '</div>';
@@ -306,7 +306,9 @@ let User = {
         }
     },
     checkAddContract: function(e) {
-        $(e).closest(".group-item").find(".amount-input").prop("disabled", !e.checked);
+        let contatiner = $(e).closest(".group-item");
+        $(contatiner).find(".amount-input").prop("disabled", !e.checked);
+        $(contatiner).find(".company-input").prop("disabled", !e.checked);
     },
     getHelperButtonHtml(amount, label) {
         return '<button type="button" class="btn btn-default btn-xs" onclick="User.setAmount(' + amount + ');">' + label + '</button>'

@@ -5,24 +5,16 @@ use yii\bootstrap\Html;
 use yii\bootstrap\ActiveForm;
 use yii\helpers\ArrayHelper;
 
-
 /* @var $this yii\web\View */
-/* @var $requestData array */
 /* @var $parent User */
 /* @var $parentCompany User */
 /* @var $pupil User */
-/* @var $groups \common\models\Group[] */
-/* @var $subjects \common\models\Subject[] */
 /* @var $existedParents User[] */
 /* @var $existedCompanies User[] */
-/* @var $groupData array */
-/* @var $paymentData array */
-/* @var $contractData array */
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
+/* @var $groupData array */
 /* @var $pupilLimitDate DateTime|null */
-/* @var $amount int */
-/* @var $companyId int */
 /* @var $companies \common\models\Company[] */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
@@ -127,18 +119,11 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="row">
             <div class="col-xs-12">
                 <?= $this->render('_add_group', [
-                    'requestData' => $requestData,
-                    'groups' => $groups,
-                    'subjects' => $subjects,
-                    'groupData' => $groupData,
-                    'paymentData' => $paymentData,
-                    'contractData' => $contractData,
                     'consultationData' => $consultationData,
                     'welcomeLessonData' => $welcomeLessonData,
+                    'groupData' => $groupData,
                     'companies' => $companies,
                     'pupilLimitDate' => $pupilLimitDate,
-                    'amount' => $amount,
-                    'companyId' => $companyId,
                     'incomeAllowed' => $incomeAllowed,
                     'contractAllowed' => $contractAllowed,
                 ]) ?>

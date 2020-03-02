@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use backend\models\Consultation;
 use backend\models\TeacherSubjectLink;
 use backend\models\WelcomeLesson;
 use common\components\GroupComponent;
@@ -70,25 +71,20 @@ class UserController extends AdminController
         $parentCompany = new User(['scenario' => User::SCENARIO_USER]);
         $pupil = new User(['scenario' => User::SCENARIO_USER]);
         $consultationData = [];
-        $groupData = [];
-        $paymentData = [];
-        $contractData = [];
         $welcomeLessonData = [];
-        $amount = 0;
-        $companyId = null;
+        $groupData = [];
+        $incomeAllowed = Yii::$app->user->can('moneyManagement');
+        $contractAllowed = Yii::$app->user->can('contractManagement');
 
         if (Yii::$app->request->isPost) {
             User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
             $consultationData = Yii::$app->request->post('consultation', []);
-            $groupData = Yii::$app->request->post('group', []);
             $welcomeLessonData = Yii::$app->request->post('welcome_lesson', []);
-            $paymentData = Yii::$app->request->post('payment', []);
-            $contractData = Yii::$app->request->post('contract', []);
-            $amount = intval(Yii::$app->request->post('amount', 0));
-            $companyId = Yii::$app->request->post('company_id');
+            $groupData = Yii::$app->request->post('group', []);
 
             $transaction = User::getDb()->beginTransaction();
+            $infoFlashArray = [];
             try {
                 if (UserComponent::isPhoneUsed(User::ROLE_PUPIL, $pupil->phone, $pupil->phone2)) {
                     throw new \Exception('Студент с таким номером телефона уже существует!');
@@ -106,49 +102,71 @@ class UserController extends AdminController
                         break;
                 }
 
-                if ($pupil->save()) {
-                    $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
-                    $addWelcomeLesson = array_key_exists('add', $welcomeLessonData) && $welcomeLessonData['add'];
-                    $addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
-                    $addContract = array_key_exists('add', $contractData) && $contractData['add'];
-
-                    $company = Company::findOne($companyId);
-                    if (($addPayment || $addContract) && !$company) throw new Exception('Не выбран учебный центр!');
-
-                    $groupPupil = null;
-                    if ($addGroup) {
-                        $groupPupil = $this->addPupilToGroup($pupil, $groupData);
-
-                        if (Yii::$app->user->can('moneyManagement') && $addPayment) {
-                            $this->addPupilMoneyIncome($company, $groupPupil, $amount, $paymentData);
-                        }
-                        MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
-                    } elseif ($addWelcomeLesson) {
-                        $this->addPupilToWelcomeLesson($pupil, $welcomeLessonData);
-                    }
-                    if (!$addPayment && $addContract) {
-                        $contract = MoneyComponent::addPupilContract(
-                            $company,
-                            $pupil,
-                            $amount,
-                            $groupPupil ? $groupPupil->group : Group::findOne($contractData['group'])
-                        );
-
-                        Yii::$app->session->addFlash(
-                            'success',
-                            'Договор ' . $contract->number . ' зарегистрирован '
-                            . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
-                        );
-                    }
-
-                    $transaction->commit();
-                    Yii::$app->session->addFlash('success', 'Добавлено');
-                    UserComponent::clearSearchCache();
-
-                    return $this->redirect(['index']);
-                } else {
+                if (!$pupil->save()) {
                     $pupil->moveErrorsToFlash();
                     $transaction->rollBack();
+                } else {
+                    $error = false;
+                    
+                    foreach ($consultationData as $subjectId) {
+                        $consultation = new Consultation();
+                        $consultation->subject_id = $subjectId;
+                        $consultation->user_id = $pupil->id;
+
+                        if (!$consultation->save()) {
+                            $consultation->moveErrorsToFlash();
+                            $error = true;
+                        }
+                    }
+                    
+                    foreach ($welcomeLessonData as $welcomeLessonInfo) {
+                        try {
+                            $this->addPupilToWelcomeLesson($pupil, $welcomeLessonInfo);
+                        } catch (\Throwable $exception) {
+                            Yii::$app->session->addFlash('error', $exception->getMessage());
+                            $error = true;
+                        }
+                    }
+                    
+                    foreach ($groupData as $groupInfo) {
+                        try {
+                            /** @var Group $group */
+                            $group = Group::find()->andWhere(['id' => $groupInfo['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
+                            if (!$group) throw new Exception('Группа не найдена');
+                            
+                            if ($groupInfo['dateDefined']) {
+                                $this->addPupilToGroup($pupil, $groupInfo);
+                            }
+                            if ($contractAllowed && !empty($groupInfo['contract'])) {
+                                $contract = MoneyComponent::addPupilContract(
+                                    $groupInfo['company'],
+                                    $pupil,
+                                    $groupInfo['amount'],
+                                    $group
+                                );
+                                $infoFlashArray[] = 'Договор ' . $contract->number . ' зарегистрирован '
+                                . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>';
+                                
+                                if (!empty($groupInfo['payment'])) {
+                                    MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $groupInfo['paymentComment']);
+                                }
+                            }
+                            
+                        } catch (\Throwable $exception) {
+                            Yii::$app->session->addFlash('error', $exception->getMessage());
+                            $error = true;
+                        }
+                    }
+
+                    if ($error) {
+                        $transaction->rollBack();
+                    } else {
+                        $transaction->commit();
+                        Yii::$app->session->addFlash('success', 'Добавлено');
+                        UserComponent::clearSearchCache();
+
+                        return $this->redirect(['index']);
+                    }
                 }
             } catch (Throwable $e) {
                 $transaction->rollBack();
@@ -157,23 +175,15 @@ class UserController extends AdminController
         }
 
         return $this->render('create-pupil', [
-            'requestData' => Yii::$app->request->post(),
             'parent' => $parent,
             'parentCompany' => $parentCompany,
             'pupil' => $pupil,
             'consultationData' => $consultationData,
-            'groupData' => $groupData,
-            'paymentData' => $paymentData,
-            'contractData' => $contractData,
             'welcomeLessonData' => $welcomeLessonData,
+            'groupData' => $groupData,
             'pupilLimitDate' => GroupComponent::getPupilLimitDate(),
-            'amount' => $amount,
-            'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
-            'contractAllowed' => Yii::$app->user->can('contractManagement'),
-            'companyId' => $companyId,
-            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
-            'subjects' => Subject::find()->andWhere(['active' => Subject::STATUS_ACTIVE])->with('subjectCategory')
-                ->orderBy(['category_id' => SORT_ASC, 'name' => SORT_ASC])->all(),
+            'incomeAllowed' => $incomeAllowed,
+            'contractAllowed' => $contractAllowed,
             'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
             'existedCompanies' => User::find()->andWhere(['role' => User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
             'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
@@ -222,15 +232,12 @@ class UserController extends AdminController
     private function addPupilToGroup(User $pupil, array $groupData): GroupPupil
     {
         /** @var Group $group */
-        $group = Group::find()->andWhere(['id' => $groupData['id'], 'active' => Group::STATUS_ACTIVE])->one();
+        $group = Group::find()->andWhere(['id' => $groupData['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
         if (!$group) throw new Exception('Группа не найдена');
-        $startDate = date_create_from_format('d.m.Y', $groupData['date_from']);
+        $startDate = date_create_from_format('d.m.Y', $groupData['date']);
         if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
-        $groupPupil = GroupComponent::addPupilToGroup($pupil, $group, $startDate);
-
-        Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
-        return $groupPupil;
+        return GroupComponent::addPupilToGroup($pupil, $group, $startDate);
     }
 
     /**
@@ -243,23 +250,22 @@ class UserController extends AdminController
     {
         $welcomeLesson = new WelcomeLesson();
 
-        if (!empty($welcomeLessonData['group_id'])) {
+        if (!empty($welcomeLessonData['groupId'])) {
             /** @var Group $group */
-            $group = Group::find()->andWhere(['id' => $welcomeLessonData['group_id'], 'active' => Subject::STATUS_ACTIVE])->one();
+            $group = Group::find()->andWhere(['id' => $welcomeLessonData['groupId'], 'active' => Subject::STATUS_ACTIVE])->one();
             if (!$group) throw new Exception('Группа не найдена');
             $welcomeLesson->group_id = $group->id;
             $welcomeLesson->subject_id = $group->subject_id;
             $welcomeLesson->teacher_id = $group->teacher_id;
-        }
-        if (!empty($welcomeLessonData['subject_id'])) {
+        } elseif (!empty($welcomeLessonData['subjectId'])) {
             /** @var Subject $subject */
-            $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subject_id'], 'active' => Subject::STATUS_ACTIVE])->one();
+            $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subjectId'], 'active' => Subject::STATUS_ACTIVE])->one();
             if (!$subject) throw new Exception('Предмет не найден');
             $welcomeLesson->subject_id = $subject->id;
 
-            if ($welcomeLessonData['teacher_id']) {
+            if ($welcomeLessonData['teacherId']) {
                 /** @var Teacher $teacher */
-                $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacher_id'], 'active' => Teacher::STATUS_ACTIVE])->one();
+                $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacherId'], 'active' => Teacher::STATUS_ACTIVE])->one();
                 if (!$teacher) throw new Exception('Учитель не найден');
                 $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
                 if (!$teacherSubject) throw new Exception('Учитель не найден');
@@ -280,35 +286,6 @@ class UserController extends AdminController
         return $welcomeLesson;
     }
 
-    /**
-     * @param Company $company
-     * @param GroupPupil $groupPupil
-     * @param int $amount
-     * @param array $paymentData
-     * @return int
-     * @throws Exception
-     */
-    private function addPupilMoneyIncome(Company $company, GroupPupil $groupPupil, int $amount, array $paymentData)
-    {
-        $contract = MoneyComponent::addPupilContract(
-            $company,
-            $groupPupil->user,
-            $amount,
-            $groupPupil->group
-        );
-
-        Yii::$app->session->addFlash(
-            'success',
-            'Договор ' . $contract->number . ' зарегистрирован '
-            . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
-        );
-
-        $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $paymentData['comment']);
-
-        Yii::$app->session->addFlash('success', 'Внесение денег зарегистрировано, номер транзакции: ' . $paymentId);
-        return $paymentId;
-    }
-
     public function actionAddToGroup($userId)
     {
         if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
@@ -327,7 +304,7 @@ class UserController extends AdminController
             try {
                 $this->addPupilToGroup($pupil, $groupData);
                 $transaction->commit();
-                Yii::$app->session->addFlash('success', 'Добавлено');
+                Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
             } catch (Throwable $e) {
                 $transaction->rollBack();
                 Yii::$app->session->addFlash('error', $e->getMessage());
