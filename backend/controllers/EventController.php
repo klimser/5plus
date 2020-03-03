@@ -140,7 +140,7 @@ class EventController extends AdminController
                         $transaction->commit();
                         $jsonData = self::getJsonOkResult([
                             'eventId' => $event->id,
-                            'eventStatus' => $event->status,
+                            'eventStatus' => (int)$event->status,
                         ]);
                     }
                 } catch (\Throwable $ex) {

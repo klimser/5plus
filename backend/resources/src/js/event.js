@@ -70,7 +70,7 @@ let Event = {
                     let eventDetailsBlock = $('#event_details_' + data.eventId);
                     $(eventDetailsBlock).data("status", data.eventStatus).find(".status_block").remove();
                     let pupilsBlock = $(eventDetailsBlock).find(".pupils_block");
-                    if (data.eventStatus === this.eventStatusCancelled) {
+                    if (data.eventStatus === Event.eventStatusCancelled) {
                         $(pupilsBlock).find(".event_member").each(function() {
                             $(this).data("status", Event.memberStatusMiss);
                             Event.fillMemberButtons($(this).data("id"));
