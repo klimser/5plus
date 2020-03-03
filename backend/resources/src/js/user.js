@@ -196,7 +196,9 @@ let User = {
         if (this.pupilLimitDate !== null) {
             datepickerOptions.startDate = this.pupilLimitDate;
         }
-        $(container).find('.group-item:last').find(".datepicker").datepicker(datepickerOptions);
+        let currentGroupItem = $(container).find('.group-item:last');
+        $(currentGroupItem).find(".datepicker").datepicker(datepickerOptions);
+        User.setGroup($(currentGroupItem).find(".group-select"), false);
     },
     
     findByPhone: function(phoneString, successHandler, errorHandler) {
