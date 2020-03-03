@@ -27,4 +27,19 @@ abstract class AdminController extends Controller
 
         return true;
     }
+    
+    protected static function remapRequestData(array $data): array
+    {
+        $result = [];
+        foreach ($data as $field => $records) {
+            foreach ($records as $id => $value) {
+                if (!array_key_exists($id, $result)) {
+                    $result[$id] = [];
+                }
+                $result[$id][$field] = $value;
+            }
+        }
+        
+        return $result;
+    }
 }

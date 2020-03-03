@@ -80,8 +80,8 @@ class UserController extends AdminController
             User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
             $consultationData = Yii::$app->request->post('consultation', []);
-            $welcomeLessonData = Yii::$app->request->post('welcome_lesson', []);
-            $groupData = Yii::$app->request->post('group', []);
+            $welcomeLessonData = self::remapRequestData(Yii::$app->request->post('welcome_lesson', []));
+            $groupData = self::remapRequestData(Yii::$app->request->post('group', []));
 
             $transaction = User::getDb()->beginTransaction();
             $infoFlashArray = [];

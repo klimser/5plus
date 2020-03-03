@@ -119,7 +119,7 @@ let User = {
         blockHtml += '<div class="form-group">' +
             '<label>Группа</label>' +
             '<select class="form-control group-select" name="group[groupId][' + this.iterator + ']" onchange="User.setGroup(this, true);" required>' +
-            this.getGroupOptions(data.groupId, true) +
+            this.getGroupOptions(data.groupId) +
             '</select>' +
             '</div>';
         blockHtml += '<div class="form-group">' +
