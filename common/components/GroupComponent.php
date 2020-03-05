@@ -135,6 +135,14 @@ class GroupComponent extends Component
             throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
         }
 
+        ComponentContainer::getActionLogger()->log(
+            Action::TYPE_GROUP_PUPIL_ADDED,
+            $groupPupil->user,
+            null,
+            $group,
+            json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
+        );
+
         $pupil->bitrix_sync_status = 0;
         if (!$pupil->save()) {
             ComponentContainer::getErrorLogger()
@@ -149,14 +157,6 @@ class GroupComponent extends Component
             EventComponent::fillSchedule($group);
             GroupComponent::calculateTeacherSalary($group);
         }
-
-        ComponentContainer::getActionLogger()->log(
-            Action::TYPE_GROUP_PUPIL_ADDED,
-            $groupPupil->user,
-            null,
-            $group,
-            json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
-        );
 
         return $groupPupil;
     }
