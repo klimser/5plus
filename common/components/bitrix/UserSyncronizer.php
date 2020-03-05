@@ -115,11 +115,13 @@ class UserSyncronizer
         }
         if ($toSync->bitrix_id) {
             $bitrixUser = $this->client->call('crm.contact.get', [ 'id' => $toSync->bitrix_id ]);
-            foreach ($bitrixUser['PHONE'] as $phone) {
-                if (array_key_exists($phone['VALUE_TYPE'], $phoneMap)) {
-                    $phones[] = ['ID' => $phone['ID'], 'VALUE' => null];
-                } else {
-                    $phoneMap[$phone['VALUE_TYPE']] = $phone['ID'];
+            if (!empty($bitrixUser['PHONE'])) {
+                foreach ($bitrixUser['PHONE'] as $phone) {
+                    if (array_key_exists($phone['VALUE_TYPE'], $phoneMap)) {
+                        $phones[] = ['ID' => $phone['ID'], 'VALUE' => null];
+                    } else {
+                        $phoneMap[$phone['VALUE_TYPE']] = $phone['ID'];
+                    }
                 }
             }
         }
@@ -175,7 +177,8 @@ class UserSyncronizer
         }
         $res3 = $this->client->call($method, $params);
         if (!$res3) {
-            ComponentContainer::getErrorLogger()->logError("bitrix/$method", "result: $res3, id: $toSync->id", true);
+            ComponentContainer::getErrorLogger()->logError("bitrix/$method", "result: " . json_encode($res3) . ", id: $toSync->id, params: " . json_encode($params), true);
+            die;
         } else {
             $toSync->bitrix_sync_status = 1;
             if (!$toSync->bitrix_id) {

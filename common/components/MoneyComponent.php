@@ -526,8 +526,8 @@ class MoneyComponent extends Component
                             $rate = 0;
                         } else {
                             $toChargeItem['amount'] = $payments[0]['amount'];
-                            $payments[0]['amount'] = 0;
                             $rate -= $payments[0]['amount'] / $lessonPrice;
+                            $payments[0]['amount'] = 0;
                         }
                         $toCharge[] = $toChargeItem;
 
