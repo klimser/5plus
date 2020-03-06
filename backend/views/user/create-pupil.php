@@ -129,9 +129,10 @@ $this->params['breadcrumbs'][] = $this->title;
                 ]) ?>
             </div>
         </div>
+        <hr>
         <div class="row">
             <div class="form-group col-xs-12">
-                <?= Html::submitButton('Добавить', ['class' => 'btn btn-primary pull-right']); ?>
+                <?= Html::submitButton('сохранить', ['class' => 'btn btn-primary pull-right']); ?>
             </div>
         </div>
 

@@ -1,6 +1,6 @@
 <?php
 
-/* @var $this \yii\web\View */
+/* @var $this \yii\web\View */use dosamigos\datepicker\DatePickerAsset;use dosamigos\datepicker\DatePickerLanguageAsset;
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
 /* @var $groupData array */
@@ -8,6 +8,8 @@
 /* @var $companies \common\models\Company[] */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
+
+DatePickerLanguageAsset::register($this)->js[] = 'bootstrap-datepicker.ru.min.js';
 
 $initialJs = 'User.contractAllowed = ' . ($contractAllowed ? 'true' : 'false') . ";\n";
 $initialJs .= 'User.incomeAllowed = ' . ($incomeAllowed ? 'true' : 'false') . ";\n";
@@ -35,21 +37,21 @@ $this->registerJs($initialJs);
 <ul class="nav nav-tabs" role="tablist">
     <li role="presentation" class="active"><a href="#consultation-tab" aria-controls="consultation-tab" role="tab" data-toggle="tab">консультация</a></li>
     <li role="presentation"><a href="#welcome_lesson-tab" aria-controls="welcome_lesson-tab" role="tab" data-toggle="tab">пробный урок</a></li>
-    <li role="presentation"><a href="#group-tab" aria-controls="group-tab" role="tab" data-toggle="tab">добавить в группу</a></li>
+    <li role="presentation"><a href="#group-tab" aria-controls="group-tab" role="tab" data-toggle="tab">в группу</a></li>
 </ul>
 
 <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="consultation-tab">
-        <div id="consultation-mandatory"></div>
-        <div id="consultation-optional"></div>
+        <div id="consultation-mandatory" style="margin-top: 10px;"></div>
+        <div id="consultation-optional" style="margin-top: 10px;"></div>
         <button type="button" class="btn btn-success" onclick="User.addConsultation();"><span class="fas fa-plus"></span> добавить</button>
     </div>
     <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab">
-        <div id="welcome_lessons"></div>
+        <div id="welcome_lessons" style="margin-top: 10px;"></div>
         <button type="button" class="btn btn-success" onclick="User.addWelcomeLesson();"><span class="fas fa-plus"></span> добавить</button>
     </div>
     <div role="tabpanel" class="tab-pane" id="group-tab">
-        <div id="groups"></div>
+        <div id="groups" style="margin-top: 10px;"></div>
         <button type="button" class="btn btn-success" onclick="User.addGroup();"><span class="fas fa-plus"></span> добавить</button>
     </div>
 </div>
