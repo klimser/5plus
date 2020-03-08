@@ -22,6 +22,7 @@ use yii\db\ActiveQuery;
  * @property User $createdBy
  * @property Subject $subject
  * @property User $user
+ * @property User $createdAdmin
  */
 class Consultation extends ActiveRecord
 {
@@ -85,6 +86,14 @@ class Consultation extends ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCreatedAdmin()
+    {
+        return $this->hasOne(User::class, ['id' => 'created_by']);
     }
 
     public function beforeValidate() {

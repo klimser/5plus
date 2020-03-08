@@ -270,6 +270,14 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCreatedAdmin()
+    {
+        return $this->hasOne(User::class, ['id' => 'created_by']);
+    }
+
+    /**
      * @return string[]
      */
     public function getTelegramSettings(): array

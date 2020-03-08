@@ -118,7 +118,7 @@ class UserController extends AdminController
                             $error = true;
                         }
                     }
-                    
+
                     foreach ($welcomeLessonData as $welcomeLessonInfo) {
                         try {
                             $this->addPupilToWelcomeLesson($pupil, $welcomeLessonInfo);
@@ -127,19 +127,26 @@ class UserController extends AdminController
                             $error = true;
                         }
                     }
-                    
+
                     foreach ($groupData as $groupInfo) {
                         try {
                             /** @var Group $group */
                             $group = Group::find()->andWhere(['id' => $groupInfo['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
                             if (!$group) throw new Exception('Группа не найдена');
-                            
+
                             if ($groupInfo['dateDefined']) {
                                 $this->addPupilToGroup($pupil, $groupInfo);
                             }
                             if ($contractAllowed && !empty($groupInfo['contract'])) {
+                                if (empty($groupInfo['companyId'])) {
+                                    throw new Exception('Выберите компанию');
+                                }
+                                /** @var Company $company */
+                                $company = Company::findOne($groupInfo['companyId']);
+                                if (!$company) throw new Exception('Компания не найдена');
+
                                 $contract = MoneyComponent::addPupilContract(
-                                    $groupInfo['company'],
+                                    $company,
                                     $pupil,
                                     $groupInfo['amount'],
                                     $group
@@ -163,6 +170,9 @@ class UserController extends AdminController
                     } else {
                         $transaction->commit();
                         Yii::$app->session->addFlash('success', 'Добавлено');
+                        foreach ($infoFlashArray as $message) {
+                            Yii::$app->session->addFlash('info', $message);
+                        }
                         UserComponent::clearSearchCache();
 
                         return $this->redirect(['index']);

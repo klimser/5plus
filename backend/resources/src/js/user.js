@@ -89,7 +89,7 @@ let User = {
             '<div class="col-xs-10 col-sm-11 col-md-4"><div class="form-group">' +
             '<label>Группа</label>' +
             '<select class="form-control group-select" name="welcome_lesson[groupId][' + this.iterator + ']" onchange="User.setWelcomeLessonGroup(this);">' +
-            this.getGroupOptions(data.groupId, true) +
+            this.getGroupOptions(parseInt(data.groupId), true) +
             '</select>' +
             '</div>' +
             '</div>';
@@ -124,14 +124,17 @@ let User = {
     addGroup: function(data) {
         this.setPupilPhoneRequired(true);
         if (data === undefined) {
-            data = {groupId: 0, date: '', amount: 0, company: 0, paymentComment: ''};
+            data = {groupId: 0, date: '', amount: 0, companyId: 0, paymentComment: ''};
+        }
+        if (!data.hasOwnProperty('date')) {
+            data.date = '';
         }
         
         let blockHtml = '<div class="group-item panel panel-default"><div class="panel-body">';
         blockHtml += '<div class="row"><div class="col-xs-10 col-sm-11"><div class="form-group">' +
             '<label>Группа</label>' +
             '<select class="form-control group-select" name="group[groupId][' + this.iterator + ']" onchange="User.setGroup(this, true);" required>' +
-            this.getGroupOptions(data.groupId) +
+            this.getGroupOptions(parseInt(data.groupId)) +
             '</select>' +
             '</div></div>';
         blockHtml += '<div class="col-xs-2 col-sm-1"><button type="button" class="close" aria-label="Close" onclick="User.removeItem(this, \'group-item\');"><span aria-hidden="true">&times;</span></button></div></div>';
@@ -175,7 +178,7 @@ let User = {
             Main.companyList.forEach(function(company) {
                 blockHtml += '<div class="radio">' +
                     '<label>' +
-                    '<input type="radio" class="company-input" name="group[company][' + User.iterator + ']" value="' + company.id + '" ' + (data.company === company.id ? ' checked ' : '')
+                    '<input type="radio" class="company-input" name="group[companyId][' + User.iterator + ']" value="' + company.id + '" ' + (data.companyId === company.id ? ' checked ' : '')
                     + (data.hasOwnProperty('contract') ? '' : ' disabled ') + ' required>' +
                     company.second_name +
                     '</label>' +
