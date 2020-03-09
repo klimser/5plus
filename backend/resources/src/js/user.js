@@ -60,6 +60,17 @@ let User = {
             $(item).remove();
         }
     },
+    removeConsultation: function(e) {
+        this.removeItem(e, 'consultation-item');
+    },
+    removeWelcomeLesson: function(e) {
+        this.removeItem(e, 'welcome-lesson-item');
+        this.checkPupilPhoneRequired();
+    },
+    removeGroup: function(e) {
+        this.removeItem(e, 'group-item');
+        this.checkPupilPhoneRequired();
+    },
     addConsultation: function(subjectId) {
         if (subjectId === undefined) {
             subjectId = 0;
@@ -69,7 +80,7 @@ let User = {
         let blockHtml = '<div class="consultation-item panel panel-default"><div class="panel-body">';
         if ($(container).html().length > 0) {
             container = $("#consultation-optional");
-            blockHtml += '<button type="button" class="close" aria-label="Close" onclick="User.removeItem(this, \'consultation-item\');"><span aria-hidden="true">&times;</span></button>';
+            blockHtml += '<button type="button" class="close" aria-label="Close" onclick="User.removeConsultation(this);"><span aria-hidden="true">&times;</span></button>';
         }
         blockHtml += '<div class="form-group">' +
             '<label>Предмет</label>' +
@@ -93,7 +104,7 @@ let User = {
             '</select>' +
             '</div>' +
             '</div>';
-        blockHtml += '<div class="col-xs-2 col-sm-1 col-md-push-7"><button type="button" class="close" aria-label="Close" onclick="User.removeItem(this, \'welcome-lesson-item\');"><span aria-hidden="true">&times;</span></button></div>';
+        blockHtml += '<div class="col-xs-2 col-sm-1 col-md-push-7"><button type="button" class="close" aria-label="Close" onclick="User.removeWelcomeLesson(this);"><span aria-hidden="true">&times;</span></button></div>';
         blockHtml += '<div class="col-xs-12 col-md-4 col-md-pull-1"><div class="form-group">' +
             '<label>Предмет</label>' +
             '<select class="form-control subject-select" name="welcome_lesson[subjectId][' + this.iterator + ']" onchange="User.setWelcomeLessonSubject(this);"' +
@@ -137,7 +148,7 @@ let User = {
             this.getGroupOptions(parseInt(data.groupId)) +
             '</select>' +
             '</div></div>';
-        blockHtml += '<div class="col-xs-2 col-sm-1"><button type="button" class="close" aria-label="Close" onclick="User.removeItem(this, \'group-item\');"><span aria-hidden="true">&times;</span></button></div></div>';
+        blockHtml += '<div class="col-xs-2 col-sm-1"><button type="button" class="close" aria-label="Close" onclick="User.removeGroup(this);"><span aria-hidden="true">&times;</span></button></div></div>';
         blockHtml += '<div class="form-group">' +
             '<label>Начало занятий</label>' +
             '<div class="radio">' +
@@ -281,6 +292,12 @@ let User = {
                 $("#company_select").addClass('hidden');
                 $("#company_form").removeClass('hidden');
                 break;
+        }
+    },
+    checkPupilPhoneRequired: function() {
+        let requiredBlocksCount = $(".welcome-lesson-item").length + $(".group-item").length;
+        if (requiredBlocksCount === 0) {
+            this.setPupilPhoneRequired(false);
         }
     },
     setPupilPhoneRequired: function(isRequired) {

@@ -9,6 +9,9 @@ use yii\helpers\ArrayHelper;
 /* @var $parent User */
 /* @var $parentCompany User */
 /* @var $pupil User */
+/* @var $personType int */
+/* @var $parentData array */
+/* @var $companyData array */
 /* @var $existedParents User[] */
 /* @var $existedCompanies User[] */
 /* @var $consultationData array */
@@ -34,7 +37,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <h2>Студент</h2>
                 <?= Html::radioList(
                     'person_type',
-                    $parentCompany->name ? User::ROLE_COMPANY : User::ROLE_PARENTS,
+                    $personType,
                     [
                         User::ROLE_PARENTS => 'Физ. лицо',
                         User::ROLE_COMPANY => 'Юр. лицо',
@@ -55,29 +58,29 @@ $this->params['breadcrumbs'][] = $this->title;
 
             <hr class="visible-xs visible-sm">
 
-            <div id="parents_block" class="col-xs-12 col-md-6 <?= $parentCompany->name ? ' hidden' : ''; ?>">
+            <div id="parents_block" class="col-xs-12 col-md-6 <?= $personType === User::ROLE_PARENTS ? '' : ' hidden '; ?>">
                 <h2>Родители</h2>
 
                 <div class="radio">
                     <label>
-                        <input type="radio" name="parent_type" value="none" onclick="User.changeParentType()"> Студент уже взрослый
+                        <input type="radio" name="parent_type" value="none" onclick="User.changeParentType()" <?= $parentData['type'] === 'none' ? ' checked ' : ''; ?>> Студент уже взрослый
                     </label>
                 </div>
                 <div class="radio">
                     <label>
-                        <input type="radio" name="parent_type" value="exist" onclick="User.changeParentType()"> Есть брат (сестра), выбрать родителей из списка
+                        <input type="radio" name="parent_type" value="exist" onclick="User.changeParentType()" <?= $parentData['type'] === 'exist' ? ' checked ' : ''; ?>> Есть брат (сестра), выбрать родителей из списка
                     </label>
                 </div>
-                <div id="parents_select" <?= !$parent->id ? ' class="hidden"' : ''; ?>>
-                    <?= Html::dropDownList('parent_exists', $parent->id, ArrayHelper::map($existedParents, 'id', 'name'), ['class' => 'form-control chosen']); ?>
+                <div id="parents_select" <?= $parentData['type'] === 'exist' ? '' : ' class="hidden" '; ?>>
+                    <?= Html::dropDownList('parent_exists', $parentData['id'], ArrayHelper::map($existedParents, 'id', 'name'), ['class' => 'form-control chosen']); ?>
                 </div>
                 <div class="radio">
                     <label>
-                        <input type="radio" name="parent_type" value="new" checked onclick="User.changeParentType()"> Добавить родителей
+                        <input type="radio" name="parent_type" value="new" onclick="User.changeParentType()" <?= $parentData['type'] === 'new' ? ' checked ' : ''; ?>> Добавить родителей
                     </label>
                 </div>
 
-                <div id="parents_form" <?= $parent->id ? ' class="hidden"' : ''; ?>>
+                <div id="parents_form" <?= $parentData['type'] === 'new' ? '' : ' class="hidden" '; ?>>
                     <?= $form->field($parent, '[parent]name')->textInput(['maxlength' => true]); ?>
 
                     <?= $form->field($parent, '[parent]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
@@ -88,24 +91,24 @@ $this->params['breadcrumbs'][] = $this->title;
                 </div>
             </div>
 
-            <div id="company_block" class="col-xs-12 col-md-6 <?= $parentCompany->name ? '' : ' hidden'; ?>">
+            <div id="company_block" class="col-xs-12 col-md-6 <?= $personType === User::ROLE_COMPANY ? '' : ' hidden '; ?>">
                 <h2>Компания</h2>
 
                 <div class="radio">
                     <label>
-                        <input type="radio" name="company_type" value="exist" onclick="User.changeCompanyType()"> Выбрать компанию из списка
+                        <input type="radio" name="company_type" value="exist" onclick="User.changeCompanyType()" <?= $companyData['type'] === 'exist' ? ' checked ' : ''; ?>> Выбрать компанию из списка
                     </label>
                 </div>
-                <div id="company_select" <?= !$parentCompany->id ? ' class="hidden"' : ''; ?>>
-                    <?= Html::dropDownList('parent_exists', $parentCompany->id, ArrayHelper::map($existedCompanies, 'id', 'name'), ['class' => 'form-control chosen']); ?>
+                <div id="company_select" <?= $companyData['type'] === 'exist' ? '' : ' class="hidden" '; ?>>
+                    <?= Html::dropDownList('parent_exists', $companyData['id'], ArrayHelper::map($existedCompanies, 'id', 'name'), ['class' => 'form-control chosen']); ?>
                 </div>
                 <div class="radio">
                     <label>
-                        <input type="radio" name="company_type" value="new" checked onclick="User.changeCompanyType()"> Добавить компанию
+                        <input type="radio" name="company_type" value="new" onclick="User.changeCompanyType()" <?= $companyData['type'] === 'new' ? ' checked ' : ''; ?>> Добавить компанию
                     </label>
                 </div>
 
-                <div id="company_form" <?= $parentCompany->id ? ' class="hidden"' : ''; ?>>
+                <div id="company_form" <?= $companyData['type'] === 'new' ? '' : ' class="hidden" '; ?>>
                     <?= $form->field($parentCompany, '[parentCompany]name', ['labelOptions' => ['label' => 'Название']])->textInput(['maxlength' => true]); ?>
 
                     <?= $form->field($parentCompany, '[parentCompany]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])

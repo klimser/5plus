@@ -75,6 +75,9 @@ class UserController extends AdminController
         $groupData = [];
         $incomeAllowed = Yii::$app->user->can('moneyManagement');
         $contractAllowed = Yii::$app->user->can('contractManagement');
+        $personType = User::ROLE_PARENTS;
+        $parentType = $companyType = 'new';
+        $parentId = $companyId = 0;
 
         if (Yii::$app->request->isPost) {
             User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
@@ -91,13 +94,20 @@ class UserController extends AdminController
                 }
 
                 $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
+                $parentType = Yii::$app->request->post('parent_type', 'new');
+                $parentId = Yii::$app->request->post('parent_exists', 0);
+                $companyType = Yii::$app->request->post('company_type', 'new');
+                $companyId = Yii::$app->request->post('company_exists', 0);
+                
                 switch ($personType) {
                     case User::ROLE_PARENTS:
-                        $parent = $this->processParent($parent, 'parent', $personType);
+                        $pupil->individual = 1;
+                        $parent = $this->processParent($parent, $parentType, $personType, $parentId);
                         $pupil->parent_id = $parent->id;
                         break;
                     case User::ROLE_COMPANY:
-                        $parentCompany = $this->processParent($parentCompany, 'company', $personType);
+                        $pupil->individual = 0;
+                        $parentCompany = $this->processParent($parentCompany, $companyType, $personType, $companyId);
                         $pupil->parent_id = $parentCompany->id;
                         break;
                 }
@@ -188,6 +198,9 @@ class UserController extends AdminController
             'parent' => $parent,
             'parentCompany' => $parentCompany,
             'pupil' => $pupil,
+            'personType' => $personType,
+            'parentData' => ['type' => $parentType, 'id' => $parentId],
+            'companyData' => ['type' => $companyType, 'id' => $companyId],
             'consultationData' => $consultationData,
             'welcomeLessonData' => $welcomeLessonData,
             'groupData' => $groupData,
@@ -202,19 +215,18 @@ class UserController extends AdminController
 
     /**
      * @param User $parent
-     * @param string $prefix
+     * @param string $parentType
      * @param int $personType
+     * @param int $existParentId
      * @return User
-     * @throws Exception
+     * @throws NotFoundHttpException
      */
-    private function processParent(User $parent, string $prefix, int $personType): User
+    private function processParent(User $parent, string $parentType, int $personType, int $existParentId = 0): User
     {
-        $parentType = Yii::$app->request->post($prefix . '_type', 'new');
         switch ($parentType) {
             case 'exist':
-                $parentId = Yii::$app->request->post($prefix . '_exists');
-                if (!$parentId) throw new Exception("Choose $prefix from the list");
-                $parent = $this->findModel($parentId);
+                if (!$existParentId) throw new Exception("Choose parent from the list");
+                $parent = $this->findModel($existParentId);
                 if ($parent->role != $personType || $parent->status == User::STATUS_LOCKED) throw new Exception('Parents not found');
                 break;
             case 'new':
@@ -440,7 +452,9 @@ class UserController extends AdminController
                 } else {
                     if ($user->role == User::ROLE_PUPIL && !$user->parent_id) {
                         $parent->load(Yii::$app->request->post('User', []), 'parent');
-                        $parent = $this->processParent($parent, 'parent', User::ROLE_PARENTS);
+                        $parentType = Yii::$app->request->post('parent_type', 'new');
+                        $existParentId = Yii::$app->request->post('parent_exists', 0);
+                        $parent = $this->processParent($parent, $parentType, $user->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY, $existParentId);
                         if ($parent->id) {
                             $user->link('parent', $parent);
                         }
@@ -472,7 +486,7 @@ class UserController extends AdminController
             'isAdmin' => $isAdmin,
             'editACL' => $editACL,
             'authManager' => $auth,
-            'existedParents' => User::find()->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY]])->orderBy(['name' => SORT_ASC])->all(),
+            'existedParents' => User::find()->andWhere(['role' => $user->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
             'parent' => $parent,
         ]);
     }

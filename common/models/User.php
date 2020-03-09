@@ -27,6 +27,7 @@ use yii\web\IdentityInterface;
  * @property int $status
  * @property int $money
  * @property int $role
+ * @property int $individual
  * @property int $parent_id
  * @property int $teacher_id
  * @property int $tg_chat_id
@@ -97,6 +98,7 @@ class User extends ActiveRecord implements IdentityInterface
             [['name', 'username', 'note'], 'trim'],
             ['status', 'default', 'value' => self::STATUS_INACTIVE, 'on' => self::SCENARIO_USER],
             ['status', 'default', 'value' => self::STATUS_ACTIVE,  'on' => self::SCENARIO_ADMIN],
+            ['individual', 'default', 'value' => 1],
             ['role', 'default', 'value' => self::ROLE_PUPIL],
             ['bitrix_sync_status', 'default', 'value' => 0],
             [['password_hash'], 'default', 'value' => ''],
