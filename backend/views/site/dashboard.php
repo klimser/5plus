@@ -10,6 +10,7 @@ use \yii\helpers\Url;
 
 $this->title = 'Панель управления';
 ?>
+<div id="messages_place"></div>
 <div class="row" id="step1">
     <div class="col-xs-6">
         <a class="btn btn-default btn-lg full-width" href="#" onclick="Dashboard.step2('strict'); return false;">
@@ -48,3 +49,4 @@ $this->title = 'Панель управления';
         </div>
     </form>
 </div>
+<div class="row hidden" id="result"></div>
