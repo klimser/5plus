@@ -27,7 +27,7 @@ class SiteController extends Controller
                         'allow' => true,
                     ],
                     [
-                        'actions' => ['logout', 'index', 'clear-cache'],
+                        'actions' => ['logout', 'index', 'dashboard', 'clear-cache'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -66,6 +66,13 @@ class SiteController extends Controller
             $params['reviewCount'] = Review::find()->andWhere(['status' => Review::STATUS_NEW])->count('id');
         }
         return $this->render($viewFile, $params);
+    }
+    
+    public function actionDashboard()
+    {
+        if (!Yii::$app->user->can('viewIndex')) throw new ForbiddenHttpException('Access denied!');
+        
+        return $this->render('dashboard');
     }
 
     public function actionLogin()
