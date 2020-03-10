@@ -41,7 +41,7 @@ $this->title = 'Панель управления';
     <br><br>
     <form onsubmit="Dashboard.find(this); return false;">
         <div class="input-group input-group-lg">
-            <input class="form-control autofocus search" data-search="flex" placeholder="Номер (договора, карты и т п)" required>
+            <input class="form-control autofocus search" data-search="flex" placeholder="Телефон, ФИО и т п" required>
             <span class="input-group-btn">
                 <button class="btn btn-success"><span class="fas fa-search"></span></button>
             </span>
