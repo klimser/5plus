@@ -1,6 +1,8 @@
 <?php
 
-/* @var $this \yii\web\View */use dosamigos\datepicker\DatePickerAsset;use dosamigos\datepicker\DatePickerLanguageAsset;
+use dosamigos\datepicker\DatePickerLanguageAsset;
+
+/* @var $this \yii\web\View */
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
 /* @var $groupData array */

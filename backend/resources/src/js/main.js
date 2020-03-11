@@ -1,4 +1,5 @@
 let Main = {
+    datepickerDefaultSettings: {autoclose: true, format: "dd.mm.yyyy", language: "ru", weekStart: 1},
     throwFlashMessage: function (blockSelector, message, additionalClass, append) {
         if (typeof append !== 'boolean') append = false;
         var blockContent = '<div class="alert alert-dismissible ' + additionalClass + '"><button type="button" class="close" data-dismiss="alert" aria-label="Закрыть"><span aria-hidden="true">&times;</span></button>' + message + '</div>';
@@ -77,6 +78,13 @@ let Main = {
     initPhoneFormatted: function(selector) {
         if (selector === undefined) selector = ".phone-formatted";
         $(selector).inputmask({"mask": "99 999-9999"});
+    },
+    
+    logAndFlashAjaxError: function(jqXHR, textStatus, errorThrown) {
+        console.log(jqXHR);
+        console.log(textStatus);
+        console.log(errorThrown);
+        Main.throwFlashMessage('#messages_place', 'Server error, details in console log', 'alert-danger');
     },
 
     groupActiveList: [],

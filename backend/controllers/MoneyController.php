@@ -103,17 +103,15 @@ class MoneyController extends AdminController
         if (!\Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
         if (!\Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
 
-        $contractId = \Yii::$app->request->post('id');
+        $contractId = \Yii::$app->request->post('contractId');
         if (!$contractId) $jsonData = self::getJsonErrorResult('No contract ID');
         else {
             $contract = Contract::findOne($contractId);
             if (!$contract) $jsonData = self::getJsonErrorResult('Договор не найден');
             else {
-                /** @var GroupPupil $groupPupil */
-                $groupPupil = GroupPupil::find()->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
                 $pupilStartDate = null;
-                if (!$groupPupil) {
-                    $pupilStartDate = date_create_from_format('d.m.Y', \Yii::$app->request->post('pupil_start_date', ''));
+                if (!$contract->activeGroupPupil) {
+                    $pupilStartDate = date_create_from_format('d.m.Y', \Yii::$app->request->post('contractPupilDateStart', ''));
                 }
                 $transaction = \Yii::$app->db->beginTransaction();
                 try {

@@ -41,6 +41,7 @@ use yii\web\IdentityInterface;
  * @property User $parent
  * @property Teacher $teacher
  * @property User[] $children
+ * @property User[] $notLockedChildren
  * @property GroupPupil[] $groupPupils
  * @property Group[] $groups
  * @property GroupPupil[] $activeGroupPupils
@@ -179,6 +180,14 @@ class User extends ActiveRecord implements IdentityInterface
     public function getChildren()
     {
         return $this->hasMany(User::class, ['parent_id' => 'id'])->orderBy('name')->inverseOf('parent');
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getNotLockedChildren()
+    {
+        return $this->hasMany(User::class, ['parent_id' => 'id'])->andWhere('status != :locked', [':locked' => self::STATUS_LOCKED]) ->orderBy('name');
     }
 
     /**

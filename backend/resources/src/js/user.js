@@ -129,7 +129,7 @@ let User = {
         
         this.iterator++;
         $(container).find('.welcome-lesson-item:last').find(".datepicker")
-            .datepicker({autoclose: true, format: "dd.mm.yyyy", language: "ru", weekStart: 1});
+            .datepicker(Main.datepickerDefaultSettings);
         this.setWelcomeLessonSubject($(container).find('.welcome-lesson-item:last').find("select.subject-select"));
     },
     addGroup: function(data) {
@@ -215,12 +215,7 @@ let User = {
         $(container).append(blockHtml);
 
         this.iterator++;
-        let datepickerOptions = {
-            autoclose: true,
-            format: "dd.mm.yyyy",
-            language: "ru",
-            weekStart: 1
-        };
+        let datepickerOptions = Main.datepickerDefaultSettings;
         if (this.pupilLimitDate !== null) {
             datepickerOptions.startDate = this.pupilLimitDate;
         }
@@ -407,11 +402,6 @@ let User = {
                     User.addGroup(groupData);
                 });
             })
-            .fail(function(jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR);
-                console.log(textStatus);
-                console.log(errorThrown);
-                Main.throwFlashMessage('#messages_place', 'Unable to load data, details in console log', 'alert-danger');
-            });
+            .fail(Main.logAndFlashAjaxError);
     }
 };

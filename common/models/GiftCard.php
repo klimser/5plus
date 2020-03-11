@@ -64,6 +64,7 @@ class GiftCard extends ActiveRecord
             [['amount', 'status'], 'integer'],
             [['name'], 'string', 'max' => 127],
             [['code'], 'string', 'max' => 50],
+            [['code'], 'unique'],
             [['additional'], 'string'],
             [['customer_name', 'customer_email'], 'string', 'max' => 255],
             [['customer_phone'], 'string', 'max' => 13],

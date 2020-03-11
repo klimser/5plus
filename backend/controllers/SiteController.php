@@ -70,7 +70,7 @@ class SiteController extends Controller
     
     public function actionDashboard()
     {
-        if (!Yii::$app->user->can('viewIndex')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('manager')) throw new ForbiddenHttpException('Access denied!');
         
         return $this->render('dashboard');
     }

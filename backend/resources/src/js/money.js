@@ -18,8 +18,8 @@ let Money = {
                 if (data.status !== 'ok') {
                     Main.throwFlashMessage('#contract_result_block', data.message, 'alert-warning');
                 } else {
-                    let contractForm = '<form id="contract_form" onsubmit="return Money.completeContract(this);">' +
-                        '<input type="hidden" name="id" value="' + data.id + '">' +
+                    let contractForm = '<form id="contract_form" onsubmit="Money.completeContract(this); return false;">' +
+                        '<input type="hidden" name="contractId" value="' + data.id + '">' +
                         '<table class="table">' +
                         '<tr><td><b>Студент</b></td><td>' + data.user_name + '</td></tr>' +
                         '<tr><td><b>Группа</b></td><td>' + data.group_name + '</td></tr>'+
@@ -33,7 +33,7 @@ let Money = {
                     } else {
                         contractForm += '<tr><td><b>Начало занятий в группе</b></td><td>' +
                             '<div class="input-group date">' +
-                            '<input class="form-control" name="pupil_start_date" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
+                            '<input class="form-control" name="contractPupilDateStart" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
                             '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
                             '</div>' +
                             '</td></tr>';
@@ -231,25 +231,26 @@ let Money = {
     },
     completeContract: function(form) {
         this.lockContractButton();
-        $.ajax({
+        return $.ajax({
             url: '/money/process-contract',
             type: 'post',
             dataType: 'json',
-            data: $(form).serialize(),
-            success: function(data) {
+            data: $(form).serialize()
+        })
+            .done(function(data) {
                 if (data.status === 'ok') {
                     Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    $("#contract_result_block").html('');
+                    let contractResultBlock = $("#contract_result_block");
+                    if (contractResultBlock.length > 0) {
+                        $(contractResultBlock).html('');
+                    }
                 }
                 else Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(function() {
                 Money.unlockContractButton();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Money.unlockContractButton();
-            }
-        });
-        return false;
+            });
     },
     lockContractButton: function() {
         $("#contract_button").prop('disabled', true);
