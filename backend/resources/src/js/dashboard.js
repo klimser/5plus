@@ -23,12 +23,20 @@ let Dashboard = {
         $(".step2 button").prop("disabled", true);
         $.get("/dashboard/find", data, null, 'html')
             .done(function(content) {
-                $("#result").html(content).removeClass("hidden");
+                let resultContainer = $("#result");
+                $(resultContainer).html(content).removeClass("hidden");
+                let giftCardForm = $(resultContainer).find("#gift-card-form");
+                if (giftCardForm.length > 0) {
+                    Dashboard.prepareGiftCardForm(giftCardForm);
+                }
             })
             .fail(Main.logAndFlashAjaxError)
             .always(function() {
                 $(".step2 button").prop("disabled", false);
             });
+    },
+    clearInput: function(e) {
+        $(e).closest(".input-group").find(".search").val("").focus();
     },
     showContractForm: function(e) {
         let form = $("#contract-form");
@@ -54,7 +62,7 @@ let Dashboard = {
             $(pupilNewBlock).removeClass("hidden");
             let datepickerOptions = Main.datepickerDefaultSettings;
             datepickerOptions.startDate = data.groupDateStart;
-            $($(pupilNewBlock).find(".datepicker")).datepicker(datepickerOptions);
+            $(pupilNewBlock).find(".datepicker").datepicker(datepickerOptions);
         }
         $('#modal-contract').modal("show");
     },
@@ -64,5 +72,18 @@ let Dashboard = {
                 $("#modal-contract").modal("hide");
                 $("#step2_strict form").submit();
             });
+    },
+    prepareGiftCardForm: function(form) {
+        Main.initPhoneFormatted();
+        let groupSelect = $(form).find("#new-group");
+        Main.loadActiveGroups()
+            .done(function(groupList) {
+                groupList.forEach(function(groupId) {
+                    groupSelect.append('<option value="' + groupId + '">' + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>');
+                });
+            })
+            .fail(Main.logAndFlashAjaxError);
+        $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
+
     }
 };

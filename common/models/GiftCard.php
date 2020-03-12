@@ -153,6 +153,21 @@ class GiftCard extends ActiveRecord
         return $usedDate ? $usedDate->format('Y-m-d') : '';
     }
 
+    public function isNew(): bool
+    {
+        return $this->status === self::STATUS_NEW;
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->status === self::STATUS_PAID;
+    }
+
+    public function isUsed(): bool
+    {
+        return $this->status === self::STATUS_USED;
+    }
+
     /**
      * @return bool
      */

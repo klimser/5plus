@@ -13,6 +13,15 @@ class Money
     }
 
     /**
+     * @param int $amount
+     * @return string
+     */
+    public static function formatThousands(int $amount): string
+    {
+        return number_format($amount, 0, '.', ' ');
+    }
+
+    /**
      * @param float|int|double|string $num
      * @param bool $skipCurrency
      * @return string

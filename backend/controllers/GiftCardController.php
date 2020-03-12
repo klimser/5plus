@@ -79,7 +79,7 @@ class GiftCardController extends AdminController
                         'phone' => $pupil->phoneFormatted,
                         'parents_name' => $pupil->parent_id ? $pupil->parent->name : '',
                         'parents_phone' => $pupil->parent_id ? $pupil->parent->phoneFormatted : '',
-                        'groupPupils' => [],
+                        'group_pupils' => [],
                     ];
                     foreach ($pupil->activeGroupPupils as $groupPupil) {
                         $existingPupil['group_pupils'][] = [

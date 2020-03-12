@@ -2,30 +2,24 @@
 
 namespace backend\controllers;
 
-use chillerlan\QRCode\QRCode;
-use chillerlan\QRCode\QROptions;
-use common\components\ComponentContainer;
-use common\models\Company;
 use common\models\Contract;
-use common\models\ContractSearch;
 use common\models\GiftCard;
-use common\models\Group;
-use common\models\GroupParam;
-use common\models\GroupPupil;
 use common\models\User;
-use common\components\Action;
 use yii;
-use yii\web\NotFoundHttpException;
-use yii\web\BadRequestHttpException;
 
 /**
- * ContractController implements contracts management.
+ * DashboardController
  */
 class DashboardController extends AdminController
 {
     const SEARCH_TYPE_STRICT = 'strict';
     const SEARCH_TYPE_FLEX = 'flex';
     protected $accessRule = 'manager';
+
+    public function actionIndex()
+    {
+        return $this->render('index');
+    }
 
      /**
      * Search system
@@ -36,12 +30,21 @@ class DashboardController extends AdminController
         $searchType = Yii::$app->request->get('type', self::SEARCH_TYPE_STRICT);
         $searchValue = Yii::$app->request->get('value');
 
-        $contract = $giftCard = null;
+        $contract = $giftCard = $existingPupil = null;
         $pupils = $parents = [];
         switch ($searchType) {
             case self::SEARCH_TYPE_STRICT:
                 $contract = Contract::findOne(['number' => $searchValue]);
                 $giftCard = GiftCard::findOne(['code' => $searchValue]);
+                if ($giftCard) {
+                    /** @var User $existingPupil */
+                    $existingPupil = User::find()
+                        ->andWhere(['role' => [User::ROLE_PUPIL]])
+                        ->andWhere(['!=', 'status', User::STATUS_LOCKED])
+                        ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $giftCard->customer_phone])
+                        ->with(['activeGroupPupils.group'])
+                        ->one();
+                }
                 break;
             case self::SEARCH_TYPE_FLEX:
                 $digitsOnly = preg_replace('#\D#', '', $searchValue);
@@ -84,6 +87,7 @@ class DashboardController extends AdminController
         return $this->renderPartial('results', [
             'contract' => $contract,
             'giftCard' => $giftCard,
+            'existingPupil' => $existingPupil,
             'parents' => $parents,
             'pupils' => $pupils,
         ]);
