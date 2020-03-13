@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\components\GroupComponent;
 use common\models\Contract;
 use common\models\GiftCard;
 use common\models\User;
@@ -18,7 +19,9 @@ class DashboardController extends AdminController
 
     public function actionIndex()
     {
-        return $this->render('index');
+        return $this->render('index', [
+            'pupilLimitDate' => GroupComponent::getPupilLimitDate(),
+        ]);
     }
 
      /**

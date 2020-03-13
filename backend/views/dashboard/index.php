@@ -5,12 +5,14 @@ use dosamigos\datepicker\DatePickerLanguageAsset;
 DatePickerLanguageAsset::register($this)->js[] = 'bootstrap-datepicker.ru.min.js';
 
 /* @var $this yii\web\View */
-/* @var $admin \yii\web\User */
-/* @var $orderCount int */
-/* @var $feedbackCount int */
-/* @var $reviewCount int */
+/* @var $pupilLimitDate \DateTime */
 
 $this->title = 'Панель управления';
+
+if ($pupilLimitDate !== null) {
+    $this->registerJs("Dashboard.pupilLimitDate = '{$pupilLimitDate->format('Y-m-d')}';\n");
+}
+
 ?>
 <div id="messages_place"></div>
 <div class="row" id="step1">

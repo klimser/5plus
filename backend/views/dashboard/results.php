@@ -106,7 +106,7 @@ if ($giftCard):
                 <?php if ($existingPupil):
                     foreach ($existingPupil->activeGroupPupils as $groupPupil): ?>
                         <button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button"
-                                data-group="<?= $groupPupil->id; ?>" onclick="Money.setGiftGroup(this);">
+                                data-group="<?= $groupPupil->id; ?>" onclick="Dashboard.setGiftGroup(this);">
                             <?= $groupPupil->group->name; ?> с <?= $groupPupil->startDateObject->format('d.m.Y'); ?>
                         </button>
                         <br>
@@ -117,7 +117,7 @@ if ($giftCard):
                         <div class="form-group">
                             <label for="new-group">Добавить в новую группу</label>
                             <div class="input-group">
-                                <select id="new-group" name="group[id]" class="form-control"></select>
+                                <select id="new-group" name="group[id]" class="form-control" onchange="Dashboard.selectGiftGroup(this);"></select>
                             </div>
                         </div>
                     </div>

@@ -328,8 +328,8 @@ let User = {
                 $(contractBlock).find("input.amount").val('');
             }
         }
-        let limitDate = group.dateStart !== null && group.dateStart > this.pupilLimitDate ? this.pupilLimitDate : group.dateStart;
-        $(container).find(".datepicker").datepicker('setStartDate', limitDate);
+        let limitDate = group.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
+        $(container).find(".datepicker").datepicker('setStartDate', new Date(limitDate));
     },
     setGroupDateType: function(e) {
         $(e).closest(".group-item").find(".date-select").prop("disabled", $(e).val() <= 0);

@@ -81,9 +81,31 @@ let Dashboard = {
                 groupList.forEach(function(groupId) {
                     groupSelect.append('<option value="' + groupId + '">' + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>');
                 });
+                $(groupSelect).change();
             })
             .fail(Main.logAndFlashAjaxError);
         $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
 
+    },
+    setGiftGroup: function(e) {
+        $(".gift-card-existing-group").removeClass("btn-primary");
+        let existingElem = $("#existing_group_id");
+        let newGroupElem = $("#new-group");
+        let newGroupDateElem = $("#new-group-date");
+        if (parseInt(existingElem.val()) === $(e).data("group")) {
+            existingElem.val('');
+            $(newGroupElem).prop("disabled", false);
+            $(newGroupDateElem).prop("disabled", false);
+        } else {
+            existingElem.val($(e).data("group"));
+            $(e).addClass("btn-primary");
+            $(newGroupElem).prop("disabled", true);
+            $(newGroupDateElem).prop("disabled", true);
+        }
+    },
+    selectGiftGroup: function(e) {
+        let group = Main.groupMap[$(e).val()];
+        let limitDate = group.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
+        $(e).closest(".row").find(".datepicker").datepicker('setStartDate', new Date(limitDate));
     }
 };
