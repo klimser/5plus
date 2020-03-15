@@ -6,6 +6,9 @@ let Main = {
         if (append) $(blockSelector).append(blockContent);
         else $(blockSelector).html(blockContent);
     },
+    jumpToTop: function() {
+        $('html, body').animate({ scrollTop: 0 }, 'fast');
+    },
     changeEntityActive: function (entityType, entityId, e, activeValue) {
         var activityState = 0;
         if (activeValue !== undefined) {

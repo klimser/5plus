@@ -119,9 +119,8 @@ $this->params['breadcrumbs'][] = $this->title;
                     </div>
                 </form>
                 <hr>
-                <div id="gift_card_messages"></div>
-                <div id="gift_card_result_block" class="hidden">
-                    <form onsubmit="return Money.completeGiftCard(this);">
+                <div id="gift_card_result_block">
+                    <form id="gift-card-form" class="hidden" onsubmit="Money.completeGiftCard(this); return false;">
                         <p>
                             <b>Предмет</b> <span id="gift_card_type"></span><br>
                             <b>Сумма</b> <span id="gift_card_amount"></span><br>
@@ -179,7 +178,7 @@ $this->params['breadcrumbs'][] = $this->title;
                             </div>
                         </div>
                         <div class="form-group">
-                            <button class="btn btn-success btn-lg" id="gift_button">внести</button>
+                            <button class="btn btn-success btn-lg" id="gift-button">внести</button>
                         </div>
                     </form>
                 </div>

@@ -68,24 +68,32 @@ let Dashboard = {
     },
     completeContract: function(form) {
         Money.completeContract(form)
-            .done(function() {
+            .done(function(data) {
                 $("#modal-contract").modal("hide");
-                $("#step2_strict form").submit();
+                if (data.status === 'ok') {
+                    $("#step2_strict form").submit();
+                }
             });
     },
     prepareGiftCardForm: function(form) {
         Main.initPhoneFormatted();
+        $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
         let groupSelect = $(form).find("#new-group");
         Main.loadActiveGroups()
             .done(function(groupList) {
+                let groupBlackList = [];
+                $(form).find(".gift-card-existing-group").each(function(){
+                    groupBlackList.push($(this).data("group"));
+                });
                 groupList.forEach(function(groupId) {
-                    groupSelect.append('<option value="' + groupId + '">' + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>');
+                    if (groupBlackList.indexOf(groupId) === -1) {
+                        groupSelect.append('<option value="' + groupId + '">'
+                            + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>');
+                    }
                 });
                 $(groupSelect).change();
             })
             .fail(Main.logAndFlashAjaxError);
-        $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
-
     },
     setGiftGroup: function(e) {
         $(".gift-card-existing-group").removeClass("btn-primary");
@@ -106,6 +114,43 @@ let Dashboard = {
     selectGiftGroup: function(e) {
         let group = Main.groupMap[$(e).val()];
         let limitDate = group.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
-        $(e).closest(".row").find(".datepicker").datepicker('setStartDate', new Date(limitDate));
-    }
+        $(e).closest("#gift-card-form").find(".datepicker").datepicker('setStartDate', new Date(limitDate));
+    },
+    completeGiftCard: function(form) {
+        Money.completeGiftCard(form)
+            .done(function(data) {
+                if (data.status === 'ok') {
+                    $("#step2_strict form").submit();
+                }
+            });
+    },
+    toggleChildren: function(e) {
+        let childrenBlock = $(e).closest(".result-parent").find(".children-list");
+        if ($(childrenBlock).hasClass("hidden")) {
+            $(childrenBlock).removeClass("hidden");
+        } else {
+            $(childrenBlock).addClass("hidden");
+        }
+    },
+    launchMoneyIncome: function(e) {
+        let groupId = $(e).data('group');
+        let form = $("#income-form");
+        $(form).find("#income-user-id").val($(e).data("user"));
+        $(form).find("#income-group-id").val(groupId);
+        $(form).find("#income-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#income-amount").val(0);
+        Main.loadActiveGroups()
+            .done(function() {
+                let group = Main.groupMap[groupId];
+                $(form).find("#income-group-name").text(group.name);
+                let amountHelpersBlock = $(form).find(".amount-helper-buttons");
+                $(amountHelpersBlock).find(".price").data('price', group.price);
+                $(amountHelpersBlock).find(".price3").data('price', group.price3);
+                $("#modal-income").modal("show");
+            })
+            .fail(Main.logAndFlashAjaxError);
+    },
+    setAmount: function(e) {
+        $(e).closest(".form-group").find("#income-amount").val($(e).data('price'));
+    },
 };

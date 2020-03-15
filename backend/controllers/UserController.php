@@ -146,6 +146,7 @@ class UserController extends AdminController
 
                             if ($groupInfo['dateDefined']) {
                                 $this->addPupilToGroup($pupil, $groupInfo);
+                                MoneyComponent::setUserChargeDates($pupil, $group);
                             }
                             if ($contractAllowed && !empty($groupInfo['contract'])) {
                                 if (empty($groupInfo['companyId'])) {
@@ -324,7 +325,8 @@ class UserController extends AdminController
 
             $transaction = Yii::$app->db->beginTransaction();
             try {
-                $this->addPupilToGroup($pupil, $groupData);
+                $groupPupil = $this->addPupilToGroup($pupil, $groupData);
+                MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                 $transaction->commit();
                 Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
             } catch (Throwable $e) {

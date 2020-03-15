@@ -10,7 +10,10 @@ DatePickerLanguageAsset::register($this)->js[] = 'bootstrap-datepicker.ru.min.js
 $this->title = 'Панель управления';
 
 if ($pupilLimitDate !== null) {
-    $this->registerJs("Dashboard.pupilLimitDate = '{$pupilLimitDate->format('Y-m-d')}';\n");
+    $this->registerJs("
+    Dashboard.pupilLimitDate = '{$pupilLimitDate->format('Y-m-d')}';
+    Main.loadActiveGroups();
+    ");
 }
 
 ?>
@@ -47,7 +50,7 @@ if ($pupilLimitDate !== null) {
     <br><br>
     <form onsubmit="Dashboard.find(this); return false;">
         <div class="input-group input-group-lg">
-            <input class="form-control autofocus search" data-search="flex" placeholder="Телефон, ФИО и т п" required>
+            <input class="form-control autofocus search" data-search="flex" placeholder="Телефон, ФИО и т п" minlength="3" required>
             <div class="input-group-btn">
                 <button class="btn btn-default" type="button" onclick="Dashboard.clearInput(this);"><span class="fas fa-times"></span></button>
                 <button class="btn btn-success"><span class="fas fa-search"></span></button>
@@ -58,4 +61,4 @@ if ($pupilLimitDate !== null) {
 <div class="row hidden" id="result" style="margin-top: 20px;"></div>
 
 <?= $this->render('_contract'); ?>
-<?= $this->render('_gift_card'); ?>
+<?= $this->render('_income'); ?>

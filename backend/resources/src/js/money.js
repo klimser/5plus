@@ -80,7 +80,7 @@ let Money = {
 
                         let groupList = "";
                         data.existing_pupil.group_pupils.forEach(function(groupPupil) {
-                            groupList += '<button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button" data-group="' + groupPupil.id + '" onclick="Money.setGiftGroup(this);">'
+                            groupList += '<button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button" data-group="' + groupPupil.group_id + '" onclick="Money.setGiftGroup(this);">'
                                 + groupPupil.group
                                 + ' с ' + groupPupil.from + '</button><br>';
                         });
@@ -244,13 +244,13 @@ let Money = {
                     if (contractResultBlock.length > 0) {
                         $(contractResultBlock).html('');
                     }
+                } else {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
-                else Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
             })
             .fail(Main.logAndFlashAjaxError)
-            .always(function() {
-                Money.unlockContractButton();
-            });
+            .always(Money.unlockContractButton)
+            .always(Main.jumpToTop);
     },
     lockContractButton: function() {
         $("#contract_button").prop('disabled', true);
@@ -270,31 +270,32 @@ let Money = {
     },
     completeGiftCard: function(form) {
         this.lockGiftButton();
-        $.ajax({
-            url: '/money/process-gift-card',
-            type: 'post',
-            dataType: 'json',
-            data: $(form).serialize(),
-            success: function(data) {
+        return $.ajax({
+                url: '/money/process-gift-card',
+                type: 'post',
+                dataType: 'json',
+                data: $(form).serialize()
+            })
+            .done(function(data) {
                 if (data.status === 'ok') {
-                    Main.throwFlashMessage('#gift_card_messages', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    Main.throwFlashMessage('#gift_card_messages', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
-                    $("#search_gift_card").val('');
+                    Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
+                    Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
+                    let giftCardInputBlock = $("#search_gift_card");
+                    if (giftCardInputBlock.length > 0) {
+                        $(giftCardInputBlock).val('');
+                    }
+                } else {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
-                else Main.throwFlashMessage('#gift_card_messages', 'Ошибка: ' + data.message, 'alert-danger');
-                Money.unlockGiftButton();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#gift_card_messages', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Money.unlockGiftButton();
-            }
-        });
-        return false;
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(Money.unlockGiftButton)
+            .always(Main.jumpToTop);
     },
     lockGiftButton: function() {
-        $("#gift_button").prop('disabled', true);
+        $("#gift-button").prop('disabled', true);
     },
     unlockGiftButton: function() {
-        $("#gift_button").prop('disabled', false);
+        $("#gift-button").prop('disabled', false);
     },
 };

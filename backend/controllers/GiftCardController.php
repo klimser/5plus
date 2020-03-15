@@ -84,6 +84,7 @@ class GiftCardController extends AdminController
                     foreach ($pupil->activeGroupPupils as $groupPupil) {
                         $existingPupil['group_pupils'][] = [
                             'id' => $groupPupil->id,
+                            'group_id' => $groupPupil->group_id,
                             'group' => $groupPupil->group->name,
                             'from' => $groupPupil->startDateObject->format('d.m.Y'),
                         ];

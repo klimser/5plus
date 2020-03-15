@@ -46,96 +46,49 @@ if ($contract):
 
 if ($giftCard):
     $noResults = false; ?>
-<div class="panel panel-default">
-    <div class="panel-body">
-        <p>Предмет <b><?= $giftCard->name; ?></b></p>
-        <p>Сумма <b><?= Money::formatThousands($giftCard->amount); ?></b></p>
-        <?php if ($giftCard->isNew()): ?>
-            <span class="label label-danger">не оплачена</span>
-        <?php endif; ?>
-
-        <?php if ($giftCard->isUsed()): ?>
-            <span class="label label-success">использована</span> <?= $giftCard->usedDate->format('d.m.Y'); ?>
-        <?php endif; ?>
-
-        <?php if ($giftCard->isPaid()): ?>
-            <p>куплена <b><?= $giftCard->paidDate->format('d.m.Y'); ?></b></p>
-            <form id="gift-card-form" onsubmit="return Money.completeGiftCard(this);">
-                <input type="hidden" name="gift_card_id" value="<?= $giftCard->id; ?>" required>
-                <input type="hidden" name="pupil[id]" value="<?= $existingPupil ? $existingPupil->id : ''; ?>">
-                <input type="hidden" name="group[existing]" id="existing_group_id">
-                <div class="row">
-                    <div class="col-xs-12 col-sm-6">
-                        <div class="form-group">
-                            <label for="pupil_name">ФИО студента</label>
-                            <input id="pupil_name" class="form-control" name="pupil[name]" required
-                                   <?php if ($existingPupil): ?> disabled value="<?= $existingPupil->name; ?>"
-                                   <?php else: ?> value="<?= $giftCard->customer_name; ?>" <?php endif; ?> >
-                        </div>
-                        <div class="form-group">
-                            <label for="pupil_phone">Телефон студента</label>
-                            <div class="input-group">
-                                <span class="input-group-addon">+998</span>
-                                <input id="pupil_phone" class="form-control phone-formatted"
-                                       name="pupil[phoneFormatted]" required maxlength="11" pattern="\d{2} \d{3}-\d{4}"
-                                       <?php if ($existingPupil): ?> disabled value="<?= $existingPupil->phoneFormatted; ?>"
-                                       <?php else: ?> value="<?= $giftCard->phoneFormatted; ?>" <?php endif; ?> >
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12 col-sm-6">
-                        <div class="form-group">
-                            <label for="parents_name">ФИО родителей</label>
-                            <input id="parents_name" class="form-control" name="parents[name]"
-                                <?php if ($existingPupil): ?> disabled value="<?= $existingPupil->parent_id ? $existingPupil->parent->name : ''; ?>"
-                                <?php else: ?> value="<?= $giftCard->additionalData['parents_name'] ?? ''; ?>" <?php endif; ?>>
-                        </div>
-                        <div class="form-group">
-                            <label for="parents_phone">Телефон родителей</label>
-                            <div class="input-group">
-                                <span class="input-group-addon">+998</span>
-                                <input id="parents_phone" class="form-control phone-formatted" name="parents[phoneFormatted]"
-                                       maxlength="11" pattern="\d{2} \d{3}-\d{4}"
-                                       <?php if ($existingPupil): ?> disabled value="<?= $existingPupil->parent_id ? $existingPupil->parent->phoneFormatted : ''; ?>"
-                                       <?php else: ?> value="<?= $giftCard->additionalData['parents_phone'] ?? ''; ?>" <?php endif; ?>>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <hr>
-                <?php if ($existingPupil):
-                    foreach ($existingPupil->activeGroupPupils as $groupPupil): ?>
-                        <button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button"
-                                data-group="<?= $groupPupil->id; ?>" onclick="Dashboard.setGiftGroup(this);">
-                            <?= $groupPupil->group->name; ?> с <?= $groupPupil->startDateObject->format('d.m.Y'); ?>
-                        </button>
-                        <br>
-                    <?php endforeach;
-                endif; ?>
-                <div class="row">
-                    <div class="col-xs-12 col-sm-6">
-                        <div class="form-group">
-                            <label for="new-group">Добавить в новую группу</label>
-                            <div class="input-group">
-                                <select id="new-group" name="group[id]" class="form-control" onchange="Dashboard.selectGiftGroup(this);"></select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12 col-sm-6">
-                        <div class="form-group">
-                            <label for="new-group-date">Дата начала занятий</label>
-                            <div class="input-group date datepicker">
-                                <input class="form-control" name="group[date]" id="new-group-date" value="<?= date('d.m.Y'); ?>" required pattern="\d{2}\.\d{2}\.\d{4}">
-                                <span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group text-right">
-                    <button class="btn btn-primary">внести</button>
-                </div>
-            </form>
-        <?php endif; ?>
-    </div>
-</div>
+    <?= $this->render('_gift_card', ['giftCard' => $giftCard, 'existingPupil' => $existingPupil]); ?>
 <?php endif;
+
+if ($parents):
+    $noResults = false;
+    foreach ($parents as $parent): ?>
+    <div class="panel panel-info result-parent">
+        <div class="panel-heading">
+            <span class="label label-info"><?= $parent->role === \common\models\User::ROLE_PARENTS ? 'родитель' : 'компания'; ?></span>
+            <?= $parent->name; ?>
+        </div>
+        <div class="panel-body">
+            <div class="pull-left">
+                <?php foreach ($parent->children as $child): ?>
+                    <?= $child->name; ?><br>
+                <?php endforeach; ?>
+            </div>
+            <div class="pull-right">
+                <button class="btn btn-default" onclick="Dashboard.toggleChildren(this);">
+                    <span class="fas fa-arrow-alt-circle-down"></span>
+                </button>
+            </div>
+            <div class="clearfix"></div>
+            <div class="children-list hidden">
+                <br>
+                <?php foreach ($parent->children as $child): ?>
+                    <?= $this->render('_pupil', ['pupil' => $child]); ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+<?php endforeach;
+endif;
+
+if ($pupils):
+    $noResults = false;
+    foreach ($pupils as $pupil): ?>
+        <?= $this->render('_pupil', ['pupil' => $pupil]); ?>
+<?php endforeach;
+endif;
+
+if ($noResults): ?>
+<div class="alert alert-warning">
+    Ничего не найдено
+</div>
+<?php endif; ?>
