@@ -188,7 +188,7 @@ class MoneyController extends AdminController
                     }
 
                     $contract = MoneyComponent::addPupilContract(
-                        Company::findOne(Company::COMPANY_SUPER_ID),
+                        Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
                         $pupil,
                         $giftCard->amount,
                         $group
