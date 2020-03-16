@@ -47,8 +47,8 @@ class BotMailingController extends Controller
 
             $processResult = $botMailing->processResult;
             $processResult['status'] = 'sending';
-            $processResult['success'] = 0;
-            $processResult['error'] = 0;
+            $processResult['success'] = $processResult['success'] ?? 0;
+            $processResult['error'] = $processResult['error'] ?? 0;
             $botMailing->processResult = $processResult;
             if (!$botMailing->started_at) {
                 $botMailing->started_at = date('Y-m-d H:i:s');
