@@ -493,6 +493,15 @@ class UserController extends AdminController
         ]);
     }
 
+    public function actionView($id = null)
+    {
+        $pupil = $this->findModel($id);
+
+        return $this->render('view', [
+            'pupil' => $pupil,
+        ]);
+    }
+
     public function actionChangeActive($id)
     {
         $jsonData = [];

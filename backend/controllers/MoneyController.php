@@ -50,7 +50,7 @@ class MoneyController extends AdminController
     }
 
     /**
-     * @return Response
+     * @return mixed
      * @throws ForbiddenHttpException
      * @throws yii\web\BadRequestHttpException
      */
@@ -58,39 +58,33 @@ class MoneyController extends AdminController
     {
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        \Yii::$app->response->format = Response::FORMAT_JSON;
+        $formData = Yii::$app->request->post('income', []);
 
-        $userId = Yii::$app->request->post('user');
-        $groupId = Yii::$app->request->post('group');
-        $companyId = Yii::$app->request->post('company');
-        $amount = intval(Yii::$app->request->post('amount', 0));
-        $comment = Yii::$app->request->post('comment', '');
-
-        if (!$userId || !$groupId || !$companyId || !$amount) $jsonData = self::getJsonErrorResult('Wrong request');
-        else {
-            $user = User::findOne($userId);
-            $group = Group::findOne(['id' => $groupId, 'active' => Group::STATUS_ACTIVE]);
-            $company = Company::findOne($companyId);
-
-            if (!$user) $jsonData = self::getJsonErrorResult('Студент не найден');
-            elseif ($amount <= 0) $jsonData = self::getJsonErrorResult('Сумма не может быть <= 0');
-            elseif (!$group) $jsonData = self::getJsonErrorResult('Группа не найдена');
-            elseif (!$company) $jsonData = self::getJsonErrorResult('Компания не выбрана');
-            else {
-                $transaction = \Yii::$app->db->beginTransaction();
-                try {
-                    $contract = MoneyComponent::addPupilContract($company, $user, $amount, $group);
-                    $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $comment);
-
-                    $transaction->commit();
-                    $jsonData = self::getJsonOkResult(['paymentId' => $paymentId, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
-                } catch (\Throwable $ex) {
-                    $transaction->rollBack();
-                    $jsonData = self::getJsonErrorResult($ex->getMessage());
-                }
-            }
+        if (!isset($formData['userId'], $formData['groupId'], $formData['amount'], $formData['comment'])) {
+            return self::getJsonErrorResult('Wrong request');
         }
 
-        return $this->asJson($jsonData);
+        $user = User::findOne($formData['userId']);
+        $group = Group::findOne(['id' => $formData['groupId'], 'active' => Group::STATUS_ACTIVE]);
+        $company = Company::findOne(Company::COMPANY_EXCLUSIVE_ID);
+        $amount = (int)$formData['amount'];
+
+        if (!$user) return self::getJsonErrorResult('Студент не найден');
+        if ($amount <= 0) return self::getJsonErrorResult('Сумма не может быть <= 0');
+        if (!$group) return self::getJsonErrorResult('Группа не найдена');
+
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            $contract = MoneyComponent::addPupilContract($company, $user, $amount, $group);
+            $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $formData['comment']);
+
+            $transaction->commit();
+            return self::getJsonOkResult(['paymentId' => $paymentId, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
+        } catch (\Throwable $ex) {
+            $transaction->rollBack();
+            return self::getJsonErrorResult($ex->getMessage());
+        }
     }
 
     /**

@@ -134,11 +134,13 @@ let Dashboard = {
     },
     launchMoneyIncome: function(e) {
         let groupId = $(e).data('group');
+        $('#income-messages-place').html('');
         let form = $("#income-form");
         $(form).find("#income-user-id").val($(e).data("user"));
         $(form).find("#income-group-id").val(groupId);
         $(form).find("#income-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
         $(form).find("#income-amount").val(0);
+        $(form).find("#payment_comment").val('');
         Main.loadActiveGroups()
             .done(function() {
                 let group = Main.groupMap[groupId];
@@ -153,4 +155,36 @@ let Dashboard = {
     setAmount: function(e) {
         $(e).closest(".form-group").find("#income-amount").val($(e).data('price'));
     },
+    completeIncome: function(form) {
+        this.lockIncomeButton();
+        return $.ajax({
+                url: '/money/process-income',
+                type: 'post',
+                dataType: 'json',
+                data: $(form).serialize()
+            })
+            .done(function(data) {
+                if (data.status === 'ok') {
+                    Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
+                    Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
+                    $("#modal-income").modal("hide");
+                    Main.jumpToTop();
+                } else {
+                    Main.throwFlashMessage('#income-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
+                }
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+                Main.throwFlashMessage('#income-messages-place', 'Server error, details in console log', 'alert-danger');
+            })
+            .always(Dashboard.unlockIncomeButton);
+    },
+    lockIncomeButton: function() {
+        $("#income-button").prop('disabled', true);
+    },
+    unlockIncomeButton: function() {
+        $("#income-button").prop('disabled', false);
+    }
 };

@@ -192,11 +192,12 @@ let Money = {
             type: 'post',
             dataType: 'json',
             data: {
-                user: this.pupilId,
-                group: this.groupId,
-                amount: parseInt($(form).find("#amount").val()),
-                comment: $('#payment_comment').val(),
-                company: $(form).find("input[name=company_id]:checked").val()
+                income: {
+                    userId: this.pupilId,
+                    groupId: this.groupId,
+                    amount: parseInt($(form).find("#amount").val()),
+                    comment: $('#payment_comment').val(),
+                }
             },
             success: function(data) {
                 if (data.status === 'ok') {
