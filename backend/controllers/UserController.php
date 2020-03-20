@@ -74,7 +74,6 @@ class UserController extends AdminController
         $contractData = [];
         $welcomeLessonData = [];
         $amount = 0;
-        $companyId = null;
 
         if (Yii::$app->request->isPost) {
             User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
@@ -84,7 +83,6 @@ class UserController extends AdminController
             $paymentData = Yii::$app->request->post('payment', []);
             $contractData = Yii::$app->request->post('contract', []);
             $amount = intval(Yii::$app->request->post('amount', 0));
-            $companyId = Yii::$app->request->post('company_id');
 
             $transaction = User::getDb()->beginTransaction();
             try {
@@ -109,9 +107,7 @@ class UserController extends AdminController
                     $addWelcomeLesson = array_key_exists('add', $welcomeLessonData) && $welcomeLessonData['add'];
                     $addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
                     $addContract = array_key_exists('add', $contractData) && $contractData['add'];
-
-                    $company = Company::findOne($companyId);
-                    if (($addPayment || $addContract) && !$company) throw new Exception('Не выбран учебный центр!');
+                    $company = Company::findOne(Company::COMPANY_EXCLUSIVE_ID);
 
                     $groupPupil = null;
                     if ($addGroup) {
@@ -165,13 +161,11 @@ class UserController extends AdminController
             'amount' => $amount,
             'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
             'contractAllowed' => Yii::$app->user->can('contractManagement'),
-            'companyId' => $companyId,
             'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
             'subjects' => Subject::find()->andWhere(['active' => Subject::STATUS_ACTIVE])->with('subjectCategory')
                 ->orderBy(['category_id' => SORT_ASC, 'name' => SORT_ASC])->all(),
             'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
             'existedCompanies' => User::find()->andWhere(['role' => User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
-            'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
         ]);
     }
 

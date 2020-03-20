@@ -146,7 +146,6 @@ class ContractController extends AdminController
         if (\Yii::$app->request->isPost) {
             $userId = Yii::$app->request->post('user_id');
             $groupId = Yii::$app->request->post('group_id');
-            $companyId = Yii::$app->request->post('company_id');
             $amount = Yii::$app->request->post('amount');
             $discount = boolval(Yii::$app->request->post('discount', 0));
 
@@ -156,7 +155,7 @@ class ContractController extends AdminController
             else {
                 $user = User::findOne($userId);
                 $group = Group::findOne($groupId);
-                $company = Company::findOne($companyId);
+                $company = Company::findOne(Company::COMPANY_EXCLUSIVE_ID);
                 if (!$user || $user->role != User::ROLE_PUPIL) \Yii::$app->session->addFlash('error', 'Wrong pupil');
                 elseif (!$group || $group->active != Group::STATUS_ACTIVE) \Yii::$app->session->addFlash('error', 'Wrong group');
                 elseif (!$company) \Yii::$app->session->addFlash('error', 'Не выбран учебный центр');
@@ -195,9 +194,7 @@ class ContractController extends AdminController
             }
         }
 
-        $params = [
-            'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
-        ];
+        $params = [];
         $userId = Yii::$app->request->get('user');
         if ($userId) {
             $user = User::findOne($userId);

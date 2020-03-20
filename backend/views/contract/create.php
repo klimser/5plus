@@ -4,7 +4,6 @@ use yii\bootstrap\Html;
 
 /* @var $this yii\web\View */
 /* @var $user \common\models\User */
-/* @var $companies \common\models\Company[] */
 
 $this->registerJs(<<<SCRIPT
     Main.initPhoneFormatted();
@@ -69,12 +68,6 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
         <div id="income_form" class="col-xs-12 hidden">
             <div class="form-group"><div class="input-group"><input id="amount" name="amount" type="number" min="1000" step="1000" class="form-control input-lg" placeholder="Сумма оплаты" required><div class="input-group-addon">сум</div></div></div>
-            <?= Html::radioList(
-                    'company_id',
-                null,
-                \yii\helpers\ArrayHelper::map($companies, 'id', 'second_name'),
-                ['class' => 'form-group', 'itemOptions' => ['required' => true]]
-            ); ?>
             <div class="form-group"><button class="btn btn-success btn-lg" id="income_button">сформировать</button></div>
         </div>
     <?= Html::endForm(); ?>

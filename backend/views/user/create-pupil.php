@@ -19,8 +19,6 @@ use yii\helpers\ArrayHelper;
 /* @var $contractData array */
 /* @var $welcomeLessonData array */
 /* @var $amount int */
-/* @var $companyId int */
-/* @var $companies \common\models\Company[] */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
 
@@ -70,9 +68,7 @@ SCRIPT
                     'paymentData' => $paymentData,
                     'contractData' => $contractData,
                     'welcomeLessonData' => $welcomeLessonData,
-                    'companies' => $companies,
                     'amount' => $amount,
-                    'companyId' => $companyId,
                     'incomeAllowed' => $incomeAllowed,
                     'contractAllowed' => $contractAllowed,
                 ]) ?>

@@ -91,14 +91,6 @@ $this->params['breadcrumbs'][] = $this->title;
                                 <input id="payment_comment" class="form-control">
                             </div>
                         </div>
-                        <div class="col-xs-12">
-                            <?= Html::radioList(
-                                'company_id',
-                                null,
-                                \yii\helpers\ArrayHelper::map($companies, 'id', 'second_name'),
-                                ['class' => 'form-group', 'itemOptions' => ['required' => true]]
-                            ); ?>
-                        </div>
                         <div id="income_form" class="col-xs-12 hidden">
                             <div class="form-group">
                                 <div class="input-group">

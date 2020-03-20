@@ -61,23 +61,21 @@ class MoneyController extends AdminController
 
         $userId = Yii::$app->request->post('user');
         $groupId = Yii::$app->request->post('group');
-        $companyId = Yii::$app->request->post('company');
         $amount = intval(Yii::$app->request->post('amount', 0));
         $comment = Yii::$app->request->post('comment', '');
 
-        if (!$userId || !$groupId || !$companyId || !$amount) $jsonData = self::getJsonErrorResult('Wrong request');
+        if (!$userId || !$groupId || !$amount) $jsonData = self::getJsonErrorResult('Wrong request');
         else {
             $user = User::findOne($userId);
             $group = Group::findOne(['id' => $groupId, 'active' => Group::STATUS_ACTIVE]);
-            $company = Company::findOne($companyId);
 
             if (!$user) $jsonData = self::getJsonErrorResult('Студент не найден');
             elseif ($amount <= 0) $jsonData = self::getJsonErrorResult('Сумма не может быть <= 0');
             elseif (!$group) $jsonData = self::getJsonErrorResult('Группа не найдена');
-            elseif (!$company) $jsonData = self::getJsonErrorResult('Компания не выбрана');
             else {
                 $transaction = \Yii::$app->db->beginTransaction();
                 try {
+                    $company = Company::findOne(Company::COMPANY_EXCLUSIVE_ID);
                     $contract = MoneyComponent::addPupilContract($company, $user, $amount, $group);
                     $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $comment);
 

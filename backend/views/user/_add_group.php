@@ -2,8 +2,6 @@
 
 use backend\components\DefaultValuesComponent;
 use dosamigos\datepicker\DatePicker;
-use yii\bootstrap\Html;
-use yii\helpers\ArrayHelper;
 
 /* @var $this \yii\web\View */
 /* @var $groups \common\models\Group[] */
@@ -12,9 +10,7 @@ use yii\helpers\ArrayHelper;
 /* @var $paymentData array */
 /* @var $contractData array */
 /* @var $welcomeLessonData array */
-/* @var $companies \common\models\Company[] */
 /* @var $amount int */
-/* @var $companyId int */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
 
@@ -156,10 +152,4 @@ $this->registerJs('User.init();');
             <?= $amount ? 'value="' . $amount . '"' : 'disabled'; ?>>
         <div id="amount_helper_buttons"></div>
     </div>
-    <?= Html::radioList(
-        'company_id',
-        $companyId,
-        ArrayHelper::map($companies, 'id', 'second_name'),
-        ['class' => 'form-group', 'itemOptions' => ['required' => true, 'disabled' => !$addPayment && !$addContract]]
-    ); ?>
 </div>
