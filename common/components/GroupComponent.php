@@ -129,19 +129,12 @@ class GroupComponent extends Component
             if ($endDate < $group->startDateObject) $endDate = $group->startDateObject;
             $groupPupil->date_end = $endDate->format('Y-m-d');
         }
+        $dataForLog = $groupPupil->getDiffMap();
         if (!$groupPupil->save()) {
             ComponentContainer::getErrorLogger()
                 ->logError('user/pupil-to-group', $groupPupil->getErrorsAsString(), true);
             throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
         }
-
-        ComponentContainer::getActionLogger()->log(
-            Action::TYPE_GROUP_PUPIL_ADDED,
-            $groupPupil->user,
-            null,
-            $group,
-            json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
-        );
 
         $pupil->bitrix_sync_status = 0;
         if (!$pupil->save()) {
@@ -157,6 +150,14 @@ class GroupComponent extends Component
             EventComponent::fillSchedule($group);
             GroupComponent::calculateTeacherSalary($group);
         }
+
+        ComponentContainer::getActionLogger()->log(
+            Action::TYPE_GROUP_PUPIL_ADDED,
+            $groupPupil->user,
+            null,
+            $group,
+            json_encode($dataForLog, JSON_UNESCAPED_UNICODE)
+        );
 
         return $groupPupil;
     }
