@@ -3,6 +3,8 @@
 namespace backend\controllers;
 
 use backend\components\EventComponent;
+use backend\models\Event;
+use backend\models\EventMember;
 use common\components\Action;
 use common\components\ComponentContainer;
 use common\components\MoneyComponent;
@@ -35,6 +37,50 @@ class GroupController extends AdminController
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
         if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
+//            /** @var Event[] $events */
+//            $events = Event::find()
+//                ->andWhere(['>', 'event_date', '2020-03-16 00:00:00'])
+//                ->all();
+//            foreach ($events as $event) {
+//                $transaction = \Yii::$app->db->beginTransaction();
+//                try {
+//                    switch ($event->status) {
+//                        case Event::STATUS_PASSED:
+//                            $event->status = Event::STATUS_CANCELED;
+//                            $event->save();
+//                            foreach ($event->members as $eventMember) {
+//                                $eventMember->status = EventMember::STATUS_MISS;
+//                                $eventMember->save();
+//                            }
+//                            MoneyComponent::chargeByEvent($event);
+//                            GroupComponent::calculateTeacherSalary($event->group);
+//
+//                            foreach ($event->members as $member) {
+//                                MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
+//                            }
+//                            break;
+//                        case Event::STATUS_UNKNOWN:
+//                            $event->status = Event::STATUS_CANCELED;
+//                            if (!$event->save()) {
+//                                foreach ($event->members as $member) {
+//                                    $member->status = EventMember::STATUS_MISS;
+//                                    $member->save();
+//                                    MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
+//                                }
+//                                break;
+//                            }
+//                    }
+//                    $transaction->commit();
+//                } catch (\Throwable $ex) {
+//                    $transaction->rollBack();
+//                    throw $ex;
+//                }
+//            }
+            
+            
+            
+            
+            
 //        $user = User::findOne(6523);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
