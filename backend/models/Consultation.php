@@ -19,7 +19,6 @@ use yii\db\ActiveQuery;
  * @property string $created_at
  * @property string $updated_at
  *
- * @property User $createdBy
  * @property Subject $subject
  * @property User $user
  * @property User $createdAdmin
@@ -67,14 +66,6 @@ class Consultation extends ActiveRecord
     /**
      * @return ActiveQuery
      */
-    public function getCreatedBy()
-    {
-        return $this->hasOne(User::class, ['id' => 'created_by']);
-    }
-
-    /**
-     * @return ActiveQuery
-     */
     public function getSubject()
     {
         return $this->hasOne(Subject::class, ['id' => 'subject_id']);
@@ -89,7 +80,7 @@ class Consultation extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getCreatedAdmin()
     {

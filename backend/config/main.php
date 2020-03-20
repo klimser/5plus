@@ -13,6 +13,13 @@ return [
     'bootstrap' => ['log'],
     'modules' => [],
     'components' => [
+        'assetManager' => [
+            'bundles' => [
+                \dosamigos\datepicker\DatePickerLanguageAsset::class => [
+                    'js' => ['bootstrap-datepicker.ru.min.js']
+                ],
+            ],
+        ],
         'authManager' => [
             'class' => \yii\rbac\PhpManager::class,
             'ruleFile' => '@backend/config/rbac/rules.php',

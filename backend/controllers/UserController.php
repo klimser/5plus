@@ -165,7 +165,7 @@ class UserController extends AdminController
                                 $infoFlashArray[] = 'Договор ' . $contract->number . ' зарегистрирован '
                                 . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>';
                                 
-                                if (!empty($groupInfo['payment'])) {
+                                if ($incomeAllowed && !empty($groupInfo['payment'])) {
                                     MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $groupInfo['paymentComment']);
                                 }
                             }

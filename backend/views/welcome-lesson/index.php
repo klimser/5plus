@@ -26,6 +26,13 @@ use yii\web\View;
 
 $this->title = 'Пробные уроки';
 $this->params['breadcrumbs'][] = $this->title;
+
+$this->registerJs(<<<SCRIPT
+WelcomeLesson.init();
+WelcomeLesson.fillTableButtons("table tr.welcome-row");
+SCRIPT
+);
+
 ?>
 <div class="welcome-lesson-index">
     <h1><?= Html::encode($this->title) ?></h1>
@@ -150,23 +157,13 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'class' => Column::class,
                 'header' => 'Действия',
+                'contentOptions' => ['class' => 'buttons-column'],
                 'content' => function ($model, $key, $index, $column) {
                     return '';
                 }
             ],
         ],
     ]); ?>
-
-    <?php
-    $this->registerJs(<<<SCRIPT
-    $("table tr.welcome-row").each(function() {
-        if ($(this).find("td:last-child").html().length === 0) {
-            WelcomeLesson.setButtons($(this).find("td:last-child"), $(this).data("key"), $(this).data("status"), $(this).data("deny-reason"));
-        }
-    });
-SCRIPT
-    );
-    ?>
 
     <div class="modal fade" id="moving-modal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
@@ -188,11 +185,7 @@ SCRIPT
                                 <input type="radio" name="group_proposal" value="0" onchange="WelcomeLesson.groupChange(this);"> Другая
                             </label>
                         </div>
-                        <select name="group_id" id="other_group" class="form-control" disabled>
-                            <?php foreach ($groups as $group): ?>
-                                <option value="<?= $group->id; ?>"><?= $group->name; ?> (<?= $group->teacher->name; ?>)</option>
-                            <?php endforeach; ?>
-                        </select>
+                        <select name="group_id" id="other_group" class="form-control" disabled></select>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">отмена</button>

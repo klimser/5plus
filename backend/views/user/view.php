@@ -44,9 +44,13 @@ $this->params['breadcrumbs'][] = $this->title;
                 </h2>
                 <?= $form->field($pupil, 'phoneFull')->staticControl(); ?>
 
-                <?= $form->field($pupil, 'phone2Full')->staticControl(); ?>
+                <?php if ($pupil->phone2): ?>
+                    <?= $form->field($pupil, 'phone2Full')->staticControl(); ?>
+                <?php endif; ?>
 
-                <?= $form->field($pupil, 'note')->staticControl(); ?>
+                <?php if ($pupil->note): ?>
+                    <?= $form->field($pupil, 'note')->staticControl(); ?>
+                <?php endif; ?>
             </div>
 
             <hr class="visible-xs visible-sm">
@@ -65,17 +69,27 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?php endif; ?>
             </div>
         </div>
+        <?php ActiveForm::end(); ?>
+        
         <div class="row">
             <div class="col-xs-12">
-<!--                --><?//= $this->render('_add_group', [
-//                    'consultationData' => $consultationData,
-//                    'welcomeLessonData' => $welcomeLessonData,
-//                    'groupData' => $groupData,
-//                    'companies' => $companies,
-//                    'pupilLimitDate' => $pupilLimitDate,
-//                    'incomeAllowed' => $incomeAllowed,
-//                    'contractAllowed' => $contractAllowed,
-//                ]) ?>
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#consultation-tab" aria-controls="consultation-tab" role="tab" data-toggle="tab">консультация</a></li>
+                    <li role="presentation"><a href="#welcome_lesson-tab" aria-controls="welcome_lesson-tab" role="tab" data-toggle="tab">пробный урок</a></li>
+                    <li role="presentation"><a href="#group-tab" aria-controls="group-tab" role="tab" data-toggle="tab">в группу</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="consultation-tab">
+                        <?= $this->render('_view_consultation', ['pupil' => $pupil]); ?>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab">
+                        <?= $this->render('_view_welcome_lesson', ['pupil' => $pupil]); ?>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="group-tab">
+                        <?= $this->render('_view_group', ['pupil' => $pupil]); ?>
+                    </div>
+                </div>
             </div>
         </div>
         <hr>
@@ -84,7 +98,5 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?= Html::submitButton('сохранить', ['class' => 'btn btn-primary pull-right']); ?>
             </div>
         </div>
-
-        <?php ActiveForm::end(); ?>
     </div>
 </div>

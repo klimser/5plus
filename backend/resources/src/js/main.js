@@ -34,39 +34,37 @@ let Main = {
             }
         });
     },
-    changeEntityStatus: function (entityType, entityId, newStatus, e, successCallback) {
-        var postData = {
+    changeEntityStatus: function (entityType, entityId, newStatus, e) {
+        let postData = {
             status: newStatus
         };
         if (newStatus === 'problem') {
-            var problemEdit = $("#problem-comment-" + entityId);
+            let problemEdit = $("#problem-comment-" + entityId);
             if (!problemEdit.length) {
                 $(e).after('<textarea id="problem-comment-' + entityId + '" placeholder="Комментарий к проблеме"></textarea>' +
                     '<button class="btn btn-default" value="problem" onclick="Main.changeEntityStatus(\'' + entityType + '\', ' + entityId + ', \'' + newStatus + '\', this);">OK</button>');
-                return;
+                return null;
             } else if (!$(problemEdit).val().length) {
-                return;
+                return null;
             } else {
                 postData.comment = $(problemEdit).val();
             }
         }
-        let successCallbacks = [function (data) {
-            if (data.status === 'ok') {
-                $('tr[data-key="' + data.id + '"] td').css({backgroundColor: '#dff0d8'}).animate({backgroundColor: '#dff0d8'}, 1000, function () {
-                    $(this).css({backgroundColor: ''});
-                });
-            } else {
-                alert(data.message);
-            }
-        }];
-        if (successCallback) successCallbacks.push(successCallback);
-        $.ajax({
+        return $.ajax({
             url: '/' + entityType + '/change-status?id=' + entityId,
             type: 'POST',
             dataType: 'json',
             data: postData,
-            success: successCallbacks,
-        });
+        })
+            .done(function (data) {
+                if (data.status === 'ok') {
+                    $('tr[data-key="' + data.id + '"] td').css({backgroundColor: '#dff0d8'}).animate({backgroundColor: '#dff0d8'}, 1000, function () {
+                        $(this).css({backgroundColor: ''});
+                    });
+                } else {
+                    alert(data.message);
+                }
+            });
     },
     submitSortableForm: function (form) {
         let sortable = $(form).find(".ui-sortable");

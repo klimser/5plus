@@ -1,7 +1,5 @@
 <?php
 
-use dosamigos\datepicker\DatePickerLanguageAsset;
-
 /* @var $this \yii\web\View */
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
@@ -10,8 +8,6 @@ use dosamigos\datepicker\DatePickerLanguageAsset;
 /* @var $companies \common\models\Company[] */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
-
-DatePickerLanguageAsset::register($this)->js[] = 'bootstrap-datepicker.ru.min.js';
 
 $initialJs = 'User.contractAllowed = ' . ($contractAllowed ? 'true' : 'false') . ";\n";
 $initialJs .= 'User.incomeAllowed = ' . ($incomeAllowed ? 'true' : 'false') . ";\n";

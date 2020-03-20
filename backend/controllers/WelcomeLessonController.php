@@ -12,14 +12,16 @@ use common\models\Teacher;
 use common\models\User;
 use yii;
 use yii\web\ForbiddenHttpException;
+use yii\web\Response;
 
 /**
  * WelcomeLessonController implements management for welcome lessons.
  */
 class WelcomeLessonController extends AdminController
 {
-
     const PROPOSE_GROUP_LIMIT = 6;
+
+    protected $accessRule = 'welcomeLessons';
 
     /**
      * Monitor all welcome lessons.
@@ -28,8 +30,6 @@ class WelcomeLessonController extends AdminController
      */
     public function actionIndex()
     {
-        if (!Yii::$app->user->can('welcomeLessons')) throw new ForbiddenHttpException('Access denied!');
-
         $searchModel = new WelcomeLessonSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -137,66 +137,64 @@ class WelcomeLessonController extends AdminController
 
     public function actionProposeGroup()
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
-        if (!Yii::$app->user->can('welcomeLessons')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
         $lessonId = Yii::$app->request->post('id');
-        if (!$lessonId) $jsonData = self::getJsonErrorResult('Wrong request');
-        else {
-            $welcomeLesson = WelcomeLesson::findOne($lessonId);
-            if (!$welcomeLesson) $jsonData = self::getJsonErrorResult('Welcome lesson is not found');
-            else {
-                $resultGroups = [];
-                if ($welcomeLesson->group_id) {
-                    $resultGroups[] = ['id' => $welcomeLesson->group_id, 'name' => $welcomeLesson->group->name, 'teacherName' => $welcomeLesson->group->teacher->name];
-                }
-
-                if (empty($resultGroups)) {
-                    /** @var Group[] $groups */
-                    $groups = Group::find()
-                        ->andWhere([
-                            'active' => Group::STATUS_ACTIVE,
-                            'subject_id' => $welcomeLesson->subject_id,
-                            'teacher_id' => $welcomeLesson->teacher_id,
-                        ])
-                        ->limit(self::PROPOSE_GROUP_LIMIT)
-                        ->all();
-                    foreach ($groups as $group) {
-                        $resultGroups[] = ['id' => $group->id, 'name' => $group->name, 'teacherName' => $welcomeLesson->teacher->name];
-                    }
-                }
-                
-                if (empty($resultGroups)) {
-                    /** @var Group[] $groups */
-                    $groups = Group::find()
-                        ->andWhere([
-                            'active' => Group::STATUS_ACTIVE,
-                            'subject_id' => $welcomeLesson->subject_id,
-                        ])
-                        ->limit(self::PROPOSE_GROUP_LIMIT)
-                        ->with('teacher')
-                        ->all();
-                    foreach ($groups as $group) {
-                        $resultGroups[] = ['id' => $group->id, 'name' => $group->name, 'teacherName' => $group->teacher->name];
-                    }
-                }
-                
-                $jsonData = self::getJsonOkResult([
-                    'id' => $welcomeLesson->id,
-                    'groups' => $resultGroups,
-                    'pupilName' => $welcomeLesson->user->name,
-                    'lessonDate' => $welcomeLesson->lessonDateTime->format('d.m.Y'),
-                ]);
+        if (!$lessonId) return self::getJsonErrorResult('Wrong request');
+        
+        $welcomeLesson = WelcomeLesson::findOne($lessonId);
+        if (!$welcomeLesson) return self::getJsonErrorResult('Welcome lesson is not found');
+        
+        $resultGroupIds = $excludeGroupIds = [];
+        if ($welcomeLesson->group_id) {
+            $resultGroupIds[] = $welcomeLesson->group_id;
+        } else {
+            /** @var Group[] $groups */
+            $groups = Group::find()
+                ->andWhere([
+                    'active' => Group::STATUS_ACTIVE,
+                    'subject_id' => $welcomeLesson->subject_id,
+                    'teacher_id' => $welcomeLesson->teacher_id,
+                ])
+                ->limit(self::PROPOSE_GROUP_LIMIT)
+                ->all();
+            foreach ($groups as $group) {
+                $resultGroupIds[] = $group->id;
             }
         }
-
-        return $this->asJson($jsonData);
+        
+        if (empty($resultGroupIds)) {
+            /** @var Group[] $groups */
+            $groups = Group::find()
+                ->andWhere([
+                    'active' => Group::STATUS_ACTIVE,
+                    'subject_id' => $welcomeLesson->subject_id,
+                ])
+                ->limit(self::PROPOSE_GROUP_LIMIT)
+                ->with('teacher')
+                ->all();
+            foreach ($groups as $group) {
+                $resultGroupIds[] = $group->id;
+            }
+        }
+        
+        foreach ($welcomeLesson->user->activeGroupPupils as $groupPupil) {
+            $excludeGroupIds[] = $groupPupil->group_id;
+        }
+        
+        return self::getJsonOkResult([
+            'id' => $welcomeLesson->id,
+            'groupIds' => $resultGroupIds,
+            'excludeGroupIds' => $excludeGroupIds,
+            'pupilName' => $welcomeLesson->user->name,
+            'lessonDate' => $welcomeLesson->lessonDateTime->format('d.m.Y'),
+        ]);
     }
 
     public function actionMove()
     {
         if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
-        if (!Yii::$app->user->can('welcomeLessons')) throw new ForbiddenHttpException('Access denied!');
 
         $lessonId = Yii::$app->request->post('id');
         if (!$lessonId) $jsonData = self::getJsonErrorResult('Wrong request');

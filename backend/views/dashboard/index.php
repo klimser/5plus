@@ -1,9 +1,5 @@
 <?php
 
-use dosamigos\datepicker\DatePickerLanguageAsset;
-
-DatePickerLanguageAsset::register($this)->js[] = 'bootstrap-datepicker.ru.min.js';
-
 /* @var $this yii\web\View */
 /* @var $pupilLimitDate \DateTime */
 

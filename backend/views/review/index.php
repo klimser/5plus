@@ -4,7 +4,7 @@ use common\models\OrderSearch;
 use common\models\Review;
 use common\models\Subject;
 use yii\grid\ActionColumn;
-use yii\helpers\Html;
+use yii\bootstrap\Html;
 use yii\grid\GridView;
 use dosamigos\datepicker\DatePicker;
 use yii\helpers\Url;
@@ -76,7 +76,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'approve' => function ($url, $model, $key) {
                         if ($model->status == Review::STATUS_APPROVED) return false;
                         /** @var Subject $model */
-                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ok']), '#', ['class' => 'btn btn-default margin-right-10 approve', 'title' => 'Утвердить', 'onclick' => 'return Main.changeEntityStatus("review", ' . $model->id . ', "' . Review::STATUS_APPROVED . '");']);
+                        return Html::button(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ok']), ['type' => 'button','class' => 'btn btn-default margin-right-10 approve', 'title' => 'Утвердить', 'onclick' => 'Main.changeEntityStatus("review", ' . $model->id . ', "' . Review::STATUS_APPROVED . '");']);
                     }
                 ],
             ],

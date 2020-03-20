@@ -6,6 +6,28 @@ let User = {
     consultationList: [],
     welcomeLessonList: [],
     groupList: [],
+
+    init: function() {
+        $.when(Main.loadCompanies(), Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
+            .done(function(companyList, subjectList, groupList, teacherList) {
+                if (User.consultationList.length > 0) {
+                    User.consultationList.forEach(function(subjectId) {
+                        User.addConsultation(subjectId);
+                    });
+                } else {
+                    User.addConsultation();
+                }
+
+                User.welcomeLessonList.forEach(function(welcomeLessonData) {
+                    User.addWelcomeLesson(welcomeLessonData);
+                });
+
+                User.groupList.forEach(function(groupData) {
+                    User.addGroup(groupData);
+                });
+            })
+            .fail(Main.logAndFlashAjaxError);
+    },
     
     getGroupOptions: function(selectedValue, addEmpty) {
         if (typeof addEmpty !== 'boolean') {
@@ -382,26 +404,5 @@ let User = {
                 Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
             }
         );
-    },
-    init: function() {
-        $.when(Main.loadCompanies(), Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
-            .done(function(companyList, subjectList, groupList, teacherList) {
-                if (User.consultationList.length > 0) {
-                    User.consultationList.forEach(function(subjectId) {
-                        User.addConsultation(subjectId);
-                    });
-                } else {
-                    User.addConsultation();
-                }
-
-                User.welcomeLessonList.forEach(function(welcomeLessonData) {
-                    User.addWelcomeLesson(welcomeLessonData);
-                });
-                
-                User.groupList.forEach(function(groupData) {
-                    User.addGroup(groupData);
-                });
-            })
-            .fail(Main.logAndFlashAjaxError);
     }
 };

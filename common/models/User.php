@@ -2,7 +2,9 @@
 namespace common\models;
 
 use backend\models\Action;
+use backend\models\Consultation;
 use backend\models\EventMember;
+use backend\models\WelcomeLesson;
 use common\components\helpers\MaskString;
 use common\models\traits\InsertedUpdated;
 use common\models\traits\Phone;
@@ -51,6 +53,8 @@ use yii\web\IdentityInterface;
  * @property Payment[] $payments
  * @property Payment[] $paymentsAsAdmin
  * @property Debt[] $debts
+ * @property Consultation[] $consultations
+ * @property WelcomeLesson[] $welcomeLessons
  * @property string $nameHidden
  * @property User $createdAdmin
  */
@@ -281,11 +285,27 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getCreatedAdmin()
     {
         return $this->hasOne(User::class, ['id' => 'created_by']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getConsultations()
+    {
+        return $this->hasMany(Consultation::class, ['user_id' => 'id'])->with('subject')->addOrderBy(['created_at' => SORT_DESC]);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getWelcomeLessons()
+    {
+        return $this->hasMany(WelcomeLesson::class, ['user_id' => 'id'])->with(['subject', 'teacher', 'group'])->addOrderBy(['lesson_date' => SORT_DESC]);
     }
 
     /**

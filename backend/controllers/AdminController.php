@@ -28,6 +28,11 @@ abstract class AdminController extends Controller
         return true;
     }
     
+    protected function checkRequestIsAjax()
+    {
+        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+    }
+    
     protected static function remapRequestData(array $data): array
     {
         $result = [];
