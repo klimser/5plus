@@ -3,6 +3,9 @@
 /** @var $existingPupil \common\models\User|null */
 ?>
 <div class="panel panel-default">
+    <div class="panel-heading">
+        Предоплаченная карта
+    </div>
     <div class="panel-body">
         <p>Предмет <b><?= $giftCard->name; ?></b></p>
         <p>Сумма <b><?= \common\components\helpers\Money::formatThousands($giftCard->amount); ?></b></p>

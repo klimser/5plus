@@ -81,11 +81,14 @@ let Main = {
         $(selector).inputmask({"mask": "99 999-9999"});
     },
     
-    logAndFlashAjaxError: function(jqXHR, textStatus, errorThrown) {
+    logAndFlashAjaxError: function(jqXHR, textStatus, errorThrown, messagePlaceSelector) {
         console.log(jqXHR);
         console.log(textStatus);
         console.log(errorThrown);
-        Main.throwFlashMessage('#messages_place', 'Server error, details in console log', 'alert-danger');
+        if (typeof messagePlaceSelector === 'undefined') {
+            messagePlaceSelector = '#messages_place';
+        }
+        Main.throwFlashMessage(messagePlaceSelector, 'Server error, details in console log', 'alert-danger');
     },
 
     groupActiveList: [],

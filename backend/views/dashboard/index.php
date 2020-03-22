@@ -58,3 +58,4 @@ if ($pupilLimitDate !== null) {
 
 <?= $this->render('_contract'); ?>
 <?= $this->render('_income'); ?>
+<?= $this->render('/welcome-lesson/_modal'); ?>

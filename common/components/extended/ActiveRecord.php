@@ -19,10 +19,26 @@ class ActiveRecord extends \yii\db\ActiveRecord
     }
 
     /**
+     * @return array|string[]
+     */
+    public function getErrorsAsStringArray(): array
+    {
+        $errors = [];
+        if (!empty($this->errors)) {
+            foreach ($this->getErrors() as $field => $errorArray) {
+                foreach ($errorArray as $error) {
+                    $errors[] = $field . ': ' . $error;
+                }
+            }
+        }
+        return $errors;
+    }
+
+    /**
      * @param string|null $field
      * @return string
      */
-    public function getErrorsAsString($field = null)
+    public function getErrorsAsString($field = null): string
     {
         $output = '';
         if (!empty($this->errors)) {

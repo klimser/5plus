@@ -132,6 +132,64 @@ let Dashboard = {
             $(childrenBlock).addClass("hidden");
         }
     },
+    togglePupilInfo: function(e, forceReload) {
+        let childrenInfoBlock = $(e).closest(".result-pupil").find(".pupil-info");
+
+        if ($(childrenInfoBlock).hasClass("hidden") || forceReload === true) {
+            $(childrenInfoBlock).removeClass("hidden");
+        } else {
+            $(childrenInfoBlock).addClass("hidden");
+        }
+
+        if ($(childrenInfoBlock).html().length === 0 || forceReload === true) {
+            $(childrenInfoBlock).html('<div class="loading-box"></div>');
+            return $.ajax({
+                url: '/user/view',
+                type: 'get',
+                dataType: 'html',
+                data: {id: $(childrenInfoBlock).data("id")}
+            })
+                .done(function(data) {
+                    User.init(true)
+                        .fail(Main.jumpToTop);
+                    WelcomeLesson.init()
+                        .fail(Main.jumpToTop);
+                    let htmlAddon = '<button class="btn btn-default pull-right" onclick="Dashboard.togglePupilInfo(this, true);"><span class="fas fa-sync"></span></button>';
+                    $(childrenInfoBlock).html(htmlAddon + data);
+                })
+                .fail(Main.logAndFlashAjaxError)
+                .fail(Main.jumpToTop);
+        }
+    },
+    savePupil: function(form) {
+        $.ajax({
+            url: '/user/update-ajax',
+            type: 'post',
+            dataType: 'json',
+            data: $(form).serialize()
+        })
+            .done(function(data) {
+                $('#user-view-messages-place').html('');
+                if (data.status === 'ok') {
+                    Dashboard.togglePupilInfo(form, true)
+                        .done(function() {
+                            data.infoFlash.forEach(function(message) {
+                                Main.throwFlashMessage('#user-view-messages-place', message, 'alert-info', true);
+                            });
+                        });
+                } else {
+                    if (data.errors) {
+                        data.errors.forEach(function (error) {
+                            Main.throwFlashMessage('#user-view-messages-place', error, 'alert-danger', true);
+                        });
+                    } else {
+                        Main.throwFlashMessage('#user-view-messages-place', data.message, 'alert-danger');
+                    }
+                }
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .fail(Main.jumpToTop);
+    },
     launchMoneyIncome: function(e) {
         let groupId = $(e).data('group');
         $('#income-messages-place').html('');
@@ -141,16 +199,13 @@ let Dashboard = {
         $(form).find("#income-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
         $(form).find("#income-amount").val(0);
         $(form).find("#payment_comment").val('');
-        Main.loadActiveGroups()
-            .done(function() {
-                let group = Main.groupMap[groupId];
-                $(form).find("#income-group-name").text(group.name);
-                let amountHelpersBlock = $(form).find(".amount-helper-buttons");
-                $(amountHelpersBlock).find(".price").data('price', group.price);
-                $(amountHelpersBlock).find(".price3").data('price', group.price3);
-                $("#modal-income").modal("show");
-            })
-            .fail(Main.logAndFlashAjaxError);
+
+        let group = Main.groupMap[groupId];
+        $(form).find("#income-group-name").text(group.name);
+        let amountHelpersBlock = $(form).find(".amount-helper-buttons");
+        $(amountHelpersBlock).find(".price").data('price', group.price);
+        $(amountHelpersBlock).find(".price3").data('price', group.price3);
+        $("#modal-income").modal("show");
     },
     setAmount: function(e) {
         $(e).closest(".form-group").find("#income-amount").val($(e).data('price'));
@@ -165,19 +220,15 @@ let Dashboard = {
             })
             .done(function(data) {
                 if (data.status === 'ok') {
-                    Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
                     $("#modal-income").modal("hide");
-                    Main.jumpToTop();
+                    Main.throwFlashMessage('#user-view-messages-place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
+                    Main.throwFlashMessage('#user-view-messages-place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
                 } else {
                     Main.throwFlashMessage('#income-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR);
-                console.log(textStatus);
-                console.log(errorThrown);
-                Main.throwFlashMessage('#income-messages-place', 'Server error, details in console log', 'alert-danger');
+                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#income-messages-place');
             })
             .always(Dashboard.unlockIncomeButton);
     },
@@ -186,5 +237,25 @@ let Dashboard = {
     },
     unlockIncomeButton: function() {
         $("#income-button").prop('disabled', false);
+    },
+    launchMovePupil: function(e) {
+        let groupId = $(e).data('group');
+        $('#group-move-messages-place').html('');
+        let form = $("#group-move-form");
+
+        // TODO finish it
+
+        $(form).find("#income-user-id").val($(e).data("user"));
+        $(form).find("#income-group-id").val(groupId);
+        $(form).find("#income-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#income-amount").val(0);
+        $(form).find("#payment_comment").val('');
+
+        let group = Main.groupMap[groupId];
+        $(form).find("#income-group-name").text(group.name);
+        let amountHelpersBlock = $(form).find(".amount-helper-buttons");
+        $(amountHelpersBlock).find(".price").data('price', group.price);
+        $(amountHelpersBlock).find(".price3").data('price', group.price3);
+        $("#modal-income").modal("show");
     }
 };

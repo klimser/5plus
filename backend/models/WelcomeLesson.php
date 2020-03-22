@@ -41,7 +41,8 @@ class WelcomeLesson extends ActiveRecord
     public const STATUS_CANCELED = 4;
     public const STATUS_DENIED = 5;
     public const STATUS_SUCCESS = 6;
-    
+    public const STATUS_RESCHEDULED = 7;
+
     public const DENY_REASON_TEACHER = 1;
     public const DENY_REASON_LEVEL_TOO_LOW = 2;
     public const DENY_REASON_LEVEL_TOO_HIGH = 3;
@@ -57,6 +58,7 @@ class WelcomeLesson extends ActiveRecord
         self::STATUS_CANCELED,
         self::STATUS_DENIED,
         self::STATUS_SUCCESS,
+        self::STATUS_RESCHEDULED,
     ];
 
     public const STATUS_LABELS = [
@@ -66,6 +68,7 @@ class WelcomeLesson extends ActiveRecord
         self::STATUS_CANCELED => 'Отменено',
         self::STATUS_DENIED => 'Студент отказался ходить',
         self::STATUS_SUCCESS => 'Студент добавлен в группу',
+        self::STATUS_RESCHEDULED => 'Перенесено',
     ];
     
     public const DENY_REASON_LIST = [
@@ -103,7 +106,7 @@ class WelcomeLesson extends ActiveRecord
     {
         return [
             [['user_id', 'subject_id', 'teacher_id', 'group_id', 'status', 'deny_reason', 'bitrix_sync_status', 'created_by'], 'integer'],
-            [['user_id', 'lesson_date', 'created_by'], 'required'],
+            [['user_id', 'lesson_date'], 'required'],
             [['comment'], 'string'],
             [['subject_id', 'teacher_id', 'group_id', 'deny_reason'], 'default', 'value' => null],
             [['subject_id', 'teacher_id'], 'required', 'when' => function(self $model) { return $model->group_id === null; }],

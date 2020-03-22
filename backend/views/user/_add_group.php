@@ -5,7 +5,6 @@
 /* @var $welcomeLessonData array */
 /* @var $groupData array */
 /* @var $pupilLimitDate DateTime|null */
-/* @var $companies \common\models\Company[] */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
 

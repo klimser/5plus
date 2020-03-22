@@ -18,7 +18,6 @@ use yii\helpers\ArrayHelper;
 /* @var $welcomeLessonData array */
 /* @var $groupData array */
 /* @var $pupilLimitDate DateTime|null */
-/* @var $companies \common\models\Company[] */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
 
@@ -125,7 +124,6 @@ $this->params['breadcrumbs'][] = $this->title;
                     'consultationData' => $consultationData,
                     'welcomeLessonData' => $welcomeLessonData,
                     'groupData' => $groupData,
-                    'companies' => $companies,
                     'pupilLimitDate' => $pupilLimitDate,
                     'incomeAllowed' => $incomeAllowed,
                     'contractAllowed' => $contractAllowed,
@@ -134,8 +132,8 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
         <hr>
         <div class="row">
-            <div class="form-group col-xs-12">
-                <?= Html::submitButton('сохранить', ['class' => 'btn btn-primary pull-right']); ?>
+            <div class="form-group col-xs-12 text-right">
+                <?= Html::submitButton('сохранить', ['class' => 'btn btn-primary']); ?>
             </div>
         </div>
 

@@ -1,6 +1,9 @@
 <?php
 /* @var $this yii\web\View */
 /* @var $pupil \common\models\User */
+/* @var $incomeAllowed bool */
+/* @var $groupManagementAllowed bool */
+/* @var $moveMoneyAllowed bool */
 ?>
 <div id="groups" style="margin-top: 10px;">
     <table class="table table-condensed">
@@ -17,10 +20,20 @@
                     <?php endif; ?>
                 </td>
                 <td class="text-right">
-                    <button class="btn btn-primary" onclick="Dashboard.launchMoneyIncome(this);"
-                            data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
-                        <span class="fas fa-dollar-sign"></span>
-                    </button>
+                    <?php if ($incomeAllowed): ?>
+                        <button type="button" class="btn btn-primary" onclick="Dashboard.launchMoneyIncome(this);"
+                                data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
+                            <span class="fas fa-dollar-sign"></span>
+                        </button>
+                    <?php endif; ?>
+
+                    <?php if ($groupManagementAllowed): ?>
+                        <button type="button" class="btn btn-default" onclick="Dashboard.launchMovePupil(this);"
+                            data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>"
+                            data-date="<?= $groupPupil->startDateObject->format('d.m.Y'); ?>">
+                            <span class="fas fa-running"></span> <span class="fas fa-arrow-right"></span>
+                        </button>
+                    <?php endif; ?>
                 </td>
             </tr>
         <?php endforeach; ?>

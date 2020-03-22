@@ -55,6 +55,78 @@ class UserController extends AdminController
         ]);
     }
 
+    private function saveConsultations(User $pupil)
+    {
+        $consultationData = Yii::$app->request->post('consultation', []);
+        $errors = [];
+
+        foreach ($consultationData as $subjectId) {
+            $consultation = new Consultation();
+            $consultation->subject_id = $subjectId;
+            $consultation->user_id = $pupil->id;
+
+            if (!$consultation->save()) {
+                $errors = array_merge($errors, $consultation->getErrorsAsStringArray());
+            }
+        }
+
+        return $errors;
+    }
+
+    private function saveWelcomeLessons(User $pupil)
+    {
+        $welcomeLessonData = self::remapRequestData(Yii::$app->request->post('welcome_lesson', []));
+        $errors = [];
+
+        foreach ($welcomeLessonData as $welcomeLessonInfo) {
+            try {
+                $this->addPupilToWelcomeLesson($pupil, $welcomeLessonInfo);
+            } catch (\Throwable $exception) {
+                $errors = array_merge($errors, $exception->getMessage());
+            }
+        }
+
+        return $errors;
+    }
+
+    private function saveGroups(User $pupil)
+    {
+        $groupData = self::remapRequestData(Yii::$app->request->post('group', []));
+        $errors = $infoFlashArray = [];
+
+        foreach ($groupData as $groupInfo) {
+            try {
+                /** @var Group $group */
+                $group = Group::find()->andWhere(['id' => $groupInfo['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
+                if (!$group) throw new Exception('Группа не найдена');
+
+                if ($groupInfo['dateDefined']) {
+                    $this->addPupilToGroup($pupil, $groupInfo);
+                    MoneyComponent::setUserChargeDates($pupil, $group);
+                }
+                if (Yii::$app->user->can('contractManagement') && !empty($groupInfo['contract'])) {
+                    $contract = MoneyComponent::addPupilContract(
+                        Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
+                        $pupil,
+                        $groupInfo['amount'],
+                        $group
+                    );
+                    $infoFlashArray[] = 'Договор ' . $contract->number . ' зарегистрирован '
+                        . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>';
+
+                    if (Yii::$app->user->can('moneyManagement') && !empty($groupInfo['payment'])) {
+                        MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $groupInfo['paymentComment']);
+                    }
+                }
+
+            } catch (\Throwable $exception) {
+                $errors = array_merge($errors, $exception->getMessage());
+            }
+        }
+
+        return [$errors, $infoFlashArray];
+    }
+
     /**
      * Creates a new Pupil.
      * If creation is successful, the browser will be redirected to the 'index' page.
@@ -82,12 +154,8 @@ class UserController extends AdminController
         if (Yii::$app->request->isPost) {
             User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
-            $consultationData = Yii::$app->request->post('consultation', []);
-            $welcomeLessonData = self::remapRequestData(Yii::$app->request->post('welcome_lesson', []));
-            $groupData = self::remapRequestData(Yii::$app->request->post('group', []));
 
             $transaction = User::getDb()->beginTransaction();
-            $infoFlashArray = [];
             try {
                 if (UserComponent::isPhoneUsed(User::ROLE_PUPIL, $pupil->phone, $pupil->phone2)) {
                     throw new \Exception('Студент с таким номером телефона уже существует!');
@@ -116,69 +184,12 @@ class UserController extends AdminController
                     $pupil->moveErrorsToFlash();
                     $transaction->rollBack();
                 } else {
-                    $error = false;
-                    
-                    foreach ($consultationData as $subjectId) {
-                        $consultation = new Consultation();
-                        $consultation->subject_id = $subjectId;
-                        $consultation->user_id = $pupil->id;
+                    $errors = array_merge($this->saveConsultations($pupil), $this->saveWelcomeLessons($pupil));
+                    $groupResults = $this->saveGroups($pupil);
+                    $errors = array_merge($errors, $groupResults[0]);
+                    $infoFlashArray = $groupResults[1];
 
-                        if (!$consultation->save()) {
-                            $consultation->moveErrorsToFlash();
-                            $error = true;
-                        }
-                    }
-
-                    foreach ($welcomeLessonData as $welcomeLessonInfo) {
-                        try {
-                            $this->addPupilToWelcomeLesson($pupil, $welcomeLessonInfo);
-                        } catch (\Throwable $exception) {
-                            Yii::$app->session->addFlash('error', $exception->getMessage());
-                            $error = true;
-                        }
-                    }
-
-                    foreach ($groupData as $groupInfo) {
-                        try {
-                            /** @var Group $group */
-                            $group = Group::find()->andWhere(['id' => $groupInfo['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
-                            if (!$group) throw new Exception('Группа не найдена');
-
-                            if ($groupInfo['dateDefined']) {
-                                $this->addPupilToGroup($pupil, $groupInfo);
-                                MoneyComponent::setUserChargeDates($pupil, $group);
-                            }
-                            if ($contractAllowed && !empty($groupInfo['contract'])) {
-                                if (empty($groupInfo['companyId'])) {
-                                    throw new Exception('Выберите компанию');
-                                }
-                                /** @var Company $company */
-                                $company = Company::findOne($groupInfo['companyId']);
-                                if (!$company) throw new Exception('Компания не найдена');
-
-                                $contract = MoneyComponent::addPupilContract(
-                                    $company,
-                                    $pupil,
-                                    $groupInfo['amount'],
-                                    $group
-                                );
-                                $infoFlashArray[] = 'Договор ' . $contract->number . ' зарегистрирован '
-                                . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>';
-                                
-                                if ($incomeAllowed && !empty($groupInfo['payment'])) {
-                                    MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $groupInfo['paymentComment']);
-                                }
-                            }
-                            
-                        } catch (\Throwable $exception) {
-                            Yii::$app->session->addFlash('error', $exception->getMessage());
-                            $error = true;
-                        }
-                    }
-
-                    if ($error) {
-                        $transaction->rollBack();
-                    } else {
+                    if (empty($errors)) {
                         $transaction->commit();
                         Yii::$app->session->addFlash('success', 'Добавлено');
                         foreach ($infoFlashArray as $message) {
@@ -187,6 +198,11 @@ class UserController extends AdminController
                         UserComponent::clearSearchCache();
 
                         return $this->redirect(['index']);
+                    } else {
+                        $transaction->rollBack();
+                        foreach ($errors as $error) {
+                            Yii::$app->session->addFlash('error', $error);
+                        }
                     }
                 }
             } catch (Throwable $e) {
@@ -210,7 +226,6 @@ class UserController extends AdminController
             'contractAllowed' => $contractAllowed,
             'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
             'existedCompanies' => User::find()->andWhere(['role' => User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
-            'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
         ]);
     }
 
@@ -415,6 +430,38 @@ class UserController extends AdminController
         ]);
     }
 
+    public function actionUpdateAjax()
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+
+        $userData = Yii::$app->request->post('User', []);
+        if (!isset($userData['id'])) {
+            return self::getJsonErrorResult('Wrong request');
+        }
+
+        /** @var User $pupil */
+        $pupil = User::find()
+            ->andWhere(['id' => $userData['id']])
+            ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
+            ->one();
+        if (!$pupil) {
+            return self::getJsonErrorResult('Pupil not found');
+        }
+
+        $errors = array_merge($this->saveConsultations($pupil), $this->saveWelcomeLessons($pupil));
+        $groupResults = $this->saveGroups($pupil);
+        $errors = array_merge($errors, $groupResults[0]);
+        $infoFlashArray = $groupResults[1];
+
+        if (empty($errors)) {
+            return self::getJsonOkResult(['infoFlash' => $infoFlashArray]);
+        }
+
+        return array_merge(['errors' => $errors], self::getJsonErrorResult());
+    }
+
     /**
      * Updates an existing User model.
      * @param string|int|null $id
@@ -497,8 +544,13 @@ class UserController extends AdminController
     {
         $pupil = $this->findModel($id);
 
-        return $this->render('view', [
+        return $this->renderPartial('view', [
             'pupil' => $pupil,
+            'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
+            'contractAllowed' => Yii::$app->user->can('contractManagement'),
+            'groupManagementAllowed' => Yii::$app->user->can('manageGroups'),
+            'moveMoneyAllowed' => Yii::$app->user->can('moveMoney'),
+            'welcomeLessonsAllowed' => Yii::$app->user->can('welcomeLessons'),
         ]);
     }
 

@@ -67,7 +67,6 @@ class MoneyController extends AdminController
 
         $user = User::findOne($formData['userId']);
         $group = Group::findOne(['id' => $formData['groupId'], 'active' => Group::STATUS_ACTIVE]);
-        $company = Company::findOne(Company::COMPANY_EXCLUSIVE_ID);
         $amount = (int)$formData['amount'];
 
         if (!$user) return self::getJsonErrorResult('Студент не найден');
@@ -76,7 +75,7 @@ class MoneyController extends AdminController
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            $contract = MoneyComponent::addPupilContract($company, $user, $amount, $group);
+            $contract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, $amount, $group);
             $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $formData['comment']);
 
             $transaction->commit();
@@ -182,7 +181,7 @@ class MoneyController extends AdminController
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $contract = MoneyComponent::addPupilContract(
-                Company::findOne(Company::COMPANY_SUPER_ID),
+                Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
                 $pupil,
                 $giftCard->amount,
                 $group

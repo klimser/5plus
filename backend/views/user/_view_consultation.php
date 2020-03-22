@@ -6,9 +6,9 @@
     <?php if (count($pupil->consultations) > 0): ?>
         <table class="table table-bordered table-condensed">
             <tr>
-                <th></th>
-                <th></th>
-                <th></th>
+                <th>Предмет</th>
+                <th>Дата</th>
+                <th>Кто проводил</th>
             </tr>
             <?php foreach ($pupil->consultations as $consultation): ?>
                 <tr>

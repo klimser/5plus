@@ -7,9 +7,11 @@ let User = {
     welcomeLessonList: [],
     groupList: [],
 
-    init: function() {
-        $.when(Main.loadCompanies(), Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
-            .done(function(companyList, subjectList, groupList, teacherList) {
+    init: function(noAdd) {
+        return $.when(Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
+            .done(function() {
+                if (noAdd === true) return;
+
                 if (User.consultationList.length > 0) {
                     User.consultationList.forEach(function(subjectId) {
                         User.addConsultation(subjectId);
@@ -142,7 +144,7 @@ let User = {
             '<label>Дата</label>' +
             '<div class="input-group date datepicker">' +
             '<input type="text" class="form-control date-select" name="welcome_lesson[date][' + this.iterator + ']" value="' + data.date + '" required>' +
-            '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
+            '<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>' +
             '</div>' +
             '</div>';
         blockHtml += '</div></div>';
@@ -157,7 +159,7 @@ let User = {
     addGroup: function(data) {
         this.setPupilPhoneRequired(true);
         if (data === undefined) {
-            data = {groupId: 0, date: '', amount: 0, companyId: 0, paymentComment: ''};
+            data = {groupId: 0, date: '', amount: 0, paymentComment: ''};
         }
         if (!data.hasOwnProperty('date')) {
             data.date = '';
@@ -185,7 +187,7 @@ let User = {
             '<div class="row"><div class="col-xs-3 col-md-1"> дата</div><div class="col-xs-9 col-md-4">' +
             '<div class="input-group date datepicker">' +
             '<input type="text" class="form-control date-select" name="group[date][' + this.iterator + ']" value="' + data.date + '" required>' +
-            '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
+            '<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>' +
             '</div></div></div>' +
             '</label>' +
             '</div>' +
@@ -206,19 +208,8 @@ let User = {
                 '<button type="button" class="btn btn-default btn-xs price" onclick="User.setAmount(this);">за 1 месяц</button>' +
                 '<button type="button" class="btn btn-default btn-xs price3" onclick="User.setAmount(this);">за 3 месяца</button>' +
                 '</div>' +
-                '</div>' +
-                '<div class="company-block">';
-            Main.companyList.forEach(function(company) {
-                blockHtml += '<div class="radio">' +
-                    '<label>' +
-                    '<input type="radio" class="company-input" name="group[companyId][' + User.iterator + ']" value="' + company.id + '" ' + (data.companyId === company.id ? ' checked ' : '')
-                    + (data.hasOwnProperty('contract') ? '' : ' disabled ') + ' required>' +
-                    company.second_name +
-                    '</label>' +
-                    '</div>';
-            });
-            blockHtml += '</div>';
-            
+                '</div>';
+
             if (this.incomeAllowed) {
                 blockHtml += '<div class="checkbox">' +
                     '<label>' +

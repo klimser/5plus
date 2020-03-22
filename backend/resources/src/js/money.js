@@ -34,7 +34,7 @@ let Money = {
                         contractForm += '<tr><td><b>Начало занятий в группе</b></td><td>' +
                             '<div class="input-group date">' +
                             '<input class="form-control" name="contractPupilDateStart" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
-                            '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
+                            '<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>' +
                             '</div>' +
                             '</td></tr>';
                     }

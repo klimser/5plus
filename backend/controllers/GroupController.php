@@ -235,7 +235,7 @@ class GroupController extends AdminController
             'group' => $group,
             'groupTypes' => GroupType::find()->orderBy('name')->all(),
             'subjects' => Subject::find()->orderBy('name')->with('teachers')->all(),
-            'canMoveMoney' => \Yii::$app->user->can('moveMoney'),
+            'canMoveMoney' => Yii::$app->user->can('moveMoney'),
         ]);
     }
 
