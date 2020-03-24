@@ -94,7 +94,7 @@ let Main = {
     groupActiveList: [],
     groupMap: {},
     loadActiveGroups: function() {
-        if (Main.groupActiveList.length > 0) {
+        if (Object.keys(Main.groupActiveList).length > 0) {
             let defer = $.Deferred();
             defer.resolve(Main.groupActiveList);
             return defer;
@@ -116,7 +116,7 @@ let Main = {
     teacherActiveList: {},
     teacherMap: {},
     loadActiveTeachers: function () {
-        if (Main.teacherActiveList.length > 0) {
+        if (Object.keys(Main.teacherActiveList).length > 0) {
             let defer = $.Deferred();
             defer.resolve(Main.teacherActiveList);
             return defer;
@@ -144,7 +144,7 @@ let Main = {
     subjectCategoryMap: {},
     subjectMap: {},
     loadActiveSubjects: function() {
-        if (Main.subjectActiveList.length > 0) {
+        if (Object.keys(Main.subjectActiveList).length > 0) {
             let defer = $.Deferred();
             defer.resolve(Main.subjectActiveList);
             return defer;
@@ -164,24 +164,6 @@ let Main = {
                         Main.subjectActiveList[subject.categoryId].push(subject.id);
                     });
                     defer.resolve(Main.subjectActiveList);
-                })
-                .fail(defer.reject);
-        });
-    },
-    
-    companyList: [],
-    loadCompanies: function() {
-        if (Main.companyList.length > 0) {
-            let defer = $.Deferred();
-            defer.resolve(Main.companyList);
-            return defer;
-        }
-
-        return $.Deferred(function (defer) {
-            $.getJSON('/ajax-info/companies')
-                .done(function (data) {
-                    Main.companyList = data;
-                    defer.resolve(Main.companyList);
                 })
                 .fail(defer.reject);
         });

@@ -1,6 +1,10 @@
 <?php
+use common\components\helpers\Money;
+use common\models\User;
+use yii\bootstrap\Html;
+
 /** @var $giftCard \common\models\GiftCard */
-/** @var $existingPupil \common\models\User|null */
+/** @var $existingPupil User|null */
 ?>
 <div class="panel panel-default">
     <div class="panel-heading">
@@ -8,7 +12,7 @@
     </div>
     <div class="panel-body">
         <p>Предмет <b><?= $giftCard->name; ?></b></p>
-        <p>Сумма <b><?= \common\components\helpers\Money::formatThousands($giftCard->amount); ?></b></p>
+        <p>Сумма <b><?= Money::formatThousands($giftCard->amount); ?></b></p>
         <?php if ($giftCard->isNew()): ?>
             <span class="label label-danger">не оплачена</span>
         <?php endif; ?>
@@ -45,12 +49,12 @@
                                     <?php else: ?> value="<?= $giftCard->phoneFormatted; ?>" <?php endif; ?> >
                             </div>
                         </div>
-                        <?= \yii\bootstrap\Html::radioList(
+                        <?= Html::radioList(
                             'person_type',
-                            \common\models\User::ROLE_PARENTS,
+                            User::ROLE_PARENTS,
                             [
-                                \common\models\User::ROLE_PARENTS => 'Физ. лицо',
-                                \common\models\User::ROLE_COMPANY => 'Юр. лицо',
+                                User::ROLE_PARENTS => 'Физ. лицо',
+                                User::ROLE_COMPANY => 'Юр. лицо',
                             ]
                         ); ?>
                     </div>
@@ -97,7 +101,7 @@
                         <div class="form-group">
                             <div class="input-group date datepicker">
                                 <span class="input-group-addon">с</span>
-                                <input class="form-control" name="group[date]" id="new-group-date" value="<?= date('d.m.Y'); ?>" required pattern="\d{2}\.\d{2}\.\d{4}">
+                                <input class="form-control" name="group[date]" id="new-group-date" value="<?= date('d.m.Y'); ?>" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
                                 <span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>
                             </div>
                         </div>

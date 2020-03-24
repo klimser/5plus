@@ -20,6 +20,7 @@ use yii;
 use yii\web\NotFoundHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\BadRequestHttpException;
+use yii\web\Response;
 
 /**
  * GroupController implements the CRUD actions for Teacher model.
@@ -336,89 +337,87 @@ class GroupController extends AdminController
         ]);
     }
 
-    /**
-     * @return yii\web\Response
-     * @throws ForbiddenHttpException
-     * @throws yii\web\BadRequestHttpException
-     */
     public function actionProcessMovePupil()
     {
-        if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        $this->checkRequestIsAjax();
+        $this->checkAccess('manageGroups');
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $userId = Yii::$app->request->post('user_id', 0);
-        $groupFromId = Yii::$app->request->post('group_from', 0);
-        $groupToId = Yii::$app->request->post('group_to', 0);
-        $moveDate =  date_create_from_format('d.m.Y', Yii::$app->request->post('move_date', ''));
+        $formData = Yii::$app->request->post('group-move', []);
+        if (!isset($formData['id'], $formData['group_id'], $formData['date'])) {
+            return self::getJsonErrorResult('Wrong request');
+        }
+
+        $groupPupil = GroupPupil::findOne($formData['id']);
+        $groupTo = Group::findOne($formData['group_id']);
+
+        if (!$groupPupil || $groupPupil->active !== GroupPupil::STATUS_ACTIVE) {
+            return self::getJsonErrorResult('Студент не найден');
+        }
+        if (!$groupTo || $groupTo->active !== Group::STATUS_ACTIVE) {
+            return self::getJsonErrorResult('Группа В не найдена');
+        }
+        
+        $moveDate =  date_create_from_format('d.m.Y', $formData['date']);
+        if (!$moveDate || $moveDate <= $groupPupil->startDateObject || $moveDate < $groupTo->startDateObject) {
+            self::getJsonErrorResult('Неверная дата перевода');
+        }
+        
         $moveDate->modify('midnight');
-
-        $user = User::findOne($userId);
-        $groupFrom = Group::findOne($groupFromId);
-        $groupTo = Group::findOne($groupToId);
-
-        if (!$user) return $this->asJson(self::getJsonErrorResult('Студент не найден'));
-        if (!$groupFrom) return $this->asJson(self::getJsonErrorResult('Группа ИЗ не найдена'));
-        if (!$groupTo) return $this->asJson(self::getJsonErrorResult('Группа В не найдена'));
-        if (!$moveDate) return $this->asJson(self::getJsonErrorResult('Неверная дата перевода'));
-
-        $groupPupilFrom = GroupPupil::findOne(['group_id' => $groupFrom->id, 'user_id' => $user->id, 'active' => GroupPupil::STATUS_ACTIVE]);
-        if (!$groupPupilFrom) return $this->asJson(self::getJsonErrorResult('Студент не занимается в группе ИЗ'));
-
-        $groupPupilTo = GroupPupil::findOne(['group_id' => $groupTo->id, 'user_id' => $user->id, 'active' => GroupPupil::STATUS_ACTIVE]);
-        if ($groupPupilTo) return $this->asJson(self::getJsonErrorResult('Студент уже занимается в группе В'));
-
-        $unknownEvent = EventComponent::getUncheckedEvent($groupFrom, $moveDate);
+        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $moveDate);
         if ($unknownEvent !== null) {
-            return $this->asJson(self::getJsonErrorResult(
+            return self::getJsonErrorResult(
                 'В группе ИЗ остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: '
                 . yii\bootstrap\Html::a(
                     $unknownEvent->eventDateTime->format('d.m.Y'),
                     yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
                 )
-            ));
+            );
         }
 
         $income = Payment::find()
-            ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
+            ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
             ->andWhere(['>', 'amount', 0])
             ->select('SUM(amount)')->scalar();
         $outcome = Payment::find()
-            ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
+            ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
             ->andWhere(['<', 'amount', 0])
             ->andWhere(['<', 'created_at', $moveDate->format('Y-m-d H:i:s')])
             ->select('SUM(amount)')->scalar();
         if ($income + $outcome < 0) {
-            return $this->asJson(self::getJsonErrorResult('Студент не может быть переведён пока не погасит долг - ' . (($income + $outcome) * (-1))));
+            return self::getJsonErrorResult('Студент не может быть переведён пока не погасит долг - ' . (0 - $income - $outcome));
         }
 
         $transaction = GroupPupil::getDb()->beginTransaction();
         try {
-            $moveDate->modify('midnight');
-            if (!$groupPupilFrom->endDateObject || $groupPupilFrom->endDateObject > $moveDate) {
-                $groupPupilFrom->date_end = $moveDate->format('Y-m-d');
-                $groupPupilFrom->moved = GroupPupil::STATUS_ACTIVE;
-                $groupPupilFrom->active = GroupPupil::STATUS_INACTIVE;
-                if ($groupPupilFrom->save()) {
-                    EventComponent::fillSchedule($groupFrom);
-                    GroupComponent::calculateTeacherSalary($groupFrom);
-                } else throw new \Exception($groupPupilFrom->getErrorsAsString());
+            if (!$groupPupil->endDateObject || $groupPupil->endDateObject > $moveDate) {
+                $groupPupil->date_end = $moveDate->format('Y-m-d');
+                $groupPupil->moved = GroupPupil::STATUS_ACTIVE;
+                $groupPupil->active = GroupPupil::STATUS_INACTIVE;
+                if (!$groupPupil->save()) {
+                    throw new \Exception($groupPupil->getErrorsAsString());
+                }
+                EventComponent::fillSchedule($groupPupil->group);
+                GroupComponent::calculateTeacherSalary($groupPupil->group);
             }
             $groupPupilTo = new GroupPupil();
-            $groupPupilTo->user_id = $user->id;
+            $groupPupilTo->user_id = $groupPupil->user_id;
             $groupPupilTo->group_id = $groupTo->id;
             $groupPupilTo->date_start = $moveDate->format('Y-m-d');
-            if (!$groupPupilTo->save()) throw new \Exception('Server error: ' . $groupPupilTo->getErrorsAsString());
+            if (!$groupPupilTo->save()) {
+                throw new \Exception($groupPupilTo->getErrorsAsString());
+            }
             $groupTo->link('groupPupils', $groupPupilTo);
 
-            GroupComponent::moveMoney($groupFrom, $groupTo, $user, $moveDate);
+            GroupComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user, $moveDate);
 
             $transaction->commit();
-            return $this->asJson(self::getJsonOkResult());
+            return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
         } catch (\Throwable $ex) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()
                 ->logError('group/move-pupil', $ex->getMessage(), true);
-            return $this->asJson(self::getJsonErrorResult($ex->getMessage()));
+            return self::getJsonErrorResult('Server error: ' . $ex->getMessage());
         }
     }
 

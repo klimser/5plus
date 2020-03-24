@@ -104,7 +104,7 @@ class GroupComponent extends Component
             throw new \Exception('Студент не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
         }
         self::checkPupilDates(null, $startDate, $endDate);
-        $existedGroupPupil = GroupPupil::find()
+        $existingGroupPupil = GroupPupil::find()
             ->andWhere(['group_id' => $group->id, 'user_id' => $pupil->id])
             ->andWhere(['OR',
                 ['AND',
@@ -116,7 +116,7 @@ class GroupComponent extends Component
                 ]
             ])
             ->one();
-        if ($existedGroupPupil) {
+        if ($existingGroupPupil) {
             throw new \Exception('Студент уже был добавлен в группу в выбранном промежутке времени, не добавляйте его дважды, так нельзя!');
         }
 

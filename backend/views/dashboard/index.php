@@ -2,15 +2,17 @@
 
 /* @var $this yii\web\View */
 /* @var $pupilLimitDate \DateTime */
+/* @var $incomeAllowed bool */
+/* @var $contractAllowed bool */
 
 $this->title = 'Панель управления';
 
+$initialJs = "User.contractAllowed = " . ($contractAllowed ? 'true' : 'false') . ";
+    User.incomeAllowed = " . ($incomeAllowed ? 'true' : 'false') . ";\n"; 
 if ($pupilLimitDate !== null) {
-    $this->registerJs("
-    Dashboard.pupilLimitDate = '{$pupilLimitDate->format('Y-m-d')}';
-    Main.loadActiveGroups();
-    ");
+    $initialJs .= "Dashboard.pupilLimitDate = '{$pupilLimitDate->format('Y-m-d')}';\n";
 }
+$this->registerJs($initialJs);
 
 ?>
 <div id="messages_place"></div>
@@ -33,7 +35,7 @@ if ($pupilLimitDate !== null) {
     <br><br>
     <form onsubmit="Dashboard.find(this); return false;">
         <div class="input-group input-group-lg">
-            <input class="form-control autofocus search" data-search="strict" placeholder="Номер (договора, карты и т п)" required>
+            <input class="form-control autofocus search" data-search="strict" placeholder="Номер (договора, карты и т п)" autocomplete="off" required>
             <div class="input-group-btn">
                 <button class="btn btn-default" type="button" onclick="Dashboard.clearInput(this);"><span class="fas fa-times"></span></button>
                 <button class="btn btn-success"><span class="fas fa-search"></span></button>
@@ -46,7 +48,7 @@ if ($pupilLimitDate !== null) {
     <br><br>
     <form onsubmit="Dashboard.find(this); return false;">
         <div class="input-group input-group-lg">
-            <input class="form-control autofocus search" data-search="flex" placeholder="Телефон, ФИО и т п" minlength="3" required>
+            <input class="form-control autofocus search" data-search="flex" placeholder="Телефон, ФИО и т п" minlength="3" autocomplete="off" required>
             <div class="input-group-btn">
                 <button class="btn btn-default" type="button" onclick="Dashboard.clearInput(this);"><span class="fas fa-times"></span></button>
                 <button class="btn btn-success"><span class="fas fa-search"></span></button>
@@ -59,3 +61,4 @@ if ($pupilLimitDate !== null) {
 <?= $this->render('_contract'); ?>
 <?= $this->render('_income'); ?>
 <?= $this->render('/welcome-lesson/_modal'); ?>
+<?= $this->render('_group_move'); ?>

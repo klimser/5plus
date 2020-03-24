@@ -26,7 +26,7 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label" for="income-amount">Сумма</label>
                             <div class="col-sm-9">
-                                <input id="income-amount" name="income[amount]" type="number" min="1000" step="1000" class="form-control" placeholder="Сумма оплаты" required>
+                                <input id="income-amount" name="income[amount]" type="number" min="1000" step="1000" class="form-control" placeholder="Сумма оплаты" autocomplete="off" required>
                                 <div class="amount-helper-buttons">
                                     <button type="button" class="btn btn-default btn-xs price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>
                                     <button type="button" class="btn btn-default btn-xs price3" onclick="Dashboard.setAmount(this);">за 3 месяца</button>
@@ -36,7 +36,7 @@
                         <div class="form-group">
                             <label for="payment_comment" class="col-sm-3 control-label">Комментарий к платежу</label>
                             <div class="col-sm-9">
-                                <input id="payment_comment" name="income[comment]" class="form-control">
+                                <input id="payment_comment" name="income[comment]" class="form-control" autocomplete="off">
                             </div>
                         </div>
                     </div>

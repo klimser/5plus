@@ -1,4 +1,4 @@
-<div class="modal fade" tabindex="-1" role="dialog" id="modal-group_move">
+<div class="modal fade" tabindex="-1" role="dialog" id="modal-group-move">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <form id="group-move-form" onsubmit="Dashboard.moveGroupPupil(this); return false;">
@@ -25,14 +25,14 @@
                         <div class="form-group">
                             <label class="col-sm-2 control-label">В группу</label>
                             <div class="col-sm-10">
-                                <select id="group-move-new-group" name="group-move[group_id]" class="form-control" required></select>
+                                <select id="group-move-new-group" name="group-move[group_id]" class="form-control" required autocomplete="off"></select>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label">Дата перехода (первый день в новой группе)</label>
                             <div class="col-sm-10">
                                 <div class="input-group date datepicker">
-                                    <input class="form-control" name="group-move[date]" id="group-move-date" value="" required pattern="\d{2}\.\d{2}\.\d{4}">
+                                    <input class="form-control" name="group-move[date]" id="group-move-date" value="" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
                                     <span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>
                                 </div>
                             </div>
@@ -41,7 +41,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">отмена</button>
-                    <button type="submit" class="btn btn-primary">перевести</button>
+                    <button type="submit" class="btn btn-primary" id="group-move-button">перевести</button>
                 </div>
             </form>
         </div>

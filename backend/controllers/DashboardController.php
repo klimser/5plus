@@ -21,6 +21,8 @@ class DashboardController extends AdminController
     {
         return $this->render('index', [
             'pupilLimitDate' => GroupComponent::getPupilLimitDate(),
+            'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
+            'contractAllowed' => Yii::$app->user->can('contractManagement'),
         ]);
     }
 

@@ -46,7 +46,7 @@
                                 <label class="col-sm-3 control-label">Начало занятий в группе</label>
                                 <div class="col-sm-9">
                                     <div class="input-group date datepicker">
-                                        <input class="form-control" name="contractPupilDateStart" id="contract-createDate" value="" required pattern="\d{2}\.\d{2}\.\d{4}">
+                                        <input class="form-control" name="contractPupilDateStart" id="contract-createDate" value="" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
                                         <span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>
                                     </div>
                                 </div>

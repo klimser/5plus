@@ -6,7 +6,7 @@ use backend\models\WelcomeLesson;
 /* @var $pupil \common\models\User */
 
 ?>
-<div id="welcome_lessons" style="margin-top: 10px;">
+<div class="welcome_lessons" style="margin-top: 10px;">
     <?php if (count($pupil->welcomeLessons) > 0): ?>
         <table class="table table-bordered table-condensed">
             <tr>
@@ -32,4 +32,4 @@ use backend\models\WelcomeLesson;
         </table>
     <?php endif; ?>
 </div>
-<button type="button" class="btn btn-success" onclick="User.addWelcomeLesson();"><span class="fas fa-plus"></span> добавить</button>
+<button type="button" class="btn btn-success" onclick="User.addWelcomeLesson(undefined, $(this).closest('.user-view'));"><span class="fas fa-plus"></span> добавить</button>

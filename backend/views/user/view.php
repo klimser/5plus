@@ -16,9 +16,10 @@ $this->title = $pupil->name;
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="user-view">
-    <div id="user-view-messages-place"></div>
+<div class="user-view" id="user-view-<?= $pupil->id; ?>">
     <?php $form = ActiveForm::begin(['options' => ['onsubmit' => 'Dashboard.savePupil(this); return false;']]); ?>
+    
+    <div class="user-view-messages-place"></div>
     <?= $form->field($pupil, 'id', ['template' => '{input}', 'options' => ['class' => []]])->hiddenInput(); ?>
 
     <div class="row">
@@ -64,23 +65,23 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="row">
         <div class="col-xs-12">
             <ul class="nav nav-tabs" role="tablist">
-                <li role="presentation" class="active"><a href="#consultation-tab" aria-controls="consultation-tab" role="tab" data-toggle="tab">консультации</a></li>
+                <li role="presentation" class="active"><a href="#consultation-tab-<?= $pupil->id; ?>" aria-controls="consultation-tab" role="tab" data-toggle="tab">консультации</a></li>
                 <?php if ($welcomeLessonsAllowed): ?>
-                    <li role="presentation"><a href="#welcome_lesson-tab" aria-controls="welcome_lesson-tab" role="tab" data-toggle="tab">пробные уроки</a></li>
+                    <li role="presentation"><a href="#welcome_lesson-tab-<?= $pupil->id; ?>" aria-controls="welcome_lesson-tab" role="tab" data-toggle="tab">пробные уроки</a></li>
                 <?php endif; ?>
-                <li role="presentation"><a href="#group-tab" aria-controls="group-tab" role="tab" data-toggle="tab">группы</a></li>
+                <li role="presentation"><a href="#group-tab-<?= $pupil->id; ?>" aria-controls="group-tab" role="tab" data-toggle="tab">группы</a></li>
             </ul>
 
             <div class="tab-content">
-                <div role="tabpanel" class="tab-pane active" id="consultation-tab">
+                <div role="tabpanel" class="tab-pane active" id="consultation-tab-<?= $pupil->id; ?>">
                     <?= $this->render('_view_consultation', ['pupil' => $pupil]); ?>
                 </div>
                 <?php if ($welcomeLessonsAllowed): ?>
-                    <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab">
+                    <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab-<?= $pupil->id; ?>">
                         <?= $this->render('_view_welcome_lesson', ['pupil' => $pupil]); ?>
                     </div>
                 <?php endif; ?>
-                <div role="tabpanel" class="tab-pane" id="group-tab">
+                <div role="tabpanel" class="tab-pane" id="group-tab-<?= $pupil->id; ?>">
                     <?= $this->render('_view_group', [
                         'pupil' => $pupil,
                         'incomeAllowed' => $incomeAllowed,

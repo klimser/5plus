@@ -79,7 +79,7 @@ class MoneyController extends AdminController
             $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $formData['comment']);
 
             $transaction->commit();
-            return self::getJsonOkResult(['paymentId' => $paymentId, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
+            return self::getJsonOkResult(['paymentId' => $paymentId, 'userId' => $user->id, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
         } catch (\Throwable $ex) {
             $transaction->rollBack();
             return self::getJsonErrorResult($ex->getMessage());

@@ -162,6 +162,8 @@ let Dashboard = {
         }
     },
     savePupil: function(form) {
+        this.lockPupilInfoButtons(form);
+        let messagesPlace = $(form).find(".user-view-messages-place");
         $.ajax({
             url: '/user/update-ajax',
             type: 'post',
@@ -169,26 +171,39 @@ let Dashboard = {
             data: $(form).serialize()
         })
             .done(function(data) {
-                $('#user-view-messages-place').html('');
                 if (data.status === 'ok') {
+                    let container = $(form).closest('.pupil-info');
                     Dashboard.togglePupilInfo(form, true)
                         .done(function() {
+                            let messagesPlace = $(container).find(".user-view-messages-place");
                             data.infoFlash.forEach(function(message) {
-                                Main.throwFlashMessage('#user-view-messages-place', message, 'alert-info', true);
+                                Main.throwFlashMessage(messagesPlace, message, 'alert-info', true);
                             });
                         });
                 } else {
                     if (data.errors) {
                         data.errors.forEach(function (error) {
-                            Main.throwFlashMessage('#user-view-messages-place', error, 'alert-danger', true);
+                            Main.throwFlashMessage(messagesPlace, error, 'alert-danger', true);
                         });
                     } else {
-                        Main.throwFlashMessage('#user-view-messages-place', data.message, 'alert-danger');
+                        Main.throwFlashMessage(messagesPlace, data.message, 'alert-danger');
                     }
                 }
             })
-            .fail(Main.logAndFlashAjaxError)
-            .fail(Main.jumpToTop);
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, messagesPlace);
+            })
+            .always(function() {
+                Dashboard.unlockPupilInfoButtons(form);
+            });
+    },
+    lockPupilInfoButtons: function(container)
+    {
+        $(container).find("button").prop("disabled", true);
+    },
+    unlockPupilInfoButtons: function(container)
+    {
+        $(container).find("button").prop("disabled", false);
     },
     launchMoneyIncome: function(e) {
         let groupId = $(e).data('group');
@@ -221,8 +236,9 @@ let Dashboard = {
             .done(function(data) {
                 if (data.status === 'ok') {
                     $("#modal-income").modal("hide");
-                    Main.throwFlashMessage('#user-view-messages-place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    Main.throwFlashMessage('#user-view-messages-place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
+                    let messagesPlace = $('#user-view-' + data.userId).find('.user-view-messages-place');
+                    Main.throwFlashMessage(messagesPlace, 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
+                    Main.throwFlashMessage(messagesPlace, 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-info', true);
                 } else {
                     Main.throwFlashMessage('#income-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
@@ -239,23 +255,52 @@ let Dashboard = {
         $("#income-button").prop('disabled', false);
     },
     launchMovePupil: function(e) {
-        let groupId = $(e).data('group');
+        let groupPupilId = $(e).data('id');
+        let groupId = parseInt($(e).data('group'));
+        let group = Main.groupMap[groupId];
         $('#group-move-messages-place').html('');
         let form = $("#group-move-form");
-
-        // TODO finish it
-
-        $(form).find("#income-user-id").val($(e).data("user"));
-        $(form).find("#income-group-id").val(groupId);
-        $(form).find("#income-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
-        $(form).find("#income-amount").val(0);
-        $(form).find("#payment_comment").val('');
-
-        let group = Main.groupMap[groupId];
-        $(form).find("#income-group-name").text(group.name);
-        let amountHelpersBlock = $(form).find(".amount-helper-buttons");
-        $(amountHelpersBlock).find(".price").data('price', group.price);
-        $(amountHelpersBlock).find(".price3").data('price', group.price3);
-        $("#modal-income").modal("show");
-    }
+        $(form).find("#group-move-id").val(groupPupilId);
+        $(form).find("#group-move-group").text(group.name);
+        $(form).find("#group-move-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
+        let optionsHtml = '';
+        Main.groupActiveList.forEach(function(id) {
+            if (id !== groupId) {
+                optionsHtml += '<option value="' + id + '">' + Main.groupMap[id].name + '</option>';
+            }
+        });
+        $(form).find("#group-move-new-group").html(optionsHtml);
+        $(form).find("#group-move-date").val('');
+        let datepickerOptions = Main.datepickerDefaultSettings;
+        datepickerOptions.startDate = $(e).data('date');
+        $(form).find(".datepicker").datepicker(datepickerOptions);
+        $("#modal-group-move").modal("show");
+    },
+    moveGroupPupil: function(form) {
+        this.lockMovePupilButton();
+        return $.ajax({
+            url: '/group/process-move-pupil',
+            type: 'post',
+            dataType: 'json',
+            data: $(form).serialize()
+        })
+            .done(function(data) {
+                if (data.status === 'ok') {
+                    $("#modal-group-move").modal("hide");
+                    Dashboard.togglePupilInfo($('#user-view-' + data.userId), true);
+                } else {
+                    Main.throwFlashMessage('#group-move-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
+                }
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#group-move-messages-place');
+            })
+            .always(Dashboard.unlockMovePupilButton);
+    },
+    lockMovePupilButton: function() {
+        $("#group-move-button").prop('disabled', true);
+    },
+    unlockMovePupilButton: function() {
+        $("#group-move-button").prop('disabled', false);
+    },
 };

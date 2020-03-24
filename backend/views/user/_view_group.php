@@ -5,7 +5,7 @@
 /* @var $groupManagementAllowed bool */
 /* @var $moveMoneyAllowed bool */
 ?>
-<div id="groups" style="margin-top: 10px;">
+<div class="groups" style="margin-top: 10px;">
     <table class="table table-condensed">
         <?php foreach ($pupil->activeGroupPupils as $groupPupil): ?>
             <tr>
@@ -27,10 +27,13 @@
                         </button>
                     <?php endif; ?>
 
-                    <?php if ($groupManagementAllowed): ?>
+                    <?php if ($groupManagementAllowed):
+                        $limitDate = clone $groupPupil->startDateObject;
+                        $limitDate->modify('+1 day');
+                        ?>
                         <button type="button" class="btn btn-default" onclick="Dashboard.launchMovePupil(this);"
                             data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>"
-                            data-date="<?= $groupPupil->startDateObject->format('d.m.Y'); ?>">
+                            data-date="<?= $limitDate->format('d.m.Y'); ?>">
                             <span class="fas fa-running"></span> <span class="fas fa-arrow-right"></span>
                         </button>
                     <?php endif; ?>
@@ -39,4 +42,4 @@
         <?php endforeach; ?>
     </table>
 </div>
-<button type="button" class="btn btn-success" onclick="User.addGroup();"><span class="fas fa-plus"></span> добавить</button>
+<button type="button" class="btn btn-success" onclick="User.addGroup(undefined, $(this).closest('.user-view'));"><span class="fas fa-plus"></span> добавить</button>

@@ -2,7 +2,7 @@
 /* @var $this yii\web\View */
 /* @var $pupil \common\models\User */
 ?>
-<div id="consultation-mandatory" style="margin-top: 10px;">
+<div class="consultation-mandatory" style="margin-top: 10px;">
     <?php if (count($pupil->consultations) > 0): ?>
         <table class="table table-bordered table-condensed">
             <tr>
@@ -20,5 +20,5 @@
         </table>
     <?php endif; ?>
 </div>
-<div id="consultation-optional" style="margin-top: 10px;"></div>
-<button type="button" class="btn btn-success" onclick="User.addConsultation();"><span class="fas fa-plus"></span> добавить</button>
+<div class="consultation-optional" style="margin-top: 10px;"></div>
+<button type="button" class="btn btn-success" onclick="User.addConsultation(0, $(this).closest('.user-view'));"><span class="fas fa-plus"></span> добавить</button>

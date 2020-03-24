@@ -141,15 +141,4 @@ class AjaxInfoController extends AdminController
 
         return $this->asJson($resultArray);
     }
-
-    public function actionCompanies()
-    {
-        $companies = Company::find()
-            ->orderBy(['second_name' => SORT_ASC])
-            ->select(['id', 'first_name', 'second_name'])
-            ->asArray()
-            ->all();
-
-        return $this->asJson($companies);
-    }
 }
