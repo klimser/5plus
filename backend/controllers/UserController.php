@@ -540,12 +540,13 @@ class UserController extends AdminController
         ]);
     }
 
-    public function actionView($id = null)
+    public function actionView(int $id)
     {
         $pupil = $this->findModel($id);
 
         return $this->renderPartial('view', [
             'pupil' => $pupil,
+            'activeTab' => Yii::$app->request->get('tab', 'consultation') ?: 'consultation',
             'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
             'contractAllowed' => Yii::$app->user->can('contractManagement'),
             'groupManagementAllowed' => Yii::$app->user->can('manageGroups'),

@@ -6,7 +6,7 @@ use backend\models\WelcomeLesson;
 /* @var $pupil \common\models\User */
 
 ?>
-<div class="welcome_lessons" style="margin-top: 10px;">
+<div class="welcome_lessons m-t-10">
     <?php if (count($pupil->welcomeLessons) > 0): ?>
         <table class="table table-bordered table-condensed">
             <tr>

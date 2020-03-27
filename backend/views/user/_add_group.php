@@ -39,16 +39,16 @@ $this->registerJs($initialJs);
 
 <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="consultation-tab">
-        <div class="consultation-mandatory" style="margin-top: 10px;"></div>
-        <div class="consultation-optional" style="margin-top: 10px;"></div>
+        <div class="consultation-mandatory m-t-10"></div>
+        <div class="consultation-optional m-t-10"></div>
         <button type="button" class="btn btn-success" onclick="User.addConsultation();"><span class="fas fa-plus"></span> добавить</button>
     </div>
     <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab">
-        <div class="welcome_lessons" style="margin-top: 10px;"></div>
+        <div class="welcome_lessons m-t-10"></div>
         <button type="button" class="btn btn-success" onclick="User.addWelcomeLesson();"><span class="fas fa-plus"></span> добавить</button>
     </div>
     <div role="tabpanel" class="tab-pane" id="group-tab">
-        <div class="groups" style="margin-top: 10px;"></div>
+        <div class="groups m-t-10"></div>
         <button type="button" class="btn btn-success" onclick="User.addGroup();"><span class="fas fa-plus"></span> добавить</button>
     </div>
 </div>

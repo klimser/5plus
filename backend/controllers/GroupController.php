@@ -328,7 +328,7 @@ class GroupController extends AdminController
      */
     public function actionMovePupil()
     {
-        if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('manageGroups');
 
         return $this->render('move_pupil', [
             'userId' => Yii::$app->request->get('user', 0),
@@ -499,6 +499,99 @@ class GroupController extends AdminController
                 ->distinct(true)
                 ->orderBy(Group::tableName() . '.name')->all(),
         ]);
+    }
+    
+    public function actionProcessMoveMoney()
+    {
+        $this->checkRequestIsAjax();
+        $this->checkAccess('moveMoney');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        $formData = Yii::$app->request->post('money-move', []);
+        if (!isset($formData['id'], $formData['groupId'])) {
+            return self::getJsonErrorResult('Wrong request');
+        }
+        /** @var GroupPupil $groupPupil */
+        $groupPupil = GroupPupil::find()->andWhere(['id' => $formData['id'], 'active' => GroupPupil::STATUS_INACTIVE])->one();
+        if (!$groupPupil) {
+            return self::getJsonErrorResult('Pupil not found');
+        }
+        /** @var Group $groupTo */
+        $groupTo = Group::findOne($formData['groupId']);
+        if (!$groupTo) {
+            return self::getJsonErrorResult('Group not found');
+        }
+        
+        $groupPupilsTo = GroupPupil::find()->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupTo->id, 'active' => GroupPupil::STATUS_ACTIVE])->all();
+        if (count($groupPupilsTo) == 0) {
+            return self::getJsonErrorResult('Pupil in destination group is not found');
+        }
+
+        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $groupPupil->endDateObject);
+        if ($unknownEvent !== null) {
+            return self::getJsonErrorResult("В группе {$groupPupil->group->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
+                . yii\bootstrap\Html::a(
+                    $unknownEvent->eventDateTime->format('d.m.Y'),
+                    yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
+                )
+            );
+        }
+
+        $transaction = \Yii::$app->db->beginTransaction();
+        try {
+            GroupComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user);
+            $transaction->commit();
+            return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
+        } catch (\Throwable $exception) {
+            $transaction->rollBack();
+            return self::getJsonErrorResult($exception->getMessage());
+        }
+    }
+
+    public function actionEndPupil()
+    {
+        $this->checkRequestIsAjax();
+        $this->checkAccess('manageGroups');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        $formData = Yii::$app->request->post('end-pupil');
+        if (!isset($formData['id'], $formData['date'], $formData['reasonId'])) {
+            return self::getJsonErrorResult('Wrong request');
+        }
+        /** @var GroupPupil $groupPupil */
+        $groupPupil = GroupPupil::find()->andWhere(['id' => $formData['id'], 'active' => GroupPupil::STATUS_ACTIVE])->one();
+        if (!$groupPupil) {
+            return self::getJsonErrorResult('Pupil not found');
+        }
+        
+        $endDate =  date_create_from_format('d.m.Y', $formData['date']);
+        if (!$endDate || $endDate <= $groupPupil->startDateObject) {
+            self::getJsonErrorResult('Неверная дата');
+        }
+
+        $endDate->modify('midnight');
+        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $endDate);
+        if ($unknownEvent !== null) {
+            return self::getJsonErrorResult(
+                'В группе остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: '
+                . yii\bootstrap\Html::a(
+                    $unknownEvent->eventDateTime->format('d.m.Y'),
+                    yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
+                )
+            );
+        }
+
+        $groupPupil->date_end = $endDate->format('Y-m-d');
+        $groupPupil->active = GroupPupil::STATUS_INACTIVE;
+        $groupPupil->end_reason = $formData['reasonId'];
+        $groupPupil->comment = $formData['reasonComment'];
+        if (!$groupPupil->save()) {
+            return self::getJsonErrorResult($groupPupil->getErrorsAsString());
+        }
+        EventComponent::fillSchedule($groupPupil->group);
+        GroupComponent::calculateTeacherSalary($groupPupil->group);
+        
+        return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
     }
 
         /**

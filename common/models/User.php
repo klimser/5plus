@@ -55,6 +55,7 @@ use yii\web\IdentityInterface;
  * @property Debt[] $debts
  * @property Consultation[] $consultations
  * @property WelcomeLesson[] $welcomeLessons
+ * @property Contract[] $contracts
  * @property string $nameHidden
  * @property User $createdAdmin
  */
@@ -271,9 +272,17 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * @return ActiveQuery
      */
+    public function getContracts()
+    {
+        return $this->hasMany(Contract::class, ['user_id' => 'id'])->orderBy(['created_at' => SORT_DESC]);
+    }
+    
+    /**
+     * @return ActiveQuery
+     */
     public function getPayments()
     {
-        return $this->hasMany(Payment::class, ['user_id' => 'id']);
+        return $this->hasMany(Payment::class, ['user_id' => 'id'])->orderBy(['created_at' => SORT_DESC]);
     }
 
     /**

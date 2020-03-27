@@ -5,6 +5,7 @@ namespace backend\controllers;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use common\components\ComponentContainer;
+use common\components\MoneyComponent;
 use common\models\Company;
 use common\models\Contract;
 use common\models\ContractSearch;
@@ -16,6 +17,7 @@ use common\components\Action;
 use yii;
 use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
+use yii\web\Response;
 
 /**
  * ContractController implements contracts management.
@@ -204,6 +206,44 @@ class ContractController extends AdminController
             if ($user) $params['user'] = $user;
         }
         return $this->render('create', $params);
+    }
+
+    /**
+     * Create new contract
+     * @return mixed
+     */
+    public function actionCreateAjax()
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        $formData = Yii::$app->request->post('new-contract', []);
+
+        if (!isset($formData['userId'], $formData['groupId'], $formData['amount'])) {
+            return self::getJsonErrorResult('Wrong request');
+        }
+
+        $pupil = User::findOne($formData['userId']);
+        $group = Group::findOne($formData['groupId']);
+        if (!$pupil || $pupil->role !== User::ROLE_PUPIL) {
+            return self::getJsonErrorResult('Wrong pupil');
+        }
+        if (!$group || $group->active !== Group::STATUS_ACTIVE) {
+            return self::getJsonErrorResult('Wrong group');
+        }
+        if ($formData['amount'] <= 0) {
+            return self::getJsonErrorResult('Wrong amount');
+        }
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $contract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $pupil, $formData['amount'], $group);
+            $transaction->commit();
+            return self::getJsonOkResult(['userId' => $pupil->id, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
+        } catch (\Throwable $ex) {
+            $transaction->rollBack();
+            return self::getJsonErrorResult($ex->getMessage());
+        }
     }
 
     /**

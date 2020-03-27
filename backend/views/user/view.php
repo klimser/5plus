@@ -6,6 +6,7 @@ use yii\bootstrap\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $pupil User */
+/* @var $activeTab string */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
 /* @var $groupManagementAllowed bool */
@@ -61,33 +62,54 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php endif; ?>
         </div>
     </div>
+    
+    <?php
+        $getTabLi = function(string $tabId, string $title) use ($pupil, $activeTab) {
+            $elemId = $tabId . '-tab-' . $pupil->id;
+            return '<li role="presentation" ' . ($activeTab === $tabId ? ' class="active" ' : '') . '>'
+                . '<a href="#' . $elemId . '" aria-controls="' . $elemId . '" role="tab" data-toggle="tab">' . $title . '</a></li>';
+        };
+        
+        $getTabDiv = function(string $tabId) use ($pupil, $activeTab) {
+            return '<div role="tabpanel" class="tab-pane ' . ($activeTab === $tabId ? ' active ' : '') . '" id="' . $tabId . '-tab-' . $pupil->id . '">';
+        };
+    ?>
 
     <div class="row">
         <div class="col-xs-12">
             <ul class="nav nav-tabs" role="tablist">
-                <li role="presentation" class="active"><a href="#consultation-tab-<?= $pupil->id; ?>" aria-controls="consultation-tab" role="tab" data-toggle="tab">консультации</a></li>
+                <?= $getTabLi('consultation', 'консультации'); ?>
                 <?php if ($welcomeLessonsAllowed): ?>
-                    <li role="presentation"><a href="#welcome_lesson-tab-<?= $pupil->id; ?>" aria-controls="welcome_lesson-tab" role="tab" data-toggle="tab">пробные уроки</a></li>
+                    <?= $getTabLi('welcome_lesson', 'пробные уроки'); ?>
                 <?php endif; ?>
-                <li role="presentation"><a href="#group-tab-<?= $pupil->id; ?>" aria-controls="group-tab" role="tab" data-toggle="tab">группы</a></li>
+                <?= $getTabLi('group', 'группы'); ?>
+                <?= $getTabLi('contract', 'договоры'); ?>
+                <?= $getTabLi('payment', 'платежи'); ?>
             </ul>
 
             <div class="tab-content">
-                <div role="tabpanel" class="tab-pane active" id="consultation-tab-<?= $pupil->id; ?>">
+                <?= $getTabDiv('consultation'); ?>
                     <?= $this->render('_view_consultation', ['pupil' => $pupil]); ?>
                 </div>
                 <?php if ($welcomeLessonsAllowed): ?>
-                    <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab-<?= $pupil->id; ?>">
+                    <?= $getTabDiv('welcome_lesson'); ?>
                         <?= $this->render('_view_welcome_lesson', ['pupil' => $pupil]); ?>
                     </div>
                 <?php endif; ?>
-                <div role="tabpanel" class="tab-pane" id="group-tab-<?= $pupil->id; ?>">
+                <?= $getTabDiv('group'); ?>
                     <?= $this->render('_view_group', [
                         'pupil' => $pupil,
+                        'contractAllowed' => $contractAllowed,
                         'incomeAllowed' => $incomeAllowed,
                         'groupManagementAllowed' => $groupManagementAllowed,
                         'moveMoneyAllowed' => $moveMoneyAllowed,
                     ]); ?>
+                </div>
+                <?= $getTabDiv('contract'); ?>
+                    <?= $this->render('_view_contract', ['pupil' => $pupil]); ?>
+                </div>
+                <?= $getTabDiv('payment'); ?>
+                    <?= $this->render('_view_payment', ['pupil' => $pupil]); ?>
                 </div>
             </div>
         </div>

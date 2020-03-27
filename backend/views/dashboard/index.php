@@ -62,3 +62,6 @@ $this->registerJs($initialJs);
 <?= $this->render('_income'); ?>
 <?= $this->render('/welcome-lesson/_modal'); ?>
 <?= $this->render('_group_move'); ?>
+<?= $this->render('_money_move'); ?>
+<?= $this->render('_new_contract'); ?>
+<?= $this->render('_end_pupil'); ?>
