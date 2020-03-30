@@ -24,9 +24,9 @@ class WelcomeLessonController extends AdminController
 
     protected $accessRule = 'welcomeLessons';
 
-    public function actionTest()
+    public function actionPrint(array $id)
     {
-        $welcomeLessons = WelcomeLesson::find()->limit(10)->all();
+        $welcomeLessons = WelcomeLesson::find()->andWhere(['id' => $id])->all();
         $doc = new WelcomeLessons($welcomeLessons);
         return Yii::$app->response->sendContentAsFile(
             $doc->save(),

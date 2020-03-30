@@ -37,6 +37,7 @@ class DashboardController extends AdminController
 
         $contract = $giftCard = $existingPupil = null;
         $pupils = $parents = [];
+        $showAddPupil = false;
         switch ($searchType) {
             case self::SEARCH_TYPE_STRICT:
                 $contract = Contract::findOne(['number' => $searchValue]);
@@ -60,6 +61,8 @@ class DashboardController extends AdminController
                 if (strlen($digitsOnly) >= 7) {
                     $searchCondition[] = ['like', 'phone', "%$digitsOnly", false];
                     $searchCondition[] = ['like', 'phone2', "%$digitsOnly", false];
+                } else {
+                    $showAddPupil = true;
                 }
                 $query->andWhere(array_merge(['or'], $searchCondition));
 
@@ -87,11 +90,13 @@ class DashboardController extends AdminController
         }
         
         return $this->renderPartial('results', [
+            'searchType' => $searchType,
             'contract' => $contract,
             'giftCard' => $giftCard,
             'existingPupil' => $existingPupil,
             'parents' => $parents,
             'pupils' => $pupils,
+            'showAddPupil' => $showAddPupil,
         ]);
     }
 }

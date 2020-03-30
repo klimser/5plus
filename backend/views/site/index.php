@@ -11,6 +11,15 @@ use \yii\helpers\Url;
 $this->title = 'Панель управления';
 ?>
 <div class="row">
+    <div class="col-xs-12">
+        <a class="btn btn-default btn-lg full-width" href="<?= Url::to('dashboard/index'); ?>">
+            <span class="fas fa-tachometer-alt fa-3x"></span><hr>
+            Панель управления
+        </a>
+    </div>
+</div>
+<hr>
+<div class="row">
     <?php if ($admin->can('moneyManagement')): ?>
         <div class="col-xs-12 col-sm-6 col-md-3">
             <a class="btn btn-default btn-lg full-width" href="<?= Url::to('money/income'); ?>">

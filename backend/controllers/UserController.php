@@ -78,15 +78,21 @@ class UserController extends AdminController
         $welcomeLessonData = self::remapRequestData(Yii::$app->request->post('welcome_lesson', []));
         $errors = [];
 
+        $ids = [];
         foreach ($welcomeLessonData as $welcomeLessonInfo) {
             try {
-                $this->addPupilToWelcomeLesson($pupil, $welcomeLessonInfo);
+                $welcomeLesson = $this->addPupilToWelcomeLesson($pupil, $welcomeLessonInfo);
+                $ids[] = $welcomeLesson->id;
             } catch (Throwable $exception) {
                 $errors = array_merge($errors, $exception->getMessage());
             }
         }
+        $infoFlashArray = [];
+        if (empty($errors)) {
+            $infoFlashArray[] = '<a target="_blank" href="' . Url::to(['welcome-lesson/print', 'id' => $ids]) . '">Распечатать информацию о пробных уроках</a>';
+        }
 
-        return $errors;
+        return [$errors, $infoFlashArray];
     }
 
     private function saveGroups(User $pupil)
@@ -184,10 +190,14 @@ class UserController extends AdminController
                     $pupil->moveErrorsToFlash();
                     $transaction->rollBack();
                 } else {
-                    $errors = array_merge($this->saveConsultations($pupil), $this->saveWelcomeLessons($pupil));
+                    $errors = $infoFlashArray = [];
+                    $errors = array_merge($errors, $this->saveConsultations($pupil));
+                    $welcomeLessonResults = $this->saveWelcomeLessons($pupil);
+                    $errors = array_merge($errors, $welcomeLessonResults[0]);
+                    $infoFlashArray = array_merge($infoFlashArray, $welcomeLessonResults[1]);
                     $groupResults = $this->saveGroups($pupil);
                     $errors = array_merge($errors, $groupResults[0]);
-                    $infoFlashArray = $groupResults[1];
+                    $infoFlashArray = array_merge($infoFlashArray, $groupResults[1]);
 
                     if (empty($errors)) {
                         $transaction->commit();
@@ -501,10 +511,14 @@ class UserController extends AdminController
             }
         }
 
-        $errors = array_merge($errors, $this->saveConsultations($pupil), $this->saveWelcomeLessons($pupil));
+        $infoFlashArray = [];
+        $errors = array_merge($errors, $this->saveConsultations($pupil));
+        $welcomeLessonResults = $this->saveWelcomeLessons($pupil);
+        $errors = array_merge($errors, $welcomeLessonResults[0]);
+        $infoFlashArray = array_merge($infoFlashArray, $welcomeLessonResults[1]);
         $groupResults = $this->saveGroups($pupil);
         $errors = array_merge($errors, $groupResults[0]);
-        $infoFlashArray = $groupResults[1];
+        $infoFlashArray = array_merge($infoFlashArray, $groupResults[1]);
 
         if (empty($errors)) {
             $transaction->commit();

@@ -10,6 +10,8 @@ use common\components\helpers\Money;
 /* @var $existingPupil \common\models\User */
 /* @var $parents \common\models\User[] */
 /* @var $pupils \common\models\User[] */
+/* @var $searchType string */
+/* @var $showAddPupil bool */
 
 $noResults = true;
 
@@ -85,5 +87,13 @@ endif;
 if ($noResults): ?>
 <div class="alert alert-warning">
     Ничего не найдено
+    <?php if ($searchType === \backend\controllers\DashboardController::SEARCH_TYPE_FLEX): ?>
+        <br><br>
+        <?php if ($showAddPupil): ?>
+            <a href="<?= Url::to(['user/create-pupil']); ?>" target="_blank" class="btn btn-info">Добавить студента</a>
+        <?php else: ?>
+            <b>Попробуйте поискать по фамилии или имени</b>
+        <?php endif; ?>
+    <?php endif; ?>
 </div>
 <?php endif; ?>
