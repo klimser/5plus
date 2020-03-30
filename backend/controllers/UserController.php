@@ -137,7 +137,7 @@ class UserController extends AdminController
      */
     public function actionCreatePupil()
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('manageUsers');
 
         $parent = new User(['scenario' => User::SCENARIO_USER]);
         $parentCompany = new User(['scenario' => User::SCENARIO_USER]);
@@ -433,32 +433,85 @@ class UserController extends AdminController
     public function actionUpdateAjax()
     {
         $this->checkRequestIsAjax();
+        $this->checkAccess('manageUsers');
         Yii::$app->response->format = Response::FORMAT_JSON;
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
 
-        $userData = Yii::$app->request->post('User', []);
-        if (!isset($userData['id'])) {
+        $usersData = Yii::$app->request->post('User', []);
+        if (!isset($usersData['pupil'], $usersData['pupil']['id'])) {
             return self::getJsonErrorResult('Wrong request');
         }
+        $pupilData = $usersData['pupil'];
+        $parentData = $usersData['parent'] ?? [];
+        $parentType = Yii::$app->request->post('parent_type', null);
 
         /** @var User $pupil */
         $pupil = User::find()
-            ->andWhere(['id' => $userData['id']])
+            ->andWhere(['id' => $pupilData['id'], 'role' => User::ROLE_PUPIL])
             ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
             ->one();
         if (!$pupil) {
             return self::getJsonErrorResult('Pupil not found');
         }
+        $pupil->setScenario(User::SCENARIO_USER);
+        $pupil->load($pupilData, '');
+        $errors = [];
+        $transaction = User::getDb()->beginTransaction();
 
-        $errors = array_merge($this->saveConsultations($pupil), $this->saveWelcomeLessons($pupil));
+        if (!$pupil->save()) {
+            $errors = array_merge($errors, $pupil->getErrorsAsStringArray());
+        }
+        
+        if ($pupil->parent_id) {
+            if ($parentData) {
+                $pupil->parent->setScenario(User::SCENARIO_USER);
+                $pupil->parent->load($parentData, '');
+                if (!$pupil->parent->save()) {
+                    $errors = array_merge($errors, $pupil->parent->getErrorsAsStringArray());
+                }
+            }
+        } elseif ($parentType) {
+            $parentRole = $pupil->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY;
+            switch ($parentType) {
+                case 'exist':
+                    /** @var User $parent */
+                    $parent = User::find()
+                        ->andWhere(['role' => $parentRole, 'id' => $parentData['id']])
+                        ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
+                        ->one();
+                    if (!$parent) {
+                        $errors[] = 'Parent not found';
+                    } else {
+                        $pupil->parent_id = $parent->id;
+                        $pupil->save(true, ['parent_id']);
+                    }
+                    break;
+                case 'new':
+                    $parent = new User(['scenario' => User::SCENARIO_USER]);
+                    $parent->role = $parentRole;
+
+                    if (UserComponent::isPhoneUsed($parentRole, $parent->phone, $parent->phone2)) {
+                        $errors[] = 'Родитель/компания с таким номером телефона уже существует!';
+                    } elseif (!$parent->save()) {
+                        $errors = array_merge($errors, $parent->getErrorsAsStringArray());
+                    } else {
+                        $pupil->parent_id = $parent->id;
+                        $pupil->save(true, ['parent_id']);
+                    }
+                    break;
+            }
+        }
+
+        $errors = array_merge($errors, $this->saveConsultations($pupil), $this->saveWelcomeLessons($pupil));
         $groupResults = $this->saveGroups($pupil);
         $errors = array_merge($errors, $groupResults[0]);
         $infoFlashArray = $groupResults[1];
 
         if (empty($errors)) {
+            $transaction->commit();
             return self::getJsonOkResult(['infoFlash' => $infoFlashArray]);
         }
 
+        $transaction->rollBack();
         return array_merge(['errors' => $errors], self::getJsonErrorResult());
     }
 
@@ -542,6 +595,9 @@ class UserController extends AdminController
 
     public function actionView(int $id)
     {
+        $this->checkRequestIsAjax();
+        $this->checkAccess('manageUsers');
+        
         $pupil = $this->findModel($id);
 
         return $this->renderPartial('view', [
@@ -554,25 +610,40 @@ class UserController extends AdminController
             'welcomeLessonsAllowed' => Yii::$app->user->can('welcomeLessons'),
         ]);
     }
+    
+    public function actionFind(string $term, int $role = User::ROLE_PUPIL)
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        return User::find()
+            ->andWhere(['role' => $role])
+            ->andWhere(['or', ['like', 'name', "$term%", false], ['like', 'name', "% $term%", false]])
+            ->orderBy(['name' => SORT_ASC])
+            ->select(['id', 'name AS label'])
+            ->asArray()
+            ->all();
+        
+    }
 
     public function actionChangeActive($id)
     {
-        $jsonData = [];
-        if (Yii::$app->request->isAjax) {
-            if (!Yii::$app->user->can('manageUsers')) $jsonData = self::getJsonErrorResult('Access denied!');
-            else {
-                $user = $this->findModel($id);
+        $this->checkRequestIsAjax();
+        $this->checkAccess('manageUsers');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        $user = $this->findModel($id);
 
-                $activeState = Yii::$app->request->post('active');
-                $jsonData = self::getJsonOkResult(['id' => $user->id]);
-                if (($user->status == User::STATUS_ACTIVE) != $activeState) {
-                    $user->status = $activeState ? User::STATUS_ACTIVE : User::STATUS_LOCKED;
-                    if (!$user->save()) $jsonData = self::getJsonErrorResult($user->getErrorsAsString());
-                    UserComponent::clearSearchCache();
-                }
+        $activeState = Yii::$app->request->post('active');
+        if (($user->status == User::STATUS_ACTIVE) != $activeState) {
+            $user->status = $activeState ? User::STATUS_ACTIVE : User::STATUS_LOCKED;
+            if (!$user->save()) {
+                return self::getJsonErrorResult($user->getErrorsAsString());
             }
+            UserComponent::clearSearchCache();
         }
-        return $this->asJson($jsonData);
+
+        return self::getJsonOkResult(['id' => $user->id]);
     }
 
     public function actionFindByPhone()

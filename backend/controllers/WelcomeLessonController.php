@@ -11,6 +11,7 @@ use common\models\Group;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
+use common\resources\documents\WelcomeLessons;
 use yii;
 use yii\web\Response;
 
@@ -23,6 +24,17 @@ class WelcomeLessonController extends AdminController
 
     protected $accessRule = 'welcomeLessons';
 
+    public function actionTest()
+    {
+        $welcomeLessons = WelcomeLesson::find()->limit(10)->all();
+        $doc = new WelcomeLessons($welcomeLessons);
+        return Yii::$app->response->sendContentAsFile(
+            $doc->save(),
+            'doc.pdf',
+            ['inline' => true, 'mimeType' => 'application/pdf']
+        );
+    }
+    
     /**
      * Monitor all welcome lessons.
      * @return mixed

@@ -21,11 +21,12 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php $form = ActiveForm::begin(['options' => ['onsubmit' => 'Dashboard.savePupil(this); return false;']]); ?>
     
     <div class="user-view-messages-place"></div>
-    <?= $form->field($pupil, 'id', ['template' => '{input}', 'options' => ['class' => []]])->hiddenInput(); ?>
+    <?= $form->field($pupil, '[pupil]id', ['template' => '{input}', 'options' => ['class' => []]])->hiddenInput(); ?>
 
     <div class="row">
-        <div class="col-xs-12 col-md-6">
+        <div class="col-xs-12 col-md-6 pupil-info-block">
             <h2>
+                <small class="fas fa-pencil-alt point" onclick="Dashboard.showEditForm('pupil', this);"></small>
                 <?= Html::encode($this->title) ?>
                 <small><small>
                     <?php if ($pupil->individual): ?>
@@ -35,31 +36,85 @@ $this->params['breadcrumbs'][] = $this->title;
                     <?php endif; ?>
                 </small></small>
             </h2>
-            <?= $form->field($pupil, 'phoneFull')->staticControl(); ?>
+            <div class="pupil-view-block">
+                <?= $form->field($pupil, 'phoneFull')->staticControl(); ?>
+    
+                <?php if ($pupil->phone2): ?>
+                    <?= $form->field($pupil, 'phone2Full')->staticControl(); ?>
+                <?php endif; ?>
+    
+                <?php if ($pupil->note): ?>
+                    <?= $form->field($pupil, 'note')->staticControl(); ?>
+                <?php endif; ?>
+            </div>
+            <div class="pupil-edit-block hidden">
+                <?= $form->field($pupil, '[pupil]name')->textInput(['maxlength' => true, 'required' => true, 'disabled' => true]); ?>
 
-            <?php if ($pupil->phone2): ?>
-                <?= $form->field($pupil, 'phone2Full')->staticControl(); ?>
-            <?php endif; ?>
+                <?= $form->field($pupil, '[pupil]note')->textarea(['maxlength' => true, 'disabled' => true, 'htmlOptions' => ['rows' => 3]]); ?>
 
-            <?php if ($pupil->note): ?>
-                <?= $form->field($pupil, 'note')->staticControl(); ?>
-            <?php endif; ?>
+                <?= $form->field($pupil, '[pupil]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                    ->textInput(['maxlength' => 11, 'disabled' => true, 'required' => true, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
+
+                <?= $form->field($pupil, '[pupil]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                    ->textInput(['maxlength' => 11, 'disabled' => true, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
+            </div>
         </div>
 
         <hr class="visible-xs visible-sm">
 
-        <div class="col-xs-12 col-md-6">
-            <h2><?= $pupil->individual ? 'Родители' : 'Компания'; ?></h2>
+        <div class="col-xs-12 col-md-6 parent-info-block">
+            <h2>
+                <small class="fas fa-pencil-alt point" onclick="Dashboard.showEditForm('parent', this);"></small>
+                <?= $pupil->individual ? 'Родители' : 'Компания'; ?>
+            </h2>
 
-            <?php if (!$pupil->parent_id): ?>
-                <span class="label label-default">Студент уже взрослый</span>
-            <?php else: ?>
-                <?= $form->field($pupil->parent, 'name')->staticControl(); ?>
+            <div class="parent-view-block">
+                <?php if (!$pupil->parent_id): ?>
+                    <span class="label label-default">Студент уже взрослый</span>
+                <?php else: ?>
+                    <?= $form->field($pupil->parent, 'name')->staticControl(); ?>
+    
+                    <?= $form->field($pupil->parent, 'phoneFull')->staticControl(); ?>
 
-                <?= $form->field($pupil->parent, 'phoneFull')->staticControl(); ?>
+                    <?php if ($pupil->parent->phone2): ?>
+                        <?= $form->field($pupil->parent, 'phone2Full')->staticControl(); ?>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+            <div class="parent-edit-block hidden">
+                <?php if (!$pupil->parent_id): ?>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="parent_type" value="none" onclick="Dashboard.changeParentType(this)" checked> Студент уже взрослый
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="parent_type" value="exist" onclick="Dashboard.changeParentType(this)"> Есть брат (сестра), выбрать родителей
+                        </label>
+                        <div class="parent-edit-option parent-edit-exist parent hidden">
+                            <input type="hidden" class="autocomplete-user-id" name="User[parent][id]" required>
+                            <input class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" required disabled data-role="<?= $pupil->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY; ?>">
+                        </div>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="parent_type" value="new" onclick="Dashboard.changeParentType(this)"> Родители
+                        </label>
+                    </div>
+                <?php endif; ?>
 
-                <?= $form->field($pupil->parent, 'phone2Full')->staticControl(); ?>
-            <?php endif; ?>
+                <div class="parent-edit-option parent-edit-new <?= $pupil->parent_id ? '' : ' hidden '; ?>">
+                    <?php $parent = $pupil->parent_id ? $pupil->parent : new User(); ?>
+                    <?= $form->field($parent, '[parent]name')->textInput(['maxlength' => true, 'required' => true, 'disabled' => !$pupil->parent_id]); ?>
+
+                    <?= $form->field($parent, '[parent]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                        ->textInput(['maxlength' => 11, 'required' => true, 'disabled' => !$pupil->parent_id, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+
+                    <?= $form->field($parent, '[parent]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                        ->textInput(['maxlength' => 11, 'disabled' => !$pupil->parent_id, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+                </div>
+            </div>
         </div>
     </div>
     

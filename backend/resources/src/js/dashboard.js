@@ -156,9 +156,33 @@ let Dashboard = {
                         .fail(Main.jumpToTop);
                     let htmlAddon = '<button class="btn btn-default pull-right" onclick="Dashboard.togglePupilInfo(this, true);"><span class="fas fa-sync"></span></button>';
                     $(childrenInfoBlock).html(htmlAddon + data);
+                    Main.initPhoneFormatted();
+                    $(childrenInfoBlock).find(".autocomplete-user").each(function() {
+                        Main.initAutocompleteUser(this);
+                    });
                 })
                 .fail(Main.logAndFlashAjaxError)
                 .fail(Main.jumpToTop);
+        }
+    },
+    showEditForm: function(prefix, e) {
+        let container = $(e).closest("." + prefix + "-info-block");
+        $(container).find("." + prefix + "-view-block").addClass("hidden");
+        $(container).find("." + prefix + "-edit-block")
+            .removeClass("hidden")
+            .find("input, textarea").prop("disabled", false);
+    },
+    changeParentType: function(e) {
+        let block = $(e).closest(".parent-edit-block");
+        $(block).find(".parent-edit-option").each(function() {
+            $(this).addClass("hidden");
+            $(this).find("input, select").prop("disabled", true);
+        });
+        let checkedVal = $(block).find('input[name="parent_type"]:checked').val();
+        let activeBlock = $(block).find(".parent-edit-" + checkedVal);
+        if (activeBlock.length > 0) {
+            $(activeBlock).removeClass("hidden");
+            $(activeBlock).find("input, select").prop("disabled", false);
         }
     },
     savePupil: function(form) {

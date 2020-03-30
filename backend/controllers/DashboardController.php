@@ -53,11 +53,8 @@ class DashboardController extends AdminController
                 break;
             case self::SEARCH_TYPE_FLEX:
                 $digitsOnly = preg_replace('#\D#', '', $searchValue);
-                $activeStatuses = [User::STATUS_ACTIVE, User::STATUS_INACTIVE];
                 $query = User::find()
-                    ->andWhere([
-                        'status' => $activeStatuses
-                    ])
+                    ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
                     ->addOrderBy(['role' => SORT_DESC, 'name' => SORT_ASC]);
                 $searchCondition = [['like', 'name', $searchValue]];
                 if (strlen($digitsOnly) >= 7) {

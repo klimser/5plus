@@ -80,6 +80,27 @@ let Main = {
         if (selector === undefined) selector = ".phone-formatted";
         $(selector).inputmask({"mask": "99 999-9999"});
     },
+    initAutocompleteUser: function(input) {
+        if (!input || $(input).length === 0) return;
+        let source = '/user/find';
+        let role = $(input).data('role');
+        if (role !== undefined) {
+            source += '?role=' + role;
+        }
+        let resultsInput = $(input).parent().find("input.autocomplete-user-id");
+        $(input).autocomplete({
+            source: source,
+            minLength: 2,
+            change: function(event, ui) {
+                if (ui.item === null) {
+                    $(event.target).val('');
+                    $(resultsInput).val('');
+                } else {
+                    $(resultsInput).val(ui.item.id);
+                }
+            }
+        });
+    },
     
     logAndFlashAjaxError: function(jqXHR, textStatus, errorThrown, messagePlaceSelector) {
         console.log(jqXHR);
