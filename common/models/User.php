@@ -40,6 +40,7 @@ use yii\web\IdentityInterface;
  * @property int $created_by
  * @property string $password write-only password
  * @property array $nameParts
+ * @property array $firstName
  * @property User $parent
  * @property Teacher $teacher
  * @property User[] $children
@@ -353,6 +354,16 @@ class User extends ActiveRecord implements IdentityInterface
             return [$parts[0], $parts[1], implode(' ', array_slice($parts, 2))];
         }
         return $parts;
+    }
+    
+    public function getFirstName(): string 
+    {
+        $nameParts = $this->nameParts;
+        if (count($nameParts) === 1) {
+            return $nameParts[0];
+        } else {
+            return $nameParts[1];
+        }
     }
     
     public function getNameHidden(): string

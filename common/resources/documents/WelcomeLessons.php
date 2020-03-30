@@ -45,20 +45,19 @@ class WelcomeLessons
         $this->_doc->setPrintFooter(false);
         $this->_doc->setFooterMargin(0);
         $this->_doc->SetMargins(0, 0, 0, false);
-        $x2 = $y3 = 0;
+        $x2 = $y2 = 0;
         foreach (array_values($welcomeLessons) as $key => $welcomeLesson) {
-            if ($key % 6 === 0) {
+            if ($key % 4 === 0) {
                 $this->_doc->AddPage('P', 'A4');
                 $x2 = floor($this->_doc->getPageWidth() / 2);
-                $y3 = floor($this->_doc->getPageHeight() / 3);
+                $y2 = floor($this->_doc->getPageHeight() / 2);
                 
                 $this->_doc->Line($x2, 0, $x2, $this->_doc->getPageHeight(), []);
-                $this->_doc->Line(0, $y3, $this->_doc->getPageWidth(), $y3, []);
-                $this->_doc->Line(0, 2 * $y3, $this->_doc->getPageWidth(), 2 * $y3, []);
+                $this->_doc->Line(0, $y2, $this->_doc->getPageWidth(), $y2, []);
             }
             
             $xLeft = $x2 * ($key % 2);
-            $yTop = $y3 * floor(($key % 6) / 2);
+            $yTop = $y2 * floor(($key % 4) / 2);
             
             $this->_doc->Image(\Yii::getAlias('@common') . '/resources/images/logo.png',  $xLeft+ 5, $yTop + 5, 30, 33);
             
@@ -86,22 +85,37 @@ class WelcomeLessons
                 $this->_doc->SetXY($xLeft + 5, 6 * $i + $yTop + 35);
                 $this->_doc->Write(6, $teacherString);
             }
-            
+
+            $y = 6 * count($teacherStrings) + $yTop + 40;
             if ($welcomeLesson->group_id) {
-                $y = 6 * count($teacherStrings) + $yTop + 37;
                 $groupStrings = $this->splitText('Группа - ' . $welcomeLesson->group->name, 90);
                 foreach ($groupStrings as $i => $groupString) {
                     $this->_doc->SetXY($xLeft + 5, $y + 6 * $i);
                     $this->_doc->Write(6, $groupString);
                 }
-                $y += 6 * count($groupStrings) + 6;
+                $y += 6 * count($groupStrings) + 8;
                 $this->_doc->SetXY($xLeft + 5, $y);
+                $offset = 0;
                 foreach ($welcomeLesson->group->scheduleData as $day => $time) {
                     if ($time) {
-                        $this->_doc->Write(6, Calendar::$weekDaysShort[($day + 1) % 7] . ' - ' . $time . ' | ');
+                        $this->_doc->SetXY($xLeft + $offset + 8, $y);
+                        $this->_doc->Write(6, Calendar::$weekDaysShort[($day + 1) % 7]);
+                        $this->_doc->SetXY($xLeft + $offset + 5, $y + 6);
+                        $this->_doc->Write(6, $time);
+                        $offset += 20;
                     }
                 }
+                $y += 15;
+                $this->_doc->SetXY($xLeft + 5, $y);
+                $this->_doc->Write(6, 'Цена - ' . $welcomeLesson->group->priceMonth);
+                $y += 6;
+                $this->_doc->SetXY($xLeft + 5, $y);
+                $this->_doc->Write(6, 'При оплате за 3 месяца - ' . (int)round($welcomeLesson->group->price3Month / 3));
             }
+
+            $y += 12;
+            $this->_doc->SetXY($xLeft + 5, $y);
+            $this->_doc->Write(6,  $welcomeLesson->createdAdmin->firstName . ' ' . $welcomeLesson->createdAdmin->phoneFull);
         }
     }
 
