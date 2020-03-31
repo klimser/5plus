@@ -18,7 +18,8 @@ class EventController extends AdminController
 
     private function getLimitDate(): \DateTime
     {
-        return new \DateTime('+30 minute');
+//        return new \DateTime('+30 minute');
+        return new \DateTime('tomorrow midnight');
     }
 
     /**
