@@ -71,22 +71,23 @@ class WelcomeLessons
             $fontSize = 12;
             $this->_doc->SetFont($fontBold, '', $fontSize);
             $this->_doc->SetXY($xLeft + 45, $yTop + 20);
-            $this->_doc->Write(6, Yii::$app->formatter->asDatetime($welcomeLesson->lessonDateTime, 'php:j F Y G:i'));
+            $this->_doc->Write(6, Yii::$app->formatter->asDatetime($welcomeLesson->lessonDateTime, 'php:j F Y'));
 
             $this->_doc->SetFont($fontRegular, '', $fontSize);
             $subjectStrings = $this->splitText($welcomeLesson->subject->name, 50);
             foreach ($subjectStrings as $i => $subjectString) {
-                $this->_doc->SetXY($xLeft + 45, 6 * $i + $yTop + 25);
+                $this->_doc->SetXY($xLeft + 45, 5 * $i + $yTop + 25);
                 $this->_doc->Write(6, $subjectString);
             }
             
+            $y = max(5 * count($subjectStrings) + $yTop + 25, $yTop + 40);
             $teacherStrings = $this->splitText('Преподаватель - ' . $welcomeLesson->teacher->name, 90);
             foreach ($teacherStrings as $i => $teacherString) {
-                $this->_doc->SetXY($xLeft + 5, 6 * $i + $yTop + 35);
+                $this->_doc->SetXY($xLeft + 5, 5 * $i + $y);
                 $this->_doc->Write(6, $teacherString);
             }
 
-            $y = 6 * count($teacherStrings) + $yTop + 40;
+            $y += 6 * count($teacherStrings) + 3;
             if ($welcomeLesson->group_id) {
                 $groupStrings = $this->splitText('Группа - ' . $welcomeLesson->group->name, 90);
                 foreach ($groupStrings as $i => $groupString) {
