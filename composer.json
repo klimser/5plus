@@ -19,7 +19,6 @@
     "ext-curl": "*",
     "ext-json": "*",
     "yiisoft/yii2": ">=2.0.6",
-    "yiisoft/yii2-bootstrap": "*",
     "yiisoft/yii2-swiftmailer": "*",
     "yiisoft/yii2-jui": "^2.0",
     "2amigos/yii2-date-picker-widget": "~1.0",
@@ -36,7 +35,9 @@
     "setasign/fpdi": "^2.2",
     "setasign/fpdi-tcpdf": "^2.2",
     "2amigos/yii2-date-time-picker-widget": "^1.0",
-    "chillerlan/php-qrcode": "^3.2"
+    "chillerlan/php-qrcode": "^3.2",
+    "yiisoft/yii2-bootstrap4": "~2.0",
+    "yiisoft/yii2-twig": "^2.4"
   },
   "require-dev": {
     "yiisoft/yii2-debug": "*",

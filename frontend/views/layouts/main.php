@@ -1,7 +1,6 @@
 <?php
 
 /* @var $this \yii\web\View */
-/* @var $webpage \common\models\Webpage */
 /* @var $content string */
 
 use common\models\Menu;
@@ -12,6 +11,9 @@ use yii\widgets\Breadcrumbs;
 use common\widgets\Alert;
 use common\components\WidgetHtml;
 
+/* @var $webpage \common\models\Webpage */
+$webpage = array_key_exists('webpage', $this->params) ? $this->params['webpage'] : null;
+
 $this->beginPage();
 $this->render('/grunt-assets');
 ?>
@@ -19,16 +21,16 @@ $this->render('/grunt-assets');
 <html lang="<?= Yii::$app->language ?>">
 <head>
     <meta charset="<?= Yii::$app->charset ?>">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="apple-touch-icon" sizes="180x180" href="<?= Yii::$app->homeUrl; ?>icons/apple-touch-icon.png?v=Nm5Ovj34NA">
-    <link rel="icon" type="image/png" href="<?= Yii::$app->homeUrl; ?>icons/favicon-32x32.png?v=Nm5Ovj34NA" sizes="32x32">
-    <link rel="icon" type="image/png" href="<?= Yii::$app->homeUrl; ?>icons/favicon-16x16.png?v=Nm5Ovj34NA" sizes="16x16">
-    <link rel="manifest" href="<?= Yii::$app->homeUrl; ?>site.webmanifest?v=Nm5Ovj34NA">
-    <link rel="mask-icon" href="<?= Yii::$app->homeUrl; ?>safari-pinned-tab.svg?v=Nm5Ovj34NA" color="#65a2d9">
-    <link rel="shortcut icon" href="<?= Yii::$app->homeUrl; ?>favicon.ico?v=Nm5Ovj34NA">
-    <meta name="msapplication-TileColor" content="#ffc40d">
-    <meta name="msapplication-config" content="<?= Yii::$app->homeUrl; ?>icons/browserconfig.xml?v=Nm5Ovj34NA">
-    <meta name="theme-color" content="#65a2d9">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-config" content="<?= Yii::$app->homeUrl; ?>icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= Yii::$app->homeUrl; ?>icons/apple-touch-icon.png?v=fjhbdf9b40">
+    <link rel="icon" type="image/png" href="<?= Yii::$app->homeUrl; ?>icons/favicon-32x32.png?v=fjhbdf9b40" sizes="32x32">
+    <link rel="icon" type="image/png" href="<?= Yii::$app->homeUrl; ?>icons/favicon-16x16.png?v=fjhbdf9b40" sizes="16x16">
+    <link rel="manifest" href="<?= Yii::$app->homeUrl; ?>site.webmanifest?v=fjhbdf9b40">
+    <link rel="mask-icon" href="<?= Yii::$app->homeUrl; ?>safari-pinned-tab.svg?v=fjhbdf9b40" color="#65a2d9">
+    <link rel="shortcut icon" href="<?= Yii::$app->homeUrl; ?>favicon.ico?v=fjhbdf9b40">
 
     <?= Html::csrfMetaTags() ?>
     <title><?= Html::encode($this->title); ?></title>
@@ -36,13 +38,72 @@ $this->render('/grunt-assets');
     <?= YII_ENV == 'prod' ? WidgetHtml::getByName('google_analytics') : ''; ?>
     <?= YII_ENV == 'prod' ? WidgetHtml::getByName('facebook_pixel') : ''; ?>
 </head>
-<body>
+<body class="<?= $webpage && $webpage->main ? ' front-page ' : ''; ?>">
 <?php $this->beginBody() ?>
 <?= YII_ENV == 'prod' ? WidgetHtml::getByName('yandex_metrika') : ''; ?>
 
-
-<header>
+<header class="header">
     <div class="content-block">
+        <div class="mobile-header">
+            <div class="btn-menu-open">
+                <span class="line1"></span>
+                <span class="line2"></span>
+                <span class="line3"></span>
+            </div>
+        </div>
+        <div class="header-box container">
+            <div class="logo-block">
+                <a href="<?= Yii::$app->homeUrl; ?>">
+                    <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo.svg" alt="Учебный центр &quot;Пять с плюсом&quot;" title="Учебный центр &quot;Пять с плюсом&quot;">
+                </a>
+                <a href="<?= Yii::$app->homeUrl; ?>" class="logo">
+                    <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo.svg" alt="site logo">
+                </a>
+                <div class="name">
+                    Пять с плюсом
+                    <span class="name-small">ВАШ УЧЕБНЫЙ ЦЕНТР</span>
+                </div>
+            </div>
+            <div class="contacts-block">
+                <div class="address">
+                    <img class="ico" src="images/address-ico.png" alt="ico">
+                    <div class="text">
+                        <div class="title">Адрес:</div>
+                        <address class="desc">г.Ташкент,<br> ул. Ойбек, 16</address>
+                    </div>
+                </div>
+                <div class="phone">
+                    <img src="images/mobile-ico.png" alt="ico" class="ico">
+                    <div class="text">
+                        <div class="title">Телефон:</div>
+                        <div class="desc">
+                            <a class="tel" href="tel:+998712000350"><span class="code">+998-71</span> 200-03-50</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="social">
+                    <div class="title">Мы в соц сетях:</div>
+                    <ul class="social-list">
+                        <li class="item"><a class="bgc-ins" href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a></li>
+                        <li class="item"><a class="bgc-fb" href="https://www.facebook.com/" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
+                        <li class="item"><a class="bgc-tg" href="https://telegram.org/" target="_blank"><i class="fab fa-telegram-plane"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <nav class="main-menu-block">
+                <ul class="main-menu-list">
+                    <li class="item"><a href="#">НОВОСТИ</a></li>
+                    <li class="item"><a href="#">КОМАНДА</a></li>
+                    <li class="item"><a href="#">ЦЕНЫ</a></li>
+                    <li class="item"><a href="#">РЕЗУЛЬТАТЫ</a></li>
+                    <li class="item"><a href="#">ОТЗЫВЫ</a></li>
+                    <li class="item"><a href="#">ЭТО ПОЛЕЗНО</a></li>
+                    <li class="item"><a href="#">ВУЗЫ ТАШКЕНТА</a></li>
+                    <li class="item"><a href="#">КОНТАКТЫ</a></li>
+                </ul>
+            </nav>
+        </div>
         <div class="container">
             <div class="row">
                 <div class="logo-block col-xs-5 col-sm-3 col-lg-2 text-center">
@@ -63,7 +124,7 @@ $this->render('/grunt-assets');
                     <?php NavBar::begin(['options' => ['class' => 'navbar-default'], 'innerContainerOptions' => ['class' => 'container-fluid']]); ?>
                     <?= Nav::widget([
                         'options' => ['class' => 'navbar-nav'],
-                        'items' => Menu::getMenuItemsCached(Menu::MAIN_MENU_ID, array_key_exists('webpage', $this->params) ? $this->params['webpage'] : null),
+                        'items' => Menu::getMenuItemsCached(Menu::MAIN_MENU_ID, $webpage),
                     ]); ?>
                     <?php NavBar::end(); ?>
                 </div>

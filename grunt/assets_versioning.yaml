@@ -7,7 +7,7 @@ dev_front:
     versionsMapFile: "frontend/views/grunt-assets.php"
     versionsMapTrimPath: "frontend/web/"
     tasks:
-      - less:dev_front
+      - sass:dev_front
       - uglify:vendors_front
       - uglify:main_front
 dev_back:
@@ -23,7 +23,7 @@ prod_front:
     versionsMapFile: "frontend/views/grunt-assets.php"
     versionsMapTrimPath: "frontend/web/"
     tasks:
-      - less:prod_front
+      - sass:prod_front
       - uglify:vendors_front
       - uglify:main_front
 prod_back:
