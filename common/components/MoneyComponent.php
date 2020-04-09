@@ -338,10 +338,8 @@ class MoneyComponent extends Component
             ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_ACTIVE])
             ->andWhere(['>', 'amount', 0])
             ->select('SUM(amount)')->scalar();
-        $startDate = null;
         $groupPupilMap = [];
         foreach ($groupPupils as $groupPupil) {
-            if (!$startDate || $startDate > $groupPupil->startDateObject) $startDate = $groupPupil->startDateObject;
             $groupPupil->paid_lessons = 0;
             $groupPupilMap[$groupPupil->id] = ['entity' => $groupPupil, 'state' => false];
         }
@@ -373,14 +371,14 @@ class MoneyComponent extends Component
                         $moneyDiscount += $payment->amount;
                     } else {
                         $money += $payment->amount;
-                        if ($money < 0) {
-                            if (!$groupPupilMap[$member->group_pupil_id]['state']) {
-                                $groupPupilMap[$member->group_pupil_id]['entity']->date_charge_till = $event->event_date;
-                                $groupPupilMap[$member->group_pupil_id]['state'] = true;
-                            }
-                            $groupPupilMap[$member->group_pupil_id]['entity']->paid_lessons--;
-                        }
                     }
+                }
+                if ($money < 0) {
+                    if (!$groupPupilMap[$member->group_pupil_id]['state']) {
+                        $groupPupilMap[$member->group_pupil_id]['entity']->date_charge_till = $event->event_date;
+                        $groupPupilMap[$member->group_pupil_id]['state'] = true;
+                    }
+                    $groupPupilMap[$member->group_pupil_id]['entity']->paid_lessons--;
                 }
             }
         }
@@ -422,11 +420,11 @@ class MoneyComponent extends Component
                 $w = intval($currentDate->format('w'));
                 foreach ($groupPupilMap as $id => $item) {
                     if (!$item['state']) {
-                        if ($item['entity']->date_end && $item['entity']->endDateObject < $nowDate) {
+                        if ($item['entity']->date_end && $item['entity']->endDateObject < $currentDate) {
                             $item['entity']->date_charge_till = $item['entity']->date_end;
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
-                        } elseif ($item['entity']->group->date_end && $item['entity']->group->endDateObject < $nowDate) {
+                        } elseif ($item['entity']->group->date_end && $item['entity']->group->endDateObject < $currentDate) {
                             $item['entity']->date_charge_till = $item['entity']->group->date_end;
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
@@ -435,9 +433,11 @@ class MoneyComponent extends Component
                                 $moneyDiscount -= $item['param']->lesson_price_discount ?? $item['param']->lesson_price;
                                 $item['entity']->paid_lessons++;
                             } else {
-                                if ($money > 0) $item['entity']->paid_lessons++;
                                 $money -= $item['param']->lesson_price;
-                                if ($money < 0) {
+                                if ($money >= 0) {
+                                    $item['entity']->paid_lessons++;
+                                }
+                                if ($money <= 0) {
                                     $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');
                                     $groupPupilMap[$id]['state'] = true;
                                     $continue--;
