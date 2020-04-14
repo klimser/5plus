@@ -28,6 +28,7 @@
     "jquery": "^3.3.1",
     "nestedSortable": "^1.3.4",
     "owl.carousel": "^2.3.4",
+    "swiper": "^5.3.7",
     "time-grunt": "1.x.x",
     "yarn": "^1.7.0"
   }

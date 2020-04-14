@@ -1,6 +1,8 @@
 @media (min-width : 1200px)
 	.container
 		max-width: 1430px
+	.header .header-box .contacts-block .address .text
+		max-width: 120px
 @media (max-width : 1430px)
 	.header .header-box .contacts-block
 		padding-left: 20px
@@ -54,22 +56,30 @@
 		font-size: 19px
 		line-height: inherit
 @media (max-width : 1200px)
-	.header .header-box .contacts-block .phone .text .title
-		margin-bottom: 5px
-	.header .header-box .contacts-block .social .social-list
-		margin: 0 -2px
-	.header .header-box .contacts-block .social .social-list .item
-		margin: 2px
-	.header .header-box .contacts-block .social .social-list .item a
-		width: 30px
-		height: 30px
-		font-size: 18px
-	.header .header-box .contacts-block .address .text .desc
-		font-size: 17px
-	.header .header-box .contacts-block .phone .text .desc
-		font-size: 20px
-	.header .header-box .contacts-block .phone .text .desc span
-		font-size: 15px
+	.header .header-box .contacts-block
+		.phone
+			min-width: 195px
+			.text .title
+				margin-bottom: 5px
+		.social
+			max-width: 111px
+			.social-list
+				margin: 0 -2px
+				.item
+					margin: 2px
+					a
+						width: 30px
+						height: 30px
+						font-size: 18px
+		.address .text
+			max-width: 120px
+			.desc
+				font-size: 17px
+	.header .header-box .contacts-block .phone
+		.text .desc
+			font-size: 20px
+			span
+				font-size: 15px
 	.header .header-box .main-menu-block .main-menu-list .item
 		padding-left: 5px
 		padding-right: 5px
@@ -280,8 +290,16 @@
 		height: 60px
 		padding: 0
 		z-index: 9
-	.header .header-box .logo-block .logo img
-		max-width: 50px
+	.header .header-box .logo-block
+		.logo img
+			max-width: 50px
+		.name
+			margin-right: 10px
+			max-width: 240px
+			font-size: 1.6rem
+			.name-small
+				font-size: 0.8rem
+				line-height: 100%
 	.header .header-box .logo-block .name
 		margin-left: 15px
 	.header .header-box .logo-block .name img
@@ -442,8 +460,13 @@
 		width: 50%
 	.footer .footer-box .logo-n-map-block .logo
 		margin-bottom: 30px
-	.footer .footer-box .logo-n-map-block .logo img
-		max-width: 300px
+		img
+			max-width: 90px
+			width: 90px
+		.name
+			font-size: 2rem
+			.name-small
+				font-size: 1rem
 	.footer .footer-box .contacts-block .block-title
 		font-size: 24px
 		margin-bottom: 60px
@@ -660,6 +683,13 @@
 		padding: 30px
 	.header .header-box .contacts-block .social .title
 		display: none
+	.header .header-box .logo-block .name
+		margin-right: 10px
+		max-width: 240px
+		font-size: 1.5rem
+		.name-small
+			font-size: 0.8rem
+			line-height: 100%
 	.language-classes-box .swiper-language-classes-slider .swiper-slide.item .card .name br
 		display: none
 	.reviews-box .swiper-reviews-slider .swiper-slide.item .blockquote .text::before,
@@ -857,8 +887,11 @@
 		max-width: 36px
 	.header .header-box .logo-block .name
 		margin-right: 10px
-	.header .header-box .logo-block .name img
-		max-width: 98px
+		max-width: 140px
+		font-size: 1rem
+		.name-small
+			font-size: .6rem
+			line-height: 100%
 	.main-slider-box .swiper-main-slider .swiper-slide .text
 		padding: 0 0 15px
 	.preparation-for-admission-to-universities-box .container .girl,
@@ -900,6 +933,14 @@
 		font-size: 20px
 	.footer .footer-box .contacts-block .item .text .desc
 		font-size: 16px
+	.footer .footer-box .logo-n-map-block .logo
+		img
+			max-width: 80px
+			width: 80px
+		.name
+			font-size: 1.8rem
+			.name-small
+				font-size: 0.9rem
 	.our-specialists-box .swiper-our-specialists-slider .swiper-slide.item .card
 		padding-left: 15px
 		padding-right: 15px

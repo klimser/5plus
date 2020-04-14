@@ -212,7 +212,8 @@ trait UploadImage
             return '';
         }
 
-        return Yii::getAlias('@uploadsUrl') . '/' . $config['imageFolder'] . '/' . $this->$imageField;
+//        return Yii::getAlias('@uploadsUrl') . '/' . $config['imageFolder'] . '/' . $this->$imageField;
+        return '//5plus.uz/uploads/' . $config['imageFolder'] . '/' . $this->$imageField;
     }
 
     /**

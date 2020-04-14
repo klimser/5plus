@@ -33,7 +33,7 @@ $this->params['breadcrumbs'][] = $promotion->name;
         <div class="clearfix"></div>
 
         <?=
-        $form->field($promotion, 'content')->widget(\dosamigos\tinymce\TinyMce::class, \backend\components\DefaultValuesComponent::getTinyMceSettings());
+        $form->field($promotion, 'content')->widget(\dosamigos\tinymce\TinyMce::class, \common\components\DefaultValuesComponent::getTinyMceSettings());
         ?>
 
         <?= $this->render('/webpage/_form', [

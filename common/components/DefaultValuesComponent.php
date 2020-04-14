@@ -1,12 +1,31 @@
 <?php
 
-namespace backend\components;
+namespace common\components;
 
 use Yii;
 use yii\base\Component;
 
 class DefaultValuesComponent extends Component
 {
+    public static function getPagerSettings()
+    {
+        return [
+            'maxButtonCount' => 4,
+            'options' => ['class' => 'pagination justify-content-center'],
+            'linkContainerOptions' => ['class' => 'page-item'],
+            'linkOptions' => ['class' => 'page-link'],
+            'disabledListItemSubTagOptions' => ['class' => 'page-link'],
+            'nextPageLabel' => '<span class="fas fa-angle-right"></span>',
+            'prevPageLabel' => '<span class="fas fa-angle-left"></span>',
+            'lastPageLabel' => '<span class="fas fa-angle-double-right"></span>',
+            'firstPageLabel' => '<span class="fas fa-angle-double-left"></span>',
+            'nextPageCssClass' => 'arr',
+            'prevPageCssClass' => 'arr',
+            'lastPageCssClass' => 'arr',
+            'firstPageCssClass' => 'arr',
+            'disableCurrentPageButton' => true,
+        ];
+    }
     public static function getDatePickerSettings()
     {
         return [

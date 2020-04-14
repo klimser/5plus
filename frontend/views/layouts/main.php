@@ -5,10 +5,7 @@
 
 use common\models\Menu;
 use yii\helpers\Html;
-use yii\bootstrap\Nav;
-use yii\bootstrap\NavBar;
-use yii\widgets\Breadcrumbs;
-use common\widgets\Alert;
+use yii\bootstrap4\Nav;
 use common\components\WidgetHtml;
 
 /* @var $webpage \common\models\Webpage */
@@ -43,97 +40,97 @@ $this->render('/grunt-assets');
 <?= YII_ENV == 'prod' ? WidgetHtml::getByName('yandex_metrika') : ''; ?>
 
 <header class="header">
-    <div class="content-block">
-        <div class="mobile-header">
-            <div class="btn-menu-open">
-                <span class="line1"></span>
-                <span class="line2"></span>
-                <span class="line3"></span>
-            </div>
+    <div class="mobile-header">
+        <div class="btn-menu-open">
+            <span class="line1"></span>
+            <span class="line2"></span>
+            <span class="line3"></span>
         </div>
-        <div class="header-box container">
-            <div class="logo-block">
-                <a href="<?= Yii::$app->homeUrl; ?>">
+    </div>
+    <div class="header-box container">
+        <div class="logo-block">
+            <a href="<?= Yii::$app->homeUrl; ?>" class="d-flex">
+                <div class="logo">
                     <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo.svg" alt="Учебный центр &quot;Пять с плюсом&quot;" title="Учебный центр &quot;Пять с плюсом&quot;">
-                </a>
-                <a href="<?= Yii::$app->homeUrl; ?>" class="logo">
-                    <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo.svg" alt="site logo">
-                </a>
+                </div>
                 <div class="name">
                     Пять с плюсом
-                    <span class="name-small">ВАШ УЧЕБНЫЙ ЦЕНТР</span>
+                    <div class="name-small">ВАШ УЧЕБНЫЙ ЦЕНТР</div>
+                </div>
+            </a>
+        </div>
+        <div class="contacts-block">
+            <div class="address">
+                <span class="ico"></span>
+                <div class="text">
+                    <?= WidgetHtml::getByName('address'); ?>
                 </div>
             </div>
-            <div class="contacts-block">
-                <div class="address">
-                    <img class="ico" src="images/address-ico.png" alt="ico">
-                    <div class="text">
-                        <div class="title">Адрес:</div>
-                        <address class="desc">г.Ташкент,<br> ул. Ойбек, 16</address>
-                    </div>
+            <div class="phone">
+                <span class="ico"></span>
+                <div class="text">
+                    <?= WidgetHtml::getByName('phones'); ?>
                 </div>
-                <div class="phone">
-                    <img src="images/mobile-ico.png" alt="ico" class="ico">
-                    <div class="text">
-                        <div class="title">Телефон:</div>
-                        <div class="desc">
-                            <a class="tel" href="tel:+998712000350"><span class="code">+998-71</span> 200-03-50</a>
+            </div>
+            <div class="social">
+                <?= WidgetHtml::getByName('social'); ?>
+            </div>
+        </div>
+
+        <nav class="main-menu-block">
+            <?= Nav::widget([
+                'options' => ['class' => 'main-menu-list'],
+                'items' => Menu::getMenuItemsCached(Menu::MAIN_MENU_ID, $webpage),
+            ]); ?>
+        </nav>
+    </div>
+    <?php if ($webpage && $webpage->main): ?>
+        <div class="main-slider-box container">
+            <div class="main-slider">
+                <div class="swiper-main-slider swiper-container">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                            <div class="text">
+                                <h2 class="title">Мы дорожим качеством ваших знаний</h2>
+                                <div class="desc">We are a technology company that understands <br>complexity of businesses, and with our technical <br>expertise, we help them transform and scale</div>
+                                <div class="btns-group">
+                                    <a href="#" class="btn btn-danger btn-ico btn-lg">Проверь свои знания <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/puzzle-ico.png" alt="ico" class="ico"></a>
+                                    <a href="#" class="btn btn-primary btn-ico btn-lg">Онлайн оплата <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/card-ico.png" alt="ico" class="ico"></a>
+                                    <a href="#" class="btn btn-outline-info btn-ico btn-lg">Мы вам перезвоним <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/phone-ico.png" alt="ico" class="ico"></a>
+                                </div>
+                            </div>
+                            <div class="img"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img.jpg" alt="image"></div>
+                        </div>
+                        <div class="swiper-slide">
+                            <div class="text">
+                                <h2 class="title">Мы дорожим качеством ваших знаний</h2>
+                                <div class="desc">We are a technology company that understands <br>complexity of businesses, and with our technical <br>expertise, we help them transform and scale</div>
+                                <div class="btns-group">
+                                    <a href="#" class="btn btn-danger btn-ico btn-lg">Проверь свои знания <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/puzzle-ico.png" alt="ico" class="ico"></a>
+                                    <a href="#" class="btn btn-primary btn-ico btn-lg">Онлайн оплата <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/card-ico.png" alt="ico" class="ico"></a>
+                                    <a href="#" class="btn btn-outline-info btn-ico btn-lg">Мы вам перезвоним <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/phone-ico.png" alt="ico" class="ico"></a>
+                                </div>
+                            </div>
+                            <div class="img"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img.jpg" alt="image"></div>
                         </div>
                     </div>
                 </div>
-                <div class="social">
-                    <div class="title">Мы в соц сетях:</div>
-                    <ul class="social-list">
-                        <li class="item"><a class="bgc-ins" href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a></li>
-                        <li class="item"><a class="bgc-fb" href="https://www.facebook.com/" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-                        <li class="item"><a class="bgc-tg" href="https://telegram.org/" target="_blank"><i class="fab fa-telegram-plane"></i></a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <nav class="main-menu-block">
-                <ul class="main-menu-list">
-                    <li class="item"><a href="#">НОВОСТИ</a></li>
-                    <li class="item"><a href="#">КОМАНДА</a></li>
-                    <li class="item"><a href="#">ЦЕНЫ</a></li>
-                    <li class="item"><a href="#">РЕЗУЛЬТАТЫ</a></li>
-                    <li class="item"><a href="#">ОТЗЫВЫ</a></li>
-                    <li class="item"><a href="#">ЭТО ПОЛЕЗНО</a></li>
-                    <li class="item"><a href="#">ВУЗЫ ТАШКЕНТА</a></li>
-                    <li class="item"><a href="#">КОНТАКТЫ</a></li>
-                </ul>
-            </nav>
-        </div>
-        <div class="container">
-            <div class="row">
-                <div class="logo-block col-xs-5 col-sm-3 col-lg-2 text-center">
-                    <a href="<?= Yii::$app->homeUrl; ?>">
-                        <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo.svg" alt="Учебный центр &quot;Пять с плюсом&quot;" title="Учебный центр &quot;Пять с плюсом&quot;">
-                    </a>
-                </div>
-                <div class="phone-block col-xs-7 col-sm-3 col-md-5 col-lg-5">
-                    <?= WidgetHtml::getByName('phones'); ?>
-                </div>
-                <div class="email-block col-xs-7 col-sm-3 col-md-2 col-lg-2">
-                    <?= WidgetHtml::getByName('email'); ?>
-                </div>
-                <div class="address-block col-xs-7 col-sm-3 col-md-2 col-lg-3">
-                    <?= WidgetHtml::getByName('address'); ?>
-                </div>
-                <div class="col-xs-12 col-sm-9 col-lg-10">
-                    <?php NavBar::begin(['options' => ['class' => 'navbar-default'], 'innerContainerOptions' => ['class' => 'container-fluid']]); ?>
-                    <?= Nav::widget([
-                        'options' => ['class' => 'navbar-nav'],
-                        'items' => Menu::getMenuItemsCached(Menu::MAIN_MENU_ID, $webpage),
-                    ]); ?>
-                    <?php NavBar::end(); ?>
-                </div>
+                <div class="swiper-button-prev"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-arr.png" alt="arrow"></div>
+                <div class="swiper-button-next"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-arr.png" alt="arrow"></div>
             </div>
         </div>
-    </div>
-    <div class="clouds-line-top"></div>
+    <?php else: ?>
+        <?php if (array_key_exists('h1', $this->params) && $this->params['h1']): ?>
+            <div class="page-title-box container">
+                <h1 class="page-title"><?= $this->params['h1']; ?></h1>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
 </header>
-
+<main class="content">
+    <?= $content ?>
+</main>
+<?php /*
 <div class="container main-content">
     <div class="row">
         <?= Alert::widget(); ?>
@@ -199,8 +196,55 @@ $this->render('/grunt-assets');
         </div>
     </div>
 </footer>
+*/ ?>
+
+<footer class="footer">
+    <div class="footer-box container">
+        <div class="logo-n-map-block">
+            <div class="logo row justify-content-start">
+                <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo_inverse.svg" alt="Учебный центр &quot;Пять с плюсом&quot;" title="Учебный центр &quot;Пять с плюсом&quot;">
+                <div class="name">
+                    Пять с плюсом
+                    <div class="name-small text-left">ВАШ УЧЕБНЫЙ ЦЕНТР</div>
+                </div>
+            </div>
+            <div id="map" class="map"></div>
+        </div>
+        <div class="contacts-block">
+            <h2 class="block-title">Контактная информация</h2>
+            <div class="item">
+                <span class="ico icon-map"></span>
+                <div class="text">
+                    <?= WidgetHtml::getByName('address'); ?>
+                </div>
+            </div>
+            <div class="item landmark">
+                <span class="ico icon-map"></span>
+                <div class="text">
+                    <?= WidgetHtml::getByName('landmark'); ?>
+                </div>
+            </div>
+            <div class="item phone">
+                <span class="ico icon-phone"></span>
+                <div class="text">
+                    <?= WidgetHtml::getByName('phones'); ?>
+                </div>
+            </div>
+            <div class="social">
+                <?= WidgetHtml::getByName('social'); ?>
+                <?php /*<div class="title">Мы в соц сетях:</div>
+                <ul class="social-list">
+                    <li class="item"><a class="bgc-ins" href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a></li>
+                    <li class="item"><a class="bgc-fb" href="https://www.facebook.com/" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
+                    <li class="item"><a class="bgc-tg" href="https://telegram.org/" target="_blank"><i class="fab fa-telegram-plane"></i></a></li>
+                </ul> */ ?>
+            </div>
+        </div>
+    </div>
+</footer>
 
 <?php $this->endBody() ?>
+<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyA75jBu3AhiE4wgujH4Exgnj8L0ILWxYVo&callback=initMap" async defer></script>
 </body>
 </html>
 <?php $this->endPage() ?>

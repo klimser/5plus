@@ -6,6 +6,7 @@ use common\components\extended\Controller;
 use common\models\Module;
 use common\models\Teacher;
 use common\models\Webpage;
+use yii\data\Pagination;
 use yii\web\NotFoundHttpException;
 
 class TeacherController extends Controller
@@ -17,27 +18,20 @@ class TeacherController extends Controller
      */
     public function actionIndex($webpage)
     {
+        $itemsPerPage = 9;
         $qB = Teacher::getVisibleListQuery();
-        $itemsPerPage = 8;
-        if (\Yii::$app->request->isAjax) {
-            $teachers = $qB->limit($itemsPerPage)->offset(\Yii::$app->request->get('loaded'))->all();
-            $output = '';
-            $i = 0;
-            foreach ($teachers as $teacher) {
-                $i++;
-                $output .= $this->renderPartial('_block', ['teacher' => $teacher]);
-                if ($i % 2 == 0) $output .= '<div class="clearfix"></div>';
-            }
-            return $output;
-        } else {
-            $subjectsTotal = $qB->count();
-            return $this->render('index', [
-                'teachers' => $qB->limit($itemsPerPage)->all(),
-                'hasMore' => $subjectsTotal > $itemsPerPage,
-                'webpage' => $webpage,
-                'h1' => $webpage->title,
-            ]);
-        }
+        $pager = new Pagination([
+            'totalCount' => $qB->count(),
+            'defaultPageSize' => $itemsPerPage,
+            'route' => 'teachers/webpage',
+            'params' => array_merge($_GET, ['id' => $webpage->id])
+        ]);
+        return $this->render('index', [
+            'pager' => $pager,
+            'teachers' => $qB->limit($pager->limit)->offset($pager->offset)->all(),
+            'webpage' => $webpage,
+            'h1' => $webpage->title,
+        ]);
     }
 
     /**

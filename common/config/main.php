@@ -32,6 +32,12 @@ return [
                 \yii\bootstrap\BootstrapPluginAsset::class => [
                     'js' => []
                 ],
+                \yii\bootstrap4\BootstrapAsset::class => [
+                    'css' => []
+                ],
+                \yii\bootstrap4\BootstrapPluginAsset::class => [
+                    'js' => []
+                ],
             ],
             'linkAssets' => true,
             'appendTimestamp' => false,

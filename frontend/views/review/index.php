@@ -16,22 +16,25 @@ if (YII_ENV == 'prod') {
 }
 
 ?>
-<div class="row review-index">
+<div class="container">
+    <div class="text-right">
+        <a id="add-review-button" href="#" onclick="Review.launchModal(); return false;">+ написать отзыв</a>
+    </div>
+    <div class="reviews-list">
     <?php foreach ($reviews as $review): ?>
         <?= $this->render('_block', ['review' => $review, 'grid' => true]); ?>
     <?php endforeach; ?>
+    </div>
 </div>
 
-<a id="add-review-button" href="#" onclick="Review.launchModal(); return false;">+</a>
-
-<div class="text-center">
-    <?= \yii\widgets\LinkPager::widget([
-        'pagination' => $pager,
-        'nextPageLabel' => '<span class="hidden-xs">Следующая страница</span> →',
-        'prevPageLabel' => '← <span class="hidden-xs">Предыдущая страница</span>',
-    ]); ?>
-</div>
-</div>
+<nav class="pagination-box">
+    <?= \yii\widgets\LinkPager::widget(
+        array_merge(
+            \common\components\DefaultValuesComponent::getPagerSettings(),
+            ['pagination' => $pager, 'maxButtonCount' => 4,]
+        )
+    ); ?>
+</nav>
 
 <div id="review_form" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">

@@ -14,7 +14,7 @@ use yii\widgets\ActiveForm;
 
     <?= Html::activeHiddenInput($question, 'quiz_id'); ?>
 
-    <?= $form->field($question, 'content')->widget(\dosamigos\tinymce\TinyMce::class, array_merge(\backend\components\DefaultValuesComponent::getTinyMceSettings(), ['options' => ['rows' => 6, 'id' => 'question-content-' . $question->id]])); ?>
+    <?= $form->field($question, 'content')->widget(\dosamigos\tinymce\TinyMce::class, array_merge(\common\components\DefaultValuesComponent::getTinyMceSettings(), ['options' => ['rows' => 6, 'id' => 'question-content-' . $question->id]])); ?>
 
     <?php /*
     $form->field($model, 'content')->textarea(['rows' => 6, 'id' => 'question-content-' . $model->id]); */ ?>

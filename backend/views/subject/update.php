@@ -1,6 +1,6 @@
 <?php
 
-use backend\components\DefaultValuesComponent;
+use common\components\DefaultValuesComponent;
 use common\components\bitrix\Bitrix;
 use dosamigos\tinymce\TinyMce;
 use yii\helpers\ArrayHelper;

@@ -5,17 +5,31 @@
 /* @var $grid bool */
 
 ?>
-<div class="review-item <?php if ($grid): ?>col-xs-12<?php endif; ?>">
-    <div class="review-header">
-        <div class="pull-left"><?= $review->name; ?></div>
-        <div class="pull-right">
-            <span class="icon icon-calendar"></span>
-            <?= $review->createDate->format('d.m.Y'); ?>
+<div class="item">
+    <?php /*<div class="left">
+        <div class="box">
+            <div class="img">
+                <img src="images/team-img1.jpg" alt="ava">
+            </div>
+            <div class="name">Лилия Адамян</div>
         </div>
-        <div class="clearfix"></div>
+    </div> */ ?>
+    <div class="right">
+        <div class="desc">
+            <div class="text">
+                <?= nl2br($review->message); ?>
+            </div>
+            <?php /*<div class="star">
+                <img src="images/full-star-ico.png" alt="star">
+                <img src="images/full-star-ico.png" alt="star">
+                <img src="images/full-star-ico.png" alt="star">
+                <img src="images/full-star-ico.png" alt="star">
+                <img src="images/full-star-ico.png" alt="star">
+            </div>*/ ?>
+        </div>
+        <div class="who">
+            <div class="ico"><span><?= mb_substr($review->name, 0, 1, 'UTF-8'); ?></span></div>
+            <div class="text"><?= $review->name; ?></div>
+        </div>
     </div>
-    <p class="review-body">
-        <?= nl2br($review->message); ?>
-    </p>
-    <div class="read-more-block"></div>
 </div>

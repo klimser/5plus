@@ -3,30 +3,22 @@
 /* @var $this \yii\web\View */
 /* @var $webpage common\models\Webpage */
 /* @var $teachers \common\models\Teacher[] */
-/* @var $hasMore bool */
+/* @var $pager yii\data\Pagination */
 
 $this->params['breadcrumbs'][] = 'Команда';
 ?>
-    <div class="row teacher-index">
-        <?php
-        $i = 0;
-        foreach ($teachers as $teacher):
-            $i++;
-            ?>
+<div class="container">
+    <div class="team-list">
+        <?php foreach ($teachers as $teacher): ?>
             <?= $this->render('/teacher/_block', ['teacher' => $teacher]); ?>
-
-            <?php if ($i % 2 == 0): ?>
-            <div class="clearfix"></div>
-        <?php endif; ?>
         <?php endforeach; ?>
     </div>
-<?php if ($hasMore): ?>
-    <div class="row">
-        <div class="col-xs-12 more-block">
-            <a href="<?= Yii::$app->homeUrl . $webpage->url; ?>" onclick="return Main.loadMore(this, '.teacher-index', '.teacher-item');">
-                <span class="icon icon-more"></span>
-                <span class="link-body">Показать ещё</span>
-            </a>
-        </div>
-    </div>
-<?php endif; ?>
+    <nav class="pagination-box">
+        <?= \yii\widgets\LinkPager::widget(
+            array_merge(
+                \common\components\DefaultValuesComponent::getPagerSettings(),
+                ['pagination' => $pager, 'maxButtonCount' => 4,]
+            )
+        ); ?>
+    </nav>
+</div>

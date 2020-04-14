@@ -1,10 +1,10 @@
 dev_front:
   files:
-    "frontend/web/assets/grunt/css/media.css": "frontend/resources/src/sass/media.sass"
     "frontend/web/assets/grunt/css/styles.css": "frontend/resources/src/sass/styles.sass"
+    "frontend/web/assets/grunt/css/media.css": "frontend/resources/src/sass/media.sass"
 prod_front:
   options:
     style: compressed
   files:
-    "frontend/web/assets/grunt/css/media.css": "frontend/resources/src/sass/media.sass"
     "frontend/web/assets/grunt/css/styles.css": "frontend/resources/src/sass/styles.sass"
+    "frontend/web/assets/grunt/css/media.css": "frontend/resources/src/sass/media.sass"

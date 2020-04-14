@@ -23,6 +23,7 @@ vendors_front:
       - "node_modules/inputmask/dist/min/inputmask/inputmask.min.js"
       - "node_modules/inputmask/dist/min/inputmask/jquery.inputmask.min.js"
       - "node_modules/inputmask/dist/min/inputmask/inputmask.numeric.extensions.min.js"
+      - "node_modules/swiper/js/swiper.js"
       - "frontend/resources/src/vendor/js/*.js"
 vendors_back:
   files:

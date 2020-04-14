@@ -62,7 +62,7 @@ class Menu extends ActiveRecord
         $itemsArray = [];
         foreach ($menuItems as $menuItem) {
             if ($menuItem->active) {
-                $elem = ['label' => $menuItem->title];
+                $elem = ['label' => $menuItem->title, 'options' => ['class' => 'item']];
                 if ($menuItem->menuItems) $elem['items'] = self::getItemsArray($menuItem->menuItems);
                 else $elem['url'] = $menuItem->webpage_id ? Yii::$app->homeUrl . ($menuItem->webpage->main ? '' : $menuItem->webpage->url) : $menuItem->url;
                 $itemsArray[] = $elem;
