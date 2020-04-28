@@ -52,67 +52,6 @@ var MainPage = {
     init: function(carouselCount) {
         $('[data-toggle="popover"]').popover();
         
-        for (var i = 0; i < carouselCount; i++) {
-            $('#owl-carousel-' + i).owlCarousel({
-                margin:10,
-                loop:true,
-                nav: true,
-                dots: false,
-                navText: ['<span class="icon icon-arrow_left"></span>', '<span class="icon icon-arrow_right"></span>'],
-                navElement: "div",
-                navContainer: "#carousel-nav-" + i,
-                responsiveClass:true,
-                responsive:{
-                    0:{items:2},
-                    992:{items:4}
-                }
-            });
-        }
-        // $('#owl-carousel-3').owlCarousel({
-        //     margin:10,
-        //     loop:true,
-        //     nav: true,
-        //     dots: false,
-        //     navText: ['<span class="icon icon-arrow_left"></span>', '<span class="icon icon-arrow_right"></span>'],
-        //     navElement: "span",
-        //     navContainer: "#carousel-nav-3",
-        //     items: 2
-        // });
-        // $('#owl-carousel-4').owlCarousel({
-        //     margin: 15,
-        //     loop:true,
-        //     nav: true,
-        //     dots: false,
-        //     navText: ['<span class="icon icon-arrow_left"></span>', '<span class="icon icon-arrow_right"></span>'],
-        //     navElement: "span",
-        //     navContainer: "#carousel-nav-4",
-        //     items: 2
-        // });
-        $('#owl-carousel-teachers').owlCarousel({
-            margin: 15,
-            loop:true,
-            nav: true,
-            dots: false,
-            navText: ['<span class="icon icon-arrow_left"></span>', '<span class="icon icon-arrow_right"></span>'],
-            navElement: "span",
-            navContainer: "#carousel-nav-teachers",
-            items: 2
-        });
-        $('#owl-carousel-reviews').owlCarousel({
-            margin: 15,
-            loop:true,
-            nav: true,
-            dots: false,
-            navText: ['<span class="icon icon-arrow_left"></span>', '<span class="icon icon-arrow_right"></span>'],
-            navElement: "span",
-            navContainer: "#carousel-nav-reviews",
-            responsiveClass:true,
-            responsive:{
-                0:{items:1},
-                768:{items:2}
-            }
-        });
-
         $(window).on('resize', function(e) {
             $(".owl-carousel").each(function(){
                 MainPage.recalcCarouselWidth(this);

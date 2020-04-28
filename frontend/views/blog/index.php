@@ -7,20 +7,19 @@
 
 $this->params['breadcrumbs'][] = 'Блог';
 ?>
-<div class="news-index">
-    <?php
-    $first = true;
-    foreach ($posts as $post): ?>
-        <?= $this->render('/blog/_block', ['post' => $post, 'first' => $first]); ?>
-    <?php
-        $first = false;
-    endforeach; ?>
+<div class="container">
+    <div class="blog-list">
+        <?php foreach ($posts as $post): ?>
+            <?= $this->render('/blog/_block', ['post' => $post]); ?>
+        <?php endforeach; ?>
+    </div>
 </div>
 
-<div class="text-center">
-    <?= \yii\widgets\LinkPager::widget([
-        'pagination' => $pager,
-        'nextPageLabel' => '<span class="hidden-xs">Следующая страница</span> →',
-        'prevPageLabel' => '← <span class="hidden-xs">Предыдущая страница</span>',
-    ]); ?>
-</div>
+<nav class="pagination-box">
+    <?= \yii\widgets\LinkPager::widget(
+        array_merge(
+            \common\components\DefaultValuesComponent::getPagerSettings(),
+            ['pagination' => $pager, 'maxButtonCount' => 4,]
+        )
+    ); ?>
+</nav>

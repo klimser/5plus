@@ -11,6 +11,7 @@
     "@babel/core": "^7.2.2",
     "@babel/polyfill": "^7.2.5",
     "@babel/preset-env": "^7.2.3",
+    "@fancyapps/fancybox": "^3.5.7",
     "@fortawesome/fontawesome-free": "^5.1.1",
     "bootstrap": "3",
     "chosen-js": "^1.8.7",

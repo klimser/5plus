@@ -36,13 +36,15 @@ if (YII_ENV == 'prod') {
     ); ?>
 </nav>
 
-<div id="review_form" class="modal fade" tabindex="-1" role="dialog">
+<div id="review_form" class="modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <?= Html::beginForm(\yii\helpers\Url::to(['review/create']), 'post', ['onsubmit' => 'return Review.complete(this);']); ?>
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
-                <h4 class="modal-title">Оставить отзыв</h4>
+                <h5 class="modal-title">Оставить отзыв</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div id="review_form_body">
@@ -66,4 +68,3 @@ if (YII_ENV == 'prod') {
         </div>
     </div>
 </div>
-<div class="container">

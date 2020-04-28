@@ -7,24 +7,39 @@
 
 $this->params['breadcrumbs'][] = 'Акции';
 ?>
-<div class="row news-index">
-    <?php
-    $i = 0;
-    foreach ($promotions as $promotion):
-        $i++;
-    ?>
-        <?= $this->render('/promotion/_block', ['promotion' => $promotion, 'grid' => true]); ?>
-
-        <?php if ($i % 4 == 0): ?>
-            <div class="clearfix"></div>
-        <?php endif; ?>
-    <?php endforeach; ?>
-</div>
-
-<div class="text-center">
-    <?= \yii\widgets\LinkPager::widget([
-            'pagination' => $pager,
-        'nextPageLabel' => '<span class="hidden-xs">Следующая страница</span> →',
-        'prevPageLabel' => '← <span class="hidden-xs">Предыдущая страница</span>',
-    ]); ?>
+<div class="container">
+    <div class="received-box">
+        <div class="left">
+            <div class="block-img"><img src="<?= $promotions[0]->imageUrl; ?>" alt="image"></div>
+            <h3 class="block-name"><?= $promotions[0]->name;?></h3>
+        </div>
+        <div class="right">
+            <div class="oh">
+                <div class="swiper-received-slider swiper-container">
+                    <div class="swiper-wrapper">
+                        <?= $promotions[0]->content; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-prev"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-arr.png" alt="arrow"></div>
+            <div class="swiper-button-next"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-arr.png" alt="arrow"></div>
+        </div>
+    </div>
+    <div class="ielts-box">
+        <div class="left">
+            <div class="block-img"><img src="<?= $promotions[1]->imageUrl; ?>" alt="image"></div>
+            <h3 class="block-name"><?= $promotions[1]->name;?></h3>
+        </div>
+        <div class="right">
+            <div class="oh">
+                <div class="swiper-ielts-slider swiper-container">
+                    <div class="swiper-wrapper">
+                        <?= $promotions[1]->content; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-prev"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-arr.png" alt="arrow"></div>
+            <div class="swiper-button-next"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-arr.png" alt="arrow"></div>
+        </div>
+    </div>
 </div>

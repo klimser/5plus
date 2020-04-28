@@ -2,32 +2,28 @@
 
 /* @var $this \yii\web\View */
 /* @var $post \common\models\Blog */
-/* @var $first bool */
 
 $postUrl = Yii::$app->homeUrl . $post->webpage->url;
 
 ?>
 
-<?php if (!$first): ?><hr><?php endif; ?>
-
-<div class="row">
-    <div class="col-xs-12">
-        <h2>
-            <a href="<?= $postUrl; ?>"><?= $post->name; ?></a>
-        </h2>
-    </div>
+<div class="item">
     <?php if ($post->image): ?>
-        <div class="col-xs-12 col-md-3">
-            <a href="<?= $postUrl; ?>">
-                <img src="<?= $post->imageUrl; ?>" class="max-width-100">
-            </a>
+        <div class="left">
+            <div class="box">
+                <a href="<?= $postUrl; ?>" class="img">
+                    <img src="<?= $post->imageUrl; ?>" alt="<?= $post->name; ?>">
+                </a>
+            </div>
         </div>
     <?php endif; ?>
-    <div class="col-xs-12 col-md-<?= $post->image ? 9 : 12; ?>">
-        <?= $post->teaser; ?>
+    <div class="right">
+        <h5 class="title"><a href="<?= $postUrl; ?>"><?= $post->name; ?></a></h5>
+        <div class="desc">
+            <?= $post->teaser; ?>
+        </div>
         <?php if ($post->teasered): ?>
-            <div class="clearfix"></div>
-            <a href="<?= $postUrl; ?>" class="read_more pull-left">Читать полностью</a>
+            <a href="<?= $postUrl; ?>" class="btn btn-danger btn-readmore btn-lg">Читать полностью</a>
         <?php endif; ?>
     </div>
 </div>

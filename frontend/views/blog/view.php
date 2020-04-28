@@ -15,10 +15,10 @@ $this->registerMetaTag(['name' => 'og:image', 'content' => $post->imageUrl]);
 
 ?>
 
-<div class="row">
-    <div class="col-xs-12 text-content">
+<div class="container">
+    <div class="content-box">
         <?php if ($post->image): ?>
-            <img src="<?= $post->imageUrl; ?>" class="pull-left">
+            <img src="<?= $post->imageUrl; ?>" class="float-left" alt="<?= $post->name; ?>">
         <?php endif; ?>
         <?= $post->content; ?>
     </div>

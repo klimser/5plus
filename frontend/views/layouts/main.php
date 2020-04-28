@@ -7,9 +7,16 @@ use common\models\Menu;
 use yii\helpers\Html;
 use yii\bootstrap4\Nav;
 use common\components\WidgetHtml;
+use yii\helpers\Url;
 
 /* @var $webpage \common\models\Webpage */
 $webpage = array_key_exists('webpage', $this->params) ? $this->params['webpage'] : null;
+
+/* @var $quizWebpage \common\models\Webpage */
+$quizWebpage = array_key_exists('quizWebpage', $this->params) ? $this->params['quizWebpage'] : null;
+
+/* @var $paymentWebpage \common\models\Webpage */
+$paymentWebpage = array_key_exists('paymentWebpage', $this->params) ? $this->params['paymentWebpage'] : null;
 
 $this->beginPage();
 $this->render('/grunt-assets');
@@ -92,23 +99,15 @@ $this->render('/grunt-assets');
                         <div class="swiper-slide">
                             <div class="text">
                                 <h2 class="title">Мы дорожим качеством ваших знаний</h2>
+                                <?php /*
                                 <div class="desc">We are a technology company that understands <br>complexity of businesses, and with our technical <br>expertise, we help them transform and scale</div>
-                                <div class="btns-group">
-                                    <a href="#" class="btn btn-danger btn-ico btn-lg">Проверь свои знания <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/puzzle-ico.png" alt="ico" class="ico"></a>
-                                    <a href="#" class="btn btn-primary btn-ico btn-lg">Онлайн оплата <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/card-ico.png" alt="ico" class="ico"></a>
-                                    <a href="#" class="btn btn-outline-info btn-ico btn-lg">Мы вам перезвоним <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/phone-ico.png" alt="ico" class="ico"></a>
-                                </div>
-                            </div>
-                            <div class="img"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img.jpg" alt="image"></div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="text">
-                                <h2 class="title">Мы дорожим качеством ваших знаний</h2>
-                                <div class="desc">We are a technology company that understands <br>complexity of businesses, and with our technical <br>expertise, we help them transform and scale</div>
-                                <div class="btns-group">
-                                    <a href="#" class="btn btn-danger btn-ico btn-lg">Проверь свои знания <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/puzzle-ico.png" alt="ico" class="ico"></a>
-                                    <a href="#" class="btn btn-primary btn-ico btn-lg">Онлайн оплата <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/card-ico.png" alt="ico" class="ico"></a>
-                                    <a href="#" class="btn btn-outline-info btn-ico btn-lg">Мы вам перезвоним <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/phone-ico.png" alt="ico" class="ico"></a>
+                                */ ?>
+                                <div class="btns-group flex-column align-items-center align-items-md-start">
+                                    <a href="<?= Url::to(['webpage', 'id' => $quizWebpage->id]); ?>" class="btn btn-danger btn-ico btn-lg">Проверь свои знания <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/puzzle-ico.png" alt="ico" class="ico"></a>
+                                    <siv class="btn btn-primary btn-ico btn-lg" data-container="body" data-toggle="popover" data-placement="bottom" data-trigger="click" data-html="true" data-content="<a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'pupil']); ?>'>для учащихся</a><br><br> <a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'new']); ?>'>для новых студентов</a>">
+                                        Онлайн оплата <span class="far fa-credit-card ml-3"></span>
+                                    </siv>
+                                    <?php /* <a href="#" class="btn btn-outline-info btn-ico btn-lg">Мы вам перезвоним <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/phone-ico.png" alt="ico" class="ico"></a> */ ?>
                                 </div>
                             </div>
                             <div class="img"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img.jpg" alt="image"></div>

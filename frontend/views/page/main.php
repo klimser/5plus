@@ -19,55 +19,10 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
 
 //unset($this->params['h1']);
 
-?>
-</div>
+foreach ($subjectCategoryCollection as $subjectCategory): ?>
+        <?= SubjectCarouselWidget::widget(['subjectCategory' => $subjectCategory]); ?>
 
-<div class="container">
-    <div class="row">
-        <div class="col-xs-12 col-sm-4 text-center">
-            <p>
-                <a class="btn btn-lg btn-primary" href="<?= Url::to(['webpage', 'id' => $quizWebpage->id]); ?>">
-                    Проверь свои знания
-                </a>
-            </p>
-        </div>
-        <div class="col-xs-12 col-sm-4 text-center">
-            <p>
-                <a tabindex="0" class="btn btn-lg btn-primary" role="button" data-container="body" data-toggle="popover" data-placement="bottom" data-trigger="focus" data-html="1" data-content="<a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'pupil']); ?>'>для учащихся</a><br><br> <a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'new']); ?>'>для новых студентов</a>">Онлайн-оплата</a>
-            </p>
-        </div>
-        <div class="col-xs-12 col-sm-4 text-center">
-            <p>
-                <?= YII_ENV == 'prod' ? WidgetHtml::getByName('callback') : ''; ?>
-            </p>
-        </div>
-    </div>
-</div>
-
-<?php
-    $i = 0;
-    foreach ($subjectCategoryCollection as $subjectCategory):
-?>
-    <?php if ($i % 2 == 0): ?>
-        <div class="clouds-line-bottom"></div>
-        <div class="light-block">
-    <?php endif; ?>
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12">
-                <?= $i == 0 ? $page->content : ''; ?>
-                <?= SubjectCarouselWidget::widget(['subjectCategory' => $subjectCategory, 'buttonLeft' => $i % 2 == 1, 'index' => $i]); ?>
-            </div>
-        </div>
-    </div>
-    <?php if ($i % 2 == 0): ?>
-        </div>
-        <div class="clouds-line-top"></div>
-    <?php endif; ?>
-<?php
-    $i++;
-    endforeach;
-?>
+<?php endforeach; ?>
 
 <div class="clouds-line-bottom"></div>
 <div class="light-block">
@@ -131,4 +86,3 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
         </div>
     </div>
 </div>
-<div class="container">

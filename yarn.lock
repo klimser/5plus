@@ -750,6 +750,11 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
+"@fancyapps/fancybox@^3.5.7":
+  version "3.5.7"
+  resolved "https://registry.yarnpkg.com/@fancyapps/fancybox/-/fancybox-3.5.7.tgz#12f8734663ec6eae7f9236b92ca236e6e07fdfd5"
+  integrity sha512-rcEtu8t+WnmqIDV/Wfm1yvy/nDdwc7YV25j9HLxGC2/WOsUhk9rcWg2nB8g1BrjRt9zaoADdjHTU6ILYTJzBBg==
+
 "@fortawesome/fontawesome-free@^5.1.1":
   version "5.13.0"
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.13.0.tgz#fcb113d1aca4b471b709e8c9c168674fbd6e06d9"
