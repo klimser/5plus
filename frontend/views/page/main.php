@@ -15,30 +15,17 @@ use yii\helpers\Url;
 /* @var $quizWebpage \common\models\Webpage */
 /* @var $paymentWebpage \common\models\Webpage */
 
-$this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
+$this->registerJs('MainPage.init();');
 
 //unset($this->params['h1']);
 
 foreach ($subjectCategoryCollection as $subjectCategory): ?>
         <?= SubjectCarouselWidget::widget(['subjectCategory' => $subjectCategory]); ?>
-
 <?php endforeach; ?>
 
-<div class="clouds-line-bottom"></div>
-<div class="light-block">
-    <div class="container">
-        <?= TeacherCarouselWidget::widget(); ?>
-    </div>
-</div>
-<div class="clouds-line-top"></div>
+<?= TeacherCarouselWidget::widget(); ?>
 
-<div class="container">
-    <div class="row">
-        <div class="col-xs-12">
-            <?= ReviewCarouselWidget::widget(); ?>
-        </div>
-    </div>
-</div>
+<?= ReviewCarouselWidget::widget(); ?>
 
 <div id="order_form" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -51,8 +38,10 @@ foreach ($subjectCategoryCollection as $subjectCategory): ?>
                     ]
             ); ?>
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
                 <h4 class="modal-title">Записаться на курс</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div id="order_form_body">
@@ -66,8 +55,11 @@ foreach ($subjectCategoryCollection as $subjectCategory): ?>
                     </div>
                     <div class="form-group">
                         <label for="order-phone">Ваш номер телефона</label>
-                        <div class="input-group"><span class="input-group-addon">+998</span>
-                            <input type="tel" name="order[phoneFormatted]" id="order-phone" class="form-control" maxlength="11" pattern="\d{2} \d{3}-\d{4}" required>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">+998</span>
+                            </div>
+                            <input type="tel" name="order[phoneFormatted]" id="order-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" required>
                         </div>
                     </div>
                     <div class="form-group">
@@ -79,7 +71,7 @@ foreach ($subjectCategoryCollection as $subjectCategory): ?>
                 <div id="order_form_extra" class="hidden"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">отмена</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>
                 <button class="btn btn-primary">записаться</button>
             </div>
             <?= Html::endForm(); ?>

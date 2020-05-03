@@ -12,7 +12,7 @@ $this->params['breadcrumbs'][] = $teacher->officialName;
 <div class="container">
     <div class="content-box">
         <?php if ($teacher->photo): ?>
-            <img src="<?= $teacher->imageUrl; ?>" class="float-left max-width-50 top-left">
+            <img src="<?= $teacher->imageUrl; ?>" class="float-left mw-50 top-left">
         <?php endif; ?>
         
         <h2><?= $teacher->title; ?></h2>

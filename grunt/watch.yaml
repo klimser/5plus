@@ -8,6 +8,7 @@ less:
 sass:
   files:
     - "frontend/resources/src/sass/*.sass"
+    - "frontend/resources/src/sass/*.scss"
     - "grunt/sass.yaml"
   tasks:
     - sass:dev_front

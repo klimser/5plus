@@ -1,42 +1,96 @@
 <?php
 
-use \yii\bootstrap\ActiveForm;
+use common\models\Quiz;
+use yii\bootstrap\ActiveForm;
+use yii\bootstrap\Html;
+use yii\helpers\Url;
+use yii\web\View;
 
 /* @var $this \frontend\components\extended\View */
 /* @var $webpage common\models\Webpage */
 /* @var $activeSubject common\models\Subject|null */
 /* @var $activeQuiz common\models\Quiz|null */
-/* @var $quizList \common\models\Quiz[] */
+/* @var $quizList Quiz[] */
 /* @var $quizResult \common\models\QuizResult */
 
 $script = '';
 ?>
 
-<div class="row step-line">
-    <div class="col-xs-4 text-center step step-left">
-        <button data-href="step-1" type="button" class="btn btn-primary rounded-circle" id="step-button-1" onclick="QuizList.jump(this);">1</button>
-        <div class="hidden-xs step-details">
-            <div class="title">Предмет</div>
-            <small class="value" id="selected-subject"></small>
-        </div>
-    </div>
-    <div class="col-xs-4 text-center step step-center">
-        <button data-href="step-2" type="button" class="btn btn-default rounded-circle" id="step-button-2" disabled  onclick="QuizList.jump(this);">2</button>
-        <div class="hidden-xs step-details">
-            <div class="title">Уровень</div>
-            <small class="value" id="selected-quiz"></small>
-        </div>
-    </div>
-    <div class="col-xs-4 text-center step step-right">
-        <button data-href="step-3" type="button" class="btn btn-default rounded-circle" id="step-button-3" disabled  onclick="QuizList.jump(this);">3</button>
-        <div class="hidden-xs step-details">
-            <div class="title">к решению!</div>
-        </div>
-    </div>
-</div>
+<div class="container">
+    <div class="content-box">
+<?php $form = ActiveForm::begin([
+        'action' => Url::to(['quiz/view']),
+        'options' => [
+            'onsubmit' => 'ymTrackQuizStart(); fbTrackQuizStart(); return true;']
+        ]
+); ?>
+    <input type="hidden" name="quiz_id" required> 
+        <nav>
+            <div class="nav step-line row justify-content-between" role="tablist">
+                <a class="nav-item nav-link step-tab active" id="step-1-tab" href="#step-1" role="tab"
+                   aria-controls="step-1" aria-selected="true" data-step-order="1" onclick="return MultiStepForm.jump(this);">
+                    <div class="step-label">1</div>
+                    <div class="d-none d-md-block step-details">
+                        <div class="title">Предмет</div>
+                    </div>
+                </a>
+                <a class="nav-item nav-link step-tab" id="step-2-tab" href="#step-2" role="tab"
+                   aria-controls="step-2" aria-selected="true" data-step-order="2" onclick="return MultiStepForm.jump(this);">
+                    <div class="step-label">2</div>
+                    <div class="d-none d-md-block step-details">
+                        <div class="title">Уровень</div>
+                    </div>
+                </a>
+                <a class="nav-item nav-link step-tab" id="step-3-tab" href="#step-3" role="tab"
+                   aria-controls="step-3" aria-selected="true" data-step-order="3" onclick="return MultiStepForm.jump(this);">
+                    <div class="step-label">3</div>
+                    <div class="d-none d-md-block step-details">
+                        <div class="title">к решению!</div>
+                    </div>
+                </a>
+            </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade pt-3 show active" id="step-1" role="tabpanel" aria-labelledby="step-1-tab">
+                <h2>На старт!</h2>
+                <div class="list-group">
+                    <?php
+                    $subjectSet = [];
 
+                    foreach ($quizList as $quiz):
+                        if (!array_key_exists($quiz->subject_id, $subjectSet)):
+                            $script .= "QuizList.data.set({$quiz->subject_id}, {name: \"{$quiz->subject->name}\", quizzes: new Map()});\n";
+                            $subjectSet[$quiz->subject_id] = true; ?>
+                            <a href="#" data-subject="<?= $quiz->subject_id; ?>" class="list-group-item" onclick="return QuizList.setSubject(this);">
+                                <?= $quiz->subject->name; ?>
+                            </a>
+                        <?php endif;
+                        $script .= "QuizList.data.get({$quiz->subject_id}).quizzes.set({$quiz->id}, {name: \"{$quiz->name}\", questionCount: {$quiz->questionCount}});\n";
+                    endforeach; ?>
+                </div>
+            </div>
+            <div class="tab-pane fade pt-3 show" id="step-2" role="tabpanel" aria-labelledby="step-2-tab">
+                <h2>Внимание!</h2>
+                <div class="list-group mb-3" id="quiz-list"></div>
+
+                <button type="button" class="btn btn-secondary" onclick="MultiStepForm.jump($('.step-tab[data-step-order=1]'));">назад</button>
+            </div>
+            <div class="tab-pane fade pt-3 show" id="step-3" role="tabpanel" aria-labelledby="step-3-tab">
+                <h2>Марш!</h2>
+                <p>Тест состоит из <span id="question-count"></span> вопросов. На решение теста отводится <?= Quiz::TEST_TIME; ?> минут. Начиная тест, убедитесь в том, что у вас есть <?= Quiz::TEST_TIME; ?> минут времени для его решения, тест нельзя приостановить и продолжить позже.</p><br>
+
+                <?= $form->field($quizResult, 'student_name')
+                    ->textInput(['maxlength' => true, 'placeholder' => 'ФИО', 'required' => true])
+                    ->label('Укажите ваши фамилию, имя, отчество'); ?>
+
+                <button type="button" class="btn btn-secondary" onclick="MultiStepForm.jump($('.step-tab[data-step-order=2]'));">назад</button>
+                <?= Html::submitButton('Начать тест', ['class' => 'btn btn-success']); ?>
+            </div>
+        </div>
 <?php
-$ymId = \Yii::$app->params['ym_id'];
+ActiveForm::end();
+
+$ymId = Yii::$app->params['ym_id'];
 $this->registerJs(<<<SCRIPT
 function ymTrackQuizStart() {
     if (typeof ym !== "undefined") { ym({$ymId}, "reachGoal", "QUIZ_START"); }
@@ -45,56 +99,8 @@ function fbTrackQuizStart() {
     if (typeof fbq !== "undefined") { fbq("trackCustom", "quizStart", {subject: QuizList.data.get(QuizList.subject).name}); }
 }
 SCRIPT
-    , \yii\web\View::POS_HEAD, 'track_quiz_start');
+    , View::POS_HEAD, 'track_quiz_start');
 
-$form = ActiveForm::begin([
-        'action' => \yii\helpers\Url::to(['quiz/view']),
-        'options' => [
-            'onsubmit' => 'ymTrackQuizStart(); fbTrackQuizStart(); return true;']
-        ]
-); ?>
-    <input type="hidden" name="quiz_id" required>
-    <div class="row step-content" id="step-1">
-        <div class="col-xs-12">
-            <h2>На старт!</h2>
-            <div class="list-group">
-                <?php
-                $subjectSet = [];
-
-                foreach ($quizList as $quiz):
-                    if (!array_key_exists($quiz->subject_id, $subjectSet)):
-                        $script .= "QuizList.data.set({$quiz->subject_id}, {name: \"{$quiz->subject->name}\", quizzes: new Map()});\n";
-                        $subjectSet[$quiz->subject_id] = true; ?>
-                            <a href="#" data-subject="<?= $quiz->subject_id; ?>" class="list-group-item" onclick="return QuizList.setSubject(this);">
-                                <?= $quiz->subject->name; ?>
-                            </a>
-                    <?php endif;
-                    $script .= "QuizList.data.get({$quiz->subject_id}).quizzes.set({$quiz->id}, {name: \"{$quiz->name}\", questionCount: {$quiz->questionCount}});\n";
-                endforeach; ?>
-            </div>
-        </div>
-    </div>
-    <div class="row step-content hidden" id="step-2">
-        <div class="col-xs-12">
-            <h2>Внимание!</h2>
-            <div class="list-group" id="quiz-list"></div>
-        </div>
-    </div>
-    <div class="row step-content hidden" id="step-3">
-        <div class="col-xs-12">
-            <h2>Марш!</h2>
-            <p>Тест состоит из <span id="question-count"></span> вопросов. На решение теста отводится <?= \common\models\Quiz::TEST_TIME; ?> минут. Начиная тест, убедитесь в том, что у вас есть <?= \common\models\Quiz::TEST_TIME; ?> минут времени для его решения, тест нельзя приостановить и продолжить позже.</p><br>
-
-            <?= $form->field($quizResult, 'student_name')
-                ->textInput(['maxlength' => true, 'placeholder' => 'ФИО', 'required' => true])
-                ->label('Укажите ваши фамилию, имя, отчество'); ?>
-
-            <?= \yii\bootstrap\Html::submitButton('Начать тест', ['class' => 'btn btn-success']); ?>
-        </div>
-    </div>
-<?php ActiveForm::end(); ?>
-
-<?php
 if (isset($activeSubject) && $activeSubject) {
     $this->title .= ' - ' . $activeSubject->name;
     $script .= "QuizList.setSubject($('a[data-subject={$activeSubject->id}]'));\n";
@@ -104,4 +110,4 @@ if (isset($activeQuiz) && $activeQuiz) {
     $script .= "QuizList.setQuiz($('a[data-quiz={$activeQuiz->id}]'));\n";
 }
 
-$this->registerJs($script, \yii\web\View::POS_END);
+$this->registerJs($script, View::POS_END);

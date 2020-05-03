@@ -55,14 +55,16 @@
 	.directors-phone
 		font-size: 19px
 		line-height: inherit
-@media (max-width : 1200px)
+@media (max-width: 1200px) and (min-width: 992px)
+	.header .header-box .contacts-block .social
+		max-width: 111px
+@media (max-width: 1200px)
 	.header .header-box .contacts-block
 		.phone
 			min-width: 195px
 			.text .title
 				margin-bottom: 5px
 		.social
-			max-width: 111px
 			.social-list
 				margin: 0 -2px
 				.item
@@ -433,13 +435,13 @@
 		padding-bottom: 160px
 	.reviews-box .block-title
 		margin-bottom: 30px
-	.reviews-box .swiper-reviews-slider,
-	.reviews-box .swiper-button-prev,
-	.reviews-box .swiper-button-next
-		width: 38px
-		height: 38px
-		img
-			max-width: 9px
+	.reviews-box .swiper-reviews-slider
+		.reviews-box .swiper-button-prev,
+		.reviews-box .swiper-button-next
+			width: 38px
+			height: 38px
+			img
+				max-width: 9px
 	.reviews-box .swiper-reviews-slider .swiper-slide.item .blockquote
 		padding: 15px 15px 0 15px
 	.reviews-box .swiper-reviews-slider .swiper-slide.item .blockquote .text

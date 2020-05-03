@@ -15,7 +15,7 @@
         </a>
     </div>*/ ?>
     <div class="col-xs-12">
-        <div class="social_links pull-right">
+        <div class="social_links float-right">
             <a href="https://www.facebook.com/education85" target="_blank" rel="noopener noreferrer">
                 <img src="/images/fb_logo.png" alt="Наша группа в Facebook" title="Следите за нашими новостями на Facebook">
             </a>

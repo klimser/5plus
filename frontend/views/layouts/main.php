@@ -243,7 +243,7 @@ $this->render('/grunt-assets');
 </footer>
 
 <?php $this->endBody() ?>
-<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyA75jBu3AhiE4wgujH4Exgnj8L0ILWxYVo&callback=initMap" async defer></script>
+<?= WidgetHtml::getByName('google_maps_init'); ?>
 </body>
 </html>
 <?php $this->endPage() ?>

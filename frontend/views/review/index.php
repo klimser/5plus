@@ -10,15 +10,21 @@ use common\components\WidgetHtml;
 
 $this->params['breadcrumbs'][] = 'Отзывы';
 
-$this->registerJs('Review.init();');
 if (YII_ENV == 'prod') {
     $this->params['h1'] .= WidgetHtml::getByName('review_link_widget');
 }
 
 ?>
 <div class="container">
-    <div class="text-right">
-        <a id="add-review-button" href="#" onclick="Review.launchModal(); return false;">+ написать отзыв</a>
+    <div class="row align-items-center">
+        <div class="col">
+            <?= WidgetHtml::getByName('review_link_widget'); ?>
+        </div>
+        <div class="col">
+            <div class="text-right">
+                <a id="add-review-button" href="#" onclick="Review.launchModal(); return false;">+ написать отзыв</a>
+            </div>
+        </div>
     </div>
     <div class="reviews-list">
     <?php foreach ($reviews as $review): ?>
@@ -61,7 +67,7 @@ if (YII_ENV == 'prod') {
                 <div id="review_form_extra" class="hidden"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">отмена</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>
                 <button class="btn btn-primary">отправить</button>
             </div>
             <?= Html::endForm(); ?>

@@ -13,8 +13,8 @@ $this->params['breadcrumbs'][] = 'Завершение оплаты';
 
 ?>
 
-<div class="row">
-    <div class="col-xs-12">
+<div class="container">
+    <div class="content-box">
         <h3>Спасибо.</h3>
 
         <?php if (isset($amount)): ?>

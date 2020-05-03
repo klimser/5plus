@@ -45,27 +45,9 @@ var MainPage = {
         });
         return false;
     },
-    recalcCarouselWidth: function(carousel) {
-        var stage = $(carousel).find('.owl-stage');
-        if (stage) stage.width(Math.ceil(stage.width()) + 1);
-    },
-    init: function(carouselCount) {
+    init: function() {
         $('[data-toggle="popover"]').popover();
         
-        $(window).on('resize', function(e) {
-            $(".owl-carousel").each(function(){
-                MainPage.recalcCarouselWidth(this);
-            });
-        }).resize();
-
-        $('.owl-carousel').on('refreshed.owl.carousel', function(event) {
-            MainPage.recalcCarouselWidth(this);
-        });
-
-        $("#order-phone").inputmask({"mask": "99 999-9999"});
-
-        Review.init();
-
         $.ajax({
             url: '/subject/list',
             success: function(data) {

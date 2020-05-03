@@ -1,29 +1,34 @@
 <?php
-use common\components\WidgetHtml;
-
 /* @var $reviews \common\models\Review[] */
 /* @var $reviewsWebpage \common\models\Webpage */
 ?>
 
-<div class="row">
-    <div class="col-xs-12">
-        <h2 class="text-center text-uppercase">Отзывы о нас</h2>
-    </div>
-</div>
-<div class="row review-carousel-widget carousel-widget">
-    <div class="col-xs-12">
-        <div id="owl-carousel-reviews" class="owl-carousel owl-theme">
-            <?php foreach ($reviews as $review): ?>
-                <?= $this->render('/review/_block', ['review' => $review, 'grid' => false]); ?>
-            <?php endforeach; ?>
+<section class="reviews-box">
+    <div class="container">
+        <div class="shadow-title">Отзывы</div>
+        <h2 class="block-title">Отзывы</h2>
+        <div class="swiper-reviews-slider swiper-container">
+            <div class="swiper-wrapper">
+                <?php foreach ($reviews as $review): ?>
+                    <div class="swiper-slide item">
+                        <blockquote class="blockquote">
+                            <div class="text">
+                                <p><?= nl2br($review->message); ?></p>
+                            </div>
+                            <footer class="blockquote-footer">
+                                <?php /*<img src="images/reviews-ava1.jpg" alt="avatar" class="ava">*/ ?>
+                                <div class="author">
+                                    <div class="name"><?= $review->name; ?></div>
+                                    <?php /*<div class="who">Ceo at Apple Inc</div>*/ ?>
+                                </div>
+                            </footer>
+                        </blockquote>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="swiper-pagination"></div>
         </div>
-        <div id="carousel-nav-reviews" class="carousel-nav compact-carousel-nav">
-            <a href="<?= Yii::$app->homeUrl . $reviewsWebpage->url; ?>" class="all-items-link">
-                <span class="icon icon-reviews"></span>
-                <span class="link-body">Все отзывы</span>
-            </a>
-            <?= YII_ENV == 'prod' ? WidgetHtml::getByName('review_link_widget') : ''; ?>
-        </div>
+        <div class="swiper-button-prev"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/third-slider-arr.png" alt="arrow"></div>
+        <div class="swiper-button-next"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/third-slider-arr.png" alt="arrow"></div>
     </div>
-    <div class="clearfix"></div>
-</div>
+</section>

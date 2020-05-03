@@ -7,7 +7,7 @@
 ?>
 <div class="news-item <?php if ($grid): ?>col-xs-12 col-sm-6 col-md-3<?php endif; ?>">
     <a href="<?= Yii::$app->homeUrl . $promotion->webpage->url; ?>">
-        <img src="<?= $promotion->imageUrl; ?>" class="max-width-100">
+        <img src="<?= $promotion->imageUrl; ?>" class="mw-100">
         <div class="link-body"><?= $promotion->name; ?></div>
     </a>
 </div>
