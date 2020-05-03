@@ -134,10 +134,11 @@ class PaygramApi extends BaseObject
             'params' => $params,
         ]);
 
-        if (!array_key_exists('status', $response) || $response['status'] != 'OK') {
-            throw new PaygramApiException(print_r($response, true));
+        if ((array_key_exists('status', $response) && $response['status'] === 'OK')
+            || (array_key_exists('code', $response) && $response['code'] === 'OK')) {
+            return true;
         }
 
-        return true;
+        throw new PaygramApiException(print_r($response, true));
     }
 }
