@@ -35,13 +35,6 @@ images:
       expand: true
       flatten: true
       src:
-        - node_modules/owl.carousel/dist/assets/ajax-loader.gif
-        - node_modules/owl.carousel/dist/assets/owl.video.play.png
-      dest: frontend/web/assets/grunt/css
-    -
-      expand: true
-      flatten: true
-      src:
         - node_modules/chosen-js/chosen-sprite.png
         - node_modules/chosen-js/chosen-sprite@2x.png
       dest: backend/web/assets/grunt/css

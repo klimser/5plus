@@ -41,9 +41,7 @@ use yii\db\ActiveQuery;
  */
 class Teacher extends ActiveRecord
 {
-    use UploadImage {
-        upload as protected uploadBasic;
-    }
+    use UploadImage;
     
     const CHIEF_OF_THE_BOARD_ID = 1;
 
@@ -53,13 +51,12 @@ class Teacher extends ActiveRecord
     public function getUploadImageConfig(): array
     {
         return [
-            'neededImageWidth' => 188,
-            'neededImageHeight' => 188,
+            'neededImageWidth' => 351,
+            'neededImageHeight' => 351,
             'imageFolder' => 'teacher',
             'imageDBField' => 'photo',
             'imageFilenameBase' => 'name',
             'imageFilenameAppendix' => 'id',
-            'skipTinify' => true,
         ];
     }
 
@@ -200,107 +197,107 @@ class Teacher extends ActiveRecord
        return $this->hasMany(Group::class, ['teacher_id' => 'id']);
     }
 
-    /**
-     * @param string $imagePath
-     * @param string $maskPath
-     * @param string $framePath
-     * @return string
-     */
-    private function addPhotoFrame(string $imagePath, string $maskPath, string $framePath): string
-    {
-        $arr = explode('.', $imagePath);
-        $arr[count($arr) - 1] = 'png';
-        $fileName = implode('.', $arr);
+//    /**
+//     * @param string $imagePath
+//     * @param string $maskPath
+//     * @param string $framePath
+//     * @return string
+//     */
+//    private function addPhotoFrame(string $imagePath, string $maskPath, string $framePath): string
+//    {
+//        $arr = explode('.', $imagePath);
+//        $arr[count($arr) - 1] = 'png';
+//        $fileName = implode('.', $arr);
+//
+//        if (class_exists('\Imagick')) {
+//            $base = new \Imagick($imagePath);
+//            $mask = new \Imagick($maskPath);
+//            $over = new \Imagick($framePath);
+//
+//            $base->setImageFormat('png');
+//            $base->setImageColorspace($over->getImageColorspace());
+//            $base->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
+//
+//            $base->compositeImage($mask, \Imagick::COMPOSITE_DSTIN, 0, 0, \Imagick::CHANNEL_ALPHA);
+//            $base->borderImage(new \ImagickPixel('rgba(0, 0, 0, 0)'), ($over->getImageWidth() - $base->getImageWidth()) / 2,($over->getImageHeight() - $base->getImageHeight()) / 2);
+//            $base->compositeImage($over, \Imagick::COMPOSITE_DEFAULT, 0, 0);
+//            $base->writeImage($fileName);
+//
+//            $source = ComponentContainer::getTinifier()->getFromFile($fileName);
+//            $source->toFile($fileName);
+//        } elseif (extension_loaded('gd') && function_exists('gd_info')) {
+//            $baseInfo = getimagesize($imagePath);
+//            if ($baseInfo[2] == IMAGETYPE_PNG) $base = imagecreatefrompng($imagePath);
+//            else $base = imagecreatefromjpeg($imagePath);
+//            $mask = imagecreatefrompng($maskPath);
+//            $over = imagecreatefrompng($framePath);
+//            $overInfo = getimagesize($framePath);
+//
+//            $xOffset = ($overInfo[0] - $baseInfo[0]) / 2 - round($overInfo[0] / 188);
+//            $yOffset = ($overInfo[1] - $baseInfo[1]) / 2 - round($overInfo[1] / 188);
+//
+//            $newPicture = imagecreatetruecolor($overInfo[0], $overInfo[1]);
+//            imagesavealpha( $newPicture, true );
+//            imagefill( $newPicture, 0, 0, imagecolorallocatealpha( $newPicture, 0, 0, 0, 127 ) );
+//
+//            for($x = 0; $x < $baseInfo[0]; $x++) {
+//                for($y = 0; $y < $baseInfo[1]; $y++) {
+//                    $alpha = imagecolorsforindex($mask, imagecolorat($mask, $x, $y));
+//                    $color = imagecolorsforindex($base, imagecolorat($base, $x, $y));
+//
+//                    if ($alpha['alpha'] < 127) {
+//                        imagesetpixel($newPicture, $xOffset + $x, $yOffset + $y, imagecolorallocatealpha($newPicture, $color['red'], $color['green'], $color['blue'], $alpha['alpha']));
+//                    }
+//                }
+//            }
+//
+//            imagealphablending($newPicture, true);
+//            imagecopy($newPicture, $over, 0, 0, 0, 0, $overInfo[0], $overInfo[1]);
+//            imagepng($newPicture, $fileName);
+//
+//            $source = ComponentContainer::getTinifier()->getFromFile($fileName);
+//            $source->toFile($fileName);
+//        } else {
+//            $arr = explode('/', $imagePath);
+//            return end($arr);
+//        }
+//
+//        if ($imagePath != $fileName) unlink($imagePath);
+//        $arr = explode('/', $fileName);
+//        return end($arr);
+//    }
 
-        if (class_exists('\Imagick')) {
-            $base = new \Imagick($imagePath);
-            $mask = new \Imagick($maskPath);
-            $over = new \Imagick($framePath);
-
-            $base->setImageFormat('png');
-            $base->setImageColorspace($over->getImageColorspace());
-            $base->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
-
-            $base->compositeImage($mask, \Imagick::COMPOSITE_DSTIN, 0, 0, \Imagick::CHANNEL_ALPHA);
-            $base->borderImage(new \ImagickPixel('rgba(0, 0, 0, 0)'), ($over->getImageWidth() - $base->getImageWidth()) / 2,($over->getImageHeight() - $base->getImageHeight()) / 2);
-            $base->compositeImage($over, \Imagick::COMPOSITE_DEFAULT, 0, 0);
-            $base->writeImage($fileName);
-
-            $source = ComponentContainer::getTinifier()->getFromFile($fileName);
-            $source->toFile($fileName);
-        } elseif (extension_loaded('gd') && function_exists('gd_info')) {
-            $baseInfo = getimagesize($imagePath);
-            if ($baseInfo[2] == IMAGETYPE_PNG) $base = imagecreatefrompng($imagePath);
-            else $base = imagecreatefromjpeg($imagePath);
-            $mask = imagecreatefrompng($maskPath);
-            $over = imagecreatefrompng($framePath);
-            $overInfo = getimagesize($framePath);
-
-            $xOffset = ($overInfo[0] - $baseInfo[0]) / 2 - round($overInfo[0] / 188);
-            $yOffset = ($overInfo[1] - $baseInfo[1]) / 2 - round($overInfo[1] / 188);
-
-            $newPicture = imagecreatetruecolor($overInfo[0], $overInfo[1]);
-            imagesavealpha( $newPicture, true );
-            imagefill( $newPicture, 0, 0, imagecolorallocatealpha( $newPicture, 0, 0, 0, 127 ) );
-
-            for($x = 0; $x < $baseInfo[0]; $x++) {
-                for($y = 0; $y < $baseInfo[1]; $y++) {
-                    $alpha = imagecolorsforindex($mask, imagecolorat($mask, $x, $y));
-                    $color = imagecolorsforindex($base, imagecolorat($base, $x, $y));
-
-                    if ($alpha['alpha'] < 127) {
-                        imagesetpixel($newPicture, $xOffset + $x, $yOffset + $y, imagecolorallocatealpha($newPicture, $color['red'], $color['green'], $color['blue'], $alpha['alpha']));
-                    }
-                }
-            }
-
-            imagealphablending($newPicture, true);
-            imagecopy($newPicture, $over, 0, 0, 0, 0, $overInfo[0], $overInfo[1]);
-            imagepng($newPicture, $fileName);
-
-            $source = ComponentContainer::getTinifier()->getFromFile($fileName);
-            $source->toFile($fileName);
-        } else {
-            $arr = explode('/', $imagePath);
-            return end($arr);
-        }
-
-        if ($imagePath != $fileName) unlink($imagePath);
-        $arr = explode('/', $fileName);
-        return end($arr);
-    }
-
-    /**
-     * @param array $config
-     * @return bool
-     */
-    public function upload($config = [])
-    {
-        if ($this->uploadBasic($config)) {
-            $config = $this->getUploadImageConfig();
-            $imageField = $config['imageDBField'];
-
-            $imagePath = \Yii::getAlias('@uploads/' . $config['imageFolder']) . '/' . $this->$imageField;
-            $arr = explode('.', $this->$imageField);
-            $arr[count($arr) - 2] .= '@2x';
-            $imagePath2x = \Yii::getAlias('@uploads/' . $config['imageFolder']) . '/' . implode('.', $arr);
-
-            if (is_file($imagePath)) {
-                $maskPath = \Yii::getAlias('@app/extra') . '/teacher_mask.png';
-                $framePath = \Yii::getAlias('@app/extra') . '/teacher_frame.png';
-                $this->$imageField = $this->addPhotoFrame($imagePath, $maskPath, $framePath);
-            }
-
-            if (is_file($imagePath2x)) {
-                $maskPath = \Yii::getAlias('@app/extra') . '/teacher_mask@2x.png';
-                $framePath = \Yii::getAlias('@app/extra') . '/teacher_frame@2x.png';
-                $this->addPhotoFrame($imagePath2x, $maskPath, $framePath);
-            }
-
-            return true;
-        }
-        return false;
-    }
+//    /**
+//     * @param array $config
+//     * @return bool
+//     */
+//    public function upload($config = [])
+//    {
+//        if ($this->uploadBasic($config)) {
+//            $config = $this->getUploadImageConfig();
+//            $imageField = $config['imageDBField'];
+//
+//            $imagePath = \Yii::getAlias('@uploads/' . $config['imageFolder']) . '/' . $this->$imageField;
+//            $arr = explode('.', $this->$imageField);
+//            $arr[count($arr) - 2] .= '@2x';
+//            $imagePath2x = \Yii::getAlias('@uploads/' . $config['imageFolder']) . '/' . implode('.', $arr);
+//
+//            if (is_file($imagePath)) {
+//                $maskPath = \Yii::getAlias('@app/extra') . '/teacher_mask.png';
+//                $framePath = \Yii::getAlias('@app/extra') . '/teacher_frame.png';
+//                $this->$imageField = $this->addPhotoFrame($imagePath, $maskPath, $framePath);
+//            }
+//
+//            if (is_file($imagePath2x)) {
+//                $maskPath = \Yii::getAlias('@app/extra') . '/teacher_mask@2x.png';
+//                $framePath = \Yii::getAlias('@app/extra') . '/teacher_frame@2x.png';
+//                $this->addPhotoFrame($imagePath2x, $maskPath, $framePath);
+//            }
+//
+//            return true;
+//        }
+//        return false;
+//    }
 
     /**
      * @return string

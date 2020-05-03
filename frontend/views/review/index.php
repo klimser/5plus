@@ -9,17 +9,14 @@ use common\components\WidgetHtml;
 /* @var $pager \yii\data\Pagination */
 
 $this->params['breadcrumbs'][] = 'Отзывы';
-
-if (YII_ENV == 'prod') {
-    $this->params['h1'] .= WidgetHtml::getByName('review_link_widget');
-}
-
 ?>
 <div class="container">
     <div class="row align-items-center">
-        <div class="col">
-            <?= WidgetHtml::getByName('review_link_widget'); ?>
-        </div>
+        <?php if (YII_ENV == 'prod'): ?>
+            <div class="col">
+                <?= WidgetHtml::getByName('review_link_widget'); ?>
+            </div>
+        <?php endif; ?>
         <div class="col">
             <div class="text-right">
                 <a id="add-review-button" href="#" onclick="Review.launchModal(); return false;">+ написать отзыв</a>
