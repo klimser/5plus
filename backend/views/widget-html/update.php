@@ -45,7 +45,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     <?=
                     $form->field($widget, 'content[editor]', ['enableLabel' => false])
                         ->widget(\dosamigos\tinymce\TinyMce::class, array_merge(
-                                \backend\components\DefaultValuesComponent::getTinyMceSettings(),
+                                \common\components\DefaultValuesComponent::getTinyMceSettings(),
                                 ['options' => ['rows' => 10, 'value' => $widget->content]])
                         );
                     ?>

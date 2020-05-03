@@ -37,7 +37,7 @@ $this->params['breadcrumbs'][] = $highSchool->isNewRecord ? $label : $highSchool
         <?= $form->field($highSchool, 'descriptionForEdit')->hint('Чтобы выделить часть текста цветом, заключите текст в {{текст}}')->textarea(['rows' => 6]) ?>
 
         <?=
-        $form->field($highSchool, 'description')->widget(\dosamigos\tinymce\TinyMce::class, \backend\components\DefaultValuesComponent::getTinyMceSettings()); ?>
+        $form->field($highSchool, 'description')->widget(\dosamigos\tinymce\TinyMce::class, \common\components\DefaultValuesComponent::getTinyMceSettings()); ?>
 
         <div class="form-group">
             <?= Html::submitButton($highSchool->isNewRecord ? 'Добавить' : 'Сохранить', ['class' => $highSchool->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

@@ -60,7 +60,7 @@ class PaymentController extends Controller
 
         if (!$validator->validate(Yii::$app->request->post('reCaptcha'))) {
             Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
-            return $this->render('index', $this->getPageParams('pupil'));
+            return $this->render('index-pupil', $this->getPageParams('pupil'));
         } else {
             $phoneFull = '+998' . substr(preg_replace('#\D#', '', Yii::$app->request->post('phoneFormatted')), -9);
             /** @var User[] $users */
@@ -70,7 +70,7 @@ class PaymentController extends Controller
                 ->all();
             if (count($users) == 0) {
                 Yii::$app->session->addFlash('error', 'По данному номеру студенты не найдены');
-                return $this->render('index', $this->getPageParams('pupil'));
+                return $this->render('index-pupil', $this->getPageParams('pupil'));
             } else {
                 $params = $this->getPageParams('pupil');
                 $params['user'] = null;

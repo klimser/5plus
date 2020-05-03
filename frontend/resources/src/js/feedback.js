@@ -11,8 +11,8 @@ var Feedback = {
             data: $(form).serialize(),
             success: function (data) {
                 if (data.status === 'ok') {
-                    $("#feedback_form_body").addClass("hidden");
-                    $("#feedback_form_complete").removeClass("hidden");
+                    $("#feedback_form_body").addClass("d-none");
+                    $("#feedback_form_complete").removeClass("d-none");
                 } else {
                     Main.throwFlashMessage("#feedback_form_extra", 'Не удалось отправить отзыв: ' + data.errors , 'alert-danger');
                     grecaptcha.reset();
@@ -28,8 +28,8 @@ var Feedback = {
     },
     resetForm: function() {
         $("#feedback_form_extra").html('');
-        $("#feedback_form_complete").addClass("hidden");
-        $("#feedback_form_body").removeClass("hidden");
+        $("#feedback_form_complete").addClass("d-none");
+        $("#feedback_form_body").removeClass("d-none");
         grecaptcha.reset();
     }
 };

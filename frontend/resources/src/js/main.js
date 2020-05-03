@@ -53,7 +53,7 @@ var Main = {
 };
 
 $(function() {
-    var captchaElements = $('.g-recaptcha');
+    let captchaElements = $('.g-recaptcha');
     if (captchaElements.length > 0) {
         captchaElements.each(function() {
             if ($(this).children().length > 0) {
@@ -70,4 +70,5 @@ $(function() {
         Main.scaleCaptcha();
     });
     $(window).resize(function() { Main.scaleCaptcha(); });
+    Main.initPhoneFormatted();
 });

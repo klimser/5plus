@@ -1,6 +1,6 @@
 <?php
 
-use backend\components\DefaultValuesComponent;
+use common\components\DefaultValuesComponent;
 use dosamigos\datepicker\DatePicker;
 
 /* @var $this \yii\web\View */

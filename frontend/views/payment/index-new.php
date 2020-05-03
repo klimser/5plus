@@ -6,15 +6,10 @@ use yii\helpers\Url;
 /* @var $this \frontend\components\extended\View */
 /* @var $giftCardTypes \common\models\GiftCardType[] */
 
-$this->registerJs(<<<SCRIPT
-Main.initPhoneFormatted();
-SCRIPT
-);
-
 $this->params['breadcrumbs'][] = 'Онлайн оплата для новых студентов'; ?>
 
-<div class="row">
-    <div class="col-xs-12 payment-panel">
+<div class="container">
+    <div class="content-box payment-panel">
         <?= Html::beginForm(Url::to(['payment/create-new']), 'post', ['onsubmit' => 'return Payment.completeNewPayment(this);']); ?>
             <div class="alert alert-info">
                 <b>Внимание!</b><br>
@@ -28,7 +23,10 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                     </div>
                     <div class="form-group required">
                         <label for="giftcard-pupil-phone">Телефон студента</label>
-                        <div class="input-group"><span class="input-group-addon">+998</span>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">+998</span>
+                            </div>
                             <input type="tel" name="giftcard[pupil_phone]" id="giftcard-pupil-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" required>
                         </div>
                     </div>
@@ -40,7 +38,10 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                     </div>
                     <div class="form-group">
                         <label for="giftcard-parents-phone">Телефон родителей</label>
-                        <div class="input-group"><span class="input-group-addon">+998</span>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">+998</span>
+                            </div>
                             <input type="tel" name="giftcard[parents_phone]" id="giftcard-parents-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}">
                         </div>
                     </div>
@@ -65,7 +66,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                 Желаем вам хорошего настроения и шикарной учебы!
             </div>
             <div id="message_board"></div>
-            <div class="text-right max-width-100">
+            <div class="text-right mw-100">
                 <button class="btn btn-primary btn-lg pay_button">оплатить</button>
             </div>
         <?= Html::endForm(); ?>

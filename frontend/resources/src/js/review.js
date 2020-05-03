@@ -1,16 +1,4 @@
-var Review = {
-    toggleReview: function(e) {
-        var item = $(e).closest(".review-item");
-        var reviewBody = $(item).find(".review-body");
-        if ($(reviewBody).hasClass("review-teaser")) {
-            $(reviewBody).removeClass("review-teaser");
-            $(item).find(".read-more-block").html('<a href="#" onclick="return Review.toggleReview(this);"><span class="glyphicon glyphicon-chevron-up"></span> <span class="link-body">Свернуть отзыв</span></a>');
-        } else {
-            $(reviewBody).addClass("review-teaser");
-            $(item).find(".read-more-block").html('<a href="#" onclick="return Review.toggleReview(this);"><span class="glyphicon glyphicon-chevron-down"></span> <span class="link-body">Читать весь отзыв</span></a>');
-        }
-        return false;
-    },
+let Review = {
     launchModal: function () {
         if ($("#review_form_body").hasClass("hidden")) {
             grecaptcha.reset();
@@ -48,14 +36,5 @@ var Review = {
             }
         });
         return false;
-    },
-    init: function() {
-        $(".review-item").each(function() {
-            var reviewBody = $(this).find(".review-body");
-            if ($(reviewBody).height() > 78) {
-                $(reviewBody).addClass("review-teaser");
-                $(this).find(".read-more-block").html('<a href="#" onclick="return Review.toggleReview(this);"><span class="glyphicon glyphicon-chevron-down"></span> <span class="link-body">Читать весь отзыв</span></a>');
-            }
-        });
     }
 };

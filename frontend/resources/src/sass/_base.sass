@@ -1,0 +1,264 @@
+// mixins
+=png($color,$name,$pre)    
+	background-image: $color url("../images/#{$name}.png") $pre
+=jpg($color,$name,$pre)    
+	background-image: $color url("../images/#{$name}.jpg") $pre
+=g($color1, $color2)
+	background-image: (linear-gradient($color1, $color2))
+=gv($color1, $color2)
+	background-image: (linear-gradient(to right, $color1, $color2))
+=gv3($color1, $color2, $color3)
+	background: (linear-gradient(to right, $color1, $color2, $color3))
+=vc
+	top: 50%
+	transform: translateY(-50%)
+=hc
+	left: 50%
+	transform: translateX(-50%)
+=vhc
+	top: 50%
+	left: 50%
+	transform: translateX(-50%) translateY(-50%)
+=phc($color)
+	&:-moz-placeholder,
+	&::-moz-placeholder
+		color: $color
+		opacity: 1
+	&::-webkit-input-placeholder
+		color: $color
+/*_^_ css _^_*/
+.mw-50
+	max-width: 50%
+html
+	height: 100%
+	font-size: 15px
+body 
+	min-width: 320px
+	font: 
+		weight: normal
+		family: $ms3, sans-serif
+		size: 15px
+	color: #1b1d2c
+	background: #fff
+	position: relative
+	min-height: 100%
+	display: -webkit-flex
+	display: -moz-flex
+	display: -ms-flex
+	display: flex
+	flex-direction: column
+	&::before
+		content: ''
+		position: fixed
+		top: 0
+		bottom: 0
+		left: 0
+		right: 0
+		background: #000
+		opacity: 0
+		z-index: 8
+		transition: all 300ms ease 0s
+		visibility: hidden
+	&::after
+		content: ''
+		position: absolute
+		top: 0
+		right: 0
+		bottom: 0
+		width: 50%
+		background: #22243f	url('../images/bg-right-front.jpg') no-repeat 50% 0 / 100% auto
+		z-index: -1
+body.menu-open
+	overflow: hidden
+	&::before
+		opacity: 0.5
+		visibility: visible
+a
+	color: $cdbl
+	text-decoration: underline
+	&:hover, &:focus
+		text-decoration: none
+		color: darken( $cdbl, 10% )
+a.tel
+	text-decoration: none
+h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6
+	font-family: $ms7
+	font-weight: 700
+	color: #000
+	margin-bottom: 15px
+h1, .h1
+	font-size: 32px
+h2, .h2
+	font-size: 28px
+h3, .h3
+	font-size: 24px
+h4, .h4
+	font-size: 22px
+h5, .h5
+	font-size: 20px
+h6, .h6
+	font-size: 18px
+br
+	line-height: 0
+button
+	cursor: pointer
+.img-responsive
+	max-width: 100%
+	height: auto
+a, img, li, input, button, .fas, a span, button span, button i, .swiper-button-next, .swiper-button-prev, .swiper-pagination-bullet
+	transition: all 300ms ease 0s
+	&::after, &::before
+		transition: all 300ms ease 0s
+.clear
+	clear: both
+.oh
+	position: relative
+	overflow: hidden
+.container
+	padding-left: 15px
+	padding-right: 15px
+.container.nopad
+	padding-left: 0
+	padding-right: 0
+.row
+	margin-left: -15px
+	margin-right: -15px
+b
+	font-weight: bold
+.float-left
+	margin-right: 15px
+	margin-bottom: 10px
+.float-right
+	margin-left: 15px
+	margin-bottom: 10px
+.swiper-button-next, .swiper-button-prev
+	z-index: 8
+/* colors */
+.bgc-ins
+	background-color: $cins
+	&:hover
+		background-color: darken($cins,15%)
+.bgc-fb
+	background-color: $cfb
+	&:hover
+		background-color: darken($cfb,15%)
+.bgc-tg
+	background-color: $ctg
+	&:hover
+		background-color: darken($ctg,15%)
+.fc-white
+	color: #fff
+.bgc-dblue
+	background-color: $cdbl
+/* form */
+.form-row
+	margin-left: -15px
+	margin-right: -15px
+.form-row > .col, .form-row > [class*="col-"]
+	padding-left: 15px
+	padding-right: 15px
+.form-group
+	margin-bottom: 25px
+.form-control
+	background-color: #fff
+	border: none
+	border-radius: 8px
+	box-shadow: 0 3px 13px rgba(0,0,0,0.07)
+	font: 16px $ms3
+	color: #484848
+	+phc(#a7a7a7)
+	height: auto
+	padding: 10px 15px	
+.form-control-lg
+	font: 20px $ms5
+	padding: 21px 30px
+.btn
+	text-decoration: none
+	&:hover
+		text-decoration: none
+.btn-ico
+	display: -webkit-flex
+	display: -moz-flex
+	display: -ms-flex
+	display: flex
+	align-items: center
+	justify-content: space-between
+	.ico
+		margin-left: 30px
+		width: 100%
+		max-width: 21px
+		height: auto
+.btn-lg
+	font: 18px $ms5
+.btn-default
+	background: #ca1946
+	font: 19px $ms3
+	color: #fff
+	border: 3px solid #fff
+	border-radius: 10px
+	box-shadow: 0 4px 30px rgba(25,27,54,0.1)
+	min-height: 54px
+	padding: 10px 15px
+	min-width: 217px
+	&:hover
+		background: darken(#ca1946,10%)
+		color: #fff
+.btn-arr
+	span
+		font-size: 17px
+		margin-left: 19px
+	&:hover
+		span
+			transform: translateY(5px)
+.btn-readmore
+	background: #ca1946
+	border: none
+	min-width: 225px
+	font: 17px $ms9
+	border-radius: 10px
+	&:hover
+		background: #22243f
+	&:focus
+		background: darken(#22243f,10%)
+/* modal */
+.modal-content
+	border: none
+	border-radius: 10px
+	box-shadow: 0 29px 57px rgba(31, 41, 140, 0.5)
+/* accordion */
+.accordion
+	margin-bottom: 30px
+	.card
+		border-radius: 10px
+		.card-header
+			padding: 0
+			border: none
+			.btn
+				display: block
+				width: 100%
+				text-align: left
+				background: #fff
+				padding: 10px 15px 10px 50px
+				font: 18px $ms9
+				font-weight: 300
+				color: #1f298c
+				text-decoration: underline
+				position: relative
+				border-radius: 0
+				&:hover
+					text-decoration: none
+				&:focus
+					box-shadow: none
+				&::after
+					content: '\f078'
+					font-size: 20px
+					font-family: "Font Awesome 5 Pro"
+					font-weight: 300
+					position: absolute
+					top: 50%
+					left: 15px
+					transform: translateY(-50%) rotate(180deg)
+					color: #1f298c
+			.btn.collapsed
+				&::after
+					transform: translateY(-50%) rotate(0)

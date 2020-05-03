@@ -4,13 +4,17 @@
 /* @var $quizResult \common\models\QuizResult */
 
 $this->params['showWelcome'] = false;
+?>
 
-if ($quizResult):
+<div class="container">
+    <div class="content-box">
+
+<?php if ($quizResult):
     $this->title = $quizResult->quiz_name; ?>
     <h1>Тест "<?= $quizResult->quiz_name; ?>"</h1>
     <div class="row quiz-area" id="quiz_area">
         <?php if ($quizResult->finished_at): ?>
-            <div class="col-xs-12">
+            <div class="col">
                 <div class="alert alert-info">
                     Тест завершён.<br>
                     Ваш результат - <b><?= $quizResult->rightAnswerCount; ?> правильных из <?= count($quizResult->answersArray); ?></b>.<br>
@@ -34,12 +38,12 @@ if ($quizResult):
             $this->registerJs($script, \frontend\components\extended\View::POS_END);
             ?>
 
-            <div class="col-md-3 col-lg-2 hidden-sm hidden-xs">
+            <div class="d-none d-md-block col-md-3 col-lg-2">
                 <div class="list-group" id="question_list">
                 </div>
             </div>
-            <div class="col-xs-12 col-md-9 col-lg-10">
-                <div id="time_left" class="pull-right hidden"></div>
+            <div class="col-12 col-md-9 col-lg-10">
+                <div id="time_left" class="float-right hidden"></div>
                 <div id="question_content">Загрузка...</div>
                 <fieldset id="answer_list" class="hidden"></fieldset>
 
@@ -56,8 +60,8 @@ SCRIPT
                     , \yii\web\View::POS_HEAD, 'track_quiz_end');
                 ?>
 
-                <button class="btn btn-success pull-left hidden" id="complete_button" onclick="ymTrackQuizEnd(); fbTrackQuizEnd(); Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
-                <button class="btn btn-success pull-right hidden" id="answer_button" onclick="Quiz.errorCount = 0; return Quiz.saveAnswer();">Ответить</button>
+                <button class="btn btn-success float-left hidden" id="complete_button" onclick="ymTrackQuizEnd(); fbTrackQuizEnd(); Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
+                <button class="btn btn-success float-right hidden" id="answer_button" onclick="Quiz.errorCount = 0; return Quiz.saveAnswer();">Ответить</button>
                 <div id="msg_place"></div>
             </div>
         <?php endif; ?>
@@ -67,4 +71,7 @@ SCRIPT
     <div class="alert alert-danger">
         Некорректный запрос
     </div>
-<?php endif;
+<?php endif; ?>
+    
+    </div>
+</div>

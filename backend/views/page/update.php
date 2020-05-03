@@ -21,7 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $form->field($page, 'title')->textInput(['required' => true, 'maxlength' => true]) ?>
 
         <?=
-        $form->field($page, 'content')->widget(\dosamigos\tinymce\TinyMce::class, \backend\components\DefaultValuesComponent::getTinyMceSettings());
+        $form->field($page, 'content')->widget(\dosamigos\tinymce\TinyMce::class, \common\components\DefaultValuesComponent::getTinyMceSettings());
         ?>
 
         <?= $this->render('/webpage/_form', [

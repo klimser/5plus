@@ -39,26 +39,27 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
 };
 ?>
 
-<div class="row">
-    <div id="user_select" class="col-xs-12">
-        <?php if ($user !== null): ?>
-            <?= $getPupilButton($user, true); ?>
-        <?php
-            $script .= "Payment.user = {$user->id};
-                Payment.renderGroupSelect();\n";
-        else:
-            foreach ($users as $user): ?>
-                <?= $getPupilButton($user); ?>
-            <?php endforeach;
-        endif; ?>
+<div class="container">
+    <div class="content-box">
+        <div class="row">
+            <div id="user_select" class="col-12">
+                <?php if ($user !== null): ?>
+                    <?= $getPupilButton($user, true); ?>
+                <?php
+                    $script .= "Payment.user = {$user->id};
+                        Payment.renderGroupSelect();\n";
+                else:
+                    foreach ($users as $user): ?>
+                        <?= $getPupilButton($user); ?>
+                    <?php endforeach;
+                endif; ?>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div id="group_select" class="col-12"></div>
+        </div>
     </div>
-</div>
-
-<div class="row">
-    <div id="group_select" class="col-xs-12">
-
-    </div>
-</div>
 </div>
 
 <div id="payment_form" class="modal fade" tabindex="-1" role="dialog">
@@ -66,32 +67,34 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
         <div class="modal-content">
             <?= Html::beginForm(Url::to(['payment/create']), 'post', ['onsubmit' => 'return Payment.completePayment(this);']); ?>
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
                 <h4 class="modal-title">Оплатить</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div id="message_board"></div>
                 <div id="order_form_body" class="form-horizontal">
                     <div class="form-group">
-                        <label for="pupil" class="col-xs-4 col-sm-3 col-lg-2 control-label">Студент</label>
-                        <div class="col-xs-8 col-sm-9 col-lg-10">
+                        <label for="pupil" class="col-4 col-md-3 col-xl-2 control-label">Студент</label>
+                        <div class="col-8 col-md-9 col-xl-10">
                             <input class="form-control" id="pupil" disabled>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="group" class="col-xs-4 col-sm-3 col-lg-2 control-label">Группа</label>
-                        <div class="col-xs-8 col-sm-9 col-lg-10">
+                        <label for="group" class="col-4 col-md-3 col-xl-2 control-label">Группа</label>
+                        <div class="col-8 col-md-9 col-xl-10">
                             <input class="form-control" id="group" disabled>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="amount" class="col-xs-4 col-sm-3 col-lg-2 control-label">Сумма</label>
-                        <div class="col-xs-8 col-sm-9 col-lg-10">
+                        <label for="amount" class="col-4 col-md-3 col-xl-2 control-label">Сумма</label>
+                        <div class="col-8 col-md-9 col-xl-10">
                             <input class="form-control" id="amount" disabled>
                         </div>
                     </div>
                     <div class="form-group">
-                        <div class="col-xs-12 text-center">
+                        <div class="col-12 text-center">
                             <button class="btn btn-primary pay_button">Подтвердить и перейти к оплате</button>
                         </div>
                     </div>
@@ -101,6 +104,5 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
         </div>
     </div>
 </div>
-<div class="container">
 
 <?php $this->registerJs($script, View::POS_END); ?>

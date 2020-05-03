@@ -5,18 +5,13 @@ let QuizList = {
     setSubject: function(e) {
         this.subject = $(e).data("subject");
         this.quiz = null;
-        $("#selected-subject").text(this.data.get(this.subject).name);
-        $("#selected-quiz").text("");
-        $("#step-button-1").removeClass("btn-default btn-primary").addClass("btn-success");
-        $("#step-button-2").prop("disabled", false).removeClass("btn-default btn-success").addClass("btn-primary");
-        $("#step-button-3").prop("disabled", true).removeClass("btn-primary").addClass("btn-default");
+        // $("#selected-subject").text(this.data.get(this.subject).name);
         let quizList = '';
         this.data.get(this.subject).quizzes.forEach(function(value, key) {
             quizList += '<a href="#" data-quiz="' + key + '" class="list-group-item" onclick="return QuizList.setQuiz(this);">' + value.name  + '</a>';
         });
         $("#quiz-list").html(quizList);
-        $("#step-1").addClass("hidden");
-        $("#step-2").removeClass("hidden");
+        MultiStepForm.jump($("#step-2-tab"));
         return false;
     },
     setQuiz: function(e) {
@@ -25,11 +20,7 @@ let QuizList = {
 
         $("#selected-quiz").text(this.data.get(this.subject).quizzes.get(this.quiz).name);
         $("#question-count").text(this.data.get(this.subject).quizzes.get(this.quiz).questionCount);
-        $("#step-button-1").removeClass("btn-default btn-primary").addClass("btn-success");
-        $("#step-button-2").prop("disabled", false).removeClass("btn-default btn-primary").addClass("btn-success");
-        $("#step-button-3").prop("disabled", false).removeClass("btn-default").addClass("btn-primary");
-        $("#step-2").addClass("hidden");
-        $("#step-3").removeClass("hidden");
+        MultiStepForm.jump($("#step-3-tab"));
         return false;
     },
     jump: function(button) {

@@ -11,6 +11,7 @@
     "@babel/core": "^7.2.2",
     "@babel/polyfill": "^7.2.5",
     "@babel/preset-env": "^7.2.3",
+    "@fancyapps/fancybox": "^3.5.7",
     "@fortawesome/fontawesome-free": "^5.1.1",
     "bootstrap": "3",
     "chosen-js": "^1.8.7",
@@ -21,12 +22,14 @@
     "grunt-contrib-clean": "0.x.x",
     "grunt-contrib-copy": "0.x.x",
     "grunt-contrib-less": "1.x.x",
+    "grunt-contrib-sass": "^1.0.0",
     "grunt-contrib-uglify": "0.x.x",
     "grunt-contrib-watch": "0.x.x",
     "inputmask": "^4.0.0",
     "jquery": "^3.3.1",
     "nestedSortable": "^1.3.4",
     "owl.carousel": "^2.3.4",
+    "swiper": "^5.3.7",
     "time-grunt": "1.x.x",
     "yarn": "^1.7.0"
   }

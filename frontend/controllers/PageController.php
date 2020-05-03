@@ -38,8 +38,8 @@ class PageController extends Controller
                     ->orderBy('page_order')
                     ->all();
                 $params['reviews'] = Review::find()->where(['status' => Review::STATUS_APPROVED])->orderBy('rand()')->limit(10)->all();
-                $params['quizWebpage'] = Webpage::findOne(['module_id' => Module::getModuleIdByControllerAndAction('quiz', 'list')]);
-                $params['paymentWebpage'] = Webpage::findOne(['module_id' => Module::getModuleIdByControllerAndAction('payment', 'index')]);
+                $this->view->params['quizWebpage'] = Webpage::findOne(['module_id' => Module::getModuleIdByControllerAndAction('quiz', 'list')]);
+                $this->view->params['paymentWebpage'] = Webpage::findOne(['module_id' => Module::getModuleIdByControllerAndAction('payment', 'index')]);
 
                 return $this->render('main', $params);
             }

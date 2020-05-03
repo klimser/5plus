@@ -15,75 +15,17 @@ use yii\helpers\Url;
 /* @var $quizWebpage \common\models\Webpage */
 /* @var $paymentWebpage \common\models\Webpage */
 
-$this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
+$this->registerJs('MainPage.init();');
 
 //unset($this->params['h1']);
 
-?>
-</div>
+foreach ($subjectCategoryCollection as $subjectCategory): ?>
+        <?= SubjectCarouselWidget::widget(['subjectCategory' => $subjectCategory]); ?>
+<?php endforeach; ?>
 
-<div class="container">
-    <div class="row">
-        <div class="col-xs-12 col-sm-4 text-center">
-            <p>
-                <a class="btn btn-lg btn-primary" href="<?= Url::to(['webpage', 'id' => $quizWebpage->id]); ?>">
-                    Проверь свои знания
-                </a>
-            </p>
-        </div>
-        <div class="col-xs-12 col-sm-4 text-center">
-            <p>
-                <a tabindex="0" class="btn btn-lg btn-primary" role="button" data-container="body" data-toggle="popover" data-placement="bottom" data-trigger="focus" data-html="1" data-content="<a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'pupil']); ?>'>для учащихся</a><br><br> <a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'new']); ?>'>для новых студентов</a>">Онлайн-оплата</a>
-            </p>
-        </div>
-        <div class="col-xs-12 col-sm-4 text-center">
-            <p>
-                <?= YII_ENV == 'prod' ? WidgetHtml::getByName('callback') : ''; ?>
-            </p>
-        </div>
-    </div>
-</div>
+<?= TeacherCarouselWidget::widget(); ?>
 
-<?php
-    $i = 0;
-    foreach ($subjectCategoryCollection as $subjectCategory):
-?>
-    <?php if ($i % 2 == 0): ?>
-        <div class="clouds-line-bottom"></div>
-        <div class="light-block">
-    <?php endif; ?>
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12">
-                <?= $i == 0 ? $page->content : ''; ?>
-                <?= SubjectCarouselWidget::widget(['subjectCategory' => $subjectCategory, 'buttonLeft' => $i % 2 == 1, 'index' => $i]); ?>
-            </div>
-        </div>
-    </div>
-    <?php if ($i % 2 == 0): ?>
-        </div>
-        <div class="clouds-line-top"></div>
-    <?php endif; ?>
-<?php
-    $i++;
-    endforeach;
-?>
-
-<div class="clouds-line-bottom"></div>
-<div class="light-block">
-    <div class="container">
-        <?= TeacherCarouselWidget::widget(); ?>
-    </div>
-</div>
-<div class="clouds-line-top"></div>
-
-<div class="container">
-    <div class="row">
-        <div class="col-xs-12">
-            <?= ReviewCarouselWidget::widget(); ?>
-        </div>
-    </div>
-</div>
+<?= ReviewCarouselWidget::widget(); ?>
 
 <div id="order_form" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -96,8 +38,10 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
                     ]
             ); ?>
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
                 <h4 class="modal-title">Записаться на курс</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div id="order_form_body">
@@ -111,8 +55,11 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
                     </div>
                     <div class="form-group">
                         <label for="order-phone">Ваш номер телефона</label>
-                        <div class="input-group"><span class="input-group-addon">+998</span>
-                            <input type="tel" name="order[phoneFormatted]" id="order-phone" class="form-control" maxlength="11" pattern="\d{2} \d{3}-\d{4}" required>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">+998</span>
+                            </div>
+                            <input type="tel" name="order[phoneFormatted]" id="order-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" required>
                         </div>
                     </div>
                     <div class="form-group">
@@ -124,11 +71,10 @@ $this->registerJs('MainPage.init(' . count($subjectCategoryCollection) . ');');
                 <div id="order_form_extra" class="hidden"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">отмена</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>
                 <button class="btn btn-primary">записаться</button>
             </div>
             <?= Html::endForm(); ?>
         </div>
     </div>
 </div>
-<div class="container">

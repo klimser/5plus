@@ -5,7 +5,6 @@ fonts:
       flatten: true
       src:
         - frontend/resources/src/fonts/*
-        - node_modules/bootstrap/fonts/*
       dest: frontend/web/assets/grunt/fonts
     -
       expand: true
@@ -46,3 +45,12 @@ images:
         - node_modules/chosen-js/chosen-sprite.png
         - node_modules/chosen-js/chosen-sprite@2x.png
       dest: backend/web/assets/grunt/css
+css:
+  files:
+    -
+      expand: true
+      src:
+        - frontend/resources/src/css/bootstrap.min.css
+        - node_modules/swiper/css/swiper.min.css
+        - node_modules/@fancyapps/fancybox/dist/jquery.fancybox.min.css
+      dest: frontend/web/assets/grunt/css

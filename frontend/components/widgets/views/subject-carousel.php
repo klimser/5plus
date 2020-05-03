@@ -2,25 +2,86 @@
 /* @var $subjectCategory \common\models\SubjectCategory */
 /* @var $buttonLeft bool */
 /* @var $index int */
+
+$vars = [
+    1 => [
+        'section_class' => 'preparation-for-admission-to-universities-box',
+        'subname' => 'ВУЗЫ',
+        'slider_class' => 'swiper-preparation-for-admission-to-universities-slider',
+        'button_class' => 'btn-danger',
+    ],
+    2 => [
+        'section_class' => 'language-classes-box',
+        'subname' => 'ЯЗЫКИ',
+        'slider_class' => 'swiper-language-classes-slider',
+        'button_class' => 'btn-link',
+    ],
+    3 => [
+        'section_class' => 'preparatory-courses-for-students-box',
+        'subname' => 'ШКОЛА',
+        'slider_class' => 'swiper-preparatory-courses-for-students-slider',
+        'button_class' => 'btn-primary',
+    ],
+    4 => [
+        'section_class' => 'business-courses-box',
+        'subname' => 'БИЗНЕС',
+        'slider_class' => 'swiper-business-courses-slider',
+        'button_class' => 'btn-link',
+    ]
+];
+
 ?>
 
-<div class="row subject-carousel-widget carousel-widget">
-    <div class="info-block col-xs-12 col-sm-4 col-md-3 <?= $buttonLeft ? 'col-sm-push-8 col-md-push-9' : ''; ?>">
-        <h2 class="widget-light"><?= $subjectCategory->name; ?></h2>
-        <a href="#" class="widget-button" onclick="MainPage.launchModal(); return false;">Записаться на курс</a>
-    </div>
-    <div class="carousel-block col-xs-12 col-sm-8 col-md-9 <?= $buttonLeft ? 'col-sm-pull-4 col-md-pull-3' : ''; ?>">
-        <div id="carousel-nav-<?= $index; ?>" class="carousel-nav"></div>
-        <div id="owl-carousel-<?= $index; ?>" class="owl-carousel owl-theme">
-            <?php foreach ($subjectCategory->activeSubjects as $subject): ?>
-                <div class="carousel-item">
-                    <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>">
-                        <img src="<?= $subject->imageUrl; ?>"><br>
-                        <span class="link-body"><?= $subject->name; ?></span>
-                    </a>
+<section class="<?= $vars[$subjectCategory->id]['section_class']; ?>">
+    <div class="container">
+        <?php if ($subjectCategory->id === 1): ?>
+            <div class="body">
+        <?php endif; ?>
+            <div class="shadow-title"><?= $vars[$subjectCategory->id]['subname']; ?></div>
+            <h2 class="block-title"><?= $subjectCategory->name; ?></h2>
+            <div class="<?= $vars[$subjectCategory->id]['slider_class']; ?> swiper-container">
+                <div class="swiper-wrapper">
+                    <?php foreach ($subjectCategory->activeSubjects as $subject): ?>
+                        <div class="swiper-slide item">
+                                <?php if ($subjectCategory->id === 1): ?>
+                                    <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="card">
+                                        <span class="img"><img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name; ?>"></span>
+                                        <span class="name"><?= $subject->name; ?></span>
+                                    </a>
+                                <?php elseif ($subjectCategory->id === 2): ?>
+                                    <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="card">
+                                        <span class="ico"><img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name; ?>"></span>
+                                        <span class="name"><?= $subject->name; ?></span>
+                                    </a>
+                                <?php elseif ($subjectCategory->id === 3): ?>
+                                    <div class="card">
+                                        <img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name; ?>" class="img">
+                                        <div class="text">
+                                            <div class="name"><?= $subject->name; ?></div>
+                                            <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="link-readmore">подробнее</a>
+                                        </div>
+                                    </div>
+                                <?php elseif ($subjectCategory->id === 4): ?>
+                                    <div class="card">
+                                        <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="img">
+                                            <img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name; ?>">
+                                        </a>
+                                        <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="name"><?= $subject->name; ?></a>
+                                    </div>
+                                <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-            <?php endforeach; ?>
-        </div>
+            </div>
+            <div class="swiper-button-prev"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-arr.png" alt="arrow"></div>
+            <div class="swiper-button-next"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-arr.png" alt="arrow"></div>
+            <button type="button" class="btn btn-enroll-in-a-course <?= $vars[$subjectCategory->id]['button_class']; ?>" onclick="MainPage.launchModal(); return false;">Записаться на курс</button>
+        <?php if ($subjectCategory->id === 1): ?>
+            </div>
+            <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/girl1.png" alt="girl" class="girl d-none d-xl-block">
+        <?php endif; ?>
+        <?php if ($subjectCategory->id === 3): ?>
+            <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/girl2.png" alt="girl" class="girl d-none d-xl-block">
+        <?php endif; ?>
     </div>
-    <div class="clearfix"></div>
-</div>
+</section>

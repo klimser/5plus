@@ -11,10 +11,10 @@ $this->params['breadcrumbs'][] = ['url' => Yii::$app->homeUrl . $subject->subjec
 $this->params['breadcrumbs'][] = $subject->name;
 ?>
 
-<div class="row">
-    <div class="col-xs-12 text-content">
+<div class="container">
+    <div class="content-box">
         <?php if ($quizCount): ?>
-            <a class="quiz-adv" href="<?= \yii\helpers\Url::to(['webpage', 'id' => $quizWebpage->id, 'subjectId' => $subject->id]); ?>">
+            <a class="btn btn-info btn-lg float-right m-l-3 m-b-3" href="<?= \yii\helpers\Url::to(['webpage', 'id' => $quizWebpage->id, 'subjectId' => $subject->id]); ?>">
                 Узнайте свой уровень.
             </a>
         <?php endif; ?>

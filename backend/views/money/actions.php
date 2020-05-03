@@ -102,6 +102,13 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'comment',
 //                'options' => ['class' => 'col-xs-1'],
+                'content' => function ($model, $key, $index, $column) {
+                    $decodedData = json_decode($model->comment, true);
+                    return $decodedData === null ? $model->comment : \yii\widgets\DetailView::widget([
+                        'model'      => $decodedData,
+                        'attributes' => array_keys($decodedData),
+                    ]);
+                },
             ],
             [
                 'attribute' => 'createDate',

@@ -9,8 +9,8 @@ $this->params['breadcrumbs'][] = ['url' => Yii::$app->homeUrl . $promotionsWebpa
 $this->params['breadcrumbs'][] = $promotion->name;
 ?>
 
-<div class="row">
-    <div class="col-xs-12 text-content">
+<div class="container">
+    <div class="content-box">
         <?= $promotion->content; ?>
     </div>
 </div>

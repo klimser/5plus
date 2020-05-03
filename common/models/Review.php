@@ -57,6 +57,7 @@ class Review extends ActiveRecord
     {
         return [
             [['name', 'message'], 'required'],
+            [['name', 'message'], 'trim'],
             [['status'], 'string'],
             [['ip'], 'string', 'max' => 40],
             [['name'], 'string', 'max' => 50],

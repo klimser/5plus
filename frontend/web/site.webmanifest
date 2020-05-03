@@ -6,13 +6,19 @@
 	"background_color": "#FFFFFF",
 	"icons": [
 		{
-			"src": "\/icons\/android-chrome-192x192.png?v=Nm5Ovj34NA",
+			"src": "\/icons\/android-chrome-192x192.png?v=fjhbdf9b40",
 			"sizes": "192x192",
 			"type": "image\/png",
 			"density": 4
 		},
+        {
+            "src": "\/icons\/android-chrome-256x256.png?v=fjhbdf9b40",
+            "sizes": "256x256",
+            "type": "image\/png",
+            "density": 4
+        },
 		{
-			"src": "\/icons\/android-chrome-512x512.png?v=Nm5Ovj34NA",
+			"src": "\/icons\/android-chrome-512x512.png?v=fjhbdf9b40",
 			"sizes": "512x512",
 			"type": "image\/png",
 			"density": 4

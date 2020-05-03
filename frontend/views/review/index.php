@@ -10,36 +10,47 @@ use common\components\WidgetHtml;
 
 $this->params['breadcrumbs'][] = 'Отзывы';
 
-$this->registerJs('Review.init();');
 if (YII_ENV == 'prod') {
     $this->params['h1'] .= WidgetHtml::getByName('review_link_widget');
 }
 
 ?>
-<div class="row review-index">
+<div class="container">
+    <div class="row align-items-center">
+        <div class="col">
+            <?= WidgetHtml::getByName('review_link_widget'); ?>
+        </div>
+        <div class="col">
+            <div class="text-right">
+                <a id="add-review-button" href="#" onclick="Review.launchModal(); return false;">+ написать отзыв</a>
+            </div>
+        </div>
+    </div>
+    <div class="reviews-list">
     <?php foreach ($reviews as $review): ?>
         <?= $this->render('_block', ['review' => $review, 'grid' => true]); ?>
     <?php endforeach; ?>
+    </div>
 </div>
 
-<a id="add-review-button" href="#" onclick="Review.launchModal(); return false;">+</a>
+<nav class="pagination-box">
+    <?= \yii\widgets\LinkPager::widget(
+        array_merge(
+            \common\components\DefaultValuesComponent::getPagerSettings(),
+            ['pagination' => $pager, 'maxButtonCount' => 4,]
+        )
+    ); ?>
+</nav>
 
-<div class="text-center">
-    <?= \yii\widgets\LinkPager::widget([
-        'pagination' => $pager,
-        'nextPageLabel' => '<span class="hidden-xs">Следующая страница</span> →',
-        'prevPageLabel' => '← <span class="hidden-xs">Предыдущая страница</span>',
-    ]); ?>
-</div>
-</div>
-
-<div id="review_form" class="modal fade" tabindex="-1" role="dialog">
+<div id="review_form" class="modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <?= Html::beginForm(\yii\helpers\Url::to(['review/create']), 'post', ['onsubmit' => 'return Review.complete(this);']); ?>
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
-                <h4 class="modal-title">Оставить отзыв</h4>
+                <h5 class="modal-title">Оставить отзыв</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div id="review_form_body">
@@ -56,11 +67,10 @@ if (YII_ENV == 'prod') {
                 <div id="review_form_extra" class="hidden"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">отмена</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>
                 <button class="btn btn-primary">отправить</button>
             </div>
             <?= Html::endForm(); ?>
         </div>
     </div>
 </div>
-<div class="container">
