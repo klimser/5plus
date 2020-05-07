@@ -14,7 +14,7 @@ $this->title = 'Учителя';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="teacher-index">
-    <div class="pull-right"><a href="<?= Url::to(['page']); ?>">Настройки страницы учителей</a></div>
+    <div class="float-right"><a href="<?= Url::to(['page']); ?>">Настройки страницы учителей</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
@@ -51,14 +51,14 @@ $this->params['breadcrumbs'][] = $this->title;
                 'buttons' => [
                     'active' => function ($url, $model, $key) {
                         return $model->active === Teacher::STATUS_ACTIVE
-                            ? Html::button(Html::tag('span', '', ['class' => 'fas fa-minus-circle']), ['onclick' => 'Main.changeEntityActive("teacher", ' . $model->id . ', this, 0);', 'class' => 'btn btn-default margin-right-10', 'type' => 'button', 'title' => 'Уволить'])
-                            : Html::button(Html::tag('span', '', ['class' => 'fas fa-plus-circle']), ['onclick' => 'Main.changeEntityActive("teacher", ' . $model->id . ', this, 1);', 'class' => 'btn btn-default margin-right-10', 'type' => 'button', 'title' => 'Нанять']);
+                            ? Html::button(Html::tag('span', '', ['class' => 'fas fa-minus-circle']), ['onclick' => 'Main.changeEntityActive("teacher", ' . $model->id . ', this, 0);', 'class' => 'btn btn-default mr-2', 'type' => 'button', 'title' => 'Уволить'])
+                            : Html::button(Html::tag('span', '', ['class' => 'fas fa-plus-circle']), ['onclick' => 'Main.changeEntityActive("teacher", ' . $model->id . ', this, 1);', 'class' => 'btn btn-default mr-2', 'type' => 'button', 'title' => 'Нанять']);
                     },
                     'user' => function ($url, $model, $key) {
                         if ($model->user) {
-                            return Html::a(Html::tag('span', '', ['class' => 'fas fa-user']), Url::to(['user/update', 'id' => $model->user->id]), ['class' => 'btn btn-default margin-right-10', 'title' => 'Пользователь']);
+                            return Html::a(Html::tag('span', '', ['class' => 'fas fa-user']), Url::to(['user/update', 'id' => $model->user->id]), ['class' => 'btn btn-default mr-2', 'title' => 'Пользователь']);
                         }
-                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-user-plus']), Url::to(['user/create-teacher', 'teacher_id' => $model->id]), ['class' => 'btn btn-default margin-right-10', 'title' => 'Создать пользователя']);
+                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-user-plus']), Url::to(['user/create-teacher', 'teacher_id' => $model->id]), ['class' => 'btn btn-default mr-2', 'title' => 'Создать пользователя']);
                     },
                     'delete' => function ($url, $model, $key) {
                         if (!$model->deleteAllowed) return '';

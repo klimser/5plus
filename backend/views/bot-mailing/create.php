@@ -5,7 +5,7 @@ use dosamigos\datetimepicker\DateTimePicker;
 use dosamigos\tinymce\TinyMce;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use \yii\bootstrap\ActiveForm;
+use \yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $botMailing \common\models\BotMailing */

@@ -10,7 +10,7 @@ $this->title = 'Акции';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="subject-index">
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Настройки страницы всех акций</a></div>
+    <div class="float-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Настройки страницы всех акций</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>

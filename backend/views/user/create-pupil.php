@@ -1,8 +1,8 @@
 <?php
 
 use common\models\User;
-use yii\bootstrap\Html;
-use yii\bootstrap\ActiveForm;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\ActiveForm;
 use yii\helpers\ArrayHelper;
 
 
@@ -139,7 +139,7 @@ SCRIPT
         </div>
         <div class="row">
             <div class="form-group col-xs-12">
-                <?= Html::submitButton('Добавить', ['class' => 'btn btn-primary pull-right']); ?>
+                <?= Html::submitButton('Добавить', ['class' => 'btn btn-primary float-right']); ?>
             </div>
         </div>
 

@@ -1,6 +1,6 @@
 <?php
 
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
@@ -37,7 +37,7 @@ use yii\widgets\ActiveForm;
     <button class="btn btn-sm btn-info" onclick="return Quiz.addAnswer(this);">Добавить неправильный ответ</button>
 
     <div class="form-group">
-        <?= Html::submitButton(($question->isNewRecord ? 'Добавить' : 'Сохранить') . ' вопрос', ['class' => 'pull-right btn ' . ($question->isNewRecord ? 'btn-success' : 'btn-primary')]) ?>
+        <?= Html::submitButton(($question->isNewRecord ? 'Добавить' : 'Сохранить') . ' вопрос', ['class' => 'float-right btn ' . ($question->isNewRecord ? 'btn-success' : 'btn-primary')]) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

@@ -2,7 +2,7 @@
 
 /* @var $this yii\web\View */
 /* @var $webpage common\models\Webpage */
-/* @var $form yii\bootstrap\ActiveForm */
+/* @var $form yii\bootstrap4\ActiveForm */
 /* @var $module \common\models\Module */
 
 if ($webpage === null) $webpage = new \common\models\Webpage();

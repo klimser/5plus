@@ -19,7 +19,7 @@ $this->title = 'Отзывы';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="review-index">
-    <div class="pull-right"><a href="<?= Url::to(['page']); ?>">Настройки страницы отзывов</a></div>
+    <div class="float-right"><a href="<?= Url::to(['page']); ?>">Настройки страницы отзывов</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= GridView::widget([
@@ -71,12 +71,12 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'class' => ActionColumn::class,
                 'template' => '<span class="text-nowrap">{approve}{update}{delete}</span>',
-                'buttonOptions' => ['class' => 'btn btn-default margin-right-10'],
+                'buttonOptions' => ['class' => 'btn btn-default mr-2'],
                 'buttons' => [
                     'approve' => function ($url, $model, $key) {
                         if ($model->status == Review::STATUS_APPROVED) return false;
                         /** @var Subject $model */
-                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ok']), '#', ['class' => 'btn btn-default margin-right-10 approve', 'title' => 'Утвердить', 'onclick' => 'return Main.changeEntityStatus("review", ' . $model->id . ', "' . Review::STATUS_APPROVED . '");']);
+                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ok']), '#', ['class' => 'btn btn-default mr-2 approve', 'title' => 'Утвердить', 'onclick' => 'return Main.changeEntityStatus("review", ' . $model->id . ', "' . Review::STATUS_APPROVED . '");']);
                     }
                 ],
             ],

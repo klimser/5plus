@@ -10,7 +10,7 @@ $this->title = 'Блог';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="subject-index">
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Настройки страницы списка постов</a></div>
+    <div class="float-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Настройки страницы списка постов</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>

@@ -2,7 +2,7 @@
 
 use common\components\DefaultValuesComponent;
 use dosamigos\datepicker\DatePicker;
-use yii\bootstrap\ActiveForm;
+use yii\bootstrap4\ActiveForm;
 
 
 /* @var $this yii\web\View */

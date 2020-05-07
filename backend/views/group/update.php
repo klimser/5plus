@@ -5,7 +5,7 @@ use dosamigos\datepicker\DatePicker;
 use dosamigos\datepicker\DateRangePicker;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use yii\bootstrap\ActiveForm;
+use yii\bootstrap4\ActiveForm;
 use common\components\helpers\Calendar;
 use yii\helpers\Url;
 
@@ -29,7 +29,7 @@ SCRIPT
     <h1>
         <?= Html::encode($this->title) ?>
         <?php if ($group->id): ?>
-            <a class="pull-right btn btn-default" href="<?= Url::to(['view', 'id' => $group->id]); ?>">
+            <a class="float-right btn btn-default" href="<?= Url::to(['view', 'id' => $group->id]); ?>">
                 Сводка <span class="fas fa-arrow-right"></span>
             </a>
         <?php endif; ?>
@@ -111,8 +111,8 @@ SCRIPT
             <label>Группа занимается</label>
             <div class="row">
                 <div class="col-xs-6">
-                    <p class="form-control-static pull-left">C <?= $group->startDateObject->format('d.m.Y'); ?></p>
-                    <p class="form-control-static pull-right">ДО</p>
+                    <p class="form-control-static float-left">C <?= $group->startDateObject->format('d.m.Y'); ?></p>
+                    <p class="form-control-static float-right">ДО</p>
                 </div>
                 <div class="col-xs-6">
                     <input type="hidden" id="group-date_start" value="<?= $group->startDateObject->format('d.m.Y'); ?>">
@@ -135,13 +135,13 @@ SCRIPT
                 <div class="row" id="pupil_row_<?= $groupPupil->id; ?>">
                     <?= Html::hiddenInput('pupil[]', $groupPupil->user->id); ?>
                     <div class="col-xs-12">
-                        <div class="pull-left">
+                        <div class="float-left">
                             <?= $groupPupil->user->name; ?>
                             <?php if ($groupPupil->user->phone): ?>
                                 (<?= $groupPupil->user->phone; ?><?php if($groupPupil->user->phone2): ?>, <?= $groupPupil->user->phone2; ?><?php endif; ?>)
                             <?php endif; ?>
                         </div>
-                        <div class="pull-right">
+                        <div class="float-right">
                             <a href="<?= Url::to(['group/move-pupil', 'user' => $groupPupil->user_id, 'group' => $groupPupil->group_id]); ?>" class="btn btn-xs btn-default">Перевести <span class="glyphicon glyphicon-arrow-right"></span></a>
                         </div>
                     </div>

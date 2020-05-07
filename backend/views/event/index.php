@@ -59,7 +59,7 @@ Event.init(' . time() . ');
 
     <div class="row">
         <div class="col-xs-12">
-            <a class="btn btn-default full-width" href="<?= Url::to(['index', 'date' => $previousDate->format('Y-m-d')]); ?>">
+            <a class="btn btn-default w-100" href="<?= Url::to(['index', 'date' => $previousDate->format('Y-m-d')]); ?>">
                 <span class="glyphicon glyphicon-menu-up"></span>
                 <?= $previousDate->format('d.m.Y'); ?>
                 <small><?= Calendar::$weekDays[$previousDate->format('w')]; ?></small>
@@ -80,8 +80,8 @@ Event.init(' . time() . ');
                 <div class="col-xs-12 col-md-4">
                     <div class="row">
                         <div class="col-xs-12">
-                            <div class="full-width btn btn-<?= $statusClass; ?>" onclick="Event.toggleEvent(<?= $event->id; ?>);">
-                                <div class="full-width text-left">
+                            <div class="w-100 btn btn-<?= $statusClass; ?>" onclick="Event.toggleEvent(<?= $event->id; ?>);">
+                                <div class="w-100 text-left">
                                     <span class="badge"><?= $event->eventTime; ?></span>
                                     <?= $event->group->name; ?>
                                 </div>
@@ -109,12 +109,12 @@ Event.init(' . time() . ');
                             <div id="messages_place_event_<?= $event->id; ?>"></div>
                             <div class="row status_block">
                                 <div class="col-xs-6">
-                                    <button class="btn btn-success full-width" title="Состоялось" onclick="Event.changeStatus(<?= $event->id; ?>, <?= Event::STATUS_PASSED; ?>);">
+                                    <button class="btn btn-success w-100" title="Состоялось" onclick="Event.changeStatus(<?= $event->id; ?>, <?= Event::STATUS_PASSED; ?>);">
                                         <span class="glyphicon glyphicon-ok"></span>
                                     </button>
                                 </div>
                                 <div class="col-xs-6">
-                                    <button class="btn btn-danger full-width" title="Было отменено" onclick="Event.changeStatus(<?= $event->id; ?>, <?= Event::STATUS_CANCELED; ?>);">
+                                    <button class="btn btn-danger w-100" title="Было отменено" onclick="Event.changeStatus(<?= $event->id; ?>, <?= Event::STATUS_CANCELED; ?>);">
                                         <span class="glyphicon glyphicon-remove"></span>
                                     </button>
                                 </div>
@@ -168,7 +168,7 @@ Event.init(' . time() . ');
     <hr>
     <div class="row">
         <div class="col-xs-12">
-            <a class="btn btn-default full-width" href="<?= Url::to(['index', 'date' => $nextDate->format('Y-m-d')]); ?>">
+            <a class="btn btn-default w-100" href="<?= Url::to(['index', 'date' => $nextDate->format('Y-m-d')]); ?>">
                 <span class="glyphicon glyphicon-menu-down"></span>
                 <?= $nextDate->format('d.m.Y'); ?>
                 <small><?= Calendar::$weekDays[$nextDate->format('w')]; ?></small>

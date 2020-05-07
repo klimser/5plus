@@ -24,7 +24,12 @@ return [
         'assetManager' => [
             'bundles' => [
                 \yii\web\JqueryAsset::class => [
-                    'js' => []
+                    'js' => [
+                        YII_ENV_DEV ? 'jquery.js' : '//code.jquery.com/jquery-3.5.0.min.js',
+                    ],
+                    'jsOptions' => [
+                        'crossorigin' => 'anonymous',
+                    ]
                 ],
                 \yii\bootstrap\BootstrapAsset::class => [
                     'css' => []
@@ -36,7 +41,12 @@ return [
                     'css' => []
                 ],
                 \yii\bootstrap4\BootstrapPluginAsset::class => [
-                    'js' => []
+                    'js' => [
+                        YII_ENV_DEV ? 'js/bootstrap.bundle.js' : '//stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js',
+                    ],
+                    'jsOptions' => [
+                        'crossorigin' => 'anonymous',
+                    ]
                 ],
             ],
             'linkAssets' => true,

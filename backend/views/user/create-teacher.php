@@ -2,7 +2,7 @@
 
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use yii\bootstrap\ActiveForm;
+use yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $user common\models\User */
@@ -39,7 +39,7 @@ SCRIPT
             ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
 
         <div class="form-group">
-            <?= Html::submitButton('Добавить', ['class' => 'btn btn-primary pull-right']); ?>
+            <?= Html::submitButton('Добавить', ['class' => 'btn btn-primary float-right']); ?>
         </div>
 
         <?php ActiveForm::end(); ?>

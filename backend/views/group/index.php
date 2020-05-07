@@ -25,7 +25,7 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="group-index">
 
-    <div class="pull-right"><a href="<?= Url::to(['inactive']); ?>">Завершённые группы</a></div>
+    <div class="float-right"><a href="<?= Url::to(['inactive']); ?>">Завершённые группы</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>

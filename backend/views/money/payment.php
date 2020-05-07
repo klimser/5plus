@@ -14,7 +14,7 @@ $this->title = 'Платежи';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="payment-index">
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['money/income']); ?>" class="btn btn-info">Внести оплату</a></div>
+    <div class="float-right"><a href="<?= \yii\helpers\Url::to(['money/income']); ?>" class="btn btn-info">Внести оплату</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= GridView::widget([

@@ -3,13 +3,19 @@
 /* @var $this \yii\web\View */
 /* @var $content string */
 
+use common\models\User;
+use yii\bootstrap4\Breadcrumbs;
 use yii\helpers\Html;
-use yii\bootstrap\Nav;
-use yii\bootstrap\NavBar;
-use yii\widgets\Breadcrumbs;
+use yii\bootstrap4\Nav;
+use yii\bootstrap4\NavBar;
+use yii\jui\JuiAsset;
+use yii\web\YiiAsset;
+
 use common\widgets\Alert;
 
 $this->beginPage();
+YiiAsset::register($this);
+JuiAsset::register($this);
 $this->render('/grunt-assets');
 ?>
 <!DOCTYPE html>
@@ -39,14 +45,13 @@ $this->render('/grunt-assets');
     <?php
     if (!Yii::$app->user->isGuest) {
         NavBar::begin([
-            'brandLabel' => '<div class="form-inline"><img src="' . \Yii::$app->homeUrl . 'images/logo.png" width="20" height="20"> <span style="margin-left: 10px;">5 с плюсом</span></div>',
+            'brandLabel' => '<img src="' . Yii::$app->homeUrl . 'images/logo.svg" style="max-height: 100%;"><span class="ml-3">5 с плюсом</span>',
             'brandUrl' => Yii::$app->homeUrl,
-            'options' => [
-                'class' => 'navbar-default',
-            ],
+            'brandOptions' => ['style' => 'height: 40px;'],
+            'containerOptions' => ['class' => ['justify-content-end']],
         ]);
         $menuItems = [];
-        if (\Yii::$app->user->identity->role == \common\models\User::ROLE_ROOT) {
+        if (Yii::$app->user->identity->role == User::ROLE_ROOT) {
             $menuItems[] = [
                 'label' => 'Пользователи',
                 'encode' => false,
@@ -68,7 +73,7 @@ $this->render('/grunt-assets');
             'url' => ['site/logout'],
         ];
         echo Nav::widget([
-            'options' => ['class' => 'navbar-nav navbar-right'],
+            'options' => ['class' => 'navbar-nav'],
             'items' => $menuItems,
         ]);
         NavBar::end();
@@ -77,7 +82,7 @@ $this->render('/grunt-assets');
 
     <div class="container">
         <?php if (!Yii::$app->user->isGuest): ?>
-            <nav class="hidden-print" role="navigation">
+            <nav class="d-print-none" role="navigation">
                 <?=  Breadcrumbs::widget(['links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : []]); ?>
             </nav>
         <?php endif; ?>
@@ -89,7 +94,7 @@ $this->render('/grunt-assets');
 <footer class="footer">
     <div class="container">
         <div class="row">
-            <div class="col-xs-12">
+            <div class="col">
                 <p>&copy; Exclusive education <?= date('Y') ?></p>
             </div>
         </div>

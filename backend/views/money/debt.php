@@ -14,7 +14,7 @@ $this->title = 'Задолженности';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="debt-index">
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['money/income']); ?>" class="btn btn-info">Внести оплату</a></div>
+    <div class="float-right"><a href="<?= \yii\helpers\Url::to(['money/income']); ?>" class="btn btn-info">Внести оплату</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= GridView::widget([
@@ -65,7 +65,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'content' => function ($model, $key, $index, $column) use ($canCorrect) {
-                    return Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), \yii\helpers\Url::to(['money/income', 'user' => $model->user_id]), ['class' => 'btn btn-default margin-right-10', 'title' => 'Внести деньги'])
+                    return Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), \yii\helpers\Url::to(['money/income', 'user' => $model->user_id]), ['class' => 'btn btn-default mr-2', 'title' => 'Внести деньги'])
                         . ($canCorrect ? Html::a(Html::tag('span', '', ['class' => 'fas fa-fire-extinguisher']), \yii\helpers\Url::to(['money/correction', 'userId' => $model->user_id, 'groupId' => $model->group_id]), ['class' => 'btn btn-default', 'title' => 'Погасить долг']) : '');
                 },
             ],

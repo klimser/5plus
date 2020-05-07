@@ -28,7 +28,7 @@ $intervalMonth = new \DateInterval('P1M');
 <div class="events-schedule">
     <div class="row">
         <div class="col-xs-12">
-            <h1 class="pull-left no-margin-top"><?= Html::encode($this->title) ?></h1>
+            <h1 class="float-left mt-0"><?= Html::encode($this->title) ?></h1>
             <?= \backend\components\DebtWidget::widget(['user' => $user]); ?>
         </div>
         <div class="clearfix"></div>
@@ -36,7 +36,7 @@ $intervalMonth = new \DateInterval('P1M');
     <?php $eventMonth->sub($intervalMonth); ?>
     <div class="row">
         <div class="col-xs-12">
-            <a class="btn btn-default full-width" href="<?= \yii\helpers\Url::to(array_merge($queryParams, ['schedule', 'month' => $eventMonth->format('Y-m')])); ?>">
+            <a class="btn btn-default w-100" href="<?= \yii\helpers\Url::to(array_merge($queryParams, ['schedule', 'month' => $eventMonth->format('Y-m')])); ?>">
                 <span class="glyphicon glyphicon-menu-up"></span> <?= Calendar::$monthNames[$eventMonth->format('n')]; ?> <?= $eventMonth->format('Y'); ?>
             </a>
         </div>
@@ -184,8 +184,8 @@ $intervalMonth = new \DateInterval('P1M');
         <div class="row">
             <div class="col-xs-12">
                 <div class="alert alert-info">
-                    <div class="pull-left big-font">Средний балл за месяц</div>
-                    <b class="pull-right big-font"><i><?= round(array_sum($marks) / count($marks), 2); ?></i></b>
+                    <div class="float-left big-font">Средний балл за месяц</div>
+                    <b class="float-right big-font"><i><?= round(array_sum($marks) / count($marks), 2); ?></i></b>
                     <div class="clearfix"></div>
                 </div>
             </div>
@@ -195,7 +195,7 @@ $intervalMonth = new \DateInterval('P1M');
     <?php $eventMonth->add($intervalMonth); ?>
     <div class="row">
         <div class="col-xs-12">
-            <a class="btn btn-default full-width" href="<?= \yii\helpers\Url::to(array_merge($queryParams, ['schedule', 'month' => $eventMonth->format('Y-m')])); ?>">
+            <a class="btn btn-default w-100" href="<?= \yii\helpers\Url::to(array_merge($queryParams, ['schedule', 'month' => $eventMonth->format('Y-m')])); ?>">
                 <span class="glyphicon glyphicon-menu-down"></span> <?= Calendar::$monthNames[$eventMonth->format('n')]; ?> <?= $eventMonth->format('Y'); ?>
             </a>
         </div>

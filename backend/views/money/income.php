@@ -1,6 +1,6 @@
 <?php
 
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 
 /* @var $this yii\web\View */
 /* @var $user \common\models\User */
@@ -70,10 +70,10 @@ $this->params['breadcrumbs'][] = $this->title;
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class="col-xs-12 col-sm-6">
-                                            <button class="btn btn-default btn-lg full-width" type="button" id="payment-0" onclick="Money.setPayment(0);">Без скидки<br><small><span class="price"></span> в месяц</small></button>
+                                            <button class="btn btn-default btn-lg w-100" type="button" id="payment-0" onclick="Money.setPayment(0);">Без скидки<br><small><span class="price"></span> в месяц</small></button>
                                         </div>
                                         <div class="col-xs-12 col-sm-6">
-                                            <button class="btn btn-default btn-lg full-width" type="button" id="payment-1" onclick="Money.setPayment(1);">Со скидкой<br><small><span class="price"></span> за 3 месяца</small></button>
+                                            <button class="btn btn-default btn-lg w-100" type="button" id="payment-1" onclick="Money.setPayment(1);">Со скидкой<br><small><span class="price"></span> за 3 месяца</small></button>
                                         </div>
                                     </div>
                                     <div class="row">

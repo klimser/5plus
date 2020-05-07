@@ -8,6 +8,7 @@ use yii\helpers\Html;
 use yii\bootstrap4\Nav;
 use common\components\WidgetHtml;
 use yii\helpers\Url;
+use yii\web\YiiAsset;
 
 /* @var $webpage \common\models\Webpage */
 $webpage = array_key_exists('webpage', $this->params) ? $this->params['webpage'] : null;
@@ -19,6 +20,7 @@ $quizWebpage = array_key_exists('quizWebpage', $this->params) ? $this->params['q
 $paymentWebpage = array_key_exists('paymentWebpage', $this->params) ? $this->params['paymentWebpage'] : null;
 
 $this->beginPage();
+YiiAsset::register($this);
 $this->render('/grunt-assets');
 ?>
 <!DOCTYPE html>

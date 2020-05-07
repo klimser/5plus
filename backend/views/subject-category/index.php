@@ -10,7 +10,7 @@ $this->title = 'Группы курсов';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="page-index">
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Порядок отображения</a></div>
+    <div class="float-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Порядок отображения</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>

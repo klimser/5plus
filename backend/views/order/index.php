@@ -101,7 +101,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'class' => ActionColumn::class,
                 'template' => '<span class="text-nowrap">{update}{delete}</span>',
-                'buttonOptions' => ['class' => 'btn btn-default margin-right-10'],
+                'buttonOptions' => ['class' => 'btn btn-default mr-2'],
             ],
         ],
     ]); ?>

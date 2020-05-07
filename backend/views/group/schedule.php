@@ -1,6 +1,6 @@
 <?php
 
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 use dosamigos\datepicker\DatePicker;
 use common\components\helpers\Calendar;
 

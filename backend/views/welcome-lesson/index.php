@@ -8,7 +8,7 @@ use common\models\Teacher;
 use common\models\User;
 use dosamigos\datepicker\DatePicker;
 use yii\grid\Column;
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use yii\data\ActiveDataProvider;
 use yii\web\View;

@@ -4,8 +4,8 @@ use backend\components\DebtWidget;
 use backend\components\UserComponent;
 use common\models\User;
 use yii\helpers\ArrayHelper;
-use yii\bootstrap\Html;
-use yii\bootstrap\ActiveForm;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $user common\models\User */
@@ -30,7 +30,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="user-update">
     <div class="row">
         <div class="col-xs-12">
-            <h1 class="pull-left no-margin-top"><?= Html::encode($this->title) ?></h1>
+            <h1 class="float-left mt-0"><?= Html::encode($this->title) ?></h1>
             <?php if ($isAdmin): ?>
                 <?= DebtWidget::widget(['user' => $user]); ?>
             <?php else: ?>

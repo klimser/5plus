@@ -1,11 +1,4 @@
-less:
-  files:
-    - "backend/resources/src/less/*.less"
-    - "grunt/less.yaml"
-  tasks:
-    - less:dev_back
-    - assets_versioning:dev_back
-sass:
+sass-front:
   files:
     - "frontend/resources/src/sass/*.sass"
     - "frontend/resources/src/sass/*.scss"
@@ -13,15 +6,26 @@ sass:
   tasks:
     - sass:dev_front
     - assets_versioning:dev_front
-uglify:
+sass-back:
+  files:
+    - "backend/resources/src/sass/*.scss"
+    - "grunt/sass.yaml"
+  tasks:
+    - sass:dev_back
+    - assets_versioning:dev_back
+uglify-front:
   files:
     - "frontend/resources/src/js/*.js"
-    - "backend/resources/src/js/*.js"
     - "grunt/uglify.yaml"
   tasks:
     - babel:main_front
-    - babel:main_back
     - uglify:main_front
-    - uglify:main_back
     - assets_versioning:dev_front
+uglify-back:
+  files:
+    - "backend/resources/src/js/*.js"
+    - "grunt/uglify.yaml"
+  tasks:
+    - babel:main_back
+    - uglify:main_back
     - assets_versioning:dev_back

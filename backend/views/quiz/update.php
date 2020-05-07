@@ -33,10 +33,10 @@ $this->params['breadcrumbs'][] = $quiz->name;
                             <li id="question_<?= $question->id; ?>">
                                 <div>
                                     <?= $question->content; ?>
-                                    <button class="pull-right btn btn-default btn-xs" onclick="Quiz.deleteQuestion(<?= $question->id; ?>);">
+                                    <button class="float-right btn btn-default btn-xs" onclick="Quiz.deleteQuestion(<?= $question->id; ?>);">
                                         <span class="glyphicon glyphicon-remove"></span>
                                     </button>
-                                    <button class="pull-right btn btn-default btn-xs" onclick="Quiz.editQuestion(<?= $question->id; ?>);">
+                                    <button class="float-right btn btn-default btn-xs" onclick="Quiz.editQuestion(<?= $question->id; ?>);">
                                         <span class="glyphicon glyphicon-pencil"></span>
                                     </button>
                                     <span class="clearfix"></span>

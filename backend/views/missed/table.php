@@ -26,7 +26,7 @@ $nextMonth->modify('+1 month');
         <?= Html::encode($this->title) ?> <?= Calendar::$monthNames[$date->format('n')]; ?> <?= $date->format('Y'); ?>
         <a href="<?= Url::to(['table', 'year' => $nextMonth->format('Y'), 'month' => $nextMonth->format('n'), 'groupId' => $group ? $group->id : 0]); ?>"
         ><span class="fas fa-arrow-right"></span></a>
-        <div class="pull-right">
+        <div class="float-right">
             <form id="group-selector">
                 <input type="hidden" name="year" value="<?= $date->format('Y'); ?>">
                 <input type="hidden" name="month" value="<?= $date->format('n'); ?>">

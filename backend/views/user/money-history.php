@@ -22,7 +22,7 @@ if (Yii::$app->user->identity->role == \common\models\User::ROLE_ROOT) {
 <div class="money-history">
     <div class="row">
         <div class="col-xs-12">
-            <h1 class="pull-left no-margin-top"><?= Html::encode($this->title) ?></h1>
+            <h1 class="float-left mt-0"><?= Html::encode($this->title) ?></h1>
             <?= \backend\components\DebtWidget::widget(['user' => Yii::$app->user->identity]); ?>
         </div>
         <div class="clearfix"></div>
