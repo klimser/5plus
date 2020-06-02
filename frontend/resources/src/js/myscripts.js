@@ -40,6 +40,7 @@ var swiper = new Swiper('.swiper-main-slider', {
 // swiper-preparation-for-admission-to-universities-slider
 var swiper = new Swiper('.swiper-preparation-for-admission-to-universities-slider', {
   speed: 500,
+  loop: true,
   spaceBetween: 25,
   slidesPerView: 1,
   watchSlidesVisibility: true,
@@ -68,6 +69,7 @@ var swiper = new Swiper('.swiper-preparation-for-admission-to-universities-slide
 // swiper-language-classes-slider
 var swiper = new Swiper('.swiper-language-classes-slider', {
   speed: 500,
+  loop: true,
   spaceBetween: 22,
   slidesPerView: 2,
   watchSlidesVisibility: true,
@@ -93,6 +95,7 @@ var swiper = new Swiper('.swiper-language-classes-slider', {
 // swiper-preparatory-courses-for-students-slider
 var swiper = new Swiper('.swiper-preparatory-courses-for-students-slider', {
   speed: 500,
+  loop: true,
   spaceBetween: 20,
   slidesPerView: 1,
   watchSlidesVisibility: true,
@@ -121,6 +124,7 @@ var swiper = new Swiper('.swiper-preparatory-courses-for-students-slider', {
 // swiper-business-courses-slider
 var swiper = new Swiper('.swiper-business-courses-slider', {
   speed: 500,
+  loop: true,
   spaceBetween: 13,
   slidesPerView: 1,
   watchSlidesVisibility: true,
@@ -149,6 +153,7 @@ var swiper = new Swiper('.swiper-business-courses-slider', {
 // swiper-our-specialists-slider
 var swiper = new Swiper('.swiper-our-specialists-slider', {
   speed: 500,
+  loop: true,
   spaceBetween: 30,
   slidesPerView: 1,
   watchSlidesVisibility: true,
@@ -178,6 +183,7 @@ var swiper = new Swiper('.swiper-our-specialists-slider', {
 // swiper-our-specialists-slider
 var swiper = new Swiper('.swiper-reviews-slider', {
   speed: 500,
+  loop: true,
   spaceBetween: 30,
   slidesPerView: 1,
   watchSlidesVisibility: true,
@@ -204,6 +210,7 @@ var swiper = new Swiper('.swiper-reviews-slider', {
 // swiper-received-slider
 var swiper = new Swiper('.swiper-received-slider', {
   speed: 500,
+  loop: true,
   spaceBetween: 21,
   slidesPerView: 1,
   watchSlidesVisibility: true,
@@ -235,6 +242,7 @@ var swiper = new Swiper('.swiper-received-slider', {
 // swiper-ielts-slider
 var swiper = new Swiper('.swiper-ielts-slider', {
   speed: 500,
+  loop: true,
   spaceBetween: 21,
   slidesPerView: 1,
   watchSlidesVisibility: true,

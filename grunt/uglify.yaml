@@ -1,6 +1,6 @@
 options:
   mangle:
-    except: [ "jQuery" ]
+    reserved: [ "jQuery" ]
   sourceMap: true
 vendors_front:
   files:
