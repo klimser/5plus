@@ -245,7 +245,7 @@ $this->render('/grunt-assets');
 </footer>
 
 <?php $this->endBody() ?>
-<?= WidgetHtml::getByName('google_maps_init'); ?>
+<?= YII_ENV == 'prod' ? WidgetHtml::getByName('google_maps_init') : ''; ?>
 </body>
 </html>
 <?php $this->endPage() ?>
