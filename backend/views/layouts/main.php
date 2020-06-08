@@ -19,7 +19,7 @@ JuiAsset::register($this);
 $this->render('/grunt-assets');
 ?>
 <!DOCTYPE html>
-<html lang="<?= Yii::$app->language ?>">
+<html lang="<?= Yii::$app->language ?>" class="h-100">
 <head>
     <meta charset="<?= Yii::$app->charset ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,49 +38,51 @@ $this->render('/grunt-assets');
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
 </head>
-<body>
-<?php $this->beginBody() ?>
+<body class="d-flex flex-column h-100">
+    <?php $this->beginBody() ?>
 
-<div class="wrap">
-    <?php
-    if (!Yii::$app->user->isGuest) {
-        NavBar::begin([
-            'brandLabel' => '<img src="' . Yii::$app->homeUrl . 'images/logo.svg" style="max-height: 100%;"><span class="ml-3">5 с плюсом</span>',
-            'brandUrl' => Yii::$app->homeUrl,
-            'brandOptions' => ['style' => 'height: 40px;'],
-            'containerOptions' => ['class' => ['justify-content-end']],
-        ]);
-        $menuItems = [];
-        if (Yii::$app->user->identity->role == User::ROLE_ROOT) {
+    <?php if (!Yii::$app->user->isGuest): ?>
+        <header>
+            <?php
+             NavBar::begin([
+                'brandLabel' => '<img src="' . Yii::$app->homeUrl . 'images/logo.svg" style="max-height: 100%;"><span class="ml-3">5 с плюсом</span>',
+                'brandUrl' => Yii::$app->homeUrl,
+                'brandOptions' => ['style' => 'height: 40px;'],
+                'containerOptions' => ['class' => ['justify-content-end']],
+                 'options'=> ['class' => ['navbar', 'navbar-expand-md', 'navbar-light', 'bg-light', 'fixed-top'],],
+            ]);
+            $menuItems = [];
+            if (Yii::$app->user->identity->role == User::ROLE_ROOT) {
+                $menuItems[] = [
+                    'label' => 'Пользователи',
+                    'encode' => false,
+                    'url' => ['user/index'],
+                ];
+                $menuItems[] = [
+                    'label' => '<span class="fas fa-broom"></span>',
+                    'encode' => false,
+                    'url' => ['site/clear-cache'],
+                ];
+            }
             $menuItems[] = [
-                'label' => 'Пользователи',
-                'encode' => false,
-                'url' => ['user/index'],
+                'label' => Yii::$app->user->identity->name,
+                'url' => ['user/update'],
             ];
             $menuItems[] = [
-                'label' => '<span class="fas fa-broom"></span>',
+                'label' => '<span class="fas fa-sign-out-alt"></span>',
                 'encode' => false,
-                'url' => ['site/clear-cache'],
+                'url' => ['site/logout'],
             ];
-        }
-        $menuItems[] = [
-            'label' => Yii::$app->user->identity->name,
-            'url' => ['user/update'],
-        ];
-        $menuItems[] = [
-            'label' => '<span class="fas fa-sign-out-alt"></span>',
-            'encode' => false,
-            'url' => ['site/logout'],
-        ];
-        echo Nav::widget([
-            'options' => ['class' => 'navbar-nav'],
-            'items' => $menuItems,
-        ]);
-        NavBar::end();
-    }
-    ?>
+            echo Nav::widget([
+                'options' => ['class' => 'navbar-nav'],
+                'items' => $menuItems,
+            ]);
+            NavBar::end();
+        ?>
+        </header>
+    <?php endif; ?>
 
-    <div class="container">
+    <main class="container" role="main">
         <?php if (!Yii::$app->user->isGuest): ?>
             <nav class="d-print-none" role="navigation">
                 <?=  Breadcrumbs::widget(['links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : []]); ?>
@@ -88,24 +90,19 @@ $this->render('/grunt-assets');
         <?php endif; ?>
         <?= Alert::widget() ?>
         <?= $content ?>
-    </div>
-</div>
+    </main>
 
-<footer class="footer">
-    <div class="container">
-        <div class="row">
-            <div class="col">
-                <p>&copy; Exclusive education <?= date('Y') ?></p>
+    <footer class="footer mt-auto border-top">
+        <div class="container">
+            <div class="row justify-content-start align-content-center">
+                <div class="col">
+                    <p class="my-3">&copy; Exclusive education <?= date('Y') ?></p>
+                </div>
             </div>
         </div>
-    </div>
-</footer>
+    </footer>
 
-<script src="//code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-<script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
-<script src="//stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
-
-<?php $this->endBody() ?>
+    <?php $this->endBody() ?>
 </body>
 </html>
 <?php $this->endPage() ?>

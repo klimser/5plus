@@ -2,15 +2,16 @@
 
 use backend\models\WelcomeLesson;
 use backend\models\WelcomeLessonSearch;
+use common\components\DefaultValuesComponent;
 use common\models\Group;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
-use dosamigos\datepicker\DatePicker;
 use yii\grid\Column;
 use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use yii\data\ActiveDataProvider;
+use yii\jui\DatePicker;
 use yii\web\View;
 
 /* @var $this View */
@@ -107,16 +108,17 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'lesson_date',
                 'format' => 'datetime',
                 'label' => 'Дата',
-                'filter' => DatePicker::widget([
+                'filter' => DatePicker::widget(
+                    array_merge_recursive(DefaultValuesComponent::getDatePickerSettings(),
+                        [
                     'model' => $searchModel,
                     'attribute' => 'lessonDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
+                    'dateFormat' => 'y-MM-dd',
+                    'options' => [
+                        'pattern' => '\d{4}-\d{2}-\d{2}',
+                        'autocomplete' => 'off',
                     ],
-                ]),
+                ])),
             ],
             [
                 'attribute' => 'status',
@@ -173,8 +175,10 @@ SCRIPT
             <div class="modal-content">
                 <form id="moving-form" onsubmit="return WelcomeLesson.movePupil(this);">
                     <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title">В группу!</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
                     <div class="modal-body">
                         <div id="modal_messages_place"></div>
@@ -195,7 +199,7 @@ SCRIPT
                         </select>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">отмена</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>
                         <button class="btn btn-primary">В группу!</button>
                     </div>
                 </form>

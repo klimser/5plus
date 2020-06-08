@@ -274,30 +274,41 @@ var Group = {
         $("#move_pupil_button").removeAttr('disabled');
     },
     setEndReason: function(form, triggerHide) {
-        if (triggerHide === undefined) triggerHide = true;
         let groupPupilId = $(form).find("input[name=group_pupil_id]").val();
         if (groupPupilId <= 0) return false;
         let pupilRow = $("#pupil_row_" + groupPupilId);
         
-        let reasonIdInput = $(pupilRow).find('input[name="reason_id[' + groupPupilId + ']"]');
+        let reasonIdInput = $(pupilRow).find('input[name="pupil_reason_id[' + groupPupilId + ']"]');
         if (reasonIdInput.length === 0) {
-            $(pupilRow).append('<input type="hidden" name="reason_id[' + groupPupilId + ']">');
-            $(pupilRow).append('<input type="hidden" name="reason_comment[' + groupPupilId + ']">');
+            $(pupilRow).append('<input type="hidden" name="pupil_reason_id[' + groupPupilId + ']">');
+            $(pupilRow).append('<input type="hidden" name="pupil_reason_comment[' + groupPupilId + ']">');
+            reasonIdInput = $(pupilRow).find('input[name="pupil_reason_id[' + groupPupilId + ']"]');
         }
 
-        reasonIdInput = $(pupilRow).find('input[name="reason_id[' + groupPupilId + ']"]');
-        let reasonCommentInput = $(pupilRow).find('input[name="reason_comment[' + groupPupilId + ']"]');
+        let reasonCommentInput = $(pupilRow).find('input[name="pupil_reason_comment[' + groupPupilId + ']"]');
         let reasonId = $(form).find("input[name=reason_id]:checked").val();
 
         $(reasonIdInput).val(reasonId);
         $(reasonCommentInput).val($(form).find("textarea[name=reason_comment]").val());
         
-        if (reasonId > 0) {
-            if (triggerHide) {
-                $('#end-reason-modal').modal('hide');
-            }
-            return true;
-        }
-        return false;
+        return (reasonId > 0);
+    },
+    handlePupilEndDate: function(elem) {
+       if ($(elem).val()) {
+           let groupPupilId = $(elem).data('id');
+           let endReasonForm = $("#end-reason-form");
+           $(endReasonForm).find("input[name=group_pupil_id]").val(groupPupilId);
+           $(endReasonForm).find("input[name=reason_id]").prop("checked", false);
+           let commentText = "";
+           let pupilRow = $("#pupil_row_" + groupPupilId);
+           let reasonIdInput = $(pupilRow).find('input[name="pupil_reason_id[' + groupPupilId + ']"]');
+           if (reasonIdInput.length > 0) {
+               $(endReasonForm).find("input[name=reason_id][value=" + $(reasonIdInput).val() + "]").prop("checked", true);
+               let reasonCommentInput = $(pupilRow).find('input[name="pupil_reason_comment[' + groupPupilId + ']"]');
+               commentText = $(reasonCommentInput).val();
+           }
+           $(endReasonForm).find("textarea[name=reason_comment]").val(commentText);
+           $("#end-reason-modal").modal('show');
+       }
     }
 };

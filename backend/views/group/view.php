@@ -2,6 +2,7 @@
 
 use common\components\helpers\Calendar;
 use yii\helpers\Url;
+use common\components\helpers\Html;
 
 /* @var $this yii\web\View */
 /* @var $group common\models\Group */
@@ -12,37 +13,31 @@ $this->params['breadcrumbs'][] = $group->name;
 
 ?>
 
-<div class="row">
-    <div class="col-xs-12 text-center">
+<div class="row pb-3">
+    <div class="col-12 text-center">
         Группа <b><?= $group->name; ?></b> <small class="text-muted">(<?= $group->subject->name; ?>)</small>
     </div>
 </div>
-<hr class="medium">
-<table style="width: 100%;">
-    <tr style="vertical-align: top;">
-        <?php for ($i = 0; $i < 7; $i++): ?>
-            <td>
-                <div>
-                    <b>
-                        <span class="visible-xs"><?= Calendar::$weekDaysShort[($i + 1) % 7]; ?></span>
-                        <span class="hidden-xs"><?= Calendar::$weekDays[($i + 1) % 7]; ?></span>
-                    </b>
-                </div>
-                <div><small><?= $group->scheduleData[$i]; ?></small></div>
-            </td>
-        <?php endfor; ?>
-    </tr>
-</table>
-<hr class="thin">
-<div class="row">
-    <div class="col-xs-12 col-sm-6">
+<div class="row border-top py-2 text-center">
+    <?php for ($i = 0; $i < 7; $i++): ?>
+        <div class="col">
+            <div class="font-weight-bold">
+                <span class="d-md-none"><?= Calendar::$weekDaysShort[($i + 1) % 7]; ?></span>
+                <span class="d-none d-md-inline"><?= Calendar::$weekDays[($i + 1) % 7]; ?></span>
+            </div>
+            <small><?= $group->scheduleData[$i]; ?></small>
+        </div>
+    <?php endfor; ?>
+</div>
+<div class="row border-top py-2">
+    <div class="col-12 col-md-6">
         Цена занятия: <b><?= $group->lesson_price; ?></b><br>
         Цена со скидкой: <b><?= $group->lesson_price_discount; ?></b>
     </div>
-    <div class="col-xs-12 col-sm-6">
+    <div class="col-12 col-md-6">
         Учитель <b><?= $group->teacher->name; ?></b>
         <?php if ($group->teacher->phone): ?>
-            (<small class="text-muted"><?= $group->teacher->phone; ?></small>)
+            (<small class="text-muted"><?= Html::phoneLink($group->teacher->phone); ?></small>)
         <?php endif; ?>
         <?php if ($group->teacher->birthday):
             $diffDay = date_diff($group->teacher->birthdayDate, new \DateTime(), false)->days;
@@ -56,13 +51,10 @@ $this->params['breadcrumbs'][] = $group->name;
         <?php endif; ?>
     </div>
 </div>
-<div class="row">
-
-</div>
-<div class="row">
-    <div class="col-xs-12">
+<div class="row border-top pt-3">
+    <div class="col-12">
         <h4>Студенты:</h4>
-        <table class="table table-condensed table-striped">
+        <table class="table table-sm table-striped">
             <thead>
             <tr>
                 <th></th>
@@ -91,9 +83,12 @@ $this->params['breadcrumbs'][] = $group->name;
                             <br><small><?= nl2br($groupPupil->user->note); ?></small>
                         <?php endif; ?>
                     </td>
-                    <td>
-                        <?= $groupPupil->user->phone; ?>
-                        <?php if($groupPupil->user->phone2): ?><br> <?= $groupPupil->user->phone2; ?><?php endif; ?>
+                    <td class="text-nowrap">
+                        <?= Html::phoneLink($groupPupil->user->phone, $groupPupil->user->phoneFormatted); ?>
+                        <?php if($groupPupil->user->phone2): ?>
+                            <br>
+                            <?= Html::phoneLink($groupPupil->user->phone2, $groupPupil->user->phone2Formatted); ?>
+                        <?php endif; ?>
                     </td>
                     <td <?php if ($groupPupil->date_charge_till && $groupPupil->chargeDateObject < $nowDate): ?>class="danger"<?php endif; ?>>
                         <?= $groupPupil->date_charge_till ? $groupPupil->chargeDateObject->format('d.m.Y') : ''; ?>

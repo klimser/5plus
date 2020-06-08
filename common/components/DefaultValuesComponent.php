@@ -29,13 +29,17 @@ class DefaultValuesComponent extends Component
     public static function getDatePickerSettings()
     {
         return [
+            'dateFormat' => 'dd.MM.y',
             'clientOptions' => [
                 'autoclose' => true,
-                'format' => 'dd.mm.yyyy',
                 'language' => 'ru',
                 'weekStart' => 1,
                 'todayHighlight' => true,
-            ]
+            ],
+            'options' => [
+                'class' => 'form-control',
+                'pattern' => '\d{2}\.\d{2}\.\d{4}',
+            ],
         ];
     }
     public static function getTinyMceSettings()

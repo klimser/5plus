@@ -119,7 +119,7 @@ class ContractController extends AdminController
                 $jsonData['id'] = $contract->id;
                 $jsonData['user_name'] = $contract->user->name;
                 $jsonData['group_name'] = $contract->group->name;
-                $jsonData['amount'] = $contract->amount;
+                $jsonData['amount'] = number_format($contract->amount, 0, '.', ' ');
                 $jsonData['discount'] = $contract->discount;
                 $jsonData['create_date'] = $contract->createDate->format('d.m.Y');
                 $jsonData['company_name'] = $contract->company->second_name;

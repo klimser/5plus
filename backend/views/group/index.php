@@ -1,6 +1,7 @@
 <?php
 
 use common\components\helpers\Calendar;
+use common\components\helpers\WordForm;
 use common\models\Group;
 use common\models\GroupSearch;
 use common\models\Subject;
@@ -87,20 +88,26 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'format' => 'text',
-                'header' => 'Ученики',
+                'header' => 'Студенты',
                 'content' => function ($model, $key, $index, $column) {
-                    return '<div class="pupils"><span class="text-nowrap">' . count($model->activeGroupPupils) . ' учеников '
-                        . '<a href="#" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').toggle(); return false;"><span class="glyphicon glyphicon-chevron-down"></span></a></span>'
-                        . '<div class="pupil_list" style="display: none;">'
-                        . implode('<br>', ArrayHelper::getColumn($model->activeGroupPupils, 'user.name'))
-                        . '</div></div>';
+                    return '<div class="pupils"><span class="text-nowrap">' . count($model->activeGroupPupils) . ' ' . WordForm::getPupilsForm(count($model->activeGroupPupils)) . ' '
+                        . '<a href="#" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').collapse(\'toggle\'); return false;"><span class="fas fa-chevron-down"></span></a></span>'
+                        . '<ul class="list-group pupil_list collapse"><li class="list-group-item p-1">'
+                        . implode('</li><li class="list-group-item p-1">', ArrayHelper::getColumn($model->activeGroupPupils, 'user.name'))
+                        . '</li></ul></div>';
                 },
             ],
             [
                 'class' => ActionColumn::class,
                 'template' => $canEdit ? '{update}' : '',
-                'buttonOptions' => ['class' => 'btn btn-default'],
-
+                'buttons' => [
+                    'update' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
+                            'title' => Yii::t('app', 'update'),
+                            'class' => 'btn btn-outline-dark mr-2',
+                        ]);
+                    },
+                ],
             ],
         ],
     ]); ?>

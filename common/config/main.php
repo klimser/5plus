@@ -25,10 +25,21 @@ return [
             'bundles' => [
                 \yii\web\JqueryAsset::class => [
                     'js' => [
-                        YII_ENV_DEV ? 'jquery.js' : '//code.jquery.com/jquery-3.5.0.min.js',
+                        YII_ENV_DEV ? 'jquery.js' : '//code.jquery.com/jquery-3.5.1.min.js',
                     ],
                     'jsOptions' => [
                         'crossorigin' => 'anonymous',
+                    ],
+                ],
+                \yii\jui\JuiAsset::class => [
+                    'js' => [
+                        YII_ENV_DEV ? 'jquery-ui.js' : '//code.jquery.com/ui/1.12.1/jquery-ui.min.js',
+                    ],
+                    'jsOptions' => [
+                        'crossorigin' => 'anonymous',
+                    ],
+                    'css' => [
+                        YII_ENV_DEV ? 'themes/smoothness/jquery-ui.css' : '//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css',
                     ]
                 ],
                 \yii\bootstrap\BootstrapAsset::class => [
@@ -46,7 +57,7 @@ return [
                     ],
                     'jsOptions' => [
                         'crossorigin' => 'anonymous',
-                    ]
+                    ],
                 ],
             ],
             'linkAssets' => true,

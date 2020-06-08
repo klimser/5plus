@@ -1,7 +1,7 @@
 let Main = {
     throwFlashMessage: function (blockSelector, message, additionalClass, append) {
         if (typeof append !== 'boolean') append = false;
-        var blockContent = '<div class="alert alert-dismissible ' + additionalClass + '"><button type="button" class="close" data-dismiss="alert" aria-label="Закрыть"><span aria-hidden="true">&times;</span></button>' + message + '</div>';
+        var blockContent = '<div class="alert alert-dismissible fade show ' + additionalClass + '"><button type="button" class="close" data-dismiss="alert" aria-label="Закрыть"><span aria-hidden="true">&times;</span></button>' + message + '</div>';
         if (append) $(blockSelector).append(blockContent);
         else $(blockSelector).html(blockContent);
     },
@@ -74,6 +74,33 @@ let Main = {
     initPhoneFormatted: function(selector) {
         if (selector === undefined) selector = ".phone-formatted";
         $(selector).inputmask({"mask": "99 999-9999"});
+    },
+    getDatepickerDate: function(datepickerInput) {
+        let date;
+        try {
+            date = $.datepicker.parseDate($(datepickerInput).datepicker("option", "dateFormat"), $(datepickerInput).val());
+        } catch(error) {
+            date = null;
+        }
+        return date;
+    },
+    handleDateRangeFrom: function(elem) {
+        let target;
+        if ($(elem).data('targetToClosest')) {
+            target = $(elem).closest($(elem).data('targetToClosest')).find($(elem).data('targetToSelector'));
+        } else {
+            target = $($(elem).data('targetToSelector'));
+        }
+        $(target).datepicker("option", "minDate", this.getDatepickerDate(elem));
+    },
+    handleDateRangeTo: function(elem) {
+        let target;
+        if ($(elem).data('targetFromClosest')) {
+            target = $(elem).closest($(elem).data('targetFromClosest')).find($(elem).data('targetFromSelector'));
+        } else {
+            target = $($(elem).data('targetFromSelector'));
+        }
+        $(target).datepicker("option", "maxDate", this.getDatepickerDate(elem));
     }
 };
 

@@ -25,7 +25,7 @@ let WelcomeLesson = {
         switch (status) {
             case this.statusUnknown:
                 contents =
-                    '<a href="#" title="Проведено" class="btn btn-primary" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusPassed + ')">' +
+                    '<a href="#" title="Проведено" class="btn btn-primary mr-2" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusPassed + ')">' +
                         '<span class="fas fa-check"></span>' +
                     '</a>' +
                     '<a href="#" title="Отменено" class="btn btn-danger" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusCanceled + ')">' +
@@ -34,10 +34,10 @@ let WelcomeLesson = {
                 break;
             case this.statusPassed:
                 contents =
-                    '<button class="btn btn-primary" type="button" title="В группу!" onclick="return WelcomeLesson.showMovingForm(this, ' + id + ')">' +
+                    '<button class="btn btn-primary mr-2" type="button" title="В группу!" onclick="return WelcomeLesson.showMovingForm(this, ' + id + ')">' +
                     '<span class="fas fa-user-check"></span>' +
                     '</button>' +
-                    '<a href="#" title="Не пришёл" class="btn btn-warning" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusMissed + ')">' +
+                    '<a href="#" title="Не пришёл" class="btn btn-warning mr-2" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusMissed + ')">' +
                     '<span class="fas fa-user-slash"></span>' +
                     '</a>' +
                     '<a href="#" title="Не будет ходить" class="btn btn-danger" onclick="return WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusDenied + ')">' +
@@ -48,14 +48,21 @@ let WelcomeLesson = {
                 if (!denyReason) {
                     contents =
                         '<form method="post" class="deny-details-form" onsubmit="return WelcomeLesson.setDenyDetails(' + id + ', this);">' +
-                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonTeacher + '"> не понравился учитель</label></div>' +
-                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonLevelTooLow + '"> нужен уровень выше</label></div>' +
-                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonLevelTooHigh + '"> нужен уровень ниже</label></div>' +
-                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonOtherGroup + '"> придет в другую группу</label></div>' +
-                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonTooCrowded + '"> слишком большая группа</label></div>' +
-                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonSubject + '"> не нужен предмет для поступления</label></div>' +
-                            '<div class="radio"><label><input type="radio" name="deny_reason" value="' + this.denyReasonOther + '"> другое</label></div>' +
-                            '<textarea name="comment" class="form-control" rows="3" placeholder="Комментарий"></textarea><br>' +
+                            '<div class="form-check"><label class="form-check-label">' +
+                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonTeacher + '"> не понравился учитель</label></div>' +
+                            '<div class="form-check"><label class="form-check-label">' +
+                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonLevelTooLow + '"> нужен уровень выше</label></div>' +
+                            '<div class="form-check"><label class="form-check-label">' +
+                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonLevelTooHigh + '"> нужен уровень ниже</label></div>' +
+                            '<div class="form-check"><label class="form-check-label">' +
+                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonOtherGroup + '"> придет в другую группу</label></div>' +
+                            '<div class="form-check"><label class="form-check-label">' +
+                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonTooCrowded + '"> слишком большая группа</label></div>' +
+                            '<div class="form-check"><label class="form-check-label">' +
+                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonSubject + '"> не нужен предмет для поступления</label></div>' +
+                            '<div class="form-check"><label class="form-check-label">' +
+                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonOther + '"> другое</label></div>' +
+                            '<textarea name="comment" class="form-control my-2" rows="3" placeholder="Комментарий"></textarea>' +
                             '<button name="set_deny_reason" class="btn btn-primary">сохранить</button> ' +
                         '</form>';
                 }

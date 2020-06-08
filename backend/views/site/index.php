@@ -12,7 +12,7 @@ $this->title = 'Панель управления';
 ?>
 <div class="row">
     <?php if ($admin->can('moneyManagement')): ?>
-        <div class="col-6 col-md">
+        <div class="col-6 col-md mb-3">
             <a class="btn btn-outline-dark btn-lg w-100" href="<?= Url::to('money/income'); ?>">
                 <span class="fas fa-hand-holding-usd fa-3x"></span><hr>
                 Принять оплату
@@ -20,7 +20,7 @@ $this->title = 'Панель управления';
         </div>
     <?php endif; ?>
     <?php if ($admin->can('contractManagement')): ?>
-        <div class="col-6 col-md">
+        <div class="col-6 col-md mb-3">
             <a class="btn btn-outline-dark btn-lg w-100" href="<?= Url::to('contract/create'); ?>">
                 <span class="fas fa-file-invoice-dollar fa-3x"></span><hr>
                 Выдать договор
@@ -28,7 +28,7 @@ $this->title = 'Панель управления';
         </div>
     <?php endif; ?>
     <?php if ($admin->can('manageSchedule')): ?>
-        <div class="col-6 col-md">
+        <div class="col-6 col-md mb-3">
             <a class="btn btn-outline-dark btn-lg w-100" href="<?= Url::to('event/index'); ?>">
                 <span class="far fa-calendar-alt fa-3x"></span><hr>
                 Расписание
@@ -36,7 +36,7 @@ $this->title = 'Панель управления';
         </div>
     <?php endif; ?>
     <?php if ($admin->can('welcomeLessons')): ?>
-        <div class="col-6 col-md">
+        <div class="col-6 col-md mb-3">
             <a class="btn btn-outline-dark btn-lg w-100" href="<?= Url::to('welcome-lesson/index'); ?>">
                 <span class="fas fa-flag-checkered fa-3x"></span><hr>
                 Пробные уроки
@@ -45,14 +45,12 @@ $this->title = 'Панель управления';
     <?php endif; ?>
 </div>
 
-<hr>
-
-<div class="row">
+<div class="row border-top pt-3">
     <div class="col-lg-9">
         <?php if ($admin->can('viewGroups') || $admin->can('content')): ?>
             <div class="row">
                 <?php if ($admin->can('viewGroups')): ?>
-                    <div class="col-md">
+                    <div class="col-6 col-md mb-3">
                         <a class="btn btn-outline-dark btn-lg w-100" href="<?= Url::to('group/index'); ?>">
                             <span class="fas fa-users fa-2x"></span><br>
                             Группы
@@ -60,7 +58,7 @@ $this->title = 'Панель управления';
                     </div>
                 <?php endif; ?>
                 <?php if ($admin->can('manageTeachers')): ?>
-                    <div class="col-md">
+                    <div class="col-6 col-md mb-3">
                         <a class="btn btn-outline-dark btn-lg w-100" href="<?= Url::to('teacher/index'); ?>">
                             <span class="fas fa-user-tie fa-2x"></span><br>
                             Учителя
@@ -68,7 +66,7 @@ $this->title = 'Панель управления';
                     </div>
                 <?php endif; ?>
                 <?php if ($admin->can('manageSubjectCategories')): ?>
-                    <div class="col-md">
+                    <div class="col-6 col-md mb-3">
                         <a class="btn btn-outline-dark btn-lg w-100" href="<?= Url::to('subject-category/index'); ?>">
                             <span class="fas fa-briefcase fa-2x"></span><br>
                             Направления
@@ -76,7 +74,7 @@ $this->title = 'Панель управления';
                     </div>
                 <?php endif; ?>
                 <?php if ($admin->can('manageSubjects')): ?>
-                    <div class="col-md">
+                    <div class="col-6 col-md mb-3">
                         <a class="btn btn-outline-dark btn-lg w-100" href="<?= Url::to('subject/index'); ?>">
                             <span class="fas fa-chalkboard-teacher fa-2x"></span><br>
                             Курсы
@@ -84,31 +82,30 @@ $this->title = 'Панель управления';
                     </div>
                 <?php endif; ?>
             </div>
-            <hr>
         <?php endif; ?>
 
         <?php if ($admin->can('support')): ?>
-            <div class="row">
-                <div class="col-md">
-                    <a class="btn btn-lg w-100 <?= $orderCount > 0 ? 'btn-warning' : ''; ?>" href="<?= Url::to('order/index'); ?>">
+            <div class="row border-top pt-3">
+                <div class="col-md mb-3">
+                    <a class="btn btn-lg w-100 <?= $orderCount > 0 ? 'btn-warning' : 'btn-outline-dark'; ?>" href="<?= Url::to('order/index'); ?>">
                         <span class="fas fa-book fa-2x"></span><br>
                         Заявки <?php if ($orderCount > 0): ?>(<?= $orderCount; ?>)<?php endif; ?>
                     </a>
                 </div>
-                <div class="col-md">
-                    <a class="btn btn-outline-dark btn-lg w-100 <?= $feedbackCount > 0 ? 'btn-warning' : ''; ?>" href="<?= Url::to('feedback/index'); ?>">
+                <div class="col-md mb-3">
+                    <a class="btn btn-lg w-100 <?= $feedbackCount > 0 ? 'btn-warning' : 'btn-outline-dark'; ?>" href="<?= Url::to('feedback/index'); ?>">
                         <span class="fas fa-book fa-2x"></span><br>
                         Обратная связь <?php if ($feedbackCount > 0): ?>(<?= $feedbackCount; ?>)<?php endif; ?>
                     </a>
                 </div>
-                <div class="col-md">
-                    <a class="btn btn-outline-dark btn-lg w-100 <?= $reviewCount > 0 ? 'btn-warning' : ''; ?>" href="<?= Url::to('review/index'); ?>">
+                <div class="col-md mb-3">
+                    <a class="btn btn-lg w-100 <?= $reviewCount > 0 ? 'btn-warning' : 'btn-outline-dark'; ?>" href="<?= Url::to('review/index'); ?>">
                         <span class="fas fa-book fa-2x"></span><br>
                         Отзывы <?php if ($reviewCount > 0): ?>(<?= $reviewCount; ?>)<?php endif; ?>
                     </a>
                 </div>
             </div>
-            <hr>
+            <hr class="d-lg-none">
         <?php endif; ?>
     </div>
     <div class="col-lg-3">
