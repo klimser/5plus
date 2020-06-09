@@ -180,6 +180,7 @@ SCRIPT
             <?php
             $script = 'Group.isNew = ' . (count($group->pupils) ? 'false' : 'true') . ";\n";
             if ($group->date_start) $script .= 'Group.startDate = "' . $group->startDateObject->format('d.m.Y') . '";' . "\n";
+            if ($group->date_end) $script .= 'Group.endDate = "' . $group->endDateObject->format('d.m.Y') . '";' . "\n";
             foreach ($group->activeGroupPupils as $groupPupil): ?>
                 <div class="row row-cols-2 justify-content-between mt-3" id="pupil_row_<?= $groupPupil->id; ?>">
                     <div class="col-auto">
@@ -238,10 +239,10 @@ SCRIPT
                                     'id' => 'group-pupil-old-date-end-' . $groupPupil->id,
                                     'autocomplete' => 'off',
                                     'class' => 'pupil-date-end',
-                                    'onchange' => 'Main.handleDateRangeFrom(this); Group.handlePupilEndDate(this);',
+                                    'onchange' => 'Main.handleDateRangeTo(this); Group.handlePupilEndDate(this);',
                                     'data' => [
-                                        'target-to-closest' => '.group-pupil-block',
-                                        'target-to-selector' => '.pupil-date-start',
+                                        'target-from-closest' => '.group-pupil-block',
+                                        'target-from-selector' => '.pupil-date-start',
                                         'id' => $groupPupil->id,
                                     ],
                                 ],

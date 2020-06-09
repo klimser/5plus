@@ -1,13 +1,15 @@
-var Group = {
+let Group = {
+    increment: 1,
     isNew: true,
     startDate: null,
+    endDate: null,
     active: '',
     teacherList: [],
     teacherMap: [],
     dateRegexp: /\d{2}\.\d{2}\.\d{4}/,
     loadTeacherMap: function () {
         if (this.teacherMap.length === 0) {
-            this.active = $("#group-teacher_id").val();
+            this.active = parseInt($("#group-teacher_id").val());
             $.ajax({
                 url: '/teacher/list-json',
                 type: 'get',
@@ -20,18 +22,20 @@ var Group = {
         }
     },
     loadTeacherSelect: function (e) {
-        var subjectId = $(e).val();
+        let subjectId = parseInt($(e).val());
         $("#group-teacher_id").data("subject", subjectId);
 
-        if (typeof this.teacherList[subjectId] == 'undefined') {
+        if (typeof this.teacherList[subjectId] === 'undefined') {
             $.ajax({
                 url: '/teacher/list-json',
                 type: 'get',
                 dataType: 'json',
                 data: {subject: subjectId},
                 success: function (data) {
-                    var tList = [];
-                    for (var i = 0; i < data.teachers.length; i++) tList.push(data.teachers[i]);
+                    let tList = [];
+                    data.teachers.forEach(function(teacher) {
+                        tList.push(teacher);
+                    });
                     Group.teacherList[data.subjectId] = tList;
                     Group.fillTeacherSelect(data.subjectId);
                 }
@@ -39,56 +43,68 @@ var Group = {
         } else this.fillTeacherSelect(subjectId);
     },
     fillTeacherSelect: function (subjectId) {
-        if ($("#group-teacher_id").data("subject") == subjectId)
+        if ($("#group-teacher_id").data("subject") === subjectId)
             $("#group-teacher_id").html(this.getTeachersOptions(subjectId)).removeData("subject");
     },
     getTeachersOptions: function (subjectId) {
-        var list = '';
-        for (var i = 0; i < this.teacherList[subjectId].length; i++) {
-            list += '<option value="' + this.teacherList[subjectId][i] + '"' +
-                (this.teacherList[subjectId][i] == this.active ? ' selected' : '') + '>' + this.teacherMap[this.teacherList[subjectId][i]] + '</option>';
-        }
+        let list = '';
+        this.teacherList[subjectId].forEach(function(teacherId) {
+            list += '<option value="' + teacherId + '"' +
+                (teacherId === Group.active ? ' selected' : '') + '>' + Group.teacherMap[teacherId] + '</option>';
+        });
         return list;
     },
     pupilsMap: [],
     pupilsActive: [],
     loadPupilsMap: function () {
-        if (this.pupilsMap.length == 0) {
+        if (this.pupilsMap.length === 0) {
             $.ajax({
                 url: '/user/pupils',
                 dataType: 'json',
                 success: function (data) {
-                    for (var i = 0; i < data.length; i++) Group.pupilsMap.push(data[i]);
+                    data.forEach(function(pupil) {
+                        Group.pupilsMap.push(pupil);
+                    });
                 }
             });
         }
     },
     renderPupilForm: function () {
-        var pupilSelect = '<select name="pupil[]" class="form-control chosen pupil-id"><option value=""></option>';
-        for (var i = 0; i < this.pupilsMap.length; i++) {
-            var used = false;
-            for (var j = 0; j < this.pupilsActive.length; j++) if (this.pupilsMap[i].id == this.pupilsActive[j]) {
-                used = true;
-                break;
+        let pupilSelect = '<select name="pupil[]" class="form-control chosen pupil-id"><option value=""></option>';
+        this.pupilsMap.forEach(function(pupil) {
+            let used = false;
+            for (let j = 0; j < Group.pupilsActive.length; j++) {
+                if (pupil.id === Group.pupilsActive[j]) {
+                    used = true;
+                    break;
+                }
             }
-            if (!used) pupilSelect += '<option value="' + this.pupilsMap[i].id + '">' + this.pupilsMap[i].name + '</option>';
-        }
+            if (!used) pupilSelect += '<option value="' + pupil.id + '">' + pupil.name + '</option>';
+        });
         pupilSelect += '</select>';
 
-        var formHtml = '<div class="row form-group row-pupil"><div class="col-xs-12">' +
-            '<div class="row">' +
-            '<div class="col-xs-9 col-sm-10 col-md-11">' + pupilSelect + '</div>' +
-            '<div class="col-xs-3 col-sm-2 col-md-1"><button type="button" class="btn btn-default" onclick="return Group.removePupil(this);" title="Удалить">' +
-            '<span class="fas fa-user-minus"></span></button></div>' +
+        let formHtml = '<div class="row form-group row-pupil row-cols-2 justify-content-between mt-3">' +
+            '<div class="col-auto">' + pupilSelect + '</div>' +
+            '<div class="col-auto">' +
+                '<button type="button" class="btn btn-outline-dark" onclick="return Group.removePupil(this);" title="Удалить">' +
+                '<span class="fas fa-user-minus"></span></button>' +
             '</div>';
         if (!this.isNew) {
-            formHtml += '<div class="row"><div class="col-xs-12">' +
-                '<div class="form-group"><div class="input-group input-daterange pupil-daterange">' +
-                '<input type="text" class="form-control pupil-start" name="pupil_start[]"><div class="input-group-addon">до</div>' +
-                '<input type="text" class="form-control pupil-end" name="pupil_end[]"></div></div></div>' +
+            formHtml +=
+                '<div class="form-group col-auto form-inline align-content-start">' +
+                    '<label class="mr-2">C</label>' +
+                    '<input type="text" class="form-control pupil-date-start" name="pupil_start[]" id="group-pupil-new-date-start-' + Group.increment + '" ' +
+                    'required autocomplete="off" onchange="Main.handleDateRangeFrom(this);" data-target-to-closest=".row-pupil" data-target-to-selector=".pupil-date-end">' +
                 '</div>';
+            formHtml +=
+                '<div class="form-group col-auto form-inline align-content-start">' +
+                    '<label class="mr-2">ДО</label>' +
+                    '<input type="text" class="form-control pupil-date-end" name="pupil_end[]" id="group-pupil-new-date-end-' + Group.increment + '" ' +
+                    'autocomplete="off" onchange="Main.handleDateRangeTo(this);" data-target-from-closest=".row-pupil" data-target-from-selector=".pupil-date-start">' +
+                '</div>';
+            Group.increment++;
         }
-        formHtml += '</div></div>';
+        formHtml += '</div>';
         $("#group_pupils").append(formHtml);
         $('#group_pupils .row-pupil:last .chosen').chosen({
             disable_search_threshold: 6,
@@ -96,11 +112,17 @@ var Group = {
             placeholder_text_single: 'Выберите студента'
         });
         if (!this.isNew) {
-            $('#group_pupils .input-daterange:last').datepicker({
-                autoclose: true,
+            $('#group_pupils .row-pupil:last .pupil-date-start').datepicker({
                 format: "dd.mm.yyyy",
-                language: "ru",
-                startDate: this.startDate
+                firstDay: 1,
+                minDate: this.startDate,
+                maxDate: this.endDate
+            });
+            $('#group_pupils .row-pupil:last .pupil-date-end').datepicker({
+                format: "dd.mm.yyyy",
+                firstDay: 1,
+                minDate: this.startDate,
+                maxDate: this.endDate
             });
         }
         return false;

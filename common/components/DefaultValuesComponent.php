@@ -31,10 +31,7 @@ class DefaultValuesComponent extends Component
         return [
             'dateFormat' => 'dd.MM.y',
             'clientOptions' => [
-                'autoclose' => true,
-                'language' => 'ru',
-                'weekStart' => 1,
-                'todayHighlight' => true,
+                'firstDay' => 1,
             ],
             'options' => [
                 'class' => 'form-control',
