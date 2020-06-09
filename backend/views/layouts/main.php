@@ -38,7 +38,7 @@ $this->render('/grunt-assets');
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
 </head>
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column h-100 ">
     <?php $this->beginBody() ?>
 
     <?php if (!Yii::$app->user->isGuest): ?>
@@ -82,7 +82,7 @@ $this->render('/grunt-assets');
         </header>
     <?php endif; ?>
 
-    <main class="container" role="main">
+    <main class="container <?php if (Yii::$app->user->isGuest): ?>pt-0 my-auto<?php endif; ?>" role="main">
         <?php if (!Yii::$app->user->isGuest): ?>
             <nav class="d-print-none" role="navigation">
                 <?=  Breadcrumbs::widget(['links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : []]); ?>

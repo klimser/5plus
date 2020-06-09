@@ -83,28 +83,31 @@ let Group = {
         });
         pupilSelect += '</select>';
 
-        let formHtml = '<div class="row form-group row-pupil row-cols-2 justify-content-between mt-3">' +
-            '<div class="col-auto">' + pupilSelect + '</div>' +
-            '<div class="col-auto">' +
-                '<button type="button" class="btn btn-outline-dark" onclick="return Group.removePupil(this);" title="Удалить">' +
-                '<span class="fas fa-user-minus"></span></button>' +
+        let formHtml = '<div class="row row-pupil mt-3"><div class="col-12">' +
+            '<div class="row form-group">' +
+                '<div class="col-9 col-sm-10 col-md-auto">' + pupilSelect + '</div>' +
+                '<div class="col-3 col-sm-2 col-md-auto">' +
+                    '<button type="button" class="btn btn-outline-dark" onclick="return Group.removePupil(this);" title="Удалить">' +
+                    '<span class="fas fa-user-minus"></span></button>' +
+                '</div>' +
             '</div>';
         if (!this.isNew) {
-            formHtml +=
-                '<div class="form-group col-auto form-inline align-content-start">' +
-                    '<label class="mr-2">C</label>' +
+            formHtml += '<div class="row form-group">' +
+                '<div class="col-6 col-sm-auto form-inline align-items-start">' +
+                    '<label class="mr-2 mt-2">C</label>' +
                     '<input type="text" class="form-control pupil-date-start" name="pupil_start[]" id="group-pupil-new-date-start-' + Group.increment + '" ' +
                     'required autocomplete="off" onchange="Main.handleDateRangeFrom(this);" data-target-to-closest=".row-pupil" data-target-to-selector=".pupil-date-end">' +
                 '</div>';
             formHtml +=
-                '<div class="form-group col-auto form-inline align-content-start">' +
-                    '<label class="mr-2">ДО</label>' +
+                '<div class="col-6 col-sm-auto form-inline align-items-start">' +
+                    '<label class="mr-2 mt-2">ДО</label>' +
                     '<input type="text" class="form-control pupil-date-end" name="pupil_end[]" id="group-pupil-new-date-end-' + Group.increment + '" ' +
                     'autocomplete="off" onchange="Main.handleDateRangeTo(this);" data-target-from-closest=".row-pupil" data-target-from-selector=".pupil-date-start">' +
-                '</div>';
+                '</div>' +
+            '</div>';
             Group.increment++;
         }
-        formHtml += '</div>';
+        formHtml += '</div></div>';
         $("#group_pupils").append(formHtml);
         $('#group_pupils .row-pupil:last .chosen').chosen({
             disable_search_threshold: 6,

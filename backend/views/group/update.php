@@ -96,8 +96,8 @@ SCRIPT
                         $group,
                         'date_start',
                         [
-                            'options' => ['class' => 'form-group col-12 col-md-6 form-inline align-content-start'],
-                            'labelOptions' => ['label' => 'C', 'class' => 'mr-2'],
+                            'options' => ['class' => 'form-group col-12 col-md-6 form-inline align-items-start'],
+                            'labelOptions' => ['label' => 'C', 'class' => 'mr-2 mt-2'],
                         ]
                     )
                     ->widget(DatePicker::class, array_merge_recursive(
@@ -114,8 +114,8 @@ SCRIPT
                         $group,
                         'date_end',
                         [
-                            'options' => ['class' => 'form-group col-12 col-md-6 form-inline align-content-start'],
-                            'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2'],
+                            'options' => ['class' => 'form-group col-12 col-md-6 form-inline align-items-start'],
+                            'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2 mt-2'],
                         ]
                     )
                     ->widget(DatePicker::class, array_merge_recursive(
@@ -151,16 +151,16 @@ SCRIPT
 //            ));?>
         <?php else: ?>
             <div class="row align-items-center">
-                <div class="col-12 col-md-6 form-group">
+                <div class="col-12 col-sm-6 col-md-auto form-group">
                     C <?= $group->startDateObject->format('d.m.Y'); ?>
                 </div>
-                <?= $form->field($group,'date_start', ['labelOptions' => ['label' => null]])->hiddenInput(); ?>
+                <?= $form->field($group,'date_start', ['template' => '{input}', 'options' => ['class' => []]])->hiddenInput(); ?>
                 <?= $form->field(
                         $group,
                         'date_end',
                         [
-                            'options' => ['class' => 'form-group col-12 col-md-6 form-inline align-content-start'],
-                            'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2'],
+                            'options' => ['class' => 'form-group col-12 col-sm-6 col-md-auto form-inline align-items-start'],
+                            'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2 mt-2'],
                         ]
                     )
                     ->widget(DatePicker::class, array_merge_recursive(
@@ -182,17 +182,21 @@ SCRIPT
             if ($group->date_start) $script .= 'Group.startDate = "' . $group->startDateObject->format('d.m.Y') . '";' . "\n";
             if ($group->date_end) $script .= 'Group.endDate = "' . $group->endDateObject->format('d.m.Y') . '";' . "\n";
             foreach ($group->activeGroupPupils as $groupPupil): ?>
-                <div class="row row-cols-2 justify-content-between mt-3" id="pupil_row_<?= $groupPupil->id; ?>">
-                    <div class="col-auto">
+                <div class="row row-cols-2 justify-content-between mt-3 form-group" id="pupil_row_<?= $groupPupil->id; ?>">
+                    <div class="col-9 col-sm-10 col-md-auto">
                         <?= Html::hiddenInput('pupil[]', $groupPupil->user->id); ?>
                         <?= $groupPupil->user->name; ?>
+                        <br class="d-md-none">
                         <?php if ($groupPupil->user->phone): ?>
                             (<?= Html::phoneLink($groupPupil->user->phone, $groupPupil->user->phoneFormatted);
                             ?><?= $groupPupil->user->phone2 ? ', ' . Html::phoneLink($groupPupil->user->phone2, $groupPupil->user->phone2Formatted) : ''; ?>)
                         <?php endif; ?>
                     </div>
-                    <div class="col-auto">
-                        <a href="<?= Url::to(['group/move-pupil', 'user' => $groupPupil->user_id, 'group' => $groupPupil->group_id]); ?>" class="btn btn-sm btn-outline-dark">Перевести <span class="fas fa-arrow-right"></span></a>
+                    <div class="col-3 col-sm-2 col-md-auto">
+                        <a href="<?= Url::to(['group/move-pupil', 'user' => $groupPupil->user_id, 'group' => $groupPupil->group_id]); ?>" class="btn btn-sm btn-outline-dark">
+                            <span class="d-none d-md-inline">Перевести</span>
+                            <span class="fas fa-arrow-right"></span>
+                        </a>
                     </div>
                 </div>
                 <div class="row group-pupil-block mb-3 border-bottom">
@@ -200,8 +204,8 @@ SCRIPT
                             $groupPupil,
                             'date_start',
                             [
-                                'options' => ['class' => 'form-group col-auto form-inline align-content-start'],
-                                'labelOptions' => ['label' => 'C', 'class' => 'mr-2'],
+                                'options' => ['class' => 'form-group col-6 col-sm-auto form-inline align-items-start'],
+                                'labelOptions' => ['label' => 'C', 'class' => 'mr-2 mt-2'],
                             ]
                         )
                         ->widget(DatePicker::class, array_merge_recursive(
@@ -217,7 +221,7 @@ SCRIPT
                                     'data' => ['target-to-closest' => '.group-pupil-block', 'target-to-selector' => '.pupil-date-end'],
                                 ],
                                 'clientOptions' => [
-                                    'minDate' => $group->date_start ? $group->startDateObject->format('d.m.Y') : null,
+                                    'minDate' => $group->startDateObject->format('d.m.Y'),
                                     'maxDate' => $group->date_end ? $group->endDateObject->format('d.m.Y') : null,
                                 ],
                             ]
@@ -227,8 +231,8 @@ SCRIPT
                             $groupPupil,
                             'date_end',
                             [
-                                'options' => ['class' => 'form-group col-auto form-inline align-content-start'],
-                                'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2'],
+                                'options' => ['class' => 'form-group col-6 col-sm-auto form-inline align-items-start'],
+                                'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2 mt-2'],
                             ]
                         )
                         ->widget(DatePicker::class, array_merge_recursive(
@@ -247,7 +251,7 @@ SCRIPT
                                     ],
                                 ],
                                 'clientOptions' => [
-                                    'minDate' => $group->date_start ? $group->startDateObject->format('d.m.Y') : null,
+                                    'minDate' => $groupPupil->startDateObject->format('d.m.Y'),
                                     'maxDate' => $group->date_end ? $group->endDateObject->format('d.m.Y') : null,
                                 ],
                             ]
@@ -259,9 +263,10 @@ SCRIPT
             $this->registerJs($script); ?>
         </div>
         <button class="btn btn-outline-success btn-sm" onclick="return Group.renderPupilForm();"><span class="fas fa-user-plus"></span> Добавить студента</button>
+        <hr class="mb-4">
 
         <?php if (count($group->movedGroupPupils)): ?>
-            <h5 class="mt-5">Перешли в другие группы</h5>
+            <h5>Перешли в другие группы</h5>
             <table class="table table-sm">
                 <?php foreach ($group->movedGroupPupils as $groupPupil): ?>
                     <tr>
@@ -298,7 +303,7 @@ SCRIPT
         <?php endif; ?>
     </div>
 
-    <div class="form-group col-12">
+    <div class="form-group col-12 mt-3">
         <?= Html::submitButton($group->isNewRecord ? 'Добавить' : 'Сохранить', ['class' => 'btn btn-primary']) ?>
         <div id="form-valid"></div>
     </div>
