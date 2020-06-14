@@ -9,10 +9,6 @@ use yii\jui\DatePicker;
 /* @var $companies \common\models\Company[] */
 /* @var $groups \common\models\Group[] */
 
-$this->registerJs(<<<SCRIPT
-    Main.initPhoneFormatted();
-SCRIPT
-);
 $searchValue = '';
 if (isset($user)) {
     $this->registerJs(<<<SCRIPT
@@ -135,7 +131,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <hr>
             <div id="gift_card_messages"></div>
             <div id="gift_card_result_block" class="collapse">
-                <form onsubmit="return Money.completeGiftCard(this);">
+                <form onsubmit="Money.completeGiftCard(this); return false;">
                     <p>
                         <b>Предмет</b> <span id="gift_card_type"></span><br>
                         <b>Сумма</b> <span id="gift_card_amount"></span><br>

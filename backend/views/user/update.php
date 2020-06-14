@@ -15,11 +15,6 @@ use yii\bootstrap4\ActiveForm;
 /* @var $existedParents User[] */
 /* @var $parent User */
 
-$this->registerJs(<<<SCRIPT
-    Main.initPhoneFormatted();
-SCRIPT
-);
-
 /** @var \yii\web\User $currentUser */
 $currentUser = Yii::$app->user;
 
@@ -81,38 +76,46 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php endif; ?>
         </div>
 
-        <?php if ($isAdmin && $user->role == User::ROLE_PUPIL && !$user->parent_id): ?>
+        <?php if ($isAdmin && $user->role == User::ROLE_PUPIL): ?>
             <div class="col-xs-12 col-md-6">
                 <h2>Родители</h2>
+                
+                <?php if (!$user->parent_id): ?>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="parent_type" value="none" onclick="User.changeParentType()"> Студент уже взрослый
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="parent_type" value="exist" onclick="User.changeParentType()"> Есть брат (сестра), выбрать родителей из списка
+                        </label>
+                    </div>
+                    <div id="parents_select" >
+                        <?= Html::dropDownList('parent_exists', $parent->id, ArrayHelper::map($existedParents, 'id', 'name'), ['class' => 'form-control chosen']); ?>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="parent_type" value="new" checked onclick="User.changeParentType()"> Добавить родителей
+                        </label>
+                    </div>
+    
+                    <div id="parents_form">
+                        <?= $form->field($parent, '[parent]name')->textInput(['maxlength' => true]); ?>
+    
+                        <?= $form->field($parent, '[parent]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                            ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+    
+                        <?= $form->field($parent, '[parent]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                            ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+                    </div>
+                <?php else: ?>
+                    <?= $form->field($user->parent, '[parent]name')->staticControl(); ?>
 
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="parent_type" value="none" onclick="User.changeParentType()"> Студент уже взрослый
-                    </label>
-                </div>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="parent_type" value="exist" onclick="User.changeParentType()"> Есть брат (сестра), выбрать родителей из списка
-                    </label>
-                </div>
-                <div id="parents_select" >
-                    <?= Html::dropDownList('parent_exists', $parent->id, ArrayHelper::map($existedParents, 'id', 'name'), ['class' => 'form-control chosen']); ?>
-                </div>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="parent_type" value="new" checked onclick="User.changeParentType()"> Добавить родителей
-                    </label>
-                </div>
+                    <?= $form->field($user->parent, '[parent]phoneFull')->staticControl(); ?>
 
-                <div id="parents_form">
-                    <?= $form->field($parent, '[parent]name')->textInput(['maxlength' => true]); ?>
-
-                    <?= $form->field($parent, '[parent]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
-                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
-
-                    <?= $form->field($parent, '[parent]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
-                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
-                </div>
+                    <?= $form->field($user->parent, '[parent]phone2Full')->staticControl(); ?>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>

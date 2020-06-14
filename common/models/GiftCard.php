@@ -64,6 +64,7 @@ class GiftCard extends ActiveRecord
             [['amount', 'status'], 'integer'],
             [['name'], 'string', 'max' => 127],
             [['code'], 'string', 'max' => 50],
+            [['code'], 'unique'],
             [['additional'], 'string'],
             [['customer_name', 'customer_email'], 'string', 'max' => 255],
             [['customer_phone'], 'string', 'max' => 13],
@@ -150,6 +151,21 @@ class GiftCard extends ActiveRecord
     {
         $usedDate = $this->usedDate;
         return $usedDate ? $usedDate->format('Y-m-d') : '';
+    }
+
+    public function isNew(): bool
+    {
+        return $this->status === self::STATUS_NEW;
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->status === self::STATUS_PAID;
+    }
+
+    public function isUsed(): bool
+    {
+        return $this->status === self::STATUS_USED;
     }
 
     /**

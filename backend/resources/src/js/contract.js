@@ -1,20 +1,5 @@
 let Contract = {
-    groups: [],
     paymentType: null,
-    loadGroups: function () {
-        $.ajax({
-            url: '/group/list-json',
-            data: {},
-            dataType: 'json',
-            success: function (data) {
-                Contract.groups = [];
-                if (data.length > 0) {
-                    if (!Array.isArray(data)) data = [data];
-                    Contract.groups = data;
-                }
-            }
-        });
-    },
     setPupil: function (pupilId) {
         Money.pupilId = pupilId;
         $(".pupil-result-button").removeClass("btn-primary").addClass('btn-outline-dark');
@@ -23,36 +8,34 @@ let Contract = {
     },
     renderGroupsBlock: function () {
         let pupil = Money.pupils[Money.pupilId];
-        let blockHtml = '';
-        for (var i = 0; i < pupil.groups.length; i++) {
-            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + pupil.groups[i] + '" onclick="Contract.setGroup(' + pupil.groups[i] + ');">' + Money.groups[pupil.groups[i]].name + '</button>';
-        }
-        blockHtml += '<div class="card group-result-button" id="group_new_block"><div class="card-body"><div class="form-inline"><label for="new_group" class="mr-sm-2">Ещё не занимается, просто выдать договор:</label>' +
-            '<select id="new_group" class="form-control mr-sm-2">';
-        for (i = 0; i < this.groups.length; i++) {
-            if (pupil.groups.indexOf(this.groups[i].id) < 0) {
-                blockHtml += '<option value="' + this.groups[i].id + '">' + this.groups[i].name + '</option>';
+        let blockHtml = '<div class="panel panel-default"><div class="panel-body">';
+        pupil.groups.forEach(function(groupId) {
+            blockHtml += '<button class="contract-group-btn btn btn-default btn-lg margin-right-10" type="button" id="group-' + groupId + '" onclick="Contract.setGroup(' + groupId + ');">' + Money.groups[groupId].name + '</button>';
+        });
+        blockHtml += '<div class="col-xs-12 col-sm-6 col-md-3"><label for="new_group">Ещё не занимается, просто выдать договор:</label><br>' +
+            '<select id="new_group" class="form-control">';
+        Main.groupList.forEach(function(group) {
+            if (pupil.groups.indexOf(group.id) < 0) {
+                blockHtml += '<option value="' + group.id + '">' + group.name + '</option>';
             }
-        }
-        blockHtml += '</select>' +
-            '<button type="button" class="btn btn-outline-dark" id="new_group_button" onclick="Contract.setGroup(parseInt($(\'#new_group\').val()));">Выбрать</button></div></div></div>';
-        $("#groups_result").html(blockHtml);
-        $('#groups_block').collapse('show');
-        if (pupil.groups.length === 1) $("#groups_result").find('button:first').click();
+        });
+        blockHtml += '</select><br>' +
+            '<button type="button" class="btn btn-default" id="new_group_button" onclick="Contract.setGroup(parseInt($(\'#new_group\').val()));">Выбрать</button></div>';
+        blockHtml += '</div></div>';
+        $("#groups_block").html(blockHtml);
+        if (pupil.groups.length === 1) $("#groups_block").find('.contract-group-btn:first').click();
     },
     getGroup: function(groupId) {
-        let group = null;
         if (groupId in Money.groups) {
-            group = Money.groups[groupId];
+            return Money.groups[groupId];
         } else {
-            for (var i = 0; i < this.groups.length; i++) {
-                if (this.groups[i].id === groupId) {
-                    group = this.groups[i];
-                    break;
+            for (let i = 0; i < Main.groupList.length; i++) {
+                if (Main.groupList[i].id === groupId) {
+                    return Main.groupList[i];
                 }
             }
         }
-        return group;
+        return null;
     },
     setGroup: function (groupId) {
         Money.groupId = groupId;
@@ -97,5 +80,9 @@ let Contract = {
         $("#group_input").val(Money.groupId);
         $("#discount_input").val(Money.paymentType);
         return true;
+    },
+    init: function() {
+        Money.className = 'Contract';
+        Main.loadGroups();
     }
 };

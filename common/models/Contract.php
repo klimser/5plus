@@ -4,6 +4,8 @@ namespace common\models;
 
 use common\components\extended\ActiveRecord;
 use common\components\helpers\Money;
+use common\models\traits\Inserted;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "{{%contract}}".
@@ -36,9 +38,12 @@ use common\components\helpers\Money;
  * @property User $createdAdmin
  * @property User $paidAdmin
  * @property Company $company
+ * @property GroupPupil $activeGroupPupil
  */
 class Contract extends ActiveRecord
 {
+    use Inserted;
+    
     const STATUS_NEW = 0;
     const STATUS_PROCESS = 1;
     const STATUS_PAID = 2;
@@ -46,6 +51,18 @@ class Contract extends ActiveRecord
     const PAYMENT_TYPE_MANUAL = 1;
     const PAYMENT_TYPE_PAYME = 2;
     const PAYMENT_TYPE_PAYMO = 3;
+    
+    const STATUS_LABELS = [
+        self::STATUS_NEW => 'не оплачен',
+        self::STATUS_PROCESS => 'не завершен',
+        self::STATUS_PAID => 'оплачен',
+    ];
+    
+    const PAYMENT_TYPE_LABELS = [
+        self::PAYMENT_TYPE_MANUAL => 'офис',
+        self::PAYMENT_TYPE_PAYME => 'Payme',
+        self::PAYMENT_TYPE_PAYMO => 'PAYMO',
+    ];
 
     /**
      * {@inheritdoc}
@@ -101,7 +118,6 @@ class Contract extends ActiveRecord
     }
 
     public function beforeValidate() {
-        if (empty($this->created_at)) $this->created_at = date('Y-m-d H:i:s');
         if (!parent::beforeValidate()) return false;
 
         if ($this->isNewRecord && empty($this->number)) {
@@ -110,7 +126,7 @@ class Contract extends ActiveRecord
                 return false;
             }
 
-            $numberPrefix = $this->createDate->format('Ymd') . $this->user_id;
+            $numberPrefix = date('Ymd') . $this->user_id;
             $numberAffix = 1;
             while (Contract::find()->andWhere(['number' => $numberPrefix . $numberAffix])->select('COUNT(id)')->scalar() > 0) {
                 $numberAffix++;
@@ -124,14 +140,6 @@ class Contract extends ActiveRecord
             return false;
         }
         return true;
-    }
-
-    /**
-     * @return \DateTime|null
-     */
-    public function getCreateDate(): ?\DateTime
-    {
-        return empty($this->created_at) ? null : new \DateTime($this->created_at);
     }
 
     /**
@@ -197,7 +205,7 @@ class Contract extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getUser()
     {
@@ -205,7 +213,7 @@ class Contract extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getGroup()
     {
@@ -213,7 +221,7 @@ class Contract extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getPayments()
     {
@@ -221,7 +229,7 @@ class Contract extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getCreatedAdmin()
     {
@@ -229,7 +237,7 @@ class Contract extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getPaidAdmin()
     {
@@ -237,10 +245,30 @@ class Contract extends ActiveRecord
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getCompany()
     {
         return $this->hasOne(Company::class, ['id' => 'company_id']);
+    }
+    
+    public function isNew()
+    {
+        return $this->status === self::STATUS_NEW;
+    }
+
+    public function isPaid()
+    {
+        return $this->status === self::STATUS_PAID;
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getActiveGroupPupil()
+    {
+        return $this->hasOne(GroupPupil::class, ['group_id' => 'group_id', 'user_id' => 'user_id'])
+            ->andWhere('active = :active', [':active' => GroupPupil::STATUS_ACTIVE])
+            ->orderBy(['date_start' => SORT_DESC]);
     }
 }

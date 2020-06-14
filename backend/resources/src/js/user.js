@@ -1,52 +1,254 @@
 let User = {
-    teacherList: [],
-    teacherMap: [],
-    teacherElement: $("#welcome_lesson_teacher"),
-    loadTeacherMap: function () {
-        if (this.teacherMap.length === 0) {
-            $.get({
-                url: '/teacher/list-json',
-                dataType: 'json',
-                success: function (data) {
-                    data.forEach(function(teacher) {
-                        User.teacherMap[teacher.id] = teacher.name;
-                    });
-                    User.loadTeacherSelect($("#welcome_lesson_subject"));
-                }
-            });
-        }
-    },
-    loadTeacherSelect: function (e) {
-        let subjectId = $(e).val();
-        $(this.teacherElement).data("subject", subjectId);
+    contractAllowed: false,
+    incomeAllowed: false,
+    pupilLimitDate: null,
+    iterator: 1,
+    consultationList: [],
+    welcomeLessonList: [],
+    groupList: [],
 
-        if (typeof this.teacherList[subjectId] === 'undefined') {
-            $.get({
-                url: '/teacher/list-json',
-                dataType: 'json',
-                data: {subject: subjectId},
-                success: function (data) {
-                    User.teacherList[data.subjectId] = [];
-                    data.teachers.forEach(function(teacherId) {
-                        User.teacherList[data.subjectId].push(teacherId);
+    init: function(noAdd) {
+        return $.when(Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
+            .done(function() {
+                if (noAdd === true) return;
+
+                if (User.consultationList.length > 0) {
+                    User.consultationList.forEach(function(subjectId) {
+                        User.addConsultation(subjectId);
                     });
-                    User.fillTeacherSelect(data.subjectId);
+                } else {
+                    User.addConsultation();
                 }
-            });
-        } else this.fillTeacherSelect(subjectId);
+
+                User.welcomeLessonList.forEach(function(welcomeLessonData) {
+                    User.addWelcomeLesson(welcomeLessonData);
+                });
+
+                User.groupList.forEach(function(groupData) {
+                    User.addGroup(groupData);
+                });
+            })
+            .fail(Main.logAndFlashAjaxError);
     },
-    fillTeacherSelect: function (subjectId) {
-        if ($(this.teacherElement).data("subject") === subjectId) {
-            $(this.teacherElement).html(this.getTeachersOptions(subjectId)).removeData("subject");
+    
+    getGroupOptions: function(selectedValue, addEmpty) {
+        if (typeof addEmpty !== 'boolean') {
+            addEmpty = false;
+        }
+        let optionsHtml = '';
+        if (addEmpty) {
+            optionsHtml += '<option value="0" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестна</option>';
+        }
+        Main.groupActiveList.forEach(function(groupId) {
+            optionsHtml += '<option value="' + groupId + '" ' + (selectedValue === groupId ? 'selected' : '') + '>'
+                + Main.groupMap[groupId].name + '</option>';
+        });
+        return optionsHtml;
+    },
+    getSubjectOptions: function(selectedValue, addEmpty) {
+        if (typeof addEmpty !== 'boolean') {
+            addEmpty = false;
+        }
+        let optionsHtml = '';
+        if (addEmpty) {
+            optionsHtml += '<option value="0" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестен</option>';
+        }
+        Object.keys(Main.subjectActiveList).forEach(function(categoryId) {
+            optionsHtml += '<optgroup label="' + Main.subjectCategoryMap[categoryId] + '">';
+            Main.subjectActiveList[categoryId].forEach(function(subjectId) {
+                optionsHtml += '<option value="' + subjectId + '" ' + (selectedValue === subjectId ? 'selected' : '') + '>'
+                    + Main.subjectMap[subjectId].name + '</option>';
+            });
+        });
+        return optionsHtml;
+    },
+    getTeacherOptions: function(subjectId, selectedValue, addEmpty) {
+        if (typeof addEmpty !== 'boolean') {
+            addEmpty = false;
+        }
+        let optionsHtml = '';
+        if (addEmpty) {
+            optionsHtml += '<option value="0" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестен</option>';
+        }
+        if (Main.teacherActiveList.hasOwnProperty(subjectId)) {
+            Main.teacherActiveList[subjectId].forEach(function (teacherId) {
+                optionsHtml += '<option value="' + teacherId + '" ' + (selectedValue === teacherId ? 'selected' : '') + '>'
+                    + Main.teacherMap[teacherId].name + '</option>';
+            });
+        }
+        return optionsHtml;
+    },
+    removeItem: function(e, itemClass) {
+        let item = $(e).closest('.' + itemClass);
+        if (item.length > 0) {
+            $(item).remove();
         }
     },
-    getTeachersOptions: function (subjectId) {
-        let list = '';
-        this.teacherList[subjectId].forEach(function(teacherId) {
-            list += '<option value="' + teacherId + '">' + User.teacherMap[teacherId] + '</option>';
-        });
-        return list;
+    removeConsultation: function(e) {
+        this.removeItem(e, 'consultation-item');
     },
+    removeWelcomeLesson: function(e) {
+        this.removeItem(e, 'welcome-lesson-item');
+        this.checkPupilPhoneRequired();
+    },
+    removeGroup: function(e) {
+        this.removeItem(e, 'group-item');
+        this.checkPupilPhoneRequired();
+    },
+    addConsultation: function(subjectId, parentContainer) {
+        if (subjectId === undefined) {
+            subjectId = 0;
+        }
+        if (parentContainer === undefined) {
+            parentContainer = document;
+        }
+
+        let container = $(parentContainer).find(".consultation-mandatory");
+        let blockHtml = '<div class="consultation-item panel panel-default"><div class="panel-body">';
+        if ($(container).html().length > 0) {
+            container = $(parentContainer).find(".consultation-optional");
+            blockHtml += '<button type="button" class="close" aria-label="Close" onclick="User.removeConsultation(this);"><span aria-hidden="true">&times;</span></button>';
+        }
+        blockHtml += '<div class="form-group">' +
+            '<label>Предмет</label>' +
+            '<select class="form-control subject-select" name="consultation[]" autocomplete="off">' + this.getSubjectOptions(subjectId) + '</select>' +
+            '</div>';
+        blockHtml += '</div></div>';
+        $(container).append(blockHtml);
+    },
+    addWelcomeLesson: function addWelcomeLesson(data, parentContainer) {
+        this.setPupilPhoneRequired(true);
+        if (data === undefined) {
+            data = {groupId: 0, subjectId: 0, teacherId: 0, date: ''};
+        }
+        if (parentContainer === undefined) {
+            parentContainer = document;
+        }
+
+        let blockHtml = '<div class="welcome-lesson-item panel panel-default"><div class="panel-body">';
+        blockHtml += '<div class="row">' +
+            '<div class="col-xs-10 col-sm-11 col-md-4"><div class="form-group">' +
+            '<label>Группа</label>' +
+            '<select class="form-control group-select" name="welcome_lesson[groupId][' + this.iterator + ']" autocomplete="off" onchange="User.setWelcomeLessonGroup(this);">' +
+            this.getGroupOptions(parseInt(data.groupId), true) +
+            '</select>' +
+            '</div>' +
+            '</div>';
+        blockHtml += '<div class="col-xs-2 col-sm-1 col-md-push-7"><button type="button" class="close" aria-label="Close" onclick="User.removeWelcomeLesson(this);"><span aria-hidden="true">&times;</span></button></div>';
+        blockHtml += '<div class="col-xs-12 col-md-4 col-md-pull-1"><div class="form-group">' +
+            '<label>Предмет</label>' +
+            '<select class="form-control subject-select" name="welcome_lesson[subjectId][' + this.iterator + ']" autocomplete="off" onchange="User.setWelcomeLessonSubject(this);"' +
+            (data.groupId > 0 ? ' disabled ' : '') + '>' + this.getSubjectOptions(data.subjectId) + '</select>' +
+            '</div></div>';
+        blockHtml += '<div class="col-xs-12 col-md-3 col-md-pull-1"><div class="form-group">' +
+            '<label>Учитель</label>' +
+            '<select class="form-control teacher-select" name="welcome_lesson[teacherId][' + this.iterator + ']" autocomplete="off"' + (data.groupId > 0 ? ' disabled ' : '') + '>' +
+            this.getTeacherOptions(data.subjectId, data.teacherId) + '</select>' +
+            '</div></div>';
+        blockHtml += '</div>';
+        blockHtml += '<div class="form-group">' +
+            '<label>Дата</label>' +
+            '<div class="input-group date datepicker">' +
+            '<input type="text" class="form-control date-select" name="welcome_lesson[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
+            '<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>' +
+            '</div>' +
+            '</div>';
+        blockHtml += '</div></div>';
+        let container = $(parentContainer).find(".welcome_lessons");
+        $(container).append(blockHtml);
+        
+        this.iterator++;
+        $(container).find('.welcome-lesson-item:last').find(".datepicker")
+            .datepicker(Main.datepickerDefaultSettings);
+        this.setWelcomeLessonSubject($(container).find('.welcome-lesson-item:last').find("select.subject-select"));
+    },
+    addGroup: function(data, parentContainer) {
+        this.setPupilPhoneRequired(true);
+        if (data === undefined) {
+            data = {groupId: 0, date: '', amount: 0, paymentComment: ''};
+        }
+        if (parentContainer === undefined) {
+            parentContainer = document;
+        }
+        if (!data.hasOwnProperty('date')) {
+            data.date = '';
+        }
+        
+        let blockHtml = '<div class="group-item panel panel-default"><div class="panel-body">';
+        blockHtml += '<div class="row"><div class="col-xs-10 col-sm-11"><div class="form-group">' +
+            '<label>Группа</label>' +
+            '<select class="form-control group-select" name="group[groupId][' + this.iterator + ']" autocomplete="off" onchange="User.setGroup(this, true);" required>' +
+            this.getGroupOptions(parseInt(data.groupId)) +
+            '</select>' +
+            '</div></div>';
+        blockHtml += '<div class="col-xs-2 col-sm-1"><button type="button" class="close" aria-label="Close" onclick="User.removeGroup(this);"><span aria-hidden="true">&times;</span></button></div></div>';
+        blockHtml += '<div class="form-group">' +
+            '<label>Начало занятий</label>' +
+            '<div class="radio">' +
+            '<label>' +
+            '<input type="radio" name="group[dateDefined][' + this.iterator + ']" value="0"' + (data.date.length > 0 ? '' : ' checked ') + ' onchange="User.setGroupDateType(this);" required>' +
+            'ещё не решил (не добавлять в группу)' +
+            '</label>' +
+            '</div>' +
+            '<div class="radio">' +
+            '<label>' +
+            '<input type="radio" name="group[dateDefined][' + this.iterator + ']" value="1"' + (data.date.length > 0 ? ' checked ' : '') + ' onchange="User.setGroupDateType(this);" required>' +
+            '<div class="row"><div class="col-xs-3 col-md-1"> дата</div><div class="col-xs-9 col-md-4">' +
+            '<div class="input-group date datepicker">' +
+            '<input type="text" class="form-control date-select" name="group[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
+            '<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>' +
+            '</div></div></div>' +
+            '</label>' +
+            '</div>' +
+            '</div>';
+        if (this.contractAllowed || this.incomeAllowed) {
+            blockHtml += '<div class="checkbox">' +
+                '<label>' +
+                '<input type="checkbox" name="group[contract][' + this.iterator + ']" autocomplete="off" value="1" ' + (data.hasOwnProperty('contract') ? ' checked ' : '') + ' onchange="User.checkAddContract(this);">' +
+                ' выдать договор' +
+                '</label>' +
+                '</div>' +
+                '<div class="contract-block ' + (data.hasOwnProperty('contract') ? '' : ' hidden ') + '">' +
+                '<div class="form-group">' +
+                '<label>Сумма</label>' +
+                '<input class="form-control amount-input" name="group[amount][' + this.iterator + ']" autocomplete="off" type="number" step="1000" min="1000" required ' +
+                (data.hasOwnProperty('contract') ? '' : ' disabled ') + ' value="' + data.amount + '">' +
+                '<div class="amount-helper-buttons">' +
+                '<button type="button" class="btn btn-default btn-xs price" onclick="User.setAmount(this);">за 1 месяц</button>' +
+                '<button type="button" class="btn btn-default btn-xs price3" onclick="User.setAmount(this);">за 3 месяца</button>' +
+                '</div>' +
+                '</div>';
+
+            if (this.incomeAllowed) {
+                blockHtml += '<div class="checkbox">' +
+                    '<label>' +
+                    '<input type="checkbox" name="group[payment][' + this.iterator + ']" autocomplete="off" value="1" ' + (data.hasOwnProperty('payment') ? ' checked ' : '')
+                    + ' onchange="User.checkAddPayment(this);">' + ' принять оплату' +
+                    '</label>' +
+                    '</div>' +
+                    '<div class="form-group payment-comment-block ' + (data.hasOwnProperty('payment') ? '' : ' hidden ') + '">' +
+                    '<label>Комментарий к платежу</label>' +
+                    '<input class="form-control" name="group[paymentComment][' + this.iterator + ']" autocomplete="off" value="' + data.paymentComment + '">' +
+                    '</div>';
+            }
+        }
+        blockHtml += '</div></div></div>';
+        let container = $(parentContainer).find(".groups");
+        $(container).append(blockHtml);
+
+        this.iterator++;
+        let datepickerOptions = Main.datepickerDefaultSettings;
+        if (this.pupilLimitDate !== null) {
+            datepickerOptions.startDate = this.pupilLimitDate;
+        }
+        let currentGroupItem = $(container).find('.group-item:last');
+        $(currentGroupItem).find(".datepicker").datepicker(datepickerOptions);
+        if (data.date.length === 0) {
+            $(currentGroupItem).find(".date-select").prop('disabled', true);
+        }
+        User.setGroup($(currentGroupItem).find(".group-select"), false);
+    },
+    
     findByPhone: function(phoneString, successHandler, errorHandler) {
         $.ajax({
             url: '/user/find-by-phone',
@@ -109,119 +311,71 @@ let User = {
                 break;
         }
     },
-    setAmountBlockVisibility: function() {
-        if ($("#add_payment_switch").is(":checked") || $("#add_contract_switch").is(":checked")) {
-            $("#amount_block").removeClass('hidden').find("input").prop("disabled", false);
-        } else {
-            $("#amount_block").addClass('hidden').find("input").prop("disabled", true);
+    checkPupilPhoneRequired: function() {
+        let requiredBlocksCount = $(".welcome-lesson-item").length + $(".group-item").length;
+        if (requiredBlocksCount === 0) {
+            this.setPupilPhoneRequired(false);
         }
     },
-    checkWelcomeLesson: function(e) {
-        let lessonBlock = $('#add_welcome_lesson');
-        if (e.checked) {
-            lessonBlock.removeClass("hidden")
-                .find("input, select").prop("disabled", false);
-            let groupSwitch = $("#add_group_switch");
-            if (groupSwitch.is(":checked")) {
-                groupSwitch.prop("checked", false);
-                this.checkAddGroup(groupSwitch);
-            }
-        } else {
-            lessonBlock.addClass("hidden")
-                .find("input, select").prop("disabled", true);
-        }
+    setPupilPhoneRequired: function(isRequired) {
+        $("#user-pupil-phoneformatted").prop('required', isRequired);
     },
     setWelcomeLessonGroup: function(e) {
-        if ($(e).val().length === 0) {
-            $("#welcome_lesson_subject").prop("disabled", false);
-            $("#welcome_lesson_teacher").prop("disabled", false);
-            $("#welcome_lesson_custom").removeClass('hidden');
+        let container = $(e).closest('.welcome-lesson-item');
+        if ($(e).val() > 0) {
+            let group = Main.groupMap[$(e).val()];
+            $(container).find(".subject-select").prop("disabled", true)
+                .find('option[value=' + group.subjectId + ']').prop('selected', true);
+            this.setWelcomeLessonSubject($(container).find(".subject-select"));
+            $(container).find(".teacher-select").prop("disabled", true)
+                .find('option[value=' + group.teacherId + ']').prop('selected', true);
         } else {
-            $("#welcome_lesson_subject").prop("disabled", true);
-            $("#welcome_lesson_teacher").prop("disabled", true);
-            $("#welcome_lesson_custom").addClass('hidden');
+            $(container).find(".subject-select").prop("disabled", false);
+            $(container).find(".teacher-select").prop("disabled", false);
         }
     },
-    checkAddGroup: function(e) {
-        let paymentSwitch = $("#add_payment_switch");
-        let contractSwitch = $("#add_contract_switch");
-        if (e.checked) {
-            $('#add_group').removeClass("hidden")
-                .find("input").prop("disabled", false);
-            let lessonSwitch = $("#welcome_lesson_switch");
-            if (lessonSwitch.is(":checked")) {
-                lessonSwitch.prop("checked", false);
-                this.checkWelcomeLesson(lessonSwitch);
-            }
-            if (paymentSwitch.length > 0) {
-                paymentSwitch.prop("disabled", false);
-            }
-            if (contractSwitch.length > 0) {
-                $("#contract_group_block").addClass("hidden");
-            }
-            this.setAmountHelperButtons($("#group"), true);
-        } else {
-            $('#add_group').addClass("hidden")
-                .find("input").prop("disabled", true);
-            if (contractSwitch.length > 0) {
-                $("#contract_group_block").removeClass("hidden");
-                if (contractSwitch.is(":checked")) {
-                    this.setAmountHelperButtons($("#contract_group"), true);
-                }
-            }
-
-            if (paymentSwitch.length > 0) {
-                if (paymentSwitch.is(":checked")) {
-                    paymentSwitch.click();
-                }
-                paymentSwitch.prop("disabled", true);
+    setWelcomeLessonSubject: function(e) {
+        $(e).closest('.welcome-lesson-item').find(".teacher-select")
+            .html(this.getTeacherOptions($(e).val()));
+    },
+    setGroup: function(e, flushAmount) {
+        let group = Main.groupMap[$(e).val()];
+        let container = $(e).closest(".group-item");
+        let contractBlock = $(container).find(".contract-block");
+        if (contractBlock.length > 0) {
+            let helperButtonsBlock = $(contractBlock).find(".amount-helper-buttons");
+            $(helperButtonsBlock).find("button.price").data({price: group.price});
+            $(helperButtonsBlock).find("button.price3").data({price: group.price3});
+            if (flushAmount) {
+                $(contractBlock).find("input.amount").val('');
             }
         }
-        this.setAmountBlockVisibility();
+        let limitDate = group.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
+        $(container).find(".datepicker").datepicker('setStartDate', new Date(limitDate));
+    },
+    setGroupDateType: function(e) {
+        $(e).closest(".group-item").find(".date-select").prop("disabled", $(e).val() <= 0);
     },
     checkAddPayment: function(e) {
-        let contractSwitch = $("#add_contract_switch");
+        let paymentCommentBlock = $(e).closest(".group-item").find(".payment-comment-block");
         if (e.checked) {
-            $('#amount_block').removeClass('hidden');
-            $('#add_payment').removeClass('hidden')
-                .find("input").prop('disabled', false);
-            if (contractSwitch.length > 0 && contractSwitch.is(":checked")) {
-                contractSwitch.click();
-            }
+            $(paymentCommentBlock).removeClass("hidden");
         } else {
-            $('#add_payment').addClass('hidden')
-                .find("input").prop('disabled', true);
+            $(paymentCommentBlock).addClass("hidden");
         }
-        this.setAmountBlockVisibility();
     },
     checkAddContract: function(e) {
-        let paymentSwitch = $("#add_payment_switch");
+        let contatiner = $(e).closest(".group-item");
+        $(contatiner).find(".amount-input").prop("disabled", !e.checked);
+        $(contatiner).find(".company-input").prop("disabled", !e.checked);
         if (e.checked) {
-            $('#amount_block').removeClass('hidden');
-            $('#add_contract').removeClass('hidden')
-                .find('input[type!="checkbox"]').prop('disabled', false);
-            if (paymentSwitch.length > 0 && paymentSwitch.is(":checked")) {
-                paymentSwitch.click();
-            }
+            $(contatiner).find(".contract-block").removeClass('hidden');
         } else {
-            $('#add_contract').addClass('hidden')
-                .find('input[type!="checkbox"]').prop('disabled', true);
+            $(contatiner).find(".contract-block").addClass('hidden');
         }
-        this.checkAddGroup($("#add_group_switch").get(0));
     },
-    getHelperButtonHtml(amount, label) {
-        return '<button type="button" class="btn btn-default btn-xs" onclick="User.setAmount(' + amount + ');">' + label + '</button>'
-    },
-    setAmountHelperButtons: function(select, flushAmount) {
-        let opt = $(select).find("option:selected");
-        if (flushAmount) $("#amount").val('');
-        $("#amount_helper_buttons").html(
-            this.getHelperButtonHtml($(opt).data('price'), 'за 1 месяц') +
-            this.getHelperButtonHtml($(opt).data('price3'), 'за 3 месяца')
-        );
-    },
-    setAmount: function(amount) {
-        $("#amount").val(amount);
+    setAmount: function(e) {
+        $(e).closest(".group-item").find(".amount-input").val($(e).data('price'));
     },
     checkPhone(e) {
         this.phoneCheckInput = e;
@@ -231,7 +385,7 @@ let User = {
                 if (!User.phoneCheckInput) return;
                 if ($(User.phoneCheckInput).val() !== data.phone) return;
 
-                let messageBlock = $(User.phoneCheckInput);
+                let messageBlock = $(User.phoneCheckInput).closest(".input-group").find(".help-block");
                 if (data.pupils !== undefined && data.pupils.length > 0) {
                     let pupilList = '';
                     Money.pupils = {};
@@ -250,10 +404,5 @@ let User = {
                 Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
             }
         );
-    },
-    init: function() {
-        this.loadTeacherMap();
-        if ($("#add_group_switch").is(":checked")) this.setAmountHelperButtons($("#group"));
-        else if ($("#add_contract_switch").is(":checked")) this.setAmountHelperButtons($("#contract_group"));
     }
 };

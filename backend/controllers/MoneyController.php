@@ -50,7 +50,7 @@ class MoneyController extends AdminController
     }
 
     /**
-     * @return Response
+     * @return mixed
      * @throws ForbiddenHttpException
      * @throws yii\web\BadRequestHttpException
      */
@@ -58,37 +58,32 @@ class MoneyController extends AdminController
     {
         if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
         if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $formData = Yii::$app->request->post('income', []);
 
-        $userId = Yii::$app->request->post('user');
-        $groupId = Yii::$app->request->post('group');
-        $amount = intval(Yii::$app->request->post('amount', 0));
-        $comment = Yii::$app->request->post('comment', '');
-
-        if (!$userId || !$groupId || !$amount) $jsonData = self::getJsonErrorResult('Wrong request');
-        else {
-            $user = User::findOne($userId);
-            $group = Group::findOne(['id' => $groupId, 'active' => Group::STATUS_ACTIVE]);
-
-            if (!$user) $jsonData = self::getJsonErrorResult('Студент не найден');
-            elseif ($amount <= 0) $jsonData = self::getJsonErrorResult('Сумма не может быть <= 0');
-            elseif (!$group) $jsonData = self::getJsonErrorResult('Группа не найдена');
-            else {
-                $transaction = \Yii::$app->db->beginTransaction();
-                try {
-                    $company = Company::findOne(Company::COMPANY_EXCLUSIVE_ID);
-                    $contract = MoneyComponent::addPupilContract($company, $user, $amount, $group);
-                    $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $comment);
-
-                    $transaction->commit();
-                    $jsonData = self::getJsonOkResult(['paymentId' => $paymentId, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
-                } catch (\Throwable $ex) {
-                    $transaction->rollBack();
-                    $jsonData = self::getJsonErrorResult($ex->getMessage());
-                }
-            }
+        if (!isset($formData['userId'], $formData['groupId'], $formData['amount'], $formData['comment'])) {
+            return self::getJsonErrorResult('Wrong request');
         }
 
-        return $this->asJson($jsonData);
+        $user = User::findOne($formData['userId']);
+        $group = Group::findOne(['id' => $formData['groupId'], 'active' => Group::STATUS_ACTIVE]);
+        $amount = (int)$formData['amount'];
+
+        if (!$user) return self::getJsonErrorResult('Студент не найден');
+        if ($amount <= 0) return self::getJsonErrorResult('Сумма не может быть <= 0');
+        if (!$group) return self::getJsonErrorResult('Группа не найдена');
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $contract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, $amount, $group);
+            $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $formData['comment']);
+
+            $transaction->commit();
+            return self::getJsonOkResult(['paymentId' => $paymentId, 'userId' => $user->id, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
+        } catch (\Throwable $ex) {
+            $transaction->rollBack();
+            return self::getJsonErrorResult($ex->getMessage());
+        }
     }
 
     /**
@@ -98,22 +93,20 @@ class MoneyController extends AdminController
      */
     public function actionProcessContract()
     {
-        if (!\Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-        if (!\Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
 
-        $contractId = \Yii::$app->request->post('id');
+        $contractId = Yii::$app->request->post('contractId');
         if (!$contractId) $jsonData = self::getJsonErrorResult('No contract ID');
         else {
             $contract = Contract::findOne($contractId);
             if (!$contract) $jsonData = self::getJsonErrorResult('Договор не найден');
             else {
-                /** @var GroupPupil $groupPupil */
-                $groupPupil = GroupPupil::find()->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
                 $pupilStartDate = null;
-                if (!$groupPupil) {
-                    $pupilStartDate = date_create_from_format('d.m.Y', \Yii::$app->request->post('pupil_start_date', ''));
+                if (!$contract->activeGroupPupil) {
+                    $pupilStartDate = date_create_from_format('d.m.Y', Yii::$app->request->post('contractPupilDateStart', ''));
                 }
-                $transaction = \Yii::$app->db->beginTransaction();
+                $transaction = Yii::$app->db->beginTransaction();
                 try {
                     $paymentId = MoneyComponent::payContract($contract, $pupilStartDate, Contract::PAYMENT_TYPE_MANUAL);
                     $transaction->commit();
@@ -135,77 +128,77 @@ class MoneyController extends AdminController
      */
     public function actionProcessGiftCard()
     {
-        if (!\Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-        if (!\Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
 
-        \Yii::$app->response->format = Response::FORMAT_JSON;
-        $giftCardId = \Yii::$app->request->post('gift_card_id');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $giftCardId = Yii::$app->request->post('gift_card_id');
         if (!$giftCardId) return self::getJsonErrorResult('No gift card ID');
-        else {
-            $giftCard = GiftCard::findOne($giftCardId);
-            if (!$giftCard) return self::getJsonErrorResult('Карта не найдена');
-            elseif ($giftCard->status == GiftCard::STATUS_NEW) return self::getJsonErrorResult('Карта не оплачена!');
-            elseif ($giftCard->status == GiftCard::STATUS_USED) return self::getJsonErrorResult('Карта уже использована!');
-            else {
-                $formData = \Yii::$app->request->post();
-                $pupil = null;
-                if (isset($formData['pupil']['id'])) {
-                    $pupil = User::find()->andWhere(['role' => User::ROLE_PUPIL, 'id' => $formData['pupil']['id']])->one();
-                }
-                if (!$pupil) {
-                    $pupil = new User();
-                    $pupil->role = User::ROLE_PUPIL;
-                    $pupil->load($formData, 'pupil');
-                    if (!$pupil->save()) return self::getJsonErrorResult($pupil->getErrorsAsString());
-                }
-                if (!$pupil->parent_id) {
-                    if ($formData['parents']['name'] && $formData['parents']['phoneFormatted']) {
-                        $parent = new User();
-                        $parent->role = User::ROLE_PARENTS;
-                        $parent->load($formData, 'parents');
-                        if (!$parent->save()) return self::getJsonErrorResult($parent->getErrorsAsString());
-                        $pupil->link('parent', $parent);
-                    }
-                }
 
-                $groupPupil = null;
-                if ($formData['group']['existing']) {
-                    /** @var GroupPupil $groupPupil */
-                    $groupPupil = GroupPupil::findOne(['id' => $formData['group']['existing'], 'active' => GroupPupil::STATUS_ACTIVE, 'user_id' => $pupil->id]);
-                }
-                $transaction = \Yii::$app->db->beginTransaction();
-                try {
-                    $startDate = date_create_from_format('d.m.Y', $formData['group']['date']);
-                    if (!$startDate) throw new \Exception('Неверная дата начала занятий');
-                    if (!$groupPupil) {
-                        /** @var Group $group */
-                        $group = Group::find()->andWhere(['id' => $formData['group']['id'], 'active' => Group::STATUS_ACTIVE])->one();
-                        if (!$group) throw new \Exception('Группа не найдена');
-                    } else {
-                        $group = $groupPupil->group;
-                    }
+        $giftCard = GiftCard::findOne($giftCardId);
+        if (!$giftCard) return self::getJsonErrorResult('Карта не найдена');
+        if ($giftCard->status == GiftCard::STATUS_NEW) return self::getJsonErrorResult('Карта не оплачена!');
+        if ($giftCard->status == GiftCard::STATUS_USED) return self::getJsonErrorResult('Карта уже использована!');
 
-                    $contract = MoneyComponent::addPupilContract(
-                        Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
-                        $pupil,
-                        $giftCard->amount,
-                        $group
-                    );
-
-                    $paymentId = MoneyComponent::payContract($contract, $startDate, Contract::PAYMENT_TYPE_MANUAL);
-                    $giftCard->status = GiftCard::STATUS_USED;
-                    $giftCard->used_at = date('Y-m-d H:i:s');
-                    $giftCard->save();
-                    $transaction->commit();
-                    return self::getJsonOkResult([
-                        'paymentId' => $paymentId,
-                        'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])
-                    ]);
-                } catch (\Throwable $exception) {
-                    $transaction->rollBack();
-                    return self::getJsonErrorResult($exception->getMessage());
-                }
+        $formData = Yii::$app->request->post();
+        $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
+        $pupil = null;
+        if (isset($formData['pupil']['id'])) {
+            $pupil = User::find()->andWhere(['role' => User::ROLE_PUPIL, 'id' => $formData['pupil']['id']])->one();
+        }
+        if (!$pupil) {
+            $pupil = new User(['scenario' => User::SCENARIO_USER]);
+            $pupil->role = User::ROLE_PUPIL;
+            $pupil->individual = $personType === User::ROLE_PARENTS ? 1 : 0;
+            $pupil->load($formData, 'pupil');
+            if (!$pupil->save()) return self::getJsonErrorResult($pupil->getErrorsAsString());
+        }
+        if (!$pupil->parent_id) {
+            if ($formData['parents']['name'] && $formData['parents']['phoneFormatted']) {
+                $parent = new User(['scenario' => User::SCENARIO_USER]);
+                $parent->role = $personType;
+                $parent->load($formData, 'parents');
+                if (!$parent->save()) return self::getJsonErrorResult($parent->getErrorsAsString());
+                $pupil->link('parent', $parent);
             }
+        }
+
+        $groupPupil = null;
+        if ($formData['group']['existing']) {
+            /** @var GroupPupil $groupPupil */
+            $groupPupil = GroupPupil::findOne(['group_id' => $formData['group']['existing'], 'active' => GroupPupil::STATUS_ACTIVE, 'user_id' => $pupil->id]);
+            if (!$groupPupil) return self::getJsonErrorResult('Группа не найдена');
+            $group = $groupPupil->group;
+        } else {
+            /** @var Group $group */
+            $group = Group::findOne(['id' => $formData['group']['id'], 'active' => Group::STATUS_ACTIVE]);
+            if (!$group) return self::getJsonErrorResult('Группа не найдена');
+
+            $startDate = date_create_from_format('d.m.Y', $formData['group']['date']);
+            if (!$startDate) return self::getJsonErrorResult('Неверная дата начала занятий');
+        }
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $contract = MoneyComponent::addPupilContract(
+                Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
+                $pupil,
+                $giftCard->amount,
+                $group
+            );
+
+            $paymentId = MoneyComponent::payContract($contract, $startDate ?? new \DateTime(), Contract::PAYMENT_TYPE_MANUAL);
+            $giftCard->status = GiftCard::STATUS_USED;
+            $giftCard->used_at = date('Y-m-d H:i:s');
+            $giftCard->save();
+            $transaction->commit();
+            return self::getJsonOkResult([
+                'paymentId' => $paymentId,
+                'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])
+            ]);
+        } catch (\Throwable $exception) {
+            $transaction->rollBack();
+            return self::getJsonErrorResult($exception->getMessage());
         }
     }
 
@@ -213,7 +206,7 @@ class MoneyController extends AdminController
      * Monitor all money debts.
      * @return mixed
      * @throws \Exception
-     * @throws \yii\db\Exception
+     * @throws Yii\db\Exception
      */
     public function actionDebt()
     {
@@ -376,7 +369,7 @@ class MoneyController extends AdminController
         ob_start();
         $objWriter = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $objWriter->save('php://output');
-        return \Yii::$app->response->sendContentAsFile(
+        return Yii::$app->response->sendContentAsFile(
             ob_get_clean(),
             ($group ? $group->name . ' ' : '') . "$month-$year.xlsx",
             ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
@@ -403,7 +396,7 @@ class MoneyController extends AdminController
         ob_start();
         $objWriter = IOFactory::createWriter(PupilReport::create($pupil, $group), 'Xlsx');
         $objWriter->save('php://output');
-        return \Yii::$app->response->sendContentAsFile(
+        return Yii::$app->response->sendContentAsFile(
             ob_get_clean(),
             "$pupil->name $group->name.xlsx",
             ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
@@ -423,17 +416,17 @@ class MoneyController extends AdminController
         $groupPupil = GroupPupil::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id])->one();
         if (!$groupPupil) throw new yii\web\BadRequestHttpException('Wrong pupil and group selection');
 
-        if (\Yii::$app->request->isPost) {
-            $paymentSum = \Yii::$app->request->post('payment_sum', 0);
+        if (Yii::$app->request->isPost) {
+            $paymentSum = Yii::$app->request->post('payment_sum', 0);
             if ($paymentSum > 0) {
                 $payment = new Payment();
                 $payment->user_id = $pupil->id;
                 $payment->group_id = $group->id;
-                $payment->admin_id = \Yii::$app->user->getId();
+                $payment->admin_id = Yii::$app->user->getId();
                 $payment->amount = $paymentSum;
                 $payment->created_at = date('Y-m-d H:i:s');
                 $payment->comment = 'Ручная корректировка долга';
-                $payment->cash_received = \Yii::$app->request->post('cash_received', 0) ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
+                $payment->cash_received = Yii::$app->request->post('cash_received', 0) ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
 
                 MoneyComponent::registerIncome($payment);
             }

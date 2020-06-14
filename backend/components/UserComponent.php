@@ -79,14 +79,14 @@ class UserComponent extends Component
     public static function isPhoneUsed(int $role, ?string $phone, ?string $phone2 = null): bool
     {
         if (empty($phone)) throw new \Exception('Phone is mandatory');
-        $qB = User::find()
-            ->orWhere(['phone' => $phone])
-            ->orWhere(['phone2' => $phone]);
+        $phones = [$phone];
         if ($phone2) {
-            $qB->orWhere(['phone' => $phone2])
-                ->orWhere(['phone2' => $phone2]);
+            $phones[] = $phone2;
         }
-        $qB->andWhere(['role' => $role]);
+        $qB = User::find()
+            ->alias('u')
+            ->andWhere(['u.role' => $role])
+            ->andWhere('u.phone IN (:phones) OR u.phone2 IN (:phones)', [':phones' => implode(', ', $phones)]);
         return null !== $qB->one();
     }
 }

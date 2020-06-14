@@ -11,12 +11,6 @@ use yii\bootstrap4\ActiveForm;
 $this->title = 'Добавить учителя';
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = 'Новый учитель';
-
-$this->registerJs(<<<SCRIPT
-    Main.initPhoneFormatted();
-SCRIPT
-);
-
 ?>
 <div class="user-create">
     <h1><?= Html::encode($this->title); ?></h1>

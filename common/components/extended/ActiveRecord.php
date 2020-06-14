@@ -19,10 +19,26 @@ class ActiveRecord extends \yii\db\ActiveRecord
     }
 
     /**
+     * @return array|string[]
+     */
+    public function getErrorsAsStringArray(): array
+    {
+        $errors = [];
+        if (!empty($this->errors)) {
+            foreach ($this->getErrors() as $field => $errorArray) {
+                foreach ($errorArray as $error) {
+                    $errors[] = $field . ': ' . $error;
+                }
+            }
+        }
+        return $errors;
+    }
+
+    /**
      * @param string|null $field
      * @return string
      */
-    public function getErrorsAsString($field = null)
+    public function getErrorsAsString($field = null): string
     {
         $output = '';
         if (!empty($this->errors)) {
@@ -99,7 +115,7 @@ class ActiveRecord extends \yii\db\ActiveRecord
     {
         $diff = [];
         foreach ($this->attributes as $name => $value) {
-            if (array_key_exists($name, $this->oldAttributes)) {
+            if (!$this->isNewRecord && array_key_exists($name, $this->oldAttributes)) {
                 $changed = ($value != $this->oldAttributes[$name]);
             } else {
                 $changed = !empty($value);

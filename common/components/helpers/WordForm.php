@@ -5,6 +5,7 @@ class WordForm
 {
     public static function getLessonsForm(int $num): string
     {
+        $num = abs($num);
         $teen = $num % 100;
         if ($teen < 10 || $teen > 20) {
             if ($num % 10 == 1) return 'занятие';

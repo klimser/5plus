@@ -4,11 +4,10 @@ use yii\bootstrap4\Html;
 
 /* @var $this yii\web\View */
 /* @var $user \common\models\User */
+/* @var $companies \common\models\Company[] */
 
 $this->registerJs(<<<SCRIPT
-    Main.initPhoneFormatted();
-    Contract.loadGroups();
-    Money.className = 'Contract';
+    Contract.init();
 SCRIPT
 );
 $searchValue = '';
@@ -100,4 +99,3 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
     <?= Html::endForm(); ?>
 </div>
-

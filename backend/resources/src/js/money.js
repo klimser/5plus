@@ -18,9 +18,9 @@ let Money = {
                 if (data.status !== 'ok') {
                     Main.throwFlashMessage('#contract_result_block', data.message, 'alert-warning');
                 } else {
-                    let contractForm = '<form id="contract_form" onsubmit="return Money.completeContract(this);">' +
-                        '<input type="hidden" name="id" value="' + data.id + '">' +
-                        '<table class="table table-sm table-bordered">' +
+                    let contractForm = '<form id="contract_form" onsubmit="Money.completeContract(this); return false;">' +
+                        '<input type="hidden" name="contractId" value="' + data.id + '">' +
+                        '<table class="table">' +
                         '<tr><td><b>Студент</b></td><td>' + data.user_name + '</td></tr>' +
                         '<tr><td><b>Группа</b></td><td>' + data.group_name + '</td></tr>'+
                         '<tr><td><b>Сумма</b></td><td><span class="big-font">' + data.amount + '</span>'
@@ -33,7 +33,7 @@ let Money = {
                     } else {
                         contractForm += '<tr><td><b>Начало занятий в группе</b></td><td>' +
                             '<div class="input-group date">' +
-                            '<input class="form-control" name="pupil_start_date" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
+                            '<input class="form-control" name="contractPupilDateStart" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
                             '<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>' +
                             '</div>' +
                             '</td></tr>';
@@ -80,7 +80,7 @@ let Money = {
 
                         let groupList = "";
                         data.existing_pupil.group_pupils.forEach(function(groupPupil) {
-                            groupList += '<button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button" data-group="' + groupPupil.id + '" onclick="Money.setGiftGroup(this);">'
+                            groupList += '<button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button" data-group="' + groupPupil.group_id + '" onclick="Money.setGiftGroup(this);">'
                                 + groupPupil.group
                                 + ' с ' + groupPupil.from + '</button><br>';
                         });
@@ -230,25 +230,26 @@ let Money = {
     },
     completeContract: function(form) {
         this.lockContractButton();
-        $.ajax({
+        return $.ajax({
             url: '/money/process-contract',
             type: 'post',
             dataType: 'json',
-            data: $(form).serialize(),
-            success: function(data) {
+            data: $(form).serialize()
+        })
+            .done(function(data) {
                 if (data.status === 'ok') {
                     Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    $("#contract_result_block").html('');
+                    let contractResultBlock = $("#contract_result_block");
+                    if (contractResultBlock.length > 0) {
+                        $(contractResultBlock).html('');
+                    }
+                } else {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
-                else Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
-                Money.unlockContractButton();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Money.unlockContractButton();
-            }
-        });
-        return false;
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(Money.unlockContractButton)
+            .always(Main.jumpToTop);
     },
     lockContractButton: function() {
         $("#contract_button").prop('disabled', true);
@@ -268,31 +269,32 @@ let Money = {
     },
     completeGiftCard: function(form) {
         this.lockGiftButton();
-        $.ajax({
-            url: '/money/process-gift-card',
-            type: 'post',
-            dataType: 'json',
-            data: $(form).serialize(),
-            success: function(data) {
+        return $.ajax({
+                url: '/money/process-gift-card',
+                type: 'post',
+                dataType: 'json',
+                data: $(form).serialize()
+            })
+            .done(function(data) {
                 if (data.status === 'ok') {
-                    Main.throwFlashMessage('#gift_card_messages', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    Main.throwFlashMessage('#gift_card_messages', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
-                    $("#search_gift_card").val('');
+                    Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
+                    Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
+                    let giftCardInputBlock = $("#search_gift_card");
+                    if (giftCardInputBlock.length > 0) {
+                        $(giftCardInputBlock).val('');
+                    }
+                } else {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
-                else Main.throwFlashMessage('#gift_card_messages', 'Ошибка: ' + data.message, 'alert-danger');
-                Money.unlockGiftButton();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#gift_card_messages', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Money.unlockGiftButton();
-            }
-        });
-        return false;
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(Money.unlockGiftButton)
+            .always(Main.jumpToTop);
     },
     lockGiftButton: function() {
-        $("#gift_button").prop('disabled', true);
+        $("#gift-button").prop('disabled', true);
     },
     unlockGiftButton: function() {
-        $("#gift_button").prop('disabled', false);
+        $("#gift-button").prop('disabled', false);
     },
 };
