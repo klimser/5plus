@@ -3,8 +3,7 @@
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $userId int */
-/* @var $groupId int */
+/* @var $groupPupil \common\models\GroupPupil */
 /* @var $groupList \common\models\Group[] */
 
 $this->registerJs(<<<SCRIPT
@@ -24,7 +23,12 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="col-xs-12">
             <div class="form-group">
                 <label for="pupil">Студент</label>
-                <select id="pupil" class="form-control" data-pupil="<?= $userId; ?>" onchange="Group.loadGroups();"></select>
+                <?php if ($groupPupil): ?>
+                    <input type="hidden" id="pupil" value="<?= $groupPupil->user_id; ?>">
+                    <input readonly class="form-control-plaintext" value="<?= $groupPupil->user->name; ?>">
+                <?php else: ?>
+                    <select id="pupil" class="form-control" onchange="Group.loadGroups();"></select>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -32,7 +36,13 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="col-xs-12 col-sm-6">
             <div class="form-group">
                 <label for="group_from">Из группы</label>
-                <select id="group_from" class="form-control" data-group="<?= $groupId; ?>" onchange="Group.setMoveDateInterval(this);"></select>
+                <?php if ($groupPupil): ?>
+                    <input type="hidden" id="group_from" value="<?= $groupPupil->group_id; ?>">
+                    <input readonly class="form-control-plaintext" value="<?= $groupPupil->group->name; ?>">
+                <?php else: ?>
+                    <select id="group_from" class="form-control" onchange="Group.setMoveDateInterval(this);"></select>
+                <?php endif; ?>
+                
             </div>
         </div>
         <div class="col-xs-12 col-sm-6">

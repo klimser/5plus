@@ -230,7 +230,7 @@ let Group = {
         }
     },
     loadGroups: function () {
-        if ($("#pupil").val() && $("#group_from").data("pupil") != $("#pupil").val()) {
+        if ($("#pupil").val() && $("#group_from").data("pupil") !== $("#pupil").val()) {
             $.ajax({
                 url: '/group/list-json',
                 data: {

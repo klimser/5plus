@@ -332,9 +332,14 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
 
+        $groupPupilId = Yii::$app->request->get('group_pupil_id', null);
+        $groupPupil = null;
+        if ($groupPupilId) {
+            $groupPupil = GroupPupil::findOne(['id' => $groupPupilId, 'active' => GroupPupil::STATUS_ACTIVE]);
+        }
+        
         return $this->render('move_pupil', [
-            'userId' => Yii::$app->request->get('user', 0),
-            'groupId' => Yii::$app->request->get('group', 0),
+            'groupPupil' => $groupPupil,
             'groupList' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy('name')->all(),
         ]);
     }
