@@ -4,14 +4,12 @@ sass-front:
     - "frontend/resources/src/sass/*.scss"
     - "grunt/sass.yaml"
   tasks:
-    - sass:dev_front
     - assets_versioning:dev_front
 sass-back:
   files:
     - "backend/resources/src/sass/*.scss"
     - "grunt/sass.yaml"
   tasks:
-    - sass:dev_back
     - assets_versioning:dev_back
 uglify-front:
   files:
@@ -19,7 +17,6 @@ uglify-front:
     - "grunt/uglify.yaml"
   tasks:
     - babel:main_front
-    - uglify:main_front
     - assets_versioning:dev_front
 uglify-back:
   files:
@@ -27,5 +24,4 @@ uglify-back:
     - "grunt/uglify.yaml"
   tasks:
     - babel:main_back
-    - uglify:main_back
     - assets_versioning:dev_back

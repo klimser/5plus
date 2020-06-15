@@ -1,5 +1,9 @@
 let Contract = {
     paymentType: null,
+    init: function() {
+        Money.className = 'Contract';
+        Money.init();
+    },
     setPupil: function (pupilId) {
         Money.pupilId = pupilId;
         $(".pupil-result-button").removeClass("btn-primary").addClass('btn-outline-dark');
@@ -78,9 +82,5 @@ let Contract = {
         $("#group_input").val(Money.groupId);
         $("#discount_input").val(Money.paymentType);
         return true;
-    },
-    init: function() {
-        Money.className = 'Contract';
-        Main.loadActiveGroups();
     }
 };

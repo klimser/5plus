@@ -10,6 +10,10 @@ use yii\jui\DatePicker;
 /* @var $groups \common\models\Group[] */
 
 $searchValue = '';
+$this->registerJs(<<<SCRIPT
+    Money.init();
+SCRIPT
+);
 if (isset($user)) {
     $this->registerJs(<<<SCRIPT
     Money.findPupils();
@@ -35,7 +39,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <a class="nav-link <?= $searchValue ? ' active ' : ''; ?>" href="#tab_phone" aria-controls="tab_phone" role="tab" data-toggle="tab">Телефон</a>
         </li>
         <li role="presentation" class="nav-item">
-            <a class="nav-link" href="#tab_gift" aria-controls="tab_gidt" role="tab" data-toggle="tab">Предоплаченная карта</a>
+            <a class="nav-link" href="#tab_gift" aria-controls="tab_gift" role="tab" data-toggle="tab">Предоплаченная карта</a>
         </li>
     </ul>
 
@@ -139,30 +143,36 @@ $this->params['breadcrumbs'][] = $this->title;
                     <input type="hidden" name="gift_card_id" id="gift_card_id" value="" required>
                     <input type="hidden" name="pupil[id]" id="existing_pupil_id">
                     <input type="hidden" name="group[existing]" id="existing_group_id">
-                    <div class="form-group">
-                        <label for="pupil_name">ФИО студента</label>
-                        <input id="pupil_name" class="form-control" name="pupil[name]" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="pupil_phone">Телефон студента</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">+998</span>
+                    <div class="row">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label for="pupil_name">ФИО студента</label>
+                                <input id="pupil_name" class="form-control" name="pupil[name]" required>
                             </div>
-                            <input id="pupil_phone" class="form-control phone-formatted" name="pupil[phoneFormatted]" required maxlength="11" pattern="\d{2} \d{3}-\d{4}">
+                            <div class="form-group">
+                                <label for="pupil_phone">Телефон студента</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">+998</span>
+                                    </div>
+                                    <input id="pupil_phone" class="form-control phone-formatted" name="pupil[phoneFormatted]" required maxlength="11" pattern="\d{2} \d{3}-\d{4}">
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="parents_name">ФИО родителей</label>
-                        <input id="parents_name" class="form-control" name="parents[name]">
-                    </div>
-                    <div class="form-group">
-                        <label for="parents_phone">Телефон родителей</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">+998</span>
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label for="parents_name">ФИО родителей</label>
+                                <input id="parents_name" class="form-control" name="parents[name]">
                             </div>
-                            <input id="parents_phone" class="form-control phone-formatted" name="parents[phoneFormatted]" maxlength="11" pattern="\d{2} \d{3}-\d{4}">
+                            <div class="form-group">
+                                <label for="parents_phone">Телефон родителей</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">+998</span>
+                                    </div>
+                                    <input id="parents_phone" class="form-control phone-formatted" name="parents[phoneFormatted]" maxlength="11" pattern="\d{2} \d{3}-\d{4}">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="predefined_groups" class="form-group"></div>

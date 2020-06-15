@@ -662,13 +662,13 @@ class UserController extends AdminController
 
     public function actionFindByPhone()
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
+        $this->checkRequestIsAjax();
+        $this->checkAccess('manageUsers');
 
         $jsonData = self::getJsonOkResult(['phone' => Yii::$app->request->post('phone', '')]);
         $phone = preg_replace('#\D#', '', $jsonData['phone']);
 
-        if (!empty($phone) && strlen($phone) == 9) {
+        if (!empty($phone) && strlen($phone) === 9) {
             $searchString = "+998$phone";
             $pupils = [];
             $searchResult = User::find()
@@ -692,12 +692,11 @@ class UserController extends AdminController
                     $data = $pupil->toArray(['id', 'name']);
                     $data['groups'] = [];
                     foreach ($pupil->activeGroupPupils as $groupPupil) {
-                        $groupParam = GroupComponent::getGroupParam($groupPupil->group, new DateTime());
-                        $groupData = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
-                        $groupData['month_price'] = $groupParam->priceMonth;
-                        $groupData['discount_price'] = $groupParam->price3Month;
-                        $groupData['date_start'] = $groupPupil->startDateObject->format('d.m.Y');
-                        $groupData['date_charge_till'] = $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '';
+                        $groupData = [
+                            'id' => $groupPupil->group->id,
+                            'date_start' => $groupPupil->startDateObject->format('d.m.Y'),
+                            'date_charge_till' => $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '',
+                        ];
 
                         $data['groups'][] = $groupData;
                     }

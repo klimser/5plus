@@ -56,8 +56,9 @@ class MoneyController extends AdminController
      */
     public function actionProcessIncome()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        $this->checkRequestIsAjax();
+        $this->checkAccess('moneyManagement');
+
         Yii::$app->response->format = Response::FORMAT_JSON;
         $formData = Yii::$app->request->post('income', []);
 
@@ -128,8 +129,8 @@ class MoneyController extends AdminController
      */
     public function actionProcessGiftCard()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        $this->checkRequestIsAjax();
+        $this->checkAccess('moneyManagement');
 
         Yii::$app->response->format = Response::FORMAT_JSON;
         $giftCardId = Yii::$app->request->post('gift_card_id');
@@ -137,8 +138,8 @@ class MoneyController extends AdminController
 
         $giftCard = GiftCard::findOne($giftCardId);
         if (!$giftCard) return self::getJsonErrorResult('Карта не найдена');
-        if ($giftCard->status == GiftCard::STATUS_NEW) return self::getJsonErrorResult('Карта не оплачена!');
-        if ($giftCard->status == GiftCard::STATUS_USED) return self::getJsonErrorResult('Карта уже использована!');
+        if ($giftCard->status === GiftCard::STATUS_NEW) return self::getJsonErrorResult('Карта не оплачена!');
+        if ($giftCard->status === GiftCard::STATUS_USED) return self::getJsonErrorResult('Карта уже использована!');
 
         $formData = Yii::$app->request->post();
         $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);

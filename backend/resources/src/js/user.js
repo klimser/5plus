@@ -377,9 +377,8 @@ let User = {
     },
     checkPhone(e) {
         this.phoneCheckInput = e;
-        User.findByPhone(
-            $(e).val(),
-            function (data) {
+        User.findByPhone($(e).val())
+            .done(function (data) {
                 if (!User.phoneCheckInput) return;
                 if ($(User.phoneCheckInput).val() !== data.phone) return;
 
@@ -397,10 +396,7 @@ let User = {
                     messageBlock.html('');
                 }
                 User.phoneCheckInput = null;
-            },
-            function (xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            }
-        );
+            })
+            .fail(Main.logAndFlashAjaxError);
     }
 };

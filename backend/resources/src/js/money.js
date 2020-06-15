@@ -5,6 +5,9 @@ let Money = {
     pupilId: null,
     groupId: null,
     paymentType: null,
+    init: function() {
+        Main.loadActiveGroups();
+    },
     findContract: function () {
         $('#messages_place').html('');
         $.ajax({
@@ -58,13 +61,14 @@ let Money = {
         $('#messages_place').html('');
         $('#gift_card_messages').html('');
         $.ajax({
-            url: '/gift-card/find',
-            type: 'post',
-            data: {
-                code: $("#search_gift_card").val()
-            },
-            dataType: 'json',
-            success: function (data) {
+                url: '/gift-card/find',
+                type: 'post',
+                data: {
+                    code: $("#search_gift_card").val()
+                },
+                dataType: 'json'
+            })
+            .done(function (data) {
                 if (data.status !== 'ok') {
                     Main.throwFlashMessage('#gift_card_messages', data.message, 'alert-warning');
                 } else {
@@ -80,9 +84,9 @@ let Money = {
 
                         let groupList = "";
                         data.existing_pupil.group_pupils.forEach(function(groupPupil) {
-                            groupList += '<button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button" data-group="' + groupPupil.group_id + '" onclick="Money.setGiftGroup(this);">'
+                            groupList += '<button class="btn btn-outline-dark btn-lg mr-2 mb-2 gift-card-existing-group" type="button" data-group="' + groupPupil.group_id + '" onclick="Money.setGiftGroup(this);">'
                                 + groupPupil.group
-                                + ' с ' + groupPupil.from + '</button><br>';
+                                + ' с ' + groupPupil.from + '</button>';
                         });
 
                         $('#predefined_groups').html(groupList);
@@ -96,23 +100,20 @@ let Money = {
                         $("#predefined_groups").html("");
                     }
 
-                    $("#gift_card_result_block").removeClass("hidden");
+                    $("#gift_card_result_block").collapse("show");
                 }
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#gift_card_messages', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            }
-        });
+            })
+            .fail(Main.logAndFlashAjaxError);
     },
     resetSearchResults: function() {
         this.pupilId = null;
         this.groupId = null;
         this.paymentType = null;
         $('#messages_place').html('');
-        $("#income_form").collapse("hide");
-        $("#payment_type_block").collapse("hide");
-        $('#pupils_block').collapse('hide');
-        $('#groups_block').collapse('hide');
+        $("#income_form").removeClass("show");
+        $("#payment_type_block").removeClass("show");
+        $('#pupils_block').removeClass('show');
+        $('#groups_block').removeClass('show');
     },
     findPupils: function () {
         this.resetSearchResults();
@@ -126,19 +127,15 @@ let Money = {
                         pupilList += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 pupil-result-button" type="button" id="pupil-' + pupil.id + '" onclick="' + Money.className + '.setPupil(' + pupil.id + ');">'
                             + pupil.name
                             + '</button>';
-                        let newPupil = {name: pupil.name, groups: []};
-                        pupil.groups.forEach(function(group) {
-                            Money.groups[group.id] = group;
-                            newPupil.groups.push(group.id);
-                        });
-                        Money.pupils[pupil.id] = newPupil;
+                        Money.pupils[pupil.id] = pupil;
                     });
 
                     $('#pupils_result').html(pupilList);
                     $("#pupils_block").collapse('show');
                     if (data.pupils.length === 1) $("#pupils_result").find('button:first').click();
                 } else {
-                    Main.throwFlashMessage('#pupils_block', '<div class="card"><div class="card-body">Не найдено студентов<br><a href="/user/create-pupil" target="_blank" class="btn btn-success btn-lg">Добавить <span class="fas fa-external-link-alt"></span></a></div></div>', 'alert-warning');
+                    Main.throwFlashMessage('#pupils_result', '<div class="card"><div class="card-body">Не найдено студентов<br><a href="/user/create-pupil" target="_blank" class="btn btn-success btn-lg">Добавить <span class="fas fa-external-link-alt"></span></a></div></div>', 'alert-warning');
+                    $("#pupils_block").collapse('show');
                 }
             })
             .fail(Main.logAndFlashAjaxError);
@@ -153,23 +150,27 @@ let Money = {
         let pupil = this.pupils[this.pupilId];
         let blockHtml = '';
         pupil.groups.forEach(function(group) {
-            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + group + '" onclick="Money.setGroup(' + group + ');">' + Money.groups[group].name + '</button>';
+            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + group.id + '" onclick="Money.setGroup(' + group.id + ', \'' + group.date_start + '\', \'' + group.date_charge_till + '\');">' + Main.groupMap[group.id].name + '</button>';
         });
         blockHtml += '<a href="/user/add-to-group?userId=' + this.pupilId + '" target="_blank" class="btn btn-outline-dark btn-lg">Добавить в новую группу <span class="fas fa-external-link-alt"></span></a>';
         $("#groups_result").html(blockHtml);
         $('#groups_block').collapse('show');
         if (pupil.groups.length === 1) $("#groups_result").find('button:first').click();
     },
-    setGroup: function (groupId) {
+    setGroup: function (groupId, dateStart, dateChargeTill) {
         this.groupId = groupId;
         $(".group-result-button").removeClass("btn-primary").addClass('btn-outline-dark');
         $("#group-" + groupId).addClass('btn-primary').removeClass('btn-outline-dark');
 
-        let group = this.groups[this.groupId];
-        $("#payment-0").find(".price").text(group.month_price);
-        $("#payment-1").find(".price").text(group.discount_price);
-        $("#date_start").text(group.date_start);
-        $("#date_charge_till").text(group.date_charge_till);
+        let group = Main.groupMap[this.groupId];
+        $("#payment-0").find(".price").text(group.price);
+        $("#payment-1").find(".price").text(group.price3);
+        if (dateStart !== undefined) {
+            $("#date_start").text(dateStart);
+        }
+        if (dateChargeTill !== undefined) {
+            $("#date_charge_till").text(dateChargeTill);
+        }
         $("#payment_type_block").collapse("show").find("button").removeClass("btn-primary").addClass('btn-outline-dark');
     },
     setPayment: function(paymentType) {
@@ -179,9 +180,9 @@ let Money = {
 
         let amountInput = $("#amount");
         if (this.paymentType === 1) {
-            $(amountInput).val(this.groups[this.groupId].discount_price);
+            $(amountInput).val(Main.groupMap[this.groupId].price3);
         } else {
-            $(amountInput).val(this.groups[this.groupId].month_price);
+            $(amountInput).val(Main.groupMap[this.groupId].price);
         }
         $("#income_form").collapse('show');
     },
@@ -193,29 +194,28 @@ let Money = {
             type: 'post',
             dataType: 'json',
             data: {
-                user: this.pupilId,
-                group: this.groupId,
-                amount: parseInt($(form).find("#amount").val()),
-                comment: $('#payment_comment').val(),
-            },
-            success: function(data) {
-                if (data.status === 'ok') {
-                    Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
+                income: {
+                    userId: this.pupilId,
+                    groupId: this.groupId,
+                    amount: parseInt($(form).find("#amount").val()),
+                    comment: $('#payment_comment').val()
+                }
+            }})
+            .done(function(data) {
+                if (data.status !== 'ok') {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+                } else {
                     $('#amount').val('');
                     $('#payment_comment').val('');
                     $("#payment_contract").val('');
                     $("#payment_date").val('');
                     Money.resetSearchResults();
+                    Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
+                    Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
                 }
-                else Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
-                Money.unlockIncomeButton();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Money.unlockIncomeButton();
-            }
-        });
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(Money.unlockIncomeButton);
         return false;
     },
     lockIncomeButton: function() {
@@ -254,13 +254,13 @@ let Money = {
         $("#contract_button").prop('disabled', false);
     },
     setGiftGroup: function(e) {
-        $(".gift-card-existing-group").removeClass("btn-primary");
+        $(".gift-card-existing-group").removeClass("btn-primary").addClass('btn-outline-dark');
         let existingElem = $("#existing_group_id");
         if (parseInt(existingElem.val()) === $(e).data("group")) {
             existingElem.val('');
         } else {
             existingElem.val($(e).data("group"));
-            $(e).addClass("btn-primary");
+            $(e).addClass("btn-primary").removeClass('btn-outline-dark');
         }
     },
     completeGiftCard: function(form) {
@@ -272,15 +272,16 @@ let Money = {
                 data: $(form).serialize()
             })
             .done(function(data) {
-                if (data.status === 'ok') {
+                if (data.status !== 'ok') {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+                } else {
                     Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
                     Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
+                    $("#gift_card_result_block").collapse("hide");
                     let giftCardInputBlock = $("#search_gift_card");
                     if (giftCardInputBlock.length > 0) {
                         $(giftCardInputBlock).val('');
                     }
-                } else {
-                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
             })
             .fail(Main.logAndFlashAjaxError)

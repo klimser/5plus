@@ -13,8 +13,6 @@ use yii\web\YiiAsset;
 
 use common\widgets\Alert;
 
-\dosamigos\datepicker\DatePickerLanguageAsset::register($this);
-
 $this->registerJs(<<<SCRIPT
     Main.initTooltip();
     Main.initPhoneFormatted();
