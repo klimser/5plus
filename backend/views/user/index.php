@@ -60,7 +60,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?php foreach (UserComponent::getFirstLetters() as $letter): ?>
             <?php if ($letter == $firstLetter): ?>
-                <span class="col-auto btn btn-primary rounded-0 px-2 mb-1"><?= $letter; ?></span>
+                <span class="col-auto btn btn-primary rounded-0 px-3 py-2 border-left-0 mb-1"><?= $letter; ?></span>
             <?php else: ?>
                 <a class="col-auto btn btn-outline-primary rounded-0 px-3 py-2 border-left-0 mb-1" href="<?= Url::to(['user/index', 'letter' => $letter, 'year' => $selectedYear, 'page' => 1]); ?>"><?= $letter; ?></a>
             <?php endif; ?>

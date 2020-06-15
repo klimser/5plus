@@ -102,38 +102,43 @@ class ContractController extends AdminController
     }
 
     /**
-     * @return yii\web\Response
+     * @return mixed
      * @throws BadRequestHttpException
      */
     public function actionFind()
     {
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $jsonData = self::getJsonOkResult();
         $contractNum = preg_replace('#\D#', '', Yii::$app->request->post('number', ''));
 
-        if (empty($contractNum)) $jsonData = self::getJsonErrorResult('Неверный номер договора');
-        else {
-            $contract = Contract::findOne(['number' => $contractNum]);
-            if (!$contract) $jsonData = self::getJsonErrorResult('Договор не найден');
-            elseif ($contract->status != Contract::STATUS_NEW) $jsonData = self::getJsonErrorResult('Договор уже оплачен!');
-            else {
-                $jsonData['id'] = $contract->id;
-                $jsonData['user_name'] = $contract->user->name;
-                $jsonData['group_name'] = $contract->group->name;
-                $jsonData['amount'] = number_format($contract->amount, 0, '.', ' ');
-                $jsonData['discount'] = $contract->discount;
-                $jsonData['create_date'] = $contract->createDate->format('d.m.Y');
-                $jsonData['company_name'] = $contract->company->second_name;
-                /** @var GroupPupil $groupPupil */
-                $groupPupil = GroupPupil::find()->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
-                if (!$groupPupil) $jsonData['group_pupil_id'] = 0;
-                else {
-                    $jsonData['group_pupil_id'] = $groupPupil->id;
-                    $jsonData['date_start'] = $groupPupil->startDateObject->format('d.m.Y');
-                    $jsonData['date_charge_till'] = $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '';
-                }
-            }
+        if (empty($contractNum)) {
+            return self::getJsonErrorResult('Неверный номер договора');
+        }
+        $contract = Contract::findOne(['number' => $contractNum]);
+        if (!$contract) {
+            return self::getJsonErrorResult('Договор не найден');
+        }
+        if ($contract->status != Contract::STATUS_NEW) {
+            return self::getJsonErrorResult('Договор уже оплачен!');
+        }
+
+        $jsonData = self::getJsonOkResult([
+            'id' => $contract->id,
+            'user_name' => $contract->user->name,
+            'group_name' => $contract->group->name,
+            'amount' => number_format($contract->amount, 0, '.', ' '),
+            'discount' => $contract->discount,
+            'create_date' => $contract->createDate->format('d.m.Y'),
+            'company_name' => $contract->company->second_name,
+            'group_pupil_id' => 0,
+        ]);
+
+        /** @var GroupPupil $groupPupil */
+        if ($groupPupil = GroupPupil::find()->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])->one()) {
+            $jsonData['group_pupil_id'] = $groupPupil->id;
+            $jsonData['date_start'] = $groupPupil->startDateObject->format('d.m.Y');
+            $jsonData['date_charge_till'] = $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '';
         }
 
         return $this->asJson($jsonData);

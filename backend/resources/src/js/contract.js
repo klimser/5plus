@@ -10,32 +10,27 @@ let Contract = {
         let pupil = Money.pupils[Money.pupilId];
         let blockHtml = '<div class="panel panel-default"><div class="panel-body">';
         pupil.groups.forEach(function(groupId) {
-            blockHtml += '<button class="contract-group-btn btn btn-default btn-lg margin-right-10" type="button" id="group-' + groupId + '" onclick="Contract.setGroup(' + groupId + ');">' + Money.groups[groupId].name + '</button>';
+            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + groupId + '" onclick="Contract.setGroup(' + groupId + ');">' + Money.groups[groupId].name + '</button>';
         });
-        blockHtml += '<div class="col-xs-12 col-sm-6 col-md-3"><label for="new_group">Ещё не занимается, просто выдать договор:</label><br>' +
-            '<select id="new_group" class="form-control">';
-        Main.groupList.forEach(function(group) {
-            if (pupil.groups.indexOf(group.id) < 0) {
-                blockHtml += '<option value="' + group.id + '">' + group.name + '</option>';
+        blockHtml += '<div class="card group-result-button" id="group_new_block"><div class="card-body"><div class="form-inline"><label for="new_group" class="mr-sm-2">Ещё не занимается, просто выдать договор:</label>' +
+            '<select id="new_group" class="form-control mr-sm-2">';
+        Main.groupActiveList.forEach(function(groupId) {
+            if (pupil.groups.indexOf(groupId) < 0) {
+                blockHtml += '<option value="' + groupId + '">' + Main.groupMap[groupId].name + '</option>';
             }
         });
-        blockHtml += '</select><br>' +
-            '<button type="button" class="btn btn-default" id="new_group_button" onclick="Contract.setGroup(parseInt($(\'#new_group\').val()));">Выбрать</button></div>';
-        blockHtml += '</div></div>';
-        $("#groups_block").html(blockHtml);
-        if (pupil.groups.length === 1) $("#groups_block").find('.contract-group-btn:first').click();
+        blockHtml += '</select>' +
+            '<button type="button" class="btn btn-outline-dark" id="new_group_button" onclick="Contract.setGroup(parseInt($(\'#new_group\').val()));">Выбрать</button></div></div></div>';
+        $("#groups_result").html(blockHtml);
+        $('#groups_block').collapse('show');
+        if (pupil.groups.length === 1) $("#groups_result").find('.contract-group-btn:first').click();
     },
     getGroup: function(groupId) {
         if (groupId in Money.groups) {
             return Money.groups[groupId];
-        } else {
-            for (let i = 0; i < Main.groupList.length; i++) {
-                if (Main.groupList[i].id === groupId) {
-                    return Main.groupList[i];
-                }
-            }
         }
-        return null;
+        
+        return Main.groupMap[groupId];
     },
     setGroup: function (groupId) {
         Money.groupId = groupId;
@@ -50,7 +45,9 @@ let Contract = {
         let group = this.getGroup(groupId);
         if (group.hasOwnProperty("date_start")) {
             $("#date_start").text(group.date_start);
-            $("#date_charge_till").text(group.date_charge_till);
+            if (group.hasOwnProperty("date_charge_till")) {
+                $("#date_charge_till").text(group.date_charge_till);
+            }
             $("#group_dates").collapse("show");
         } else {
             $("#group_dates").collapse("hide");
@@ -67,6 +64,7 @@ let Contract = {
 
         let amountInput = $("#amount");
         let group = this.getGroup(Money.groupId);
+        console.log(group);
         if (this.paymentType === 1) {
             $(amountInput).val(group.discount_price).attr("min", group.discount_price);
         } else {
@@ -83,6 +81,6 @@ let Contract = {
     },
     init: function() {
         Money.className = 'Contract';
-        Main.loadGroups();
+        Main.loadActiveGroups();
     }
 };

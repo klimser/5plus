@@ -14,13 +14,14 @@ let Money = {
                 number: $("#search_contract").val()
             },
             dataType: 'json',
-            success: function (data) {
+        })
+            .done(function(data) {
                 if (data.status !== 'ok') {
                     Main.throwFlashMessage('#contract_result_block', data.message, 'alert-warning');
                 } else {
                     let contractForm = '<form id="contract_form" onsubmit="Money.completeContract(this); return false;">' +
                         '<input type="hidden" name="contractId" value="' + data.id + '">' +
-                        '<table class="table">' +
+                        '<table class="table table-sm">' +
                         '<tr><td><b>Студент</b></td><td>' + data.user_name + '</td></tr>' +
                         '<tr><td><b>Группа</b></td><td>' + data.group_name + '</td></tr>'+
                         '<tr><td><b>Сумма</b></td><td><span class="big-font">' + data.amount + '</span>'
@@ -48,11 +49,10 @@ let Money = {
                         "weekStart": 1
                     });
                 }
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            }
-        });
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#contract_result_block');
+            });
     },
     findGiftCard: function () {
         $('#messages_place').html('');
@@ -116,9 +116,8 @@ let Money = {
     },
     findPupils: function () {
         this.resetSearchResults();
-        User.findByPhone(
-            $("#search_phone").val(),
-            function (data) {
+        User.findByPhone($("#search_phone").val())
+            .done(function (data) {
                 if (data.pupils !== undefined && data.pupils.length > 0) {
                     let pupilList = '';
                     Money.pupils = {};
@@ -141,11 +140,8 @@ let Money = {
                 } else {
                     Main.throwFlashMessage('#pupils_block', '<div class="card"><div class="card-body">Не найдено студентов<br><a href="/user/create-pupil" target="_blank" class="btn btn-success btn-lg">Добавить <span class="fas fa-external-link-alt"></span></a></div></div>', 'alert-warning');
                 }
-            },
-            function (xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            }
-        );
+            })
+            .fail(Main.logAndFlashAjaxError);
     },
     setPupil: function (pupilId) {
         this.pupilId = pupilId;

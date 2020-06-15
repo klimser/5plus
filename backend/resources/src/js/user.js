@@ -249,16 +249,14 @@ let User = {
         User.setGroup($(currentGroupItem).find(".group-select"), false);
     },
     
-    findByPhone: function(phoneString, successHandler, errorHandler) {
-        $.ajax({
+    findByPhone: function(phoneString) {
+        return $.ajax({
             url: '/user/find-by-phone',
             type: 'post',
             data: {
                 phone: phoneString
             },
-            dataType: 'json',
-            success: successHandler,
-            error: errorHandler
+            dataType: 'json'
         });
     },
     changePersonType: function() {
