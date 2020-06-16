@@ -608,37 +608,38 @@ class GroupController extends AdminController
      */
     public function actionListJson($pupilId = null)
     {
+        $this->checkRequestIsAjax();
         $jsonData = [];
-        if (Yii::$app->request->isAjax) {
-            if ($pupilId) {
-                $jsonData = [];
-                $pupil = User::findOne($pupilId);
-                if ($pupil) {
-                    foreach ($pupil->activeGroupPupils as $groupPupil) {
-                        $groupData = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
-                        $groupData['startDate'] = $groupPupil->startDateObject->format('d.m.Y');
-                        $groupData['endDate'] = $groupPupil->endDateObject ? $groupPupil->endDateObject->format('d.m.Y') : '';
-                        $jsonData[] = $groupData;
-                    }
-                }
-            } else {
-                /** @var Group[] $groups */
-                $groups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->all();
-                foreach ($groups as $group) {
-                    $groupData = $group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
-                    $groupParam = GroupParam::findByDate($group, new \DateTime());
-                    if (!$groupParam) {
-                        $groupParam = new GroupParam();
-                        $groupParam->lesson_price = $group->lesson_price;
-                        $groupParam->lesson_price_discount = $group->lesson_price_discount;
-                        $groupParam->schedule = $group->schedule;
-                    }
-                    $groupData['month_price'] = $groupParam->priceMonth;
-                    $groupData['discount_price'] = $groupParam->price3Month;
+        if ($pupilId) {
+            $pupil = User::findOne($pupilId);
+            if ($pupil) {
+                foreach ($pupil->activeGroupPupils as $groupPupil) {
+                    $groupData = [
+                        'id' => $groupPupil->group_id,
+                        'date_start' => $groupPupil->startDateObject->format('d.m.Y'),
+                        'date_end' => $groupPupil->date_end ? $groupPupil->endDateObject->format('d.m.Y') : '',
+                    ];
                     $jsonData[] = $groupData;
                 }
             }
+        } else {
+            /** @var Group[] $groups */
+            $groups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->all();
+            foreach ($groups as $group) {
+                $groupData = $group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
+                $groupParam = GroupParam::findByDate($group, new \DateTime());
+                if (!$groupParam) {
+                    $groupParam = new GroupParam();
+                    $groupParam->lesson_price = $group->lesson_price;
+                    $groupParam->lesson_price_discount = $group->lesson_price_discount;
+                    $groupParam->schedule = $group->schedule;
+                }
+                $groupData['month_price'] = $groupParam->priceMonth;
+                $groupData['discount_price'] = $groupParam->price3Month;
+                $jsonData[] = $groupData;
+            }
         }
+
         return $this->asJson($jsonData);
     }
 

@@ -13,8 +13,8 @@ let Contract = {
     renderGroupsBlock: function () {
         let pupil = Money.pupils[Money.pupilId];
         let blockHtml = '<div class="panel panel-default"><div class="panel-body">';
-        pupil.groups.forEach(function(groupId) {
-            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + groupId + '" onclick="Contract.setGroup(' + groupId + ');">' + Money.groups[groupId].name + '</button>';
+        pupil.groups.forEach(function(group) {
+            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + group.id + '" onclick="Contract.setGroup(' + group.id + ', \'' + group.date_start + '\', \'' + group.date_charge_till + '\');">' + Main.groupMap[group.id].name + '</button>';
         });
         blockHtml += '<div class="card group-result-button" id="group_new_block"><div class="card-body"><div class="form-inline"><label for="new_group" class="mr-sm-2">Ещё не занимается, просто выдать договор:</label>' +
             '<select id="new_group" class="form-control mr-sm-2">';
@@ -36,7 +36,7 @@ let Contract = {
         
         return Main.groupMap[groupId];
     },
-    setGroup: function (groupId) {
+    setGroup: function (groupId, dateStart, dateChargeTill) {
         Money.groupId = groupId;
         $("#groups_block").find("button").removeClass("btn-primary").addClass('btn-outline-dark');
         if ($("#group-" + groupId).length > 0) {
@@ -46,18 +46,15 @@ let Contract = {
             $("#group_new_block").addClass(['bg-primary', 'text-white']).find('button').addClass('btn-outline-light').removeClass('btn-outline-dark');
         }
 
-        let group = this.getGroup(groupId);
-        if (group.hasOwnProperty("date_start")) {
-            $("#date_start").text(group.date_start);
-            if (group.hasOwnProperty("date_charge_till")) {
-                $("#date_charge_till").text(group.date_charge_till);
-            }
+        if (dateStart !== undefined) {
+            $("#date_start").text(dateStart);
+            $("#date_charge_till").text(dateChargeTill);
             $("#group_dates").collapse("show");
         } else {
             $("#group_dates").collapse("hide");
         }
-        $("#payment-0").find(".price").text(group.month_price);
-        $("#payment-1").find(".price").text(group.discount_price);
+        $("#payment-0").find(".price").text(Main.groupMap[groupId].price);
+        $("#payment-1").find(".price").text(Main.groupMap[groupId].price3);
         $("#payment_type_block").collapse("show").find("button").removeClass("btn-primary").addClass('btn-outline-dark');
         $("#income_form").collapse('hide');
     },
@@ -67,12 +64,11 @@ let Contract = {
         this.paymentType = paymentType;
 
         let amountInput = $("#amount");
-        let group = this.getGroup(Money.groupId);
-        console.log(group);
+        let group = Main.groupMap[Money.groupId];
         if (this.paymentType === 1) {
-            $(amountInput).val(group.discount_price).attr("min", group.discount_price);
+            $(amountInput).val(group.price3).attr("min", group.price3);
         } else {
-            $(amountInput).val(group.month_price).attr("min", 1000);
+            $(amountInput).val(group.price).attr("min", 1000);
         }
         $("#income_form").collapse('show');
     },

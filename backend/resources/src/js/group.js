@@ -210,47 +210,31 @@ let Group = {
             $(e).closest('.one_day_block').find("input.weektime").prop('disabled', true);
         }
     },
-    loadPupils: function() {
-        if ($("#pupil").html().length === 0) {
-            $.ajax({
-                url: '/user/pupils',
-                dataType: 'json',
-                success: function(data) {
-                    var htmlAddon = '<option value=""></option>';
-                    var selectedUser = $("#pupil").data("pupil");
-                    for (var i = 0; i < data.length; i++) htmlAddon += '<option value="' + data[i].id + '"' + (selectedUser == data[i].id ? ' selected' : '') + '>' + data[i].name + '</option>';
-                    $("#pupil").html(htmlAddon).chosen({
-                        disable_search_threshold: 6,
-                        no_results_text: 'Студент не найден',
-                        placeholder_text_single: 'Выберите студента'
-                    });
-                    Group.loadGroups();
-                }
-            });
-        }
-    },
     loadGroups: function () {
-        if ($("#pupil").val() && $("#group_from").data("pupil") !== $("#pupil").val()) {
+        let pupilId = $("#pupil").val();
+        if (pupilId > 0 && $("#group_from").data("pupil") !== pupilId) {
             $.ajax({
                 url: '/group/list-json',
                 data: {
-                    pupilId: $("#pupil").val()
+                    pupilId: pupilId
                 },
-                dataType: 'json',
-                success: function (data) {
-                    var htmlAddon = '';
-                    var activeGroup = $("#group_from").data('group');
-                    for (var i = 0; i < data.length; i++) {
-                        htmlAddon += '<option value="' + data[i].id + '" data-start="' + data[i].startDate + '" data-end="' + data[i].endDate + '" ' +
-                            (data[i].id == activeGroup ? ' selected ' : '') + '>' +
-                            data[i].name + '. Цена: ' + data[i].lesson_price + ', со скидкой: ' + data[i].lesson_price_discount +
-                            '</option>';
-                    }
-                    $("#group_from").html(htmlAddon);
-                    $("#group_from").data("pupil", $("#pupil").val());
-                    $("#group_from").change();
-                }
-            });
+                dataType: 'json'
+            })
+                .done(function (data) {
+                    let htmlAddon = '';
+                    let groupFrom = $("#group_from");
+                    let activeGroup = $(groupFrom).data('group');
+                    data.forEach(function(groupData) {
+                        let group = Main.groupMap[groupData.id];
+                        htmlAddon += '<option value="' + groupData.id + '" data-start="' + groupData.date_start + '" ' +
+                            'data-end="' + groupData.date_end + '" ' + (groupData.id === activeGroup ? ' selected ' : '') + '>' +
+                            group.name + '</option>';
+                    });
+                    $(groupFrom).html(htmlAddon);
+                    $(groupFrom).data("pupil", $("#pupil").val());
+                    $(groupFrom).change();
+                })
+                .fail(Main.logAndFlashAjaxError);
         }
     },
     setMoveDateInterval: function (elem) {

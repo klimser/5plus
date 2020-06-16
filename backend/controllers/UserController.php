@@ -693,7 +693,7 @@ class UserController extends AdminController
                     $data['groups'] = [];
                     foreach ($pupil->activeGroupPupils as $groupPupil) {
                         $groupData = [
-                            'id' => $groupPupil->group->id,
+                            'id' => $groupPupil->group_id,
                             'date_start' => $groupPupil->startDateObject->format('d.m.Y'),
                             'date_charge_till' => $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '',
                         ];
