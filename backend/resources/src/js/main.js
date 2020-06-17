@@ -119,11 +119,15 @@ let Main = {
             source: source,
             minLength: 2,
             change: function(event, ui) {
+                let oldVal = $(resultsInput).val();
                 if (ui.item === null) {
                     $(event.target).val('');
                     $(resultsInput).val('');
                 } else {
                     $(resultsInput).val(ui.item.id);
+                }
+                if (oldVal !== $(resultsInput).val()) {
+                    $(resultsInput).change();
                 }
             }
         });
