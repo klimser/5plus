@@ -45,29 +45,38 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php else: ?>
                 <select id="group_from" class="form-control" onchange="Group.setMoveDateInterval(this);"></select>
             <?php endif; ?>
-
+        </div>
+        <div class="form-group">
+            <label for="move_date">Последний день в старой группе</label>
+            <?= DatePicker::widget(array_merge_recursive(
+                DefaultValuesComponent::getDatePickerSettings(),
+                [
+                    'name' => 'date_from',
+                    'value' => date('d.m.Y'),
+                    'options' => ['id' => 'date_from'],
+                ]));?>
         </div>
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group">
             <label for="group_to">В группу</label>
-            <select id="group_to" class="form-control">
+            <select id="group_to" class="form-control" onchange="Group.setGroupTo(this);">
                 <?php foreach ($groupList as $group): ?>
                     <option value="<?= $group->id; ?>"><?= $group->name; ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
+        <div class="form-group">
+            <label for="move_date">Первый день в новой группе</label>
+            <?= DatePicker::widget(array_merge_recursive(
+                DefaultValuesComponent::getDatePickerSettings(),
+                [
+                    'name' => 'date_to',
+                    'value' => date('d.m.Y'),
+                    'options' => ['id' => 'date_to'],
+                ]));?>
+        </div>
     </div>
-</div>
-<div class="form-group">
-    <label for="move_date">Дата перехода (первый день в новой группе)</label>
-    <?= DatePicker::widget(array_merge_recursive(
-        DefaultValuesComponent::getDatePickerSettings(),
-        [
-            'name' => 'move_date',
-            'value' => date('d.m.Y'),
-            'options' => ['id' => 'move_date'],
-        ]));?>
 </div>
 
 <button class="btn btn-primary" id="move_pupil_button" onclick="Group.movePupil(); return false;">Перевести</button>

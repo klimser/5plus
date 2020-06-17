@@ -212,7 +212,10 @@ let Group = {
     },
     loadGroups: function () {
         let pupilId = $("#pupil").val();
-        if (pupilId > 0 && $("#group_from").data("pupil") !== pupilId) {
+        let groupFrom = $("#group_from");
+        if (pupilId > 0 && $(groupFrom).data("pupil") !== pupilId) {
+            $(groupFrom).html('<option>загрузка...</option>');
+            $(groupFrom).prop('disabled', true);
             $.ajax({
                 url: '/group/list-json',
                 data: {
@@ -221,8 +224,8 @@ let Group = {
                 dataType: 'json'
             })
                 .done(function (data) {
-                    let htmlAddon = '';
                     let groupFrom = $("#group_from");
+                    let htmlAddon = '';
                     let activeGroup = $(groupFrom).data('group');
                     data.forEach(function(groupData) {
                         let group = Main.groupMap[groupData.id];
@@ -234,15 +237,39 @@ let Group = {
                     $(groupFrom).data("pupil", $("#pupil").val());
                     $(groupFrom).change();
                 })
-                .fail(Main.logAndFlashAjaxError);
+                .fail(Main.logAndFlashAjaxError)
+                .always(function() {
+                    $("#group_from").prop('disabled', false);
+                });
         }
     },
     setMoveDateInterval: function (elem) {
-        $("#move_date").parent().datepicker("setStartDate", $(elem).find("option:selected").data("start"));
-        $("#move_date").parent().datepicker("setEndDate", $(elem).find("option:selected").data("end"));
-        if ($("#move_date").parent().datepicker("getDate") < $("#move_date").parent().datepicker("getStartDate")
-            || $("#move_date").parent().datepicker("getDate") > $("#move_date").parent().datepicker("getEndDate")) {
-            $("#move_date").parent().datepicker("clearDates");
+        let chosenOption = $(elem).find("option:selected");
+        let dateFromElem = $("#date_from");
+        $(dateFromElem).datepicker("option", "minDate", $(chosenOption).data("start"));
+        $(dateFromElem).datepicker("option", "maxDate", $(chosenOption).data("end"));
+
+        if ($(dateFromElem).datepicker("getDate") !== null
+            && ($(dateFromElem).datepicker("getDate") < $(dateFromElem).datepicker("option", "minDate")
+            || ($(dateFromElem).datepicker("option", "maxDate") !== null
+                && $(dateFromElem).datepicker("getDate") > $(dateFromElem).datepicker("option", "maxDate")))) {
+            $(dateFromElem).datepicker("setDate", null);
+        }
+
+        let groupId = $(chosenOption).val();
+        let dateToElem = $("#date_to");
+        $(dateToElem).datepicker("option", "minDate", $.datepicker.parseDate("yy-mm-dd", Main.groupMap[groupId].dateStart));
+        let endDate = Main.groupMap[groupId].dateEnd;
+        if (endDate !== null) {
+            endDate = $.datepicker.parseDate("yy-mm-dd", endDate);
+        }
+        $(dateToElem).datepicker("option", "maxDate", endDate);
+
+        if ($(dateToElem).datepicker("getDate") !== null
+            && ($(dateToElem).datepicker("getDate") < $(dateToElem).datepicker("option", "minDate")
+                || ($(dateToElem).datepicker("option", "maxDate") !== null
+                    && $(dateToElem).datepicker("getDate") > $(dateToElem).datepicker("option", "maxDate")))) {
+            $(dateToElem).datepicker("setDate", null);
         }
     },
     movePupil: function () {
