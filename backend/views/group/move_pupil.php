@@ -10,8 +10,7 @@ use \common\components\DefaultValuesComponent;
 /* @var $groupList \common\models\Group[] */
 
 $this->registerJs(<<<SCRIPT
-    Main.loadActiveGroups();
-    Main.initAutocompleteUser($("#pupil-to-move"));
+    GroupMove.init();
 SCRIPT
 );
 
