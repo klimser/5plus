@@ -243,7 +243,7 @@ let Group = {
                 });
         }
     },
-    setMoveDateInterval: function (elem) {
+    setGroupFromDateInterval: function (elem) {
         let chosenOption = $(elem).find("option:selected");
         let dateFromElem = $("#date_from");
         $(dateFromElem).datepicker("option", "minDate", $(chosenOption).data("start"));
@@ -251,12 +251,13 @@ let Group = {
 
         if ($(dateFromElem).datepicker("getDate") !== null
             && ($(dateFromElem).datepicker("getDate") < $(dateFromElem).datepicker("option", "minDate")
-            || ($(dateFromElem).datepicker("option", "maxDate") !== null
-                && $(dateFromElem).datepicker("getDate") > $(dateFromElem).datepicker("option", "maxDate")))) {
+                || ($(dateFromElem).datepicker("option", "maxDate") !== null
+                    && $(dateFromElem).datepicker("getDate") > $(dateFromElem).datepicker("option", "maxDate")))) {
             $(dateFromElem).datepicker("setDate", null);
         }
-
-        let groupId = $(chosenOption).val();
+    },
+    setGroupToDateInterval: function (elem) {
+        let groupId = $(elem).val();
         let dateToElem = $("#date_to");
         $(dateToElem).datepicker("option", "minDate", $.datepicker.parseDate("yy-mm-dd", Main.groupMap[groupId].dateStart));
         let endDate = Main.groupMap[groupId].dateEnd;

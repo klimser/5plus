@@ -43,7 +43,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <input type="hidden" id="group_from" value="<?= $groupPupil->group_id; ?>">
                 <input readonly class="form-control-plaintext" value="<?= $groupPupil->group->name; ?>">
             <?php else: ?>
-                <select id="group_from" class="form-control" onchange="Group.setMoveDateInterval(this);"></select>
+                <select id="group_from" class="form-control" onchange="Group.setGroupFromDateInterval(this);"></select>
             <?php endif; ?>
         </div>
         <div class="form-group">
@@ -60,7 +60,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="col-12 col-md-6">
         <div class="form-group">
             <label for="group_to">В группу</label>
-            <select id="group_to" class="form-control" onchange="Group.setGroupTo(this);">
+            <select id="group_to" class="form-control" onchange="Group.setGroupToDateInterval(this);">
                 <?php foreach ($groupList as $group): ?>
                     <option value="<?= $group->id; ?>"><?= $group->name; ?></option>
                 <?php endforeach; ?>
