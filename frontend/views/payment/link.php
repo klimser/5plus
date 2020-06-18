@@ -1,6 +1,6 @@
 <?php
 
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 
 /* @var $this \frontend\components\extended\View */
 /* @var $paymentLink \common\models\PaymentLink|null */

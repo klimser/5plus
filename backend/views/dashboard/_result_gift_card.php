@@ -1,7 +1,7 @@
 <?php
 use common\components\helpers\Money;
 use common\models\User;
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 
 /** @var $giftCard \common\models\GiftCard */
 /** @var $existingPupil User|null */

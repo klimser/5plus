@@ -17,14 +17,14 @@ $this->registerJs($initialJs);
 ?>
 <div id="messages_place"></div>
 <div class="row" id="step1">
-    <div class="col-xs-6">
-        <a class="btn btn-default btn-lg full-width" href="#" onclick="Dashboard.step2('strict'); return false;">
+    <div class="col-6">
+        <a class="btn btn-outline-dark btn-lg btn-block" href="#" onclick="Dashboard.step2('strict'); return false;">
             <span class="fas fa-barcode fa-3x"></span><hr>
             Номер (договора, карты и т п)
         </a>
     </div>
-    <div class="col-xs-6">
-        <a class="btn btn-default btn-lg full-width" href="#" onclick="Dashboard.step2('flex'); return false;">
+    <div class="col-6">
+        <a class="btn btn-outline-dark btn-lg btn-block" href="#" onclick="Dashboard.step2('flex'); return false;">
             <span class="fas fa-search fa-3x"></span><hr>
             Телефон, ФИО и т п
         </a>

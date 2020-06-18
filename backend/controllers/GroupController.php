@@ -3,8 +3,6 @@
 namespace backend\controllers;
 
 use backend\components\EventComponent;
-use backend\models\Event;
-use backend\models\EventMember;
 use common\components\Action;
 use common\components\ComponentContainer;
 use common\components\MoneyComponent;
@@ -23,6 +21,9 @@ use yii\web\NotFoundHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
+use yii\bootstrap4\Html;
+use yii\helpers\Url;
+use yii\helpers\ArrayHelper;
 
 /**
  * GroupController implements the CRUD actions for Teacher model.
@@ -81,12 +82,12 @@ class GroupController extends AdminController
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'subjectMap' => yii\helpers\ArrayHelper::map(
+            'subjectMap' => ArrayHelper::map(
                 Subject::find()->orderBy('name')->select(['id', 'name'])->asArray()->all(),
                 'id',
                 'name'
             ),
-            'teacherMap' => yii\helpers\ArrayHelper::map(
+            'teacherMap' => ArrayHelper::map(
                 Teacher::find()
                     ->andWhere(['active' => Teacher::STATUS_ACTIVE])
                     ->orderBy('name')
@@ -145,7 +146,7 @@ class GroupController extends AdminController
 
     /**
      * @param Group $group
-     * @return string|yii\web\Response
+     * @return string|Response
      * @throws yii\db\Exception
      */
     private function processGroupData(Group $group)
@@ -326,7 +327,7 @@ class GroupController extends AdminController
     }
 
     /**
-     * @return string|yii\web\Response
+     * @return string|Response
      * @throws ForbiddenHttpException
      */
     public function actionMovePupil()
@@ -376,9 +377,9 @@ class GroupController extends AdminController
         if ($unknownEvent !== null) {
             return self::getJsonErrorResult(
                 'В группе ИЗ остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: '
-                . yii\bootstrap\Html::a(
+                . Html::a(
                     $unknownEvent->eventDateTime->format('d.m.Y'),
-                    yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
+                    Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
                 )
             );
         }
@@ -432,7 +433,7 @@ class GroupController extends AdminController
     /**
      * @param int $userId
      * @param int $groupId
-     * @return string|yii\web\Response
+     * @return string|Response
      * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
      * @throws \Throwable
@@ -464,9 +465,9 @@ class GroupController extends AdminController
         $unknownEvent = EventComponent::getUncheckedEvent($group, $dateEnd);
         if ($unknownEvent !== null) {
             throw new BadRequestHttpException("В группе {$group->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
-                . yii\bootstrap\Html::a(
+                . Html::a(
                     $unknownEvent->eventDateTime->format('d.m.Y'),
-                    yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
+                    Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
                 )
             );
         }
@@ -538,9 +539,9 @@ class GroupController extends AdminController
         $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $groupPupil->endDateObject);
         if ($unknownEvent !== null) {
             return self::getJsonErrorResult("В группе {$groupPupil->group->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
-                . yii\bootstrap\Html::a(
+                . Html::a(
                     $unknownEvent->eventDateTime->format('d.m.Y'),
-                    yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
+                    Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
                 )
             );
         }
@@ -582,9 +583,9 @@ class GroupController extends AdminController
         if ($unknownEvent !== null) {
             return self::getJsonErrorResult(
                 'В группе остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: '
-                . yii\bootstrap\Html::a(
+                . Html::a(
                     $unknownEvent->eventDateTime->format('d.m.Y'),
-                    yii\helpers\Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
+                    Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
                 )
             );
         }
@@ -602,9 +603,10 @@ class GroupController extends AdminController
         return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
     }
 
-        /**
+    /**
      * @param int|null $pupilId
-     * @return yii\web\Response
+     * @return Response
+     * @throws BadRequestHttpException
      */
     public function actionListJson($pupilId = null)
     {

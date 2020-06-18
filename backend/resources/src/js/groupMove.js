@@ -2,13 +2,18 @@ let GroupMove = {
     init: function() {
         Main.initAutocompleteUser($("#pupil-to-move"));
         Main.loadActiveGroups()
-            .done(function(groupList) {
-                
+            .done(function(groupIds) {
+                let options = '';
+                groupIds.forEach(function(groupId) {
+                    options += '<option value="' + groupId + '">' + Main.groupMap[groupId].name + '</option>';
+                });
+                $("#group_to").html(options);
             });
     },
     loadGroups: function () {
         let pupilId = $("#pupil").val();
         let groupFrom = $("#group_from");
+        $(groupFrom).html('');
         if (pupilId > 0 && $(groupFrom).data("pupil") !== pupilId) {
             $(groupFrom).html('<option>загрузка...</option>');
             $(groupFrom).prop('disabled', true);
@@ -70,40 +75,37 @@ let GroupMove = {
         }
     },
     movePupil: function () {
-        if (!$("#pupil").val()) Main.throwFlashMessage("#messages_place", 'Выберите студента', 'alert-danger');
-        else if ($("#group_from").val() === $("#group_to").val()) Main.throwFlashMessage("#messages_place", 'Невозможно перевести в ту же группу', 'alert-danger');
-        else if ($("#move_date").val().length == 0) Main.throwFlashMessage("#messages_place", 'Укажите дату перевода', 'alert-danger');
-        else {
-            this.lockMoveButton();
-            $.ajax({
-                url: "/group/process-move-pupil",
-                type: 'post',
-                dataType: 'json',
-                data: {
-                    user_id: $("#pupil").val(),
-                    group_from: $("#group_from").val(),
-                    group_to: $("#group_to").val(),
-                    move_date: $("#move_date").val()
-                },
-                success: function (data) {
-                    if (data.status === 'ok') {
-                        Main.throwFlashMessage('#messages_place', 'Студент переведён', 'alert-success');
-                        $("#pupil").val('');
-                        $("#group_from").val('');
-                    } else Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
-                    Group.unlockMoveButton();
-                },
-                error: function (xhr, textStatus, errorThrown) {
-                    Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                    Group.unlockMoveButton();
-                }
-            });
+        let groupFromElem = $("#group_from");
+        let groupToElem = $("#group_to");
+        if ($(groupFromElem).val() === $(groupToElem).val()) {
+            Main.throwFlashMessage("#messages_place", 'Невозможно перевести в ту же группу', 'alert-danger');
+            return;
         }
+        this.lockMoveButton();
+        $.ajax({
+            url: "/group/process-move-pupil",
+            type: 'post',
+            dataType: 'json',
+            data: {
+                user_id: $("#pupil").val(),
+                group_from: $(groupFromElem).val(),
+                group_to: $(groupToElem).val(),
+                move_date: $("#move_date").val()
+            }
+        })
+            .done(function (data) {
+                if (data.status === 'ok') {
+                    Main.throwFlashMessage('#messages_place', 'Студент переведён', 'alert-success');
+                    $("#move-pupil-form").collapse('hide');
+                } else Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(GroupMove.unlockMoveButton);
     },
     lockMoveButton: function () {
-        $("#move_pupil_button").attr('disabled', true);
+        $("#move_pupil_button").prop('disabled', true);
     },
     unlockMoveButton: function () {
-        $("#move_pupil_button").removeAttr('disabled');
+        $("#move_pupil_button").prop('disabled', false);
     },
 };

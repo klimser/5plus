@@ -42,12 +42,6 @@ return [
                         YII_ENV_DEV ? 'themes/smoothness/jquery-ui.css' : '//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css',
                     ]
                 ],
-                \yii\bootstrap\BootstrapAsset::class => [
-                    'css' => []
-                ],
-                \yii\bootstrap\BootstrapPluginAsset::class => [
-                    'js' => []
-                ],
                 \yii\bootstrap4\BootstrapAsset::class => [
                     'css' => []
                 ],

@@ -1,7 +1,7 @@
 <?php
 
 use himiklab\yii2\recaptcha\ReCaptcha;
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 use yii\helpers\Url;
 
 /* @var $this \frontend\components\extended\View */

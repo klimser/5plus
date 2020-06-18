@@ -4,7 +4,7 @@ use common\components\WidgetHtml;
 use frontend\components\widgets\ReviewCarouselWidget;
 use frontend\components\widgets\SubjectCarouselWidget;
 use frontend\components\widgets\TeacherCarouselWidget;
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 use \himiklab\yii2\recaptcha\ReCaptcha;
 use yii\helpers\Url;
 
