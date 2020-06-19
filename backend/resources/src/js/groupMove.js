@@ -3,11 +3,11 @@ let GroupMove = {
         Main.initAutocompleteUser($("#pupil-to-move"));
         Main.loadActiveGroups()
             .done(function(groupIds) {
-                let options = '';
+                let elem = $("#group_to");
+                $(elem).html('');
                 groupIds.forEach(function(groupId) {
-                    options += '<option value="' + groupId + '">' + Main.groupMap[groupId].name + '</option>';
+                    $(elem).append('<option value="' + groupId + '">' + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>');
                 });
-                $("#group_to").html(options);
             });
     },
     loadGroups: function () {
@@ -60,7 +60,7 @@ let GroupMove = {
     setGroupToDateInterval: function (elem) {
         let groupId = $(elem).val();
         let dateToElem = $("#date_to");
-        $(dateToElem).datepicker("option", "minDate", $.datepicker.parseDate("yy-mm-dd", Main.groupMap[groupId].dateStart));
+        $(dateToElem).datepicker("option", "minDate", new Date(Main.groupMap[groupId].dateStart));
         let endDate = Main.groupMap[groupId].dateEnd;
         if (endDate !== null) {
             endDate = $.datepicker.parseDate("yy-mm-dd", endDate);

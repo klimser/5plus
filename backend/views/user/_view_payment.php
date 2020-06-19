@@ -17,12 +17,12 @@ foreach ($payments as $payment) {
 
 ?>
 
-<div class="view-payments m-t-10">
-    <div class="row">
-        <div class="col-xs-8">
+<div class="view-payments">
+    <div class="row mb-3">
+        <div class="col-8">
             <div class="form-inline">
                 <label for="payment-filter-group-<?= $pupil->id; ?>">Группа</label>
-                <select id="payment-filter-group-<?= $pupil->id; ?>" class="form-control filter-group" onchange="Dashboard.filterPayments(this);">
+                <select id="payment-filter-group-<?= $pupil->id; ?>" class="form-control filter-group ml-2" onchange="Dashboard.filterPayments(this);">
                     <option value="0">все</option>
                     <?php foreach ($groupMap as $group): ?>
                         <option value="<?= $group->id; ?>"><?= $group->name; ?></option>
@@ -30,15 +30,16 @@ foreach ($payments as $payment) {
                 </select>
             </div>
         </div>
-        <div class="col-xs-4">
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" class="filter-type" value="1" onchange="Dashboard.filterPayments(this);"> показать расходы
+        <div class="col-4">
+            <div class="form-check">
+                <input class="form-check-input filter-type" type="checkbox" value="1" onchange="Dashboard.filterPayments(this);" id="filter-payment-<?= $pupil->id; ?>">
+                <label class="form-check-label" for="filter-payment-<?= $pupil->id; ?>">
+                    показать расходы
                 </label>
             </div>
         </div>
     </div>
-    <table class="table table-condensed payments-table">
+    <table class="table table-bordered table-sm payments-table">
         <thead>
             <tr>
                 <th>группа</th>
@@ -48,11 +49,12 @@ foreach ($payments as $payment) {
         </thead>
         <tbody>
             <?php foreach ($payments as $payment): ?>
-                <tr class="group-<?= $payment->group_id; ?> <?php
+                <tr class="group-<?= $payment->group_id; ?> collapse table-<?php
                     if ($payment->amount > 0) {
                         echo $payment->discount ? 'info' : 'success';
+                        echo ' show ';
                     } elseif ($payment->amount < 0) {
-                        echo ' hidden expense ', $payment->discount ? 'warning' : 'danger';
+                        echo ' expense ', $payment->discount ? 'warning' : 'danger';
                     }
                     ?>">
                     <td><?= $payment->group->name; ?></td>

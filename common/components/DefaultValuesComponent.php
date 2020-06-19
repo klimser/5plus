@@ -7,7 +7,7 @@ use yii\base\Component;
 
 class DefaultValuesComponent extends Component
 {
-    public static function getPagerSettings()
+    public static function getPagerSettings(): array
     {
         return [
             'maxButtonCount' => 4,
@@ -26,7 +26,7 @@ class DefaultValuesComponent extends Component
             'disableCurrentPageButton' => true,
         ];
     }
-    public static function getDatePickerSettings()
+    public static function getDatePickerSettings(): array
     {
         return [
             'dateFormat' => 'dd.MM.y',
@@ -39,7 +39,7 @@ class DefaultValuesComponent extends Component
             ],
         ];
     }
-    public static function getTinyMceSettings()
+    public static function getTinyMceSettings(): array
     {
         return [
             'options' => ['rows' => 6],
@@ -93,5 +93,10 @@ class DefaultValuesComponent extends Component
                 'relative_urls' => false,
             ]
         ];
+    }
+    
+    public static function getPhoneInputTemplate(): string
+    {
+        return '<div class="input-group"><div class="input-group-prepend"><span class="input-group-text">+998</span></div>{input}</div>';
     }
 }

@@ -1,30 +1,11 @@
 let Dashboard = {
-    step1: function() {
-        $("#result").addClass("hidden");
-        $(".step2").addClass("hidden");
-        $("#step1").removeClass("hidden");
-    },
-    step2: function(subclass) {
-        $("#step1").addClass("hidden");
-        $(".step2").addClass("hidden");
-        let target = $("#step2_" + subclass);
-        $(target).removeClass("hidden");
-        let focusable = $(target).find(".autofocus");
-        if (focusable.length) {
-            $(focusable).focus();
-        }
-    },
     find: function(form) {
         let elem = $(form).find(".search");
-        let data = {
-            value: $(elem).val(),
-            type: $(elem).data("search")
-        };
-        $(".step2 button").prop("disabled", true);
-        $.get("/dashboard/find", data, null, 'html')
+        $("#search-form button").prop("disabled", true);
+        $.get("/dashboard/find", {value: $(elem).val()}, null, 'html')
             .done(function(content) {
                 let resultContainer = $("#result");
-                $(resultContainer).html(content).removeClass("hidden");
+                $(resultContainer).html(content);
                 let giftCardForm = $(resultContainer).find("#gift-card-form");
                 if (giftCardForm.length > 0) {
                     Dashboard.prepareGiftCardForm(giftCardForm);
@@ -32,7 +13,7 @@ let Dashboard = {
             })
             .fail(Main.logAndFlashAjaxError)
             .always(function() {
-                $(".step2 button").prop("disabled", false);
+                $("#search-form button").prop("disabled", false);
             });
     },
     clearInput: function(e) {
@@ -71,7 +52,7 @@ let Dashboard = {
             .done(function(data) {
                 $("#modal-contract").modal("hide");
                 if (data.status === 'ok') {
-                    $("#step2_strict form").submit();
+                    $("#search-form").submit();
                 }
             });
     },
@@ -80,15 +61,15 @@ let Dashboard = {
         $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
         let groupSelect = $(form).find("#new-group");
         Main.loadActiveGroups()
-            .done(function(groupList) {
+            .done(function(groupIds) {
                 let groupBlackList = [];
                 $(form).find(".gift-card-existing-group").each(function(){
                     groupBlackList.push($(this).data("group"));
                 });
-                groupList.forEach(function(groupId) {
+                $(groupSelect).html('');
+                groupIds.forEach(function(groupId) {
                     if (groupBlackList.indexOf(groupId) === -1) {
-                        groupSelect.append('<option value="' + groupId + '">'
-                            + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>');
+                        groupSelect.append('<option value="' + groupId + '">' + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>');
                     }
                 });
                 $(groupSelect).change();
@@ -120,26 +101,22 @@ let Dashboard = {
         Money.completeGiftCard(form)
             .done(function(data) {
                 if (data.status === 'ok') {
-                    $("#step2_strict form").submit();
+                    $("#search-form").submit();
                 }
             });
     },
     toggleChildren: function(e) {
         let childrenBlock = $(e).closest(".result-parent").find(".children-list");
-        if ($(childrenBlock).hasClass("hidden")) {
-            $(childrenBlock).removeClass("hidden");
-        } else {
-            $(childrenBlock).addClass("hidden");
-        }
+        $(childrenBlock).collapse("toggle");
+    },
+    refreshPupilInfo: function(e) {
+        let tabId = $(e).closest(".pupil-info").find(".user-view-tabs .tab-pane.active").attr("id");
+        tabId = tabId.split("-");
+        return this.togglePupilInfo(e, true, tabId[0]);
     },
     togglePupilInfo: function(e, forceReload, activeTab) {
         let childrenInfoBlock = $(e).closest(".result-pupil").find(".pupil-info");
-
-        if ($(childrenInfoBlock).hasClass("hidden") || forceReload === true) {
-            $(childrenInfoBlock).removeClass("hidden");
-        } else {
-            $(childrenInfoBlock).addClass("hidden");
-        }
+        $(childrenInfoBlock).collapse(forceReload ? 'show' : 'toggle');
 
         if ($(childrenInfoBlock).html().length === 0 || forceReload === true) {
             $(childrenInfoBlock).html('<div class="loading-box"></div>');
@@ -154,7 +131,7 @@ let Dashboard = {
                         .fail(Main.jumpToTop);
                     WelcomeLesson.init()
                         .fail(Main.jumpToTop);
-                    let htmlAddon = '<button class="btn btn-default pull-right" onclick="Dashboard.togglePupilInfo(this, true);"><span class="fas fa-sync"></span></button>';
+                    let htmlAddon = '<button type="button" class="btn btn-outline-secondary float-right" onclick="Dashboard.refreshPupilInfo(this);"><span class="fas fa-sync"></span></button>';
                     $(childrenInfoBlock).html(htmlAddon + data);
                     Main.initPhoneFormatted();
                     $(childrenInfoBlock).find(".autocomplete-user").each(function() {
@@ -167,9 +144,8 @@ let Dashboard = {
     },
     showEditForm: function(prefix, e) {
         let container = $(e).closest("." + prefix + "-info-block");
-        $(container).find("." + prefix + "-view-block").addClass("hidden");
-        $(container).find("." + prefix + "-edit-block")
-            .removeClass("hidden")
+        $(container).find("." + prefix + "-view-block").collapse("hide");
+        $(container).find("." + prefix + "-edit-block").collapse("show")
             .find("input, textarea").prop("disabled", false);
     },
     changeParentType: function(e) {
@@ -476,23 +452,18 @@ let Dashboard = {
         let showExpenses = $(container).find(".filter-type").is(':checked');
         let paymentsTable = $(container).find("table.payments-table tbody");
         if (filterGroup > 0) {
-            $(paymentsTable).find('tr').addClass('hidden');
-            $(paymentsTable).find('tr.group-' + filterGroup).removeClass('hidden');
+            $(paymentsTable).find('tr').removeClass('show');
+            $(paymentsTable).find('tr.group-' + filterGroup).addClass('show');
         } else {
-            $(paymentsTable).find('tr').removeClass('hidden');
+            $(paymentsTable).find('tr').addClass('show');
         }
         
         if (!showExpenses) {
-            $(paymentsTable).find('tr.expense').addClass('hidden');
+            $(paymentsTable).find('tr.expense').removeClass('show');
         }
     },
     filterGroups: function(e) {
-        let showInactive = $(e).is(':checked');
-        let groupsTable = $(e).closest(".groups").find("table.groups-table");
-        if (showInactive) {
-            $(groupsTable).find('tr.inactive').removeClass('hidden');
-        } else {
-            $(groupsTable).find('tr.inactive').addClass('hidden');
-        }
+        $(e).closest(".groups").find("table.groups-table tr.inactive")
+            .collapse($(e).is(':checked') ? 'show' : 'hide');
     }
 };

@@ -184,3 +184,12 @@ hr.medium {margin-top: 10px; margin-bottom: 10px;}
 .separated-button {
   margin: 0 15px 15px 0;
 }
+
+.loading-box {
+  display: block;
+  width: 200px;
+  height: 200px;
+  max-width: 100%;
+  max-height: 100%;
+  background: url("/images/loading_spinner.svg") no-repeat left top;
+}

@@ -19,27 +19,31 @@ foreach ($groupPupils as $groupPupil) {
     }
 }
 ?>
-<div class="groups m-t-10">
-    <div class="text-right">
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" class="filter-type" value="1" onchange="Dashboard.filterGroups(this);"> показать завершенные
-            </label>
-        </div>
+<div class="groups">
+    <div class="text-right form-check mb-2">
+        <input class="form-check-input filter-type" type="checkbox" value="1" onchange="Dashboard.filterGroups(this);" id="filter-type-<?= $pupil->id; ?>">
+        <label class="form-check-label" for="filter-type-<?= $pupil->id; ?>">
+            показать завершенные
+        </label>
     </div>
     <table class="table groups-table">
         <?php foreach ($groupPupils as $groupPupil): ?>
-            <tr <?php if ($groupPupil->active === GroupPupil::STATUS_INACTIVE): ?> class="hidden inactive" <?php endif; ?>>
+            <tr class="collapse <?= $groupPupil->active === GroupPupil::STATUS_INACTIVE ? ' inactive ' : ' show '; ?>">
                 <td><?= $groupPupil->group->name; ?></td>
                 <td>
                     с <?= $groupPupil->startDateObject->format('d.m.Y') ;?>
-                    <?= $groupPupil->date_end ? 'до ' . $groupPupil->endDateObject->format('d.m.Y') : ''; ?>
+                    <?php if ($groupPupil->date_end): ?>
+                        <br> до <?= $groupPupil->endDateObject->format('d.m.Y'); ?>
+                    <?php endif; ?>
                 </td>
                 <td>
+                    <?php $moneyLeft = $groupPupil->moneyLeft; ?>
+                    <?= $moneyLeft < 0 ? 'долг ' : ''; ?>
+                    <span class="badge badge-<?= $moneyLeft < 0 ? 'danger' : 'success'; ?>"><?= Money::formatThousands(abs($moneyLeft)); ?></span><br>
+                    
                     <?php if ($groupPupil->paid_lessons >= 0): ?>
-                        оплачено до <span class="label label-success"><?= $groupPupil->chargeDateObject->format('d.m.Y'); ?></span>
-                    <?php else: ?>
-                        долг <span class="label label-danger"><?= $groupPupil->paid_lessons * (-1); ?> <?= WordForm::getLessonsForm($groupPupil->paid_lessons); ?></span>
+                        <b><?= $groupPupil->paid_lessons; ?></b> <?= WordForm::getLessonsForm($groupPupil->paid_lessons); ?><br>
+                        до <i><?= $groupPupil->chargeDateObject->format('d.m.Y'); ?></i>
                     <?php endif; ?>
                 </td>
                 <td class="text-right">
@@ -52,7 +56,7 @@ foreach ($groupPupils as $groupPupil) {
                         <?php endif; ?>
     
                         <?php if ($incomeAllowed): ?>
-                            <button type="button" title="выдать договор" class="btn btn-default" onclick="Dashboard.showNewContractForm(this);"
+                            <button type="button" title="выдать договор" class="btn btn-outline-dark" onclick="Dashboard.showNewContractForm(this);"
                                     data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
                                 <span class="fas fa-file-contract"></span>
                             </button>
@@ -62,19 +66,19 @@ foreach ($groupPupils as $groupPupil) {
                             $limitDate = clone $groupPupil->startDateObject;
                             $limitDate->modify('+1 day');
                             ?>
-                            <button type="button" title="перевести в другую группу" class="btn btn-default" onclick="Dashboard.showMovePupilForm(this);"
+                            <button type="button" title="перевести в другую группу" class="btn btn-outline-dark" onclick="Dashboard.showMovePupilForm(this);"
                                 data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>"
                                 data-date="<?= $limitDate->format('d.m.Y'); ?>">
                                 <span class="fas fa-running"></span> <span class="fas fa-arrow-right"></span>
                             </button>
-                            <button type="button" title="перевести в другую группу" class="btn btn-default" onclick="Dashboard.showEndPupilForm(this);"
+                            <button type="button" title="удалить из группы" class="btn btn-outline-dark" onclick="Dashboard.showEndPupilForm(this);"
                                     data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>"
                                     data-date="<?= $limitDate->format('Y-m-d'); ?>">
                                 <span class="fas fa-skull-crossbones"></span>
                             </button>
                         <?php endif; ?>
                     <?php elseif ($moveMoneyAllowed && $groupPupil->moneyLeft > 0): ?>
-                        <button type="button" title="перенести оставшиеся деньги" class="btn btn-default" onclick="Dashboard.showMoveMoneyForm(this);"
+                        <button type="button" title="перенести оставшиеся деньги" class="btn btn-outline-dark" onclick="Dashboard.showMoveMoneyForm(this);"
                             data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>" data-amount="<?= Money::formatThousands($groupPupil->moneyLeft); ?>"
                             data-groups="<?= implode(',', array_keys($activeGroupIdSet)); ?>">
                             <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>

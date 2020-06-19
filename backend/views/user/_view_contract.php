@@ -9,8 +9,8 @@ use yii\helpers\Url;
 $contracts = $pupil->getContracts()->with('group')->all();
 ?>
 
-<div class="view-contracts m-t-10">
-    <table class="table table-bordered table-condensed">
+<div class="view-contracts">
+    <table class="table table-bordered table-sm">
         <tr>
             <th>группа</th>
             <th>сумма</th>
@@ -20,7 +20,7 @@ $contracts = $pupil->getContracts()->with('group')->all();
             <th></th>
         </tr>
         <?php foreach ($contracts as $contract): ?>
-            <tr <?php if ($contract->status === Contract::STATUS_PAID): ?> class="success"<?php endif; ?> >
+            <tr <?php if ($contract->status === Contract::STATUS_PAID): ?> class="table-success"<?php endif; ?> >
                 <td><?= $contract->group->name; ?></td>
                 <td class="text-right"><?= Money::formatThousands($contract->amount); ?></td>
                 <td><?= $contract->createDate->format('d.m.Y'); ?></td>
@@ -37,7 +37,7 @@ $contracts = $pupil->getContracts()->with('group')->all();
                 </td>
                 <td>
                     <?php if ($contract->status !== Contract::STATUS_PROCESS): ?>
-                        <a href="<?= Url::to(['contract/print', 'id' => $contract->id]); ?>" target="_blank" title="Печать" class="btn btn-default"><span class="fas fa-print"></span></a>
+                        <a href="<?= Url::to(['contract/print', 'id' => $contract->id]); ?>" target="_blank" title="Печать" class="btn btn-outline-dark btn-sm"><span class="fas fa-print"></span></a>
                     <?php endif; ?>
                 </td>
             </tr>

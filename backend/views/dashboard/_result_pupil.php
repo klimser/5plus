@@ -2,13 +2,15 @@
 /** @var $pupil \common\models\User */
 ?>
 
-<div class="panel panel-success result-pupil">
-    <div class="panel-heading">
-        <span class="label label-success">студент</span>
-        <span class="pupil-name"><?= $pupil->name; ?></span>
-        <button class="btn btn-default pull-right panel-info-button" onclick="Dashboard.togglePupilInfo(this);">
+<div class="card border-top border-white result-pupil">
+    <div class="card-header bg-success text-white justify-content-between align-items-center d-flex px-3 py-2">
+        <div class="font-weight-bold">
+            <span class="badge badge-secondary">студент</span>
+            <span class="pupil-name"><?= $pupil->name; ?></span>
+        </div>
+        <button class="btn btn-light" onclick="Dashboard.togglePupilInfo(this);">
             <span class="fas fa-arrow-alt-circle-down"></span>
         </button>
     </div>
-    <div class="panel-body hidden pupil-info" data-id="<?= $pupil->id; ?>"></div>
+    <div class="card-body collapse pupil-info p-3" data-id="<?= $pupil->id; ?>"></div>
 </div>

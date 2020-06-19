@@ -49,7 +49,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <div class="input-group input-group-lg">
                     <input id="search_contract" class="form-control" placeholder="Номер договора" required pattern="\d+" <?= $searchValue ? '' : 'autofocus'; ?> autocomplete="off">
                     <div class="input-group-append">
-                        <button class="btn btn-success">Искать</button>
+                        <button class="btn btn-success"><span class="fas fa-search"></span></button>
                     </div>
                 </div>
             </form>
@@ -63,7 +63,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     </div>
                     <input id="search_phone" class="form-control phone-formatted" placeholder="Телефон ученика или родителей" required minlength="11" maxlength="11" pattern="\d{2} \d{3}-\d{4}" value="<?= $searchValue; ?>" <?= $searchValue ? 'autofocus' : ''; ?>>
                     <div class="input-group-append">
-                        <button class="btn btn-success">Искать</button>
+                        <button class="btn btn-success"><span class="fas fa-search"></span></button>
                     </div>
                 </div>
             </form>
@@ -128,7 +128,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <div class="input-group input-group-lg">
                     <input id="search_gift_card" class="form-control" placeholder="Код с квитанции" required>
                     <div class="input-group-append">
-                        <button class="btn btn-success">Искать</button>
+                        <button class="btn btn-success"><span class="fas fa-search"></span></button>
                     </div>
                 </div>
             </form>

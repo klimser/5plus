@@ -31,6 +31,7 @@ $this->render('/grunt-assets');
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-config" content="<?= Yii::$app->homeUrl; ?>icons/browserconfig.xml">
     <meta name="theme-color" content="#ffffff">
+    <meta name="creator" content="Sergey Klimov <https://sergey-klimov.ru>">
     <link rel="apple-touch-icon" sizes="180x180" href="<?= Yii::$app->homeUrl; ?>icons/apple-touch-icon.png?v=fjhbdf9b40">
     <link rel="icon" type="image/png" href="<?= Yii::$app->homeUrl; ?>icons/favicon-32x32.png?v=fjhbdf9b40" sizes="32x32">
     <link rel="icon" type="image/png" href="<?= Yii::$app->homeUrl; ?>icons/favicon-16x16.png?v=fjhbdf9b40" sizes="16x16">
