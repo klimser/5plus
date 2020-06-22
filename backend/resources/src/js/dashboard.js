@@ -36,13 +36,13 @@ let Dashboard = {
         let pupilNewBlock = $(form).find("#contract-pupil-new");
         $(form).find("#contract-createDate").prop("disabled", data.groupPupil > 0);
         if (data.groupPupil > 0) {
-            $(pupilExistsBlock).removeClass("hidden");
-            $(pupilNewBlock).addClass("hidden");
+            $(pupilExistsBlock).collapse('show');
+            $(pupilNewBlock).collapse("hide");
         } else {
-            $(pupilExistsBlock).addClass("hidden");
-            $(pupilNewBlock).removeClass("hidden");
+            $(pupilExistsBlock).collapse("hide");
+            $(pupilNewBlock).collapse("show");
             let datepickerOptions = Main.datepickerDefaultSettings;
-            datepickerOptions.startDate = data.groupDateStart;
+            datepickerOptions.minDate = data.groupDateStart;
             $(pupilNewBlock).find(".datepicker").datepicker(datepickerOptions);
         }
         $('#modal-contract').modal("show");
@@ -463,7 +463,7 @@ let Dashboard = {
         }
     },
     filterGroups: function(e) {
-        $(e).closest(".groups").find("table.groups-table tr.inactive")
+        $(e).closest(".groups").find(".groups-table .group-item.inactive")
             .collapse($(e).is(':checked') ? 'show' : 'hide');
     }
 };

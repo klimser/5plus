@@ -39,7 +39,7 @@ foreach ($payments as $payment) {
             </div>
         </div>
     </div>
-    <table class="table table-bordered table-sm payments-table">
+    <table class="table table-bordered table-sm table-responsive-md payments-table">
         <thead>
             <tr>
                 <th>группа</th>

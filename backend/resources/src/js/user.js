@@ -104,15 +104,13 @@ let User = {
         }
 
         let container = $(parentContainer).find(".consultation-mandatory");
-        let blockHtml = '<div class="consultation-item panel panel-default"><div class="panel-body">';
+        let blockHtml = '<div class="consultation-item card mb-3"><div class="card-body p-3">';
         if ($(container).html().length > 0) {
             container = $(parentContainer).find(".consultation-optional");
             blockHtml += '<button type="button" class="close" aria-label="Close" onclick="User.removeConsultation(this);"><span aria-hidden="true">&times;</span></button>';
         }
-        blockHtml += '<div class="form-group">' +
-            '<label>Предмет</label>' +
-            '<select class="form-control subject-select" name="consultation[]" autocomplete="off">' + this.getSubjectOptions(subjectId) + '</select>' +
-            '</div>';
+        blockHtml += '<label>Предмет</label>' +
+            '<select class="form-control subject-select" name="consultation[]" autocomplete="off">' + this.getSubjectOptions(subjectId) + '</select>';
         blockHtml += '</div></div>';
         $(container).append(blockHtml);
     },
@@ -125,22 +123,22 @@ let User = {
             parentContainer = document;
         }
 
-        let blockHtml = '<div class="welcome-lesson-item panel panel-default"><div class="panel-body">';
+        let blockHtml = '<div class="welcome-lesson-item card mb-3"><div class="card-body p-3">';
         blockHtml += '<div class="row">' +
-            '<div class="col-xs-10 col-sm-11 col-md-4"><div class="form-group">' +
+            '<div class="col-10 col-md-11 col-lg-4"><div class="form-group">' +
             '<label>Группа</label>' +
             '<select class="form-control group-select" name="welcome_lesson[groupId][' + this.iterator + ']" autocomplete="off" onchange="User.setWelcomeLessonGroup(this);">' +
             this.getGroupOptions(parseInt(data.groupId), true) +
             '</select>' +
             '</div>' +
             '</div>';
-        blockHtml += '<div class="col-xs-2 col-sm-1 col-md-push-7"><button type="button" class="close" aria-label="Close" onclick="User.removeWelcomeLesson(this);"><span aria-hidden="true">&times;</span></button></div>';
-        blockHtml += '<div class="col-xs-12 col-md-4 col-md-pull-1"><div class="form-group">' +
+        blockHtml += '<div class="col-2 col-md-1 order-lg-last"><button type="button" class="close" aria-label="Close" onclick="User.removeWelcomeLesson(this);"><span aria-hidden="true">&times;</span></button></div>';
+        blockHtml += '<div class="col-12 col-lg-4"><div class="form-group">' +
             '<label>Предмет</label>' +
             '<select class="form-control subject-select" name="welcome_lesson[subjectId][' + this.iterator + ']" autocomplete="off" onchange="User.setWelcomeLessonSubject(this);"' +
             (data.groupId > 0 ? ' disabled ' : '') + '>' + this.getSubjectOptions(data.subjectId) + '</select>' +
             '</div></div>';
-        blockHtml += '<div class="col-xs-12 col-md-3 col-md-pull-1"><div class="form-group">' +
+        blockHtml += '<div class="col-12 col-lg-3"><div class="form-group">' +
             '<label>Учитель</label>' +
             '<select class="form-control teacher-select" name="welcome_lesson[teacherId][' + this.iterator + ']" autocomplete="off"' + (data.groupId > 0 ? ' disabled ' : '') + '>' +
             this.getTeacherOptions(data.subjectId, data.teacherId) + '</select>' +
@@ -148,19 +146,15 @@ let User = {
         blockHtml += '</div>';
         blockHtml += '<div class="form-group">' +
             '<label>Дата</label>' +
-            '<div class="input-group date datepicker">' +
-            '<input type="text" class="form-control date-select" name="welcome_lesson[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
-            '<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>' +
-            '</div>' +
+            '<input type="text" class="form-control date-select datepicker" name="welcome_lesson[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
             '</div>';
         blockHtml += '</div></div>';
         let container = $(parentContainer).find(".welcome_lessons");
         $(container).append(blockHtml);
         
         this.iterator++;
-        $(container).find('.welcome-lesson-item:last').find(".datepicker")
-            .datepicker(Main.datepickerDefaultSettings);
-        this.setWelcomeLessonSubject($(container).find('.welcome-lesson-item:last').find("select.subject-select"));
+        $(container).find(".welcome-lesson-item:last .datepicker").datepicker(Main.datepickerDefaultSettings);
+        this.setWelcomeLessonSubject($(container).find(".welcome-lesson-item:last select.subject-select"));
     },
     addGroup: function(data, parentContainer) {
         this.setPupilPhoneRequired(true);
@@ -174,59 +168,59 @@ let User = {
             data.date = '';
         }
         
-        let blockHtml = '<div class="group-item panel panel-default"><div class="panel-body">';
-        blockHtml += '<div class="row"><div class="col-xs-10 col-sm-11"><div class="form-group">' +
+        let blockHtml = '<div class="group-item card mb-3"><div class="card-body p-3">';
+        blockHtml += '<button type="button" class="close" aria-label="Close" onclick="User.removeGroup(this);"><span aria-hidden="true">&times;</span></button>';
+        blockHtml += '<div class="form-group">' +
             '<label>Группа</label>' +
             '<select class="form-control group-select" name="group[groupId][' + this.iterator + ']" autocomplete="off" onchange="User.setGroup(this, true);" required>' +
             this.getGroupOptions(parseInt(data.groupId)) +
             '</select>' +
-            '</div></div>';
-        blockHtml += '<div class="col-xs-2 col-sm-1"><button type="button" class="close" aria-label="Close" onclick="User.removeGroup(this);"><span aria-hidden="true">&times;</span></button></div></div>';
+            '</div>';
         blockHtml += '<div class="form-group">' +
             '<label>Начало занятий</label>' +
-            '<div class="radio">' +
-            '<label>' +
-            '<input type="radio" name="group[dateDefined][' + this.iterator + ']" value="0"' + (data.date.length > 0 ? '' : ' checked ') + ' onchange="User.setGroupDateType(this);" required>' +
-            'ещё не решил (не добавлять в группу)' +
-            '</label>' +
+            '<div class="form-check">' +
+            '<input class="form-check-input" type="radio" name="group[dateDefined][' + this.iterator + ']" id="group-date-defined-0-' + this.iterator + '"' +
+            ' value="0"' + (data.date.length > 0 ? '' : ' checked ') + ' onchange="User.setGroupDateType(this);" required>' +
+            '<label class="form-check-label" for="group-date-defined-0-' + this.iterator + '">ещё не решил (не добавлять в группу)</label>' +
             '</div>' +
-            '<div class="radio">' +
-            '<label>' +
-            '<input type="radio" name="group[dateDefined][' + this.iterator + ']" value="1"' + (data.date.length > 0 ? ' checked ' : '') + ' onchange="User.setGroupDateType(this);" required>' +
-            '<div class="row"><div class="col-xs-3 col-md-1"> дата</div><div class="col-xs-9 col-md-4">' +
-            '<div class="input-group date datepicker">' +
-            '<input type="text" class="form-control date-select" name="group[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
-            '<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>' +
-            '</div></div></div>' +
+            '<div class="form-check">' +
+            '<input class="form-check-input" type="radio" name="group[dateDefined][' + this.iterator + ']" id="group-date-defined-1-' + this.iterator + '"' +
+            ' value="1"' + (data.date.length > 0 ? ' checked ' : '') + ' onchange="User.setGroupDateType(this);" required>' +
+            '<label class="form-check-label d-flex" for="group-date-defined-1-' + this.iterator + '">' +
+            '<div class="row w-100"><div class="col-3 col-lg-1"> дата</div><div class="col-9 col-lg-4">' +
+            '<input type="text" class="form-control date-select datepicker" name="group[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
+            '</div></div>' +
             '</label>' +
             '</div>' +
             '</div>';
         if (this.contractAllowed || this.incomeAllowed) {
-            blockHtml += '<div class="checkbox">' +
-                '<label>' +
-                '<input type="checkbox" name="group[contract][' + this.iterator + ']" autocomplete="off" value="1" ' + (data.hasOwnProperty('contract') ? ' checked ' : '') + ' onchange="User.checkAddContract(this);">' +
-                ' выдать договор' +
+            blockHtml += '<div class="form-check">' +
+                '<input class="form-check-input" type="checkbox" name="group[contract][' + this.iterator + ']" autocomplete="off"' +
+                ' value="1" id="group-contract-' + this.iterator + '" ' + (data.hasOwnProperty('contract') ? ' checked ' : '') + ' onchange="User.checkAddContract(this);">' +
+                '<label class="form-check-label" for="group-contract-' + this.iterator + '">' +
+                'выдать договор' +
                 '</label>' +
                 '</div>' +
-                '<div class="contract-block ' + (data.hasOwnProperty('contract') ? '' : ' hidden ') + '">' +
+                '<div class="contract-block collapse ' + (data.hasOwnProperty('contract') ? ' show ' : '') + '">' +
                 '<div class="form-group">' +
                 '<label>Сумма</label>' +
                 '<input class="form-control amount-input" name="group[amount][' + this.iterator + ']" autocomplete="off" type="number" step="1000" min="1000" required ' +
                 (data.hasOwnProperty('contract') ? '' : ' disabled ') + ' value="' + data.amount + '">' +
                 '<div class="amount-helper-buttons">' +
-                '<button type="button" class="btn btn-default btn-xs price" onclick="User.setAmount(this);">за 1 месяц</button>' +
-                '<button type="button" class="btn btn-default btn-xs price3" onclick="User.setAmount(this);">за 3 месяца</button>' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm price" onclick="User.setAmount(this);">за 1 месяц</button>' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm price3" onclick="User.setAmount(this);">за 3 месяца</button>' +
                 '</div>' +
                 '</div>';
 
             if (this.incomeAllowed) {
-                blockHtml += '<div class="checkbox">' +
-                    '<label>' +
-                    '<input type="checkbox" name="group[payment][' + this.iterator + ']" autocomplete="off" value="1" ' + (data.hasOwnProperty('payment') ? ' checked ' : '')
-                    + ' onchange="User.checkAddPayment(this);">' + ' принять оплату' +
+                blockHtml += '<div class="form-check">' +
+                    '<input class="form-check-input" type="checkbox" name="group[payment][' + this.iterator + ']" autocomplete="off"' +
+                    ' value="1" id="group-payment-' + this.iterator + '" ' + (data.hasOwnProperty('payment') ? ' checked ' : '') + ' onchange="User.checkAddPayment(this);">' +
+                    '<label class="form-check-label" for="group-payment-' + this.iterator + '">' +
+                    'принять оплату' +
                     '</label>' +
                     '</div>' +
-                    '<div class="form-group payment-comment-block ' + (data.hasOwnProperty('payment') ? '' : ' hidden ') + '">' +
+                    '<div class="form-group payment-comment-block collapse ' + (data.hasOwnProperty('payment') ? ' show ' : '') + '">' +
                     '<label>Комментарий к платежу</label>' +
                     '<input class="form-control" name="group[paymentComment][' + this.iterator + ']" autocomplete="off" value="' + data.paymentComment + '">' +
                     '</div>';
@@ -239,7 +233,7 @@ let User = {
         this.iterator++;
         let datepickerOptions = Main.datepickerDefaultSettings;
         if (this.pupilLimitDate !== null) {
-            datepickerOptions.startDate = this.pupilLimitDate;
+            datepickerOptions.minDate = this.pupilLimitDate;
         }
         let currentGroupItem = $(container).find('.group-item:last');
         $(currentGroupItem).find(".datepicker").datepicker(datepickerOptions);
@@ -349,28 +343,19 @@ let User = {
             }
         }
         let limitDate = group.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
-        $(container).find(".datepicker").datepicker('setStartDate', new Date(limitDate));
+        $(container).find(".datepicker").datepicker("option", "minDate", new Date(limitDate));
     },
     setGroupDateType: function(e) {
         $(e).closest(".group-item").find(".date-select").prop("disabled", $(e).val() <= 0);
     },
     checkAddPayment: function(e) {
-        let paymentCommentBlock = $(e).closest(".group-item").find(".payment-comment-block");
-        if (e.checked) {
-            $(paymentCommentBlock).removeClass("hidden");
-        } else {
-            $(paymentCommentBlock).addClass("hidden");
-        }
+        $(e).closest(".group-item").find(".payment-comment-block").collapse(e.checked ? 'show' : 'hide');
     },
     checkAddContract: function(e) {
         let contatiner = $(e).closest(".group-item");
         $(contatiner).find(".amount-input").prop("disabled", !e.checked);
         $(contatiner).find(".company-input").prop("disabled", !e.checked);
-        if (e.checked) {
-            $(contatiner).find(".contract-block").removeClass('hidden');
-        } else {
-            $(contatiner).find(".contract-block").addClass('hidden');
-        }
+        $(contatiner).find(".contract-block").collapse(e.checked ? 'show' : 'hide');
     },
     setAmount: function(e) {
         $(e).closest(".group-item").find(".amount-input").val($(e).data('price'));

@@ -10,7 +10,7 @@ $contracts = $pupil->getContracts()->with('group')->all();
 ?>
 
 <div class="view-contracts">
-    <table class="table table-bordered table-sm">
+    <table class="table table-bordered table-sm table-responsive-md">
         <tr>
             <th>группа</th>
             <th>сумма</th>

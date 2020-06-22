@@ -6,9 +6,9 @@ use backend\models\WelcomeLesson;
 /* @var $pupil \common\models\User */
 
 ?>
-<div class="welcome_lessons m-t-10">
+<div class="welcome_lessons mt-2">
     <?php if (count($pupil->welcomeLessons) > 0): ?>
-        <table class="table table-bordered table-condensed">
+        <table class="table table-bordered table-sm">
             <tr>
                 <th>Группа, предмет</th>
                 <th>Дата</th>
