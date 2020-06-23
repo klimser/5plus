@@ -13,38 +13,32 @@
                     <div class="form-group row">
                         <label class="col-sm-3 col-form-label">Студент</label>
                         <div class="col-sm-9">
-                            <p class="form-control-static" id="contract-pupilName"></p>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-3 col-form-label">Студент</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-static" id="contract-pupilName"></p>
+                            <input readonly class="form-control-plaintext" id="contract-pupilName">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-3 col-form-label">Группа</label>
                         <div class="col-sm-9">
-                            <p class="form-control-static" id="contract-groupName"></p>
+                            <input readonly class="form-control-plaintext" id="contract-groupName">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-3 col-form-label">Сумма</label>
                         <div class="col-sm-9">
-                            <p class="form-control-static" id="contract-amount"></p>
+                            <input readonly class="form-control-plaintext" id="contract-amount">
                         </div>
                     </div>
                     <div id="contract-pupil-exists" class="collapse">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Занимается с</label>
                             <div class="col-sm-9">
-                                <p class="form-control-static" id="contract-pupilDateStart"></p>
+                                <input readonly class="form-control-plaintext" id="contract-pupilDateStart">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Оплачено до</label>
                             <div class="col-sm-9">
-                                <p class="form-control-static" id="contract-pupilDateCharge"></p>
+                                <input readonly class="form-control-plaintext" id="contract-pupilDateCharge">
                             </div>
                         </div>
                     </div>

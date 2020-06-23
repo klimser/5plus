@@ -25,11 +25,7 @@ let Dashboard = {
         Object.getOwnPropertyNames(data).forEach(function (key) {
             let elem = $(form).find("#contract-" + key);
             if (elem.length > 0) {
-                if ($(elem).prop("tagName") === 'P') {
-                    $(elem).text(data[key]);
-                } else {
-                    $(elem).val(data[key]);
-                }
+                $(elem).val(data[key]);
             }
         });
         let pupilExistsBlock = $(form).find("#contract-pupil-exists");
