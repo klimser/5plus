@@ -75,7 +75,7 @@ foreach ($groupPupils as $groupPupil) {
                                 data-date="<?= $limitDate->format('d.m.Y'); ?>">
                                 <span class="fas fa-running"></span> <span class="fas fa-arrow-right"></span>
                             </button>
-                            <button type="button" title="удалить из группы" class="btn btn-outline-dark mb-2" onclick="Dashboard.showEndPupilForm(this);"
+                            <button type="button" title="завершает ходить" class="btn btn-outline-dark mb-2" onclick="Dashboard.showEndPupilForm(this);"
                                     data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>"
                                     data-date="<?= $limitDate->format('Y-m-d'); ?>">
                                 <span class="fas fa-skull-crossbones"></span>

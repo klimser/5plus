@@ -404,8 +404,8 @@ let Dashboard = {
         $('#end-pupil-messages-place').html('');
         let form = $("#end-pupil-form");
         $(form).find("#end-pupil-id").val(groupPupilId);
-        $(form).find("#end-pupil-group").text(group.name);
-        $(form).find("#end-pupil-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#end-pupil-group").val(group.name);
+        $(form).find("#end-pupil-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
 
         let groupLimitDate = $(e).data("date");
         let limitDate = this.pupilLimitDate !== null && this.pupilLimitDate > groupLimitDate ? this.pupilLimitDate : groupLimitDate;
