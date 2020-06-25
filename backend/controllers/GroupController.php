@@ -353,7 +353,7 @@ class GroupController extends AdminController
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $formData = Yii::$app->request->post('group-move', []);
-        if (!isset($formData['id'], $formData['group_id'], $formData['date'])) {
+        if (!isset($formData['id'], $formData['group_id'], $formData['date_from'], $formData['date_to'])) {
             return self::getJsonErrorResult('Wrong request');
         }
 

@@ -305,8 +305,8 @@ let Dashboard = {
         $('#group-move-messages-place').html('');
         let form = $("#group-move-form");
         $(form).find("#group-move-id").val(groupPupilId);
-        $(form).find("#group-move-group").text(group.name);
-        $(form).find("#group-move-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#group-move-group").val(group.name);
+        $(form).find("#group-move-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
         let optionsHtml = '';
         Main.groupActiveList.forEach(function(id) {
             if (id !== groupId) {
@@ -316,7 +316,7 @@ let Dashboard = {
         $(form).find("#group-move-new-group").html(optionsHtml);
         $(form).find("#group-move-date").val('');
         let datepickerOptions = Main.datepickerDefaultSettings;
-        datepickerOptions.startDate = $(e).data('date');
+        datepickerOptions.minDate = $(e).data('date');
         $(form).find(".datepicker").datepicker(datepickerOptions);
         $("#modal-group-move").modal("show");
     },

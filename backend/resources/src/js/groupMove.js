@@ -59,11 +59,11 @@ let GroupMove = {
     },
     setGroupToDateInterval: function (elem) {
         let groupId = $(elem).val();
-        let dateToElem = $("#date_to");
+        let dateToElem = $("#group-move-date-to");
         $(dateToElem).datepicker("option", "minDate", new Date(Main.groupMap[groupId].dateStart));
         let endDate = Main.groupMap[groupId].dateEnd;
         if (endDate !== null) {
-            endDate = $.datepicker.parseDate("yy-mm-dd", endDate);
+            endDate = new Date(endDate);
         }
         $(dateToElem).datepicker("option", "maxDate", endDate);
 

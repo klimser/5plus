@@ -53,7 +53,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     [
                         'name' => 'date_from',
                         'value' => date('d.m.Y'),
-                        'options' => ['id' => 'date_from', 'required' => true],
+                        'options' => ['id' => 'group-move-date-from', 'required' => true],
                     ]));?>
             </div>
         </div>
@@ -69,7 +69,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     [
                         'name' => 'date_to',
                         'value' => date('d.m.Y'),
-                        'options' => ['id' => 'date_to', 'required' => true],
+                        'options' => ['id' => 'group-move-date-to', 'required' => true],
                     ]));?>
             </div>
         </div>
