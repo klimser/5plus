@@ -11,7 +11,7 @@ let GroupMove = {
             });
     },
     loadGroups: function () {
-        let pupilId = $("#pupil").val();
+        let pupilId = $("#pupil-id").val();
         let groupFrom = $("#group_from");
         $(groupFrom).html('');
         if (pupilId > 0 && $(groupFrom).data("pupil") !== pupilId) {
@@ -27,15 +27,15 @@ let GroupMove = {
                 .done(function (data) {
                     let groupFrom = $("#group_from");
                     let htmlAddon = '';
-                    let activeGroup = $(groupFrom).data('group');
+                    let activeGroupPupil = $(groupFrom).data('groupPupil');
                     data.forEach(function(groupData) {
-                        let group = Main.groupMap[groupData.id];
+                        let group = Main.groupMap[groupData.group_id];
                         htmlAddon += '<option value="' + groupData.id + '" data-start="' + groupData.date_start + '" ' +
-                            'data-end="' + groupData.date_end + '" ' + (groupData.id === activeGroup ? ' selected ' : '') + '>' +
+                            'data-end="' + groupData.date_end + '" ' + (groupData.id === activeGroupPupil ? ' selected ' : '') + '>' +
                             group.name + '</option>';
                     });
                     $(groupFrom).html(htmlAddon);
-                    $(groupFrom).data("pupil", $("#pupil").val());
+                    $(groupFrom).data("pupil", $("#pupil-id").val());
                     $(groupFrom).change();
                 })
                 .fail(Main.logAndFlashAjaxError)
@@ -44,8 +44,13 @@ let GroupMove = {
                 });
         }
     },
+    selectGroup: function(e) {
+        $("#group-move-id").val($(e).val());
+        return this.setGroupFromDateInterval(e);
+    },
     setGroupFromDateInterval: function (elem) {
         let chosenOption = $(elem).find("option:selected");
+        $(elem).data('groupPupil', $(elem).val());
         let dateFromElem = $("#date_from");
         $(dateFromElem).datepicker("option", "minDate", $(chosenOption).data("start"));
         $(dateFromElem).datepicker("option", "maxDate", $(chosenOption).data("end"));
@@ -87,17 +92,21 @@ let GroupMove = {
             type: 'post',
             dataType: 'json',
             data: {
-                user_id: $("#pupil").val(),
-                group_from: $(groupFromElem).val(),
-                group_to: $(groupToElem).val(),
-                move_date: $("#move_date").val()
+                "group-move": {
+                    id: $("#group-move-id").val(),
+                    group_id: $(groupToElem).val(),
+                    date_from: $("#group-move-date-from").val(),
+                    date_to: $("#group-move-date-to").val()
+                }
             }
         })
             .done(function (data) {
                 if (data.status === 'ok') {
                     Main.throwFlashMessage('#messages_place', 'Студент переведён', 'alert-success');
                     $("#move-pupil-form").collapse('hide');
-                } else Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+                } else {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+                }
             })
             .fail(Main.logAndFlashAjaxError)
             .always(GroupMove.unlockMoveButton);

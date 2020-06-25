@@ -26,11 +26,12 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="form-group">
         <label for="pupil">Студент</label>
         <?php if ($groupPupil): ?>
-            <input type="hidden" id="pupil" value="<?= $groupPupil->user_id; ?>">
+            <input type="hidden" id="group-move-id" value="<?= $groupPupil->id; ?>">
             <input readonly class="form-control-plaintext" value="<?= $groupPupil->user->name; ?>">
         <?php else: ?>
             <div>
-                <input type="hidden" class="autocomplete-user-id" id="pupil" onchange="GroupMove.loadGroups();">
+                <input type="hidden" id="group-move-id">
+                <input type="hidden" class="autocomplete-user-id" id="pupil-id" onchange="GroupMove.loadGroups();">
                 <input class="autocomplete-user form-control" id="pupil-to-move" placeholder="начните печатать фамилию или имя" data-role="<?= User::ROLE_PUPIL; ?>" required>
             </div>
         <?php endif; ?>
@@ -43,7 +44,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     <input type="hidden" id="group_from" value="<?= $groupPupil->group_id; ?>">
                     <input readonly class="form-control-plaintext" value="<?= $groupPupil->group->name; ?>">
                 <?php else: ?>
-                    <select id="group_from" class="form-control" onchange="GroupMove.setGroupFromDateInterval(this);" required></select>
+                    <select id="group_from" class="form-control" onchange="GroupMove.selectGroup(this);" required></select>
                 <?php endif; ?>
             </div>
             <div class="form-group">

@@ -367,13 +367,16 @@ class GroupController extends AdminController
             return self::getJsonErrorResult('Группа В не найдена');
         }
         
-        $moveDate =  date_create_from_format('d.m.Y', $formData['date']);
-        if (!$moveDate || $moveDate <= $groupPupil->startDateObject || $moveDate < $groupTo->startDateObject) {
+        $dateFrom =  date_create_from_format('d.m.Y', $formData['date_from'])->modify('+1 day midnight');
+        $dateTo =  date_create_from_format('d.m.Y', $formData['date_to'])->modify('midnight');
+        if (!$dateFrom
+            || !$dateTo
+            || ($groupPupil->group->date_end && $dateFrom > $groupPupil->group->endDateObject)
+            || $dateTo < $groupTo->startDateObject
+        ) {
             self::getJsonErrorResult('Неверная дата перевода');
         }
-        
-        $moveDate->modify('midnight');
-        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $moveDate);
+        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $dateFrom);
         if ($unknownEvent !== null) {
             return self::getJsonErrorResult(
                 'В группе ИЗ остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: '
@@ -384,23 +387,21 @@ class GroupController extends AdminController
             );
         }
 
-        $income = Payment::find()
+        $moneyLeft = Payment::find()
             ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
-            ->andWhere(['>', 'amount', 0])
+            ->andWhere(['or',
+                ['>', 'amount', 0],
+                ['and', ['<', 'amount', 0], ['<', 'created_at', $dateFrom->format('Y-m-d H:i:s')]]
+            ])
             ->select('SUM(amount)')->scalar();
-        $outcome = Payment::find()
-            ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
-            ->andWhere(['<', 'amount', 0])
-            ->andWhere(['<', 'created_at', $moveDate->format('Y-m-d H:i:s')])
-            ->select('SUM(amount)')->scalar();
-        if ($income + $outcome < 0) {
-            return self::getJsonErrorResult('Студент не может быть переведён пока не погасит долг - ' . (0 - $income - $outcome));
+        if ($moneyLeft < 0) {
+            return self::getJsonErrorResult('Студент не может быть переведён пока не погасит долг - ' . (0 - $moneyLeft));
         }
 
         $transaction = GroupPupil::getDb()->beginTransaction();
         try {
-            if (!$groupPupil->endDateObject || $groupPupil->endDateObject > $moveDate) {
-                $groupPupil->date_end = $moveDate->format('Y-m-d');
+            if (!$groupPupil->endDateObject || $groupPupil->endDateObject > $dateFrom) {
+                $groupPupil->date_end = $dateFrom->format('Y-m-d');
                 $groupPupil->moved = GroupPupil::STATUS_ACTIVE;
                 $groupPupil->active = GroupPupil::STATUS_INACTIVE;
                 if (!$groupPupil->save()) {
@@ -409,16 +410,8 @@ class GroupController extends AdminController
                 EventComponent::fillSchedule($groupPupil->group);
                 GroupComponent::calculateTeacherSalary($groupPupil->group);
             }
-            $groupPupilTo = new GroupPupil();
-            $groupPupilTo->user_id = $groupPupil->user_id;
-            $groupPupilTo->group_id = $groupTo->id;
-            $groupPupilTo->date_start = $moveDate->format('Y-m-d');
-            if (!$groupPupilTo->save()) {
-                throw new \Exception($groupPupilTo->getErrorsAsString());
-            }
-            $groupTo->link('groupPupils', $groupPupilTo);
-
-            GroupComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user, $moveDate);
+            GroupComponent::addPupilToGroup($groupPupil->user, $groupTo, $dateTo);
+            GroupComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user, $dateTo);
 
             $transaction->commit();
             return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
@@ -617,7 +610,8 @@ class GroupController extends AdminController
             if ($pupil) {
                 foreach ($pupil->activeGroupPupils as $groupPupil) {
                     $groupData = [
-                        'id' => $groupPupil->group_id,
+                        'id' => $groupPupil->id,
+                        'group_id' => $groupPupil->group_id,
                         'date_start' => $groupPupil->startDateObject->format('d.m.Y'),
                         'date_end' => $groupPupil->date_end ? $groupPupil->endDateObject->format('d.m.Y') : '',
                     ];
