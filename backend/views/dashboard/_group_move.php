@@ -12,32 +12,32 @@
                     <div id="group-move-messages-place"></div>
                     <input type="hidden" name="group-move[id]" id="group-move-id">
                     <div class="form-group row">
-                        <label class="col-sm-3 control-label">Студент</label>
-                        <div class="col-sm-9">
+                        <label class="col-12 col-sm-3 control-label">Студент</label>
+                        <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="group-move-pupil-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-3 control-label">Из группы</label>
-                        <div class="col-sm-9">
+                        <label class="col-12 col-sm-3 control-label">Из группы</label>
+                        <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="group-move-group">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-3 control-label">Последний день в старой группе</label>
-                        <div class="col-sm-9">
+                        <label class="col-12 col-sm-3 control-label">Последний день в старой группе</label>
+                        <div class="col-12 col-sm-9">
                             <input class="form-control datepicker" name="group-move[date_from]" id="group-move-date-from" value="" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-3 control-label">В группу</label>
-                        <div class="col-sm-9">
+                        <label class="col-12 col-sm-3 control-label">В группу</label>
+                        <div class="col-12 col-sm-9">
                             <select id="group-move-new-group" name="group-move[group_id]" class="form-control" required autocomplete="off" onchange="GroupMove.setGroupToDateInterval(this);"></select>
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-3 control-label">Первый день в новой группе</label>
-                        <div class="col-sm-9">
+                        <label class="col-12 col-sm-3 control-label">Первый день в новой группе</label>
+                        <div class="col-12 col-sm-9">
                             <input class="form-control datepicker" name="group-move[date_to]" id="group-move-date-to" value="" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
                         </div>
                     </div>

@@ -282,7 +282,7 @@ class UserController extends AdminController
         /** @var Group $group */
         $group = Group::find()->andWhere(['id' => $groupData['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
         if (!$group) throw new Exception('Группа не найдена');
-        $startDate = date_create_from_format('d.m.Y', $groupData['date']);
+        $startDate = new \DateTime($groupData['date']);
         if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
         return GroupComponent::addPupilToGroup($pupil, $group, $startDate);
@@ -321,7 +321,7 @@ class UserController extends AdminController
             }
         }
         
-        $startDate = date_create_from_format('d.m.Y', $welcomeLessonData['date']);
+        $startDate = new \DateTime($welcomeLessonData['date']);
         if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
         $welcomeLesson->user_id = $pupil->id;
@@ -336,13 +336,16 @@ class UserController extends AdminController
 
     public function actionAddToGroup($userId)
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('manageUsers');
+
         /** @var User $pupil */
         $pupil = User::find()
             ->andWhere(['id' => $userId, 'role' => User::ROLE_PUPIL])
             ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
             ->one();
-        if (!$pupil) throw new NotFoundHttpException('Pupil not found');
+        if (!$pupil) {
+            throw new NotFoundHttpException('Pupil not found');
+        }
 
         $groupData = [];
         if (Yii::$app->request->isPost) {
@@ -607,16 +610,26 @@ class UserController extends AdminController
         ]);
     }
 
-    public function actionView(int $id)
+    public function actionView(int $id, ?string $tab = null)
     {
         $this->checkRequestIsAjax();
         $this->checkAccess('manageUsers');
         
         $pupil = $this->findModel($id);
 
+        if (!$tab) {
+            if (!empty($pupil->activeGroupPupils)) {
+                $tab = 'group';
+            } elseif (!empty($pupil->welcomeLessons)) {
+                $tab = 'welcome_lesson';
+            } else {
+                $tab = 'consultation';
+            }
+        }
+        
         return $this->renderPartial('view', [
             'pupil' => $pupil,
-            'activeTab' => Yii::$app->request->get('tab', 'consultation') ?: 'consultation',
+            'activeTab' => $tab,
             'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
             'contractAllowed' => Yii::$app->user->can('contractManagement'),
             'groupManagementAllowed' => Yii::$app->user->can('manageGroups'),

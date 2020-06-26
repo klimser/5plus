@@ -223,7 +223,7 @@ class WelcomeLessonController extends AdminController
             return self::getJsonErrorResult('Welcome lesson is not found');
         }
 
-        $startDate = date_create_from_format('d.m.Y', $welcomeLessonData['date']);
+        $startDate = new \DateTime($welcomeLessonData['date']);
         if (!$startDate) {
             return self::getJsonErrorResult('Wrong lesson date');
         }

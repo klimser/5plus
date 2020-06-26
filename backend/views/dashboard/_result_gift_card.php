@@ -6,11 +6,11 @@ use yii\bootstrap4\Html;
 /** @var $giftCard \common\models\GiftCard */
 /** @var $existingPupil User|null */
 ?>
-<div class="panel panel-default">
-    <div class="panel-heading">
+<div class="card">
+    <div class="card-header">
         Предоплаченная карта
     </div>
-    <div class="panel-body">
+    <div class="card-body">
         <p>Предмет <b><?= $giftCard->name; ?></b></p>
         <p>Сумма <b><?= Money::formatThousands($giftCard->amount); ?></b></p>
         <?php if ($giftCard->isNew()): ?>
@@ -28,7 +28,7 @@ use yii\bootstrap4\Html;
                 <input type="hidden" name="pupil[id]" value="<?= $existingPupil ? $existingPupil->id : ''; ?>">
                 <input type="hidden" name="group[existing]" id="existing_group_id">
                 <div class="row">
-                    <div class="col-xs-12 col-sm-6">
+                    <div class="col-12 col-sm-6">
                         <?php $nameDiffer = ($existingPupil && $existingPupil->name !== $giftCard->customer_name); ?>
                         <div class="form-group <?= $nameDiffer ? ' has-error ' : ''; ?>">
                             <label for="pupil_name">ФИО студента</label>
@@ -42,7 +42,9 @@ use yii\bootstrap4\Html;
                         <div class="form-group">
                             <label for="pupil_phone">Телефон студента</label>
                             <div class="input-group">
-                                <span class="input-group-addon">+998</span>
+                                <span class="input-group-prepend">
+                                    <span class="input-group-text">+998</span>
+                                </span>
                                 <input id="pupil_phone" class="form-control phone-formatted"
                                        name="pupil[phoneFormatted]" required maxlength="11" pattern="\d{2} \d{3}-\d{4}"
                                     <?php if ($existingPupil): ?> disabled value="<?= $existingPupil->phoneFormatted; ?>"
@@ -58,7 +60,7 @@ use yii\bootstrap4\Html;
                             ]
                         ); ?>
                     </div>
-                    <div class="col-xs-12 col-sm-6">
+                    <div class="col-12 col-sm-6">
                         <div class="form-group">
                             <label for="parents_name">ФИО родителей / Название компании</label>
                             <input id="parents_name" class="form-control" name="parents[name]"
@@ -68,7 +70,9 @@ use yii\bootstrap4\Html;
                         <div class="form-group">
                             <label for="parents_phone">Телефон родителей (компании)</label>
                             <div class="input-group">
-                                <span class="input-group-addon">+998</span>
+                                <span class="input-group-prepend">
+                                    <span class="input-group-text">+998</span>
+                                </span>
                                 <input id="parents_phone" class="form-control phone-formatted" name="parents[phoneFormatted]"
                                        maxlength="11" pattern="\d{2} \d{3}-\d{4}"
                                     <?php if ($existingPupil && $existingPupil->parent_id): ?> disabled value="<?= $existingPupil->parent->phoneFormatted; ?>"
@@ -81,7 +85,7 @@ use yii\bootstrap4\Html;
                 <?php if ($existingPupil): ?>
                     <h4>Оплатить занятия в группе</h4>
                     <?php foreach ($existingPupil->activeGroupPupils as $groupPupil): ?>
-                        <button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button"
+                        <button class="btn btn-default btn-lg mr-2 gift-card-existing-group" type="button"
                                 data-group="<?= $groupPupil->group_id; ?>" onclick="Dashboard.setGiftGroup(this);">
                             <?= $groupPupil->group->name; ?> с <?= $groupPupil->startDateObject->format('d.m.Y'); ?>
                         </button>
@@ -90,20 +94,17 @@ use yii\bootstrap4\Html;
                 <?php endif; ?>
                 <h4>Добавить в новую группу</h4>
                 <div class="row">
-                    <div class="col-xs-12 col-sm-6">
-                        <div class="form-group">
-                            <div class="input-group">
-                                <select id="new-group" name="group[id]" class="form-control" onchange="Dashboard.selectGiftGroup(this);"></select>
-                            </div>
+                    <div class="col-12 col-sm-6 form-group">
+                        <div class="input-group">
+                            <select id="new-group" name="group[id]" class="form-control" onchange="Dashboard.selectGiftGroup(this);"></select>
                         </div>
                     </div>
-                    <div class="col-xs-12 col-sm-6">
-                        <div class="form-group">
-                            <div class="input-group date datepicker">
-                                <span class="input-group-addon">с</span>
-                                <input class="form-control" name="group[date]" id="new-group-date" value="<?= date('d.m.Y'); ?>" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
-                                <span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>
-                            </div>
+                    <div class="col-12 col-sm-6 form-group">
+                        <div class="input-group">
+                            <span class="input-group-prepend">
+                                <span class="input-group-text">с</span>
+                            </span>
+                            <input class="form-control datepicker" name="group[date]" id="new-group-date" value="<?= date('d.m.Y'); ?>" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
                         </div>
                     </div>
                 </div>

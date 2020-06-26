@@ -15,26 +15,26 @@ use common\models\GroupPupil;
                     <div id="end-pupil-messages-place"></div>
                     <input type="hidden" name="end-pupil[id]" id="end-pupil-id">
                     <div class="form-group row">
-                        <label class="col-sm-4 col-form-label">Студент</label>
-                        <div class="col-sm-8">
+                        <label class="col-12 col-sm-4 col-form-label">Студент</label>
+                        <div class="col-12 col-sm-8">
                             <input readonly class="form-control-plaintext" id="end-pupil-pupil-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-4 col-form-label">Группа</label>
-                        <div class="col-sm-8">
+                        <label class="col-12 col-sm-4 col-form-label">Группа</label>
+                        <div class="col-12 col-sm-8">
                             <input readonly class="form-control-plaintext" id="end-pupil-group">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-4 col-form-label">Когда перестал(а) ходить <span class="font-weight-bold text-danger">(!!! не день последнего занятия, а следующий !!!)</span></label>
-                        <div class="col-sm-8">
+                        <label class="col-12 col-sm-4 col-form-label">День последнего занятия</label>
+                        <div class="col-12 col-sm-8">
                             <input class="form-control datepicker" name="end-pupil[date]" id="end-pupil-date" value="" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-4 col-form-label">Причина</label>
-                        <div class="col-sm-8">
+                        <label class="col-12 col-sm-4 col-form-label">Причина</label>
+                        <div class="col-12 col-sm-8">
                             <?php foreach (GroupPupil::END_REASON_LABELS as $id => $label): ?>
                                 <div class="radio">
                                     <label>

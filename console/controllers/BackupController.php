@@ -160,7 +160,7 @@ class BackupController extends Controller
             /** @var \Google_Service_Drive_DriveFile $file */
             foreach ($backupFiles->getFiles() as $file) {
                 if (preg_match('#^db_backup_(\d{4}-\d{2}-\d{2})#', $file->name, $matches)) {
-                    $backupDate = date_create_from_format('Y-m-d', $matches[1]);
+                    $backupDate = new \DateTimeImmutable($matches[1]);
                     if ($backupDate->diff($currentDate)->days > 30) {
                         $driveService->files->delete($file->id);
                     }

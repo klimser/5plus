@@ -1,5 +1,6 @@
 <?php
 
+use common\components\DefaultValuesComponent;
 use common\models\User;
 use yii\bootstrap4\Html;
 use yii\bootstrap4\ActiveForm;
@@ -32,7 +33,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?php $form = ActiveForm::begin(); ?>
 
         <div class="row">
-            <div class="col-xs-12 col-md-6">
+            <div class="col-12 col-md-6">
                 <h2>Студент</h2>
                 <?= Html::radioList(
                     'person_type',
@@ -48,16 +49,16 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 <?= $form->field($pupil, '[pupil]note')->textarea(['maxlength' => true, 'htmlOptions' => ['rows' => 3]]); ?>
 
-                <?= $form->field($pupil, '[pupil]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                <?= $form->field($pupil, '[pupil]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
 
-                <?= $form->field($pupil, '[pupil]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                <?= $form->field($pupil, '[pupil]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
             </div>
 
-            <hr class="visible-xs visible-sm">
+            <hr class="d-md-none">
 
-            <div id="parents_block" class="col-xs-12 col-md-6 <?= $personType === User::ROLE_PARENTS ? '' : ' hidden '; ?>">
+            <div id="parents_block" class="col-12 col-md-6 collapse <?= $personType === User::ROLE_PARENTS ? ' show ' : ''; ?>">
                 <h2>Родители</h2>
 
                 <div class="radio">
@@ -70,8 +71,10 @@ $this->params['breadcrumbs'][] = $this->title;
                         <input type="radio" name="parent_type" value="exist" onclick="User.changeParentType()" <?= $parentData['type'] === 'exist' ? ' checked ' : ''; ?>> Есть брат (сестра), выбрать родителей из списка
                     </label>
                 </div>
-                <div id="parents_select" <?= $parentData['type'] === 'exist' ? '' : ' class="hidden" '; ?>>
-                    <?= Html::dropDownList('parent_exists', $parentData['id'], ArrayHelper::map($existedParents, 'id', 'name'), ['class' => 'form-control chosen']); ?>
+                <div id="parents_select" class="collapse <?= $parentData['type'] === 'exist' ? ' show ' : ''; ?>">
+                    <input type="hidden" class="autocomplete-user-id" value="<?= $parentData['id']; ?>">
+                    <input class="autocomplete-user form-control" name="parent_exists" placeholder="начните печатать фамилию или имя" data-role="<?= User::ROLE_PARENTS; ?>" required
+                        <?= $parentData['type'] === 'exist' ? '' : ' disabled '; ?>>
                 </div>
                 <div class="radio">
                     <label>
@@ -79,27 +82,29 @@ $this->params['breadcrumbs'][] = $this->title;
                     </label>
                 </div>
 
-                <div id="parents_form" <?= $parentData['type'] === 'new' ? '' : ' class="hidden" '; ?>>
+                <div id="parents_form" class="collapse <?= $parentData['type'] === 'new' ? ' show ' : ''; ?>">
                     <?= $form->field($parent, '[parent]name')->textInput(['maxlength' => true]); ?>
 
-                    <?= $form->field($parent, '[parent]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                    <?= $form->field($parent, '[parent]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                         ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
 
-                    <?= $form->field($parent, '[parent]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                    <?= $form->field($parent, '[parent]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                         ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
                 </div>
             </div>
 
-            <div id="company_block" class="col-xs-12 col-md-6 <?= $personType === User::ROLE_COMPANY ? '' : ' hidden '; ?>">
+            <div id="company_block" class="col-12 col-md-6 collapse <?= $personType === User::ROLE_COMPANY ? ' show ' : ''; ?>">
                 <h2>Компания</h2>
 
                 <div class="radio">
                     <label>
-                        <input type="radio" name="company_type" value="exist" onclick="User.changeCompanyType()" <?= $companyData['type'] === 'exist' ? ' checked ' : ''; ?>> Выбрать компанию из списка
+                        <input type="radio" name="company_type" value="exist" onclick="User.changeCompanyType()" <?= $companyData['type'] === 'exist' ? ' checked ' : ''; ?>> Выбрать компанию
                     </label>
                 </div>
-                <div id="company_select" <?= $companyData['type'] === 'exist' ? '' : ' class="hidden" '; ?>>
-                    <?= Html::dropDownList('parent_exists', $companyData['id'], ArrayHelper::map($existedCompanies, 'id', 'name'), ['class' => 'form-control chosen']); ?>
+                <div id="company_select" class="collapse <?= $companyData['type'] === 'exist' ? ' show ' : ''; ?>">
+                    <input type="hidden" class="autocomplete-user-id" value="<?= $companyData['id']; ?>">
+                    <input class="autocomplete-user form-control" name="parent_exists" placeholder="начните печатать название" data-role="<?= User::ROLE_COMPANY; ?>" required
+                        <?= $companyData['type'] === 'exist' ? '' : ' disabled '; ?>>
                 </div>
                 <div class="radio">
                     <label>
@@ -107,34 +112,30 @@ $this->params['breadcrumbs'][] = $this->title;
                     </label>
                 </div>
 
-                <div id="company_form" <?= $companyData['type'] === 'new' ? '' : ' class="hidden" '; ?>>
+                <div id="company_form" class="collapse <?= $companyData['type'] === 'new' ? ' show ' : ''; ?>">
                     <?= $form->field($parentCompany, '[parentCompany]name', ['labelOptions' => ['label' => 'Название']])->textInput(['maxlength' => true]); ?>
 
-                    <?= $form->field($parentCompany, '[parentCompany]phoneFormatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                    <?= $form->field($parentCompany, '[parentCompany]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                         ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
 
-                    <?= $form->field($parentCompany, '[parentCompany]phone2Formatted', ['inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
+                    <?= $form->field($parentCompany, '[parentCompany]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                         ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-xs-12">
-                <?= $this->render('_add_group', [
-                    'consultationData' => $consultationData,
-                    'welcomeLessonData' => $welcomeLessonData,
-                    'groupData' => $groupData,
-                    'pupilLimitDate' => $pupilLimitDate,
-                    'incomeAllowed' => $incomeAllowed,
-                    'contractAllowed' => $contractAllowed,
-                ]) ?>
-            </div>
-        </div>
+
+        <?= $this->render('_add_group', [
+            'consultationData' => $consultationData,
+            'welcomeLessonData' => $welcomeLessonData,
+            'groupData' => $groupData,
+            'pupilLimitDate' => $pupilLimitDate,
+            'incomeAllowed' => $incomeAllowed,
+            'contractAllowed' => $contractAllowed,
+        ]) ?>
+
         <hr>
-        <div class="row">
-            <div class="form-group col-xs-12 text-right">
-                <?= Html::submitButton('сохранить', ['class' => 'btn btn-primary']); ?>
-            </div>
+        <div class="form-group text-right">
+            <?= Html::submitButton('сохранить', ['class' => 'btn btn-primary']); ?>
         </div>
 
         <?php ActiveForm::end(); ?>

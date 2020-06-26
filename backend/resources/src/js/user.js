@@ -27,6 +27,13 @@ let User = {
                 User.groupList.forEach(function(groupData) {
                     User.addGroup(groupData);
                 });
+
+                let autocompleteInputs = $(".user-create").find(".autocomplete-user");
+                if (autocompleteInputs.length > 0) {
+                    $(autocompleteInputs).each(function () {
+                        Main.initAutocompleteUser(this);
+                    });
+                }
             })
             .fail(Main.logAndFlashAjaxError);
     },
@@ -204,11 +211,11 @@ let User = {
                 '<div class="contract-block collapse ' + (data.hasOwnProperty('contract') ? ' show ' : '') + '">' +
                 '<div class="form-group">' +
                 '<label>Сумма</label>' +
-                '<input class="form-control amount-input" name="group[amount][' + this.iterator + ']" autocomplete="off" type="number" step="1000" min="1000" required ' +
+                '<input class="form-control income-amount" name="group[amount][' + this.iterator + ']" autocomplete="off" type="number" step="1000" min="1000" required ' +
                 (data.hasOwnProperty('contract') ? '' : ' disabled ') + ' value="' + data.amount + '">' +
                 '<div class="amount-helper-buttons">' +
-                '<button type="button" class="btn btn-outline-secondary btn-sm price" onclick="User.setAmount(this);">за 1 месяц</button>' +
-                '<button type="button" class="btn btn-outline-secondary btn-sm price3" onclick="User.setAmount(this);">за 3 месяца</button>' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm price3" onclick="Dashboard.setAmount(this);">за 3 месяца</button>' +
                 '</div>' +
                 '</div>';
 
@@ -256,12 +263,12 @@ let User = {
     changePersonType: function() {
         switch ($('input.person_type:checked').val()) {
             case '2':
-                $("#parents_block").removeClass('hidden');
-                $("#company_block").addClass('hidden');
+                $("#parents_block").collapse("show");
+                $("#company_block").collapse("hide");
                 break;
             case '4':
-                $("#parents_block").addClass('hidden');
-                $("#company_block").removeClass('hidden');
+                $("#parents_block").collapse("hide");
+                $("#company_block").collapse("show");
                 break;
         }
     },
@@ -353,12 +360,9 @@ let User = {
     },
     checkAddContract: function(e) {
         let contatiner = $(e).closest(".group-item");
-        $(contatiner).find(".amount-input").prop("disabled", !e.checked);
+        $(contatiner).find(".income-amount").prop("disabled", !e.checked);
         $(contatiner).find(".company-input").prop("disabled", !e.checked);
         $(contatiner).find(".contract-block").collapse(e.checked ? 'show' : 'hide');
-    },
-    setAmount: function(e) {
-        $(e).closest(".group-item").find(".amount-input").val($(e).data('price'));
     },
     checkPhone(e) {
         this.phoneCheckInput = e;

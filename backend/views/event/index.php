@@ -9,7 +9,7 @@ use yii\helpers\Url;
 use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
-/* @var $startDate \DateTime */
+/* @var $startDate \DateTimeImmutable */
 /* @var $events Event[] */
 /* @var $limitDate \DateTime */
 /* @var $isTeacher bool */
@@ -17,10 +17,8 @@ use yii\jui\DatePicker;
 $this->title = 'Расписание ' . $startDate->format('d.m.Y');
 $this->params['breadcrumbs'][] = $this->title;
 
-$previousDate = clone $startDate;
-$previousDate->modify('-1 day');
-$nextDate = clone $startDate;
-$nextDate->modify('+1 day');
+$previousDate = $startDate->modify('-1 day');
+$nextDate = $startDate->modify('+1 day');
 
 $this->registerJs('
 Event.init(' . time() . ');
@@ -29,10 +27,10 @@ Event.init(' . time() . ');
 ?>
 <div class="events-index">
     <div class="row">
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-md-8 col-lg-9">
             <h1><?= Html::encode($this->title) ?> <small class="text-muted"><?= Calendar::$weekDays[$startDate->format('w')]; ?></small></h1>
         </div>
-        <div class="col-12 col-lg-6 mb-3">
+        <div class="col-12 col-md-4 col-lg-3 mb-3">
             <form method="get">
                 <div class="input-group">
                     <?= DatePicker::widget([
@@ -64,7 +62,7 @@ Event.init(' . time() . ');
 
     <div class="row justify-content-end">
         <div class="col-12 col-md-4 col-lg-3">
-            <a class="btn btn-outline-dark btn-block" href="<?= Url::to(['index', 'date' => $previousDate->format('Y-m-d')]); ?>">
+            <a class="btn btn-outline-dark btn-block" href="<?= Url::to(['index', 'date' => $previousDate->format('d.m.Y')]); ?>">
                 <span class="fas fa-chevron-up"></span>
                 <?= $previousDate->format('d.m.Y'); ?>
                 <small><?= Calendar::$weekDays[$previousDate->format('w')]; ?></small>
@@ -167,7 +165,7 @@ Event.init(' . time() . ');
     <hr>
     <div class="row justify-content-end">
         <div class="col-12 col-md-4 col-lg-3">
-            <a class="btn btn-outline-dark btn-block" href="<?= Url::to(['index', 'date' => $nextDate->format('Y-m-d')]); ?>">
+            <a class="btn btn-outline-dark btn-block" href="<?= Url::to(['index', 'date' => $nextDate->format('d.m.Y')]); ?>">
                 <span class="fas fa-chevron-down"></span>
                 <?= $nextDate->format('d.m.Y'); ?>
                 <small><?= Calendar::$weekDays[$nextDate->format('w')]; ?></small>

@@ -156,17 +156,13 @@ class GroupController extends AdminController
             $groupVal = Yii::$app->request->post('Group', []);
             $newPupils = Yii::$app->request->post('pupil', []);
             $error = false;
-            if (array_key_exists('date_start', $groupVal)) {
-                if (!empty($group->groupPupils)) {
-                    Yii::$app->session->addFlash('error', 'Вы не можете изменять дату начала занятий группы');
-                    $error = true;
-                } else {
-                    $group->startDateObject = $groupVal['date_start'] ? date_create_from_format('d.m.Y', $groupVal['date_start']) : null;
-                }
+            if (!empty($groupVal['date_start']) && !empty($group->groupPupils)) {
+                Yii::$app->session->addFlash('error', 'Вы не можете изменять дату начала занятий группы');
+                $error = true;
             }
-            if (array_key_exists('date_end', $groupVal)) {
-                $group->endDateObject = $groupVal['date_end'] ? date_create_from_format('d.m.Y', $groupVal['date_end']) : null;
-            }
+            $group->startDateObject = !empty($groupVal['date_start']) ? new \DateTime($groupVal['date_start']) : null;
+            $group->endDateObject = !empty($groupVal['date_end']) ? new \DateTime($groupVal['date_end']) : null;
+
             if (!$group->date_start && !empty($newPupils)) {
                 Yii::$app->session->addFlash('error', 'Введите дату начала занятий группы!');
                 $error = true;
@@ -185,11 +181,11 @@ class GroupController extends AdminController
             $weektime = Yii::$app->request->post('weektime', []);
             $scheduleArray = [];
             for ($i = 0; $i < 7; $i++) {
-                if (isset($weekday[$i]) && !$weektime[$i]) {
+                if (!empty($weekday[$i]) && empty($weektime[$i])) {
                     Yii::$app->session->addFlash('error', 'Не указано время занятий');
                     $error = true;
                 }
-                $scheduleArray[$i] = isset($weekday[$i]) ? $weektime[$i] : '';
+                $scheduleArray[$i] = !empty($weekday[$i]) ? $weektime[$i] : '';
             }
             $group->scheduleData = $scheduleArray;
 
@@ -278,13 +274,13 @@ class GroupController extends AdminController
             $reasonIds = Yii::$app->request->post('reason_id', []);
             $reasonComments = Yii::$app->request->post('reason_comment', []);
             foreach ($newPupils as $key => $pupilId) {
-                $startDate = date_create_from_format('d.m.Y H:i:s', $pupilStartDates[$key] . ' 00:00:00');
+                $startDate = new \DateTime($pupilStartDates[$key] . ' midnight');
                 $pupil = User::findOne($pupilId);
                 if ($pupil === null || $pupil->role != User::ROLE_PUPIL) throw new \Exception('Студент не найден');
                 elseif (!$startDate) throw new \Exception('Введите корректную дату начала занятий студента ' . $pupil->name);
                 if ($startDate < $group->startDateObject) $startDate = clone $group->startDateObject;
 
-                $endDate = $pupilEndDates[$key] ? date_create_from_format('d.m.Y H:i:s', $pupilEndDates[$key] . ' 00:00:00') : null;
+                $endDate = !empty($pupilEndDates[$key]) ? new \DateTime($pupilEndDates[$key] . ' midnight') : null;
                 if ($endDate && $group->date_end && $endDate > $group->endDateObject) $endDate = clone $group->endDateObject;
                 if ($endDate && $endDate <= $startDate) throw new \Exception('Введённые даты начала и завершения занятий студента ' . $pupil->name . ' недопустимы');
                 $pupilsMap[$pupilId] = [
@@ -367,8 +363,8 @@ class GroupController extends AdminController
             return self::getJsonErrorResult('Группа В не найдена');
         }
         
-        $dateFrom =  date_create_from_format('d.m.Y', $formData['date_from'])->modify('+1 day midnight');
-        $dateTo =  date_create_from_format('d.m.Y', $formData['date_to'])->modify('midnight');
+        $dateFrom =  new \DateTimeImmutable($formData['date_from'] . ' +1 day midnight');
+        $dateTo =  new \DateTimeImmutable($formData['date_to'] . ' midnight');
         if (!$dateFrom
             || !$dateTo
             || ($groupPupil->group->date_end && $dateFrom > $groupPupil->group->endDateObject)
@@ -561,17 +557,16 @@ class GroupController extends AdminController
             return self::getJsonErrorResult('Wrong request');
         }
         /** @var GroupPupil $groupPupil */
-        $groupPupil = GroupPupil::find()->andWhere(['id' => $formData['id'], 'active' => GroupPupil::STATUS_ACTIVE])->one();
+        $groupPupil = GroupPupil::findOne(['id' => $formData['id'], 'active' => GroupPupil::STATUS_ACTIVE]);
         if (!$groupPupil) {
             return self::getJsonErrorResult('Pupil not found');
         }
         
-        $endDate =  date_create_from_format('d.m.Y', $formData['date']);
+        $endDate =  new \DateTimeImmutable($formData['date'] . ' +1 day midnight');
         if (!$endDate || $endDate <= $groupPupil->startDateObject) {
             self::getJsonErrorResult('Неверная дата');
         }
 
-        $endDate->modify('midnight');
         $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $endDate);
         if ($unknownEvent !== null) {
             return self::getJsonErrorResult(

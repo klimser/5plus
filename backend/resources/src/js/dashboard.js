@@ -91,7 +91,7 @@ let Dashboard = {
     selectGiftGroup: function(e) {
         let group = Main.groupMap[$(e).val()];
         let limitDate = this.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
-        $(e).closest("#gift-card-form").find(".datepicker").datepicker('setStartDate', new Date(limitDate));
+        $(e).closest("#gift-card-form").find(".datepicker").datepicker("option", "minDate", new Date(limitDate));
     },
     completeGiftCard: function(form) {
         Money.completeGiftCard(form)
@@ -209,10 +209,10 @@ let Dashboard = {
         let form = $("#income-form");
         $(form).find("#income-user-id").val($(e).data("user"));
         $(form).find("#income-group-id").val(groupId);
-        $(form).find("#income-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#income-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
         $(form).find(".income-amount").val(0);
         $(form).find("#payment_comment").val('');
-        $(form).find("#income-group-name").text(group.name);
+        $(form).find("#income-group-name").val(group.name);
         let amountHelpersBlock = $(form).find(".amount-helper-buttons");
         $(amountHelpersBlock).find(".price").data('price', group.price);
         $(amountHelpersBlock).find(".price3").data('price', group.price3);

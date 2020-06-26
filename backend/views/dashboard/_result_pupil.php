@@ -2,8 +2,8 @@
 /** @var $pupil \common\models\User */
 ?>
 
-<div class="card border-top border-white result-pupil">
-    <div class="card-header bg-success text-white justify-content-between align-items-center d-flex px-3 py-2">
+<div class="card result-pupil">
+    <div class="card-header bg-success text-white border-top border-white justify-content-between align-items-center d-flex px-3 py-2">
         <div class="font-weight-bold">
             <span class="badge badge-secondary">студент</span>
             <span class="pupil-name"><?= $pupil->name; ?></span>

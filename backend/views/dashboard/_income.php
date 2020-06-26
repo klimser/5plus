@@ -13,30 +13,30 @@
                     <input type="hidden" name="income[userId]" id="income-user-id" required>
                     <input type="hidden" name="income[groupId]" id="income-group-id" required>
                     <div class="form-group row">
-                        <label class="col-sm-3 control-label">Студент</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-static" id="income-pupil-name"></p>
+                        <label class="col-12 col-sm-3 control-label">Студент</label>
+                        <div class="col-12 col-sm-9">
+                            <input readonly class="form-control-plaintext" id="income-pupil-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-3 control-label">Группа</label>
-                        <div class="col-sm-9">
-                            <p class="form-control-static" id="income-group-name"></p>
+                        <label class="col-12 col-sm-3 control-label">Группа</label>
+                        <div class="col-12 col-sm-9">
+                            <input readonly class="form-control-plaintext" id="income-group-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-3 control-label">Сумма</label>
-                        <div class="col-sm-9">
+                        <label class="col-12 col-sm-3 control-label">Сумма</label>
+                        <div class="col-12 col-sm-9">
                             <input class="form-control income-amount" name="income[amount]" type="number" min="1000" step="1000" placeholder="Сумма оплаты" autocomplete="off" required>
                             <div class="amount-helper-buttons">
-                                <button type="button" class="btn btn-default btn-xs price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>
-                                <button type="button" class="btn btn-default btn-xs price3" onclick="Dashboard.setAmount(this);">за 3 месяца</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm price3" onclick="Dashboard.setAmount(this);">за 3 месяца</button>
                             </div>
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="payment_comment" class="col-sm-3 control-label">Комментарий к платежу</label>
-                        <div class="col-sm-9">
+                        <label for="payment_comment" class="col-12 col-sm-3 control-label">Комментарий к платежу</label>
+                        <div class="col-12 col-sm-9">
                             <input id="payment_comment" name="income[comment]" class="form-control" autocomplete="off">
                         </div>
                     </div>

@@ -1,8 +1,5 @@
 <?php
 
-use common\components\DefaultValuesComponent;
-use dosamigos\datepicker\DatePicker;
-
 /* @var $this \yii\web\View */
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
@@ -34,24 +31,24 @@ foreach ($groupData as $group) {
 $initialJs .= "User.init();\n";
 $this->registerJs($initialJs);
 ?>
-<ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="#consultation-tab" aria-controls="consultation-tab" role="tab" data-toggle="tab">консультация</a></li>
-    <li role="presentation"><a href="#welcome_lesson-tab" aria-controls="welcome_lesson-tab" role="tab" data-toggle="tab">пробный урок</a></li>
-    <li role="presentation"><a href="#group-tab" aria-controls="group-tab" role="tab" data-toggle="tab">в группу</a></li>
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item"><a class="nav-link active" href="#consultation-tab" aria-controls="consultation-tab" role="tab" data-toggle="tab">консультация</a></li>
+    <li class="nav-item"><a class="nav-link" href="#welcome_lesson-tab" aria-controls="welcome_lesson-tab" role="tab" data-toggle="tab">пробный урок</a></li>
+    <li class="nav-item"><a class="nav-link" href="#group-tab" aria-controls="group-tab" role="tab" data-toggle="tab">в группу</a></li>
 </ul>
 
 <div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="consultation-tab">
-        <div class="consultation-mandatory m-t-10"></div>
-        <div class="consultation-optional m-t-10"></div>
+    <div role="tabpanel" class="tab-pane fade active show" id="consultation-tab">
+        <div class="consultation-mandatory"></div>
+        <div class="consultation-optional mt-2"></div>
         <button type="button" class="btn btn-success" onclick="User.addConsultation();"><span class="fas fa-plus"></span> добавить</button>
     </div>
-    <div role="tabpanel" class="tab-pane" id="welcome_lesson-tab">
-        <div class="welcome_lessons m-t-10"></div>
+    <div role="tabpanel" class="tab-pane fade" id="welcome_lesson-tab">
+        <div class="welcome_lessons"></div>
         <button type="button" class="btn btn-success" onclick="User.addWelcomeLesson();"><span class="fas fa-plus"></span> добавить</button>
     </div>
-    <div role="tabpanel" class="tab-pane" id="group-tab">
-        <div class="groups m-t-10"></div>
+    <div role="tabpanel" class="tab-pane fade" id="group-tab">
+        <div class="groups"></div>
         <button type="button" class="btn btn-success" onclick="User.addGroup();"><span class="fas fa-plus"></span> добавить</button>
     </div>
 </div>

@@ -105,7 +105,7 @@ class MoneyController extends AdminController
             else {
                 $pupilStartDate = null;
                 if (!$contract->activeGroupPupil) {
-                    $pupilStartDate = date_create_from_format('d.m.Y', Yii::$app->request->post('contractPupilDateStart', ''));
+                    $pupilStartDate = new \DateTime(Yii::$app->request->post('contractPupilDateStart', 'now'));
                 }
                 $transaction = Yii::$app->db->beginTransaction();
                 try {
@@ -145,7 +145,7 @@ class MoneyController extends AdminController
         $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
         $pupil = null;
         if (isset($formData['pupil']['id'])) {
-            $pupil = User::find()->andWhere(['role' => User::ROLE_PUPIL, 'id' => $formData['pupil']['id']])->one();
+            $pupil = User::findOne(['role' => User::ROLE_PUPIL, 'id' => $formData['pupil']['id']]);
         }
         if (!$pupil) {
             $pupil = new User(['scenario' => User::SCENARIO_USER]);
@@ -175,7 +175,7 @@ class MoneyController extends AdminController
             $group = Group::findOne(['id' => $formData['group']['id'], 'active' => Group::STATUS_ACTIVE]);
             if (!$group) return self::getJsonErrorResult('Группа не найдена');
 
-            $startDate = date_create_from_format('d.m.Y', $formData['group']['date']);
+            $startDate = new \DateTime($formData['group']['date']);
             if (!$startDate) return self::getJsonErrorResult('Неверная дата начала занятий');
         }
 

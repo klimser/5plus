@@ -108,7 +108,7 @@ class ReportController extends AdminController
         if (!\Yii::$app->user->can('reportCash')) throw new ForbiddenHttpException('Access denied!');
 
         if (\Yii::$app->request->isPost) {
-            $date = date_create_from_format('d.m.Y', \Yii::$app->request->post('date', ''));
+            $date = new \DateTimeImmutable(\Yii::$app->request->post('date', 'now'));
             if (!$date) throw new NotFoundHttpException('Wrong date');
 
             ob_start();

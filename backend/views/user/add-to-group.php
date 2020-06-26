@@ -1,8 +1,8 @@
 <?php
 
 use common\components\DefaultValuesComponent;
-use dosamigos\datepicker\DatePicker;
 use yii\bootstrap4\ActiveForm;
+use yii\jui\DatePicker;
 
 
 /* @var $this yii\web\View */
