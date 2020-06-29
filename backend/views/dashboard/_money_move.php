@@ -12,25 +12,25 @@
                     <div id="money-move-messages-place"></div>
                     <input type="hidden" name="money-move[id]" id="money-move-id">
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label">Студент</label>
+                        <label class="col-12 col-sm-3 control-label" for="money-move-pupil-name">Студент</label>
                         <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="money-move-pupil-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label">Из группы</label>
+                        <label class="col-12 col-sm-3 control-label" for="money-move-group">Из группы</label>
                         <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="money-move-group">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label">Сумма</label>
+                        <label class="col-12 col-sm-3 control-label" for="money-move-amount">Сумма</label>
                         <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="money-move-amount">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label">В группу</label>
+                        <label class="col-12 col-sm-3 control-label" for="money-move-new-group">В группу</label>
                         <div class="col-12 col-sm-9">
                             <select id="money-move-new-group" name="money-move[groupId]" class="form-control" required autocomplete="off"></select>
                         </div>

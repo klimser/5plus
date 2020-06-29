@@ -15,13 +15,13 @@
                     <div class="form-group row">
                         <label class="col-12 col-sm-3 control-label">Студент</label>
                         <div class="col-12 col-sm-9">
-                            <p class="form-control-static" id="new-contract-pupil-name"></p>
+                            <input readonly class="form-control-plaintext" id="new-contract-pupil-name">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-12 col-sm-3 control-label">Группа</label>
                         <div class="col-12 col-sm-9">
-                            <p class="form-control-static" id="new-contract-group-name"></p>
+                            <input readonly class="form-control-plaintext" id="new-contract-group-name">
                         </div>
                     </div>
                     <div class="form-group row">

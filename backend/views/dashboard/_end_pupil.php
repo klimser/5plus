@@ -15,19 +15,19 @@ use common\models\GroupPupil;
                     <div id="end-pupil-messages-place"></div>
                     <input type="hidden" name="end-pupil[id]" id="end-pupil-id">
                     <div class="form-group row">
-                        <label class="col-12 col-sm-4 col-form-label">Студент</label>
+                        <label class="col-12 col-sm-4 col-form-label" for="end-pupil-pupil-name">Студент</label>
                         <div class="col-12 col-sm-8">
                             <input readonly class="form-control-plaintext" id="end-pupil-pupil-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-4 col-form-label">Группа</label>
+                        <label class="col-12 col-sm-4 col-form-label" for="end-pupil-group">Группа</label>
                         <div class="col-12 col-sm-8">
                             <input readonly class="form-control-plaintext" id="end-pupil-group">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-4 col-form-label">День последнего занятия</label>
+                        <label class="col-12 col-sm-4 col-form-label" for="end-pupil-date">День последнего занятия</label>
                         <div class="col-12 col-sm-8">
                             <input class="form-control datepicker" name="end-pupil[date]" id="end-pupil-date" value="" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
                         </div>

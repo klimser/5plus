@@ -12,7 +12,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 ?>
 
-<table class="table table-condensed">
+<table class="table table-sm">
     <?php foreach ($groupMap as $groupId => $data):
         if (empty($data['pupils'])) continue;
     ?>

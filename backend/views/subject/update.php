@@ -4,7 +4,7 @@ use common\components\DefaultValuesComponent;
 use common\components\bitrix\Bitrix;
 use dosamigos\tinymce\TinyMce;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */

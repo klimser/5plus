@@ -1,6 +1,6 @@
 <?php
 
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use \common\components\helpers\Calendar;
 
 /* @var $this yii\web\View */

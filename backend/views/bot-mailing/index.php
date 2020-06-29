@@ -1,7 +1,7 @@
 <?php
 
 use yii\grid\ActionColumn;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
@@ -82,7 +82,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         
                         $title = Yii::t('yii', 'Delete');
                         $options = [
-                            'class' => 'btn btn-default',
+                            'class' => 'btn btn-outline-dark',
                             'title' => $title,
                             'aria-label' => $title,
                             'data-pjax' => '0',

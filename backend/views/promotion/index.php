@@ -1,6 +1,6 @@
 <?php
 
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
@@ -22,7 +22,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return  = [];
             if (!$model->active) {
-                $return['class'] = 'warning';
+                $return['class'] = 'table-warning';
             }
             return $return;
         },

@@ -1,11 +1,12 @@
 <?php
 
 use common\components\DefaultValuesComponent;
-use dosamigos\datetimepicker\DateTimePicker;
 use dosamigos\tinymce\TinyMce;
+use kartik\datetime\DateTimePicker;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use \yii\bootstrap4\ActiveForm;
+use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
 /* @var $botMailing \common\models\BotMailing */
@@ -27,7 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?=
         $form->field($botMailing, 'message_text')
             ->widget(TinyMce::class, [
-            'options' => ['rows' => 6],
+            'options' => ['rows' => 12, 'required' => true],
             'language' => 'ru',
             'clientOptions' => [
                 'element_format' => 'html',
@@ -50,21 +51,26 @@ $this->params['breadcrumbs'][] = $this->title;
         ]);
         ?>
 
-        <?= $form->field($botMailing, 'started_at')
-            ->hint('Оставьте пустым чтобы начать рассылку прямо сейчас')
-            ->widget(DateTimePicker::class, ArrayHelper::merge(
-                DefaultValuesComponent::getDatePickerSettings(),
-                [
+        <div class="form-group field-botmailing-started_at">
+            <?= $form->field($botMailing, 'started_at')
+                ->hint('Оставьте пустым чтобы начать рассылку прямо сейчас')
+                ->widget(DateTimePicker::class, [
+                    'type' => DateTimePicker::TYPE_COMPONENT_APPEND,
                     'options' => [
-                        'value' => $botMailing->started_at ? $botMailing->startDate->format('d.m.Y H:i') : null,
+                        'placeholder' => 'дата',
+                        'autocomplete' => 'off',
+                        'pattern' => '\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}',
                     ],
-                    'clientOptions' => [
+                    'pluginOptions' => [
                         'format' => 'dd.mm.yyyy hh:ii',
+                        'autoclose' => true,
                         'startDate' => date('d.m.Y H:i'),
-                    ],
-                ]
-            ));?>
-
+                        'weekStart' => 1,
+                        
+                    ]
+                ]); ?>
+        </div>
+        
         <div class="form-group">
             <?= Html::submitButton('отправить', ['class' => 'btn btn-primary']); ?>
         </div>

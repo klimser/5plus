@@ -52,6 +52,12 @@ class BotMailingController extends AdminController
             try {
                 if (!$botMailing->load(Yii::$app->request->post())) Yii::$app->session->addFlash('error', 'Form data not found');
                 else {
+                    $startedAtTime = Yii::$app->request->post('started_at_time');
+                    if (!empty($botMailing->started_at) && !empty($startedAtTime) && preg_match('^(\d{2}):(\d{2})$', $startedAtTime, $matches)) {
+                        $date = $botMailing->startDate;
+                        $date->setTime($matches[1], $matches[2]);
+                        $botMailing->started_at = $date->format('Y-m-d H:i:s');
+                    }
                     $botMailing->imageFile = UploadedFile::getInstance($botMailing, 'imageFile');
                     if (!$botMailing->save()) {
                         $botMailing->moveErrorsToFlash();

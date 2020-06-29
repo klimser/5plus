@@ -8,7 +8,7 @@ use common\models\Subject;
 use common\models\Teacher;
 use yii\grid\ActionColumn;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use yii\helpers\Url;
 use yii\data\ActiveDataProvider;
@@ -35,7 +35,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == Group::STATUS_INACTIVE) ? ['class' => 'inactive'] : [];},
+        'options' => ['class' => 'grid-view table-responsive-md'],
+        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == Group::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [];},
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             [
@@ -91,7 +92,9 @@ $this->params['breadcrumbs'][] = $this->title;
                 'header' => 'Студенты',
                 'content' => function ($model, $key, $index, $column) {
                     return '<div class="pupils"><span class="text-nowrap">' . count($model->activeGroupPupils) . ' ' . WordForm::getPupilsForm(count($model->activeGroupPupils)) . ' '
-                        . '<a href="#" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').collapse(\'toggle\'); return false;"><span class="fas fa-chevron-down"></span></a></span>'
+                        . '<button type="button" class="btn btn-link" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').collapse(\'toggle\');">'
+                        . '<span class="fas fa-chevron-down"></span>'
+                        . '</button></span>'
                         . '<ul class="list-group pupil_list collapse"><li class="list-group-item p-1">'
                         . implode('</li><li class="list-group-item p-1">', ArrayHelper::getColumn($model->activeGroupPupils, 'user.name'))
                         . '</li></ul></div>';
@@ -104,7 +107,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'update' =>  function($url,$model) {
                         return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
                             'title' => Yii::t('app', 'update'),
-                            'class' => 'btn btn-outline-dark mr-2',
+                            'class' => 'btn btn-outline-dark',
                         ]);
                     },
                 ],

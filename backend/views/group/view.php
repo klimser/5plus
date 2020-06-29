@@ -1,6 +1,7 @@
 <?php
 
 use common\components\helpers\Calendar;
+use common\components\helpers\WordForm;
 use yii\helpers\Url;
 use common\components\helpers\Html;
 
@@ -54,53 +55,51 @@ $this->params['breadcrumbs'][] = $group->name;
 <div class="row border-top pt-3">
     <div class="col-12">
         <h4>Студенты:</h4>
-        <table class="table table-sm table-striped">
-            <thead>
-            <tr>
-                <th></th>
-                <th>Имя</th>
-                <th>Телефон</th>
-                <th>Оплата до</th>
-                <th>Занятия</th>
-            </tr>
-            </thead>
-            <tbody>
-            <?php $i = 0; $nowDate = new \DateTime(); foreach ($group->activeGroupPupils as $groupPupil): $i++; ?>
-                <tr>
-                    <td><?= $i; ?></td>
-                    <td>
-                        <a href="<?= Url::to(['money/pupil-report', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>"
-                           target="_blank" class="hidden-print hidden-xs hidden-sm">
-                            <span class="fas fa-file-invoice-dollar"></span>
-                        </a>
-                        <?= $groupPupil->user->name; ?>
-                        <?php if ($groupPupil->user->parent_id): ?>
-                            <span class="fas fa-user-friends point" data-toggle="tooltip" data-placement="top" data-trigger="click hover focus" data-html="true"
-                                  title="<?= $groupPupil->user->parent->name; ?><br>
-                                  <?= $groupPupil->user->parent->phone . ($groupPupil->user->parent->phone2 ? ', ' . $groupPupil->user->parent->phone2 : ''); ?>"></span>
-                        <?php endif; ?>
-                        <?php if ($groupPupil->user->note): ?>
-                            <br><small><?= nl2br($groupPupil->user->note); ?></small>
-                        <?php endif; ?>
-                    </td>
-                    <td class="text-nowrap">
-                        <?= Html::phoneLink($groupPupil->user->phone, $groupPupil->user->phoneFormatted); ?>
-                        <?php if($groupPupil->user->phone2): ?>
-                            <br>
-                            <?= Html::phoneLink($groupPupil->user->phone2, $groupPupil->user->phone2Formatted); ?>
-                        <?php endif; ?>
-                    </td>
-                    <td <?php if ($groupPupil->date_charge_till && $groupPupil->chargeDateObject < $nowDate): ?>class="danger"<?php endif; ?>>
-                        <?= $groupPupil->date_charge_till ? $groupPupil->chargeDateObject->format('d.m.Y') : ''; ?>
-                    </td>
+        <?php $i = 0; $nowDate = new \DateTime(); foreach ($group->activeGroupPupils as $groupPupil): $i++; ?>
+            <div class="row border-bottom py-2">
+                <div class="col-8 col-lg-10">
+                    <div class="row">
+                        <div class="col-1 col-md-auto font-weight-bold pr-0">
+                            <?= $i; ?>
+                        </div>
+                        <div class="col-11 col-md-auto mr-auto">
+                            <a href="<?= Url::to(['money/pupil-report', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>"
+                               target="_blank" class="d-print-none d-none d-md-inline">
+                                <span class="fas fa-file-invoice-dollar"></span>
+                            </a>
+                            <?= $groupPupil->user->name; ?>
+                            <?php if ($groupPupil->user->parent_id): ?>
+                                <span class="fas fa-user-friends point" data-toggle="tooltip" data-placement="top" data-trigger="click hover focus" data-html="true"
+                                      title="<?= $groupPupil->user->parent->name; ?><br>
+                                      <?= $groupPupil->user->parent->phone . ($groupPupil->user->parent->phone2 ? ', ' . $groupPupil->user->parent->phone2 : ''); ?>"></span>
+                            <?php endif; ?>
+                            <?php if ($groupPupil->user->note): ?>
+                                <br><small><?= nl2br($groupPupil->user->note); ?></small>
+                            <?php endif; ?>
+                        </div>
+                        <div class="col-11 offset-1 col-md-auto offset-md-0 text-md-right">
+                            <?= Html::phoneLink($groupPupil->user->phone, $groupPupil->user->phoneFormatted); ?>
+                            <?php if($groupPupil->user->phone2): ?>
+                                <br>
+                                <?= Html::phoneLink($groupPupil->user->phone2, $groupPupil->user->phone2Formatted); ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 col-lg-2 text-right">
                     <?php if ($groupPupil->paid_lessons < 0): ?>
-                        <td class="danger">Долг <?= round($groupPupil->paid_lessons) * (-1); ?> занятий</td>
+                        <span class="badge badge-danger">Долг</span> <b><?= round($groupPupil->paid_lessons) * (-1); ?></b> <?= WordForm::getLessonsForm(round($groupPupil->paid_lessons) * (-1)); ?>
                     <?php else: ?>
-                        <td><?= round($groupPupil->paid_lessons); ?> занятий</td>
+                        <b><?= round($groupPupil->paid_lessons); ?></b> <?= WordForm::getLessonsForm(round($groupPupil->paid_lessons)); ?>
+                    <?php endif; ?><br>
+                    <?= number_format($groupPupil->moneyLeft, 0, '.', ' '); ?> сум
+                    <?php if ($groupPupil->date_charge_till): ?>
+                        <br><span class="badge badge-<?= ($groupPupil->date_charge_till && $groupPupil->chargeDateObject < $nowDate) ? 'danger' : 'success'; ?>">
+                            до <?= $groupPupil->chargeDateObject->format('d.m.Y'); ?>
+                        </span>
                     <?php endif; ?>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
+                </div>
+            </div>
+        <?php endforeach; ?>
     </div>
 </div>

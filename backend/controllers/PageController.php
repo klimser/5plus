@@ -63,7 +63,7 @@ class PageController extends AdminController
 
 
         $dataProvider = new ActiveDataProvider([
-            'query' => Page::find(),
+            'query' => Page::find()->joinWith('webpage')->andWhere(['<>', Webpage::tableName() . '.main', 1]),
         ]);
 
         return $this->render('index', [

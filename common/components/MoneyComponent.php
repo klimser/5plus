@@ -429,19 +429,29 @@ class MoneyComponent extends Component
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
                         } elseif (!empty($item['param']->scheduleData[($w + 6) % 7])) {
+                            $toCharge = $item['param']->lesson_price;
                             if ($moneyDiscount > 0) {
-                                $moneyDiscount -= $item['param']->lesson_price_discount ?? $item['param']->lesson_price;
-                                $item['entity']->paid_lessons++;
-                            } else {
-                                $money -= $item['param']->lesson_price;
-                                if ($money >= 0) {
+                                if ($item['param']->lesson_price_discount) {
+                                    $toCharge = $item['param']->lesson_price_discount;
+                                }
+                                if ($moneyDiscount > $toCharge) {
+                                    $moneyDiscount -= $toCharge;
                                     $item['entity']->paid_lessons++;
+                                    continue;
+                                } else {
+                                    $toCharge = round($item['param']->lesson_price * (1 - ($moneyDiscount / $toCharge)));
+                                    $moneyDiscount = 0;
                                 }
-                                if ($money <= 0) {
-                                    $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');
-                                    $groupPupilMap[$id]['state'] = true;
-                                    $continue--;
-                                }
+                            }
+
+                            $money -= $toCharge;
+                            if ($money >= 0) {
+                                $item['entity']->paid_lessons++;
+                            }
+                            if ($money <= 0) {
+                                $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');
+                                $groupPupilMap[$id]['state'] = true;
+                                $continue--;
                             }
                         }
                     }

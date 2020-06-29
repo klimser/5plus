@@ -12,41 +12,38 @@ $this->title = 'Перенести деньги студента в другую
 $this->params['breadcrumbs'][] = $this->title;
 
 ?>
-<div class="row move-pupil">
-    <h1><?= Html::encode($this->title) ?></h1>
 
-    <div id="messages_place"></div>
-    <?= Html::beginForm(); ?>
-        <div class="col-xs-12">
-            <table class="table table-bordered table-condensed">
-                <tr>
-                    <td>Студент</td>
-                    <td><?= $user->name; ?> (<?= $user->phoneFull; ?>)</td>
-                </tr>
-                <tr>
-                    <td>Группа</td>
-                    <td><?= $group->name; ?></td>
-                </tr>
-                <tr>
-                    <td>Остаток денег</td>
-                    <td><?= $moneyLeft; ?></td>
-                </tr>
-                <tr>
-                    <td><label for="group_to">Куда переносим</label></td>
-                    <td>
-                        <select id="group_to" name="group_to" class="form-control" required>
-                            <?php foreach ($groupList as $group): ?>
-                                <option value="<?= $group->id; ?>"><?= $group->name; ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <button class="btn btn-primary">Перенести</button>
-                    </td>
-                </tr>
-            </table>
+<h1><?= Html::encode($this->title) ?></h1>
+
+<div id="messages_place"></div>
+<?= Html::beginForm(); ?>
+    <div class="form-group row">
+        <label class="col-12 col-sm-3 control-label">Студент</label>
+        <div class="col-12 col-sm-9">
+            <input readonly class="form-control-plaintext" value="<?= $user->name; ?> (<?= $user->phoneFull; ?>)">
         </div>
-    <?= Html::endForm(); ?>
-</div>
+    </div>
+    <div class="form-group row">
+        <label class="col-12 col-sm-3 control-label">Из группы</label>
+        <div class="col-12 col-sm-9">
+            <input readonly class="form-control-plaintext" value="<?= $group->name; ?>">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-12 col-sm-3 control-label">Сумма</label>
+        <div class="col-12 col-sm-9">
+            <input readonly class="form-control-plaintext" value="<?= $moneyLeft; ?>">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-12 col-sm-3 control-label">В группу</label>
+        <div class="col-12 col-sm-9">
+            <select name="money-move[groupId]" class="form-control" required autocomplete="off">
+                <?php foreach ($groupList as $group): ?>
+                    <option value="<?= $group->id; ?>"><?= $group->name; ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+    <button class="btn btn-primary">Перенести</button>
+<?= Html::endForm(); ?>

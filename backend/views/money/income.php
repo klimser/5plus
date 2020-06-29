@@ -2,6 +2,7 @@
 
 use common\components\DefaultValuesComponent;
 use yii\bootstrap4\Html;
+use yii\helpers\ArrayHelper;
 use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
@@ -190,7 +191,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         <label for="new_group">Дата начала занятий</label>
                         <div class="input-group">
                             <?= DatePicker::widget(
-                                array_merge_recursive(DefaultValuesComponent::getDatePickerSettings(),
+                                ArrayHelper::merge(DefaultValuesComponent::getDatePickerSettings(),
                                 [
                                 'name' => 'group[date]',
                                 'value' => date('d.m.Y'),

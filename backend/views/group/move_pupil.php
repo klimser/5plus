@@ -1,7 +1,8 @@
 <?php
 
 use \common\models\User;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
+use yii\helpers\ArrayHelper;
 use \yii\jui\DatePicker;
 use \common\components\DefaultValuesComponent;
 
@@ -49,7 +50,7 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
             <div class="form-group">
                 <label for="move_date">Последний день в старой группе</label>
-                <?= DatePicker::widget(array_merge_recursive(
+                <?= DatePicker::widget(ArrayHelper::merge(
                     DefaultValuesComponent::getDatePickerSettings(),
                     [
                         'name' => 'date_from',
@@ -65,7 +66,7 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
             <div class="form-group">
                 <label for="move_date">Первый день в новой группе</label>
-                <?= DatePicker::widget(array_merge_recursive(
+                <?= DatePicker::widget(ArrayHelper::merge(
                     DefaultValuesComponent::getDatePickerSettings(),
                     [
                         'name' => 'date_to',

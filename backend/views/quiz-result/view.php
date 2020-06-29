@@ -6,7 +6,7 @@
 $this->title = 'Результаты теста ' . $quizResult->quiz_name;
 $this->params['breadcrumbs'][] = ['label' => 'Результаты тестов', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $quizResult->quiz_name; ?>
-<h1><?= \yii\helpers\Html::encode($this->title) ?> (<?= $quizResult->subject_name; ?>)</h1>
+<h1><?= \yii\bootstrap4\Html::encode($this->title) ?> (<?= $quizResult->subject_name; ?>)</h1>
 <div class="row quiz-area" id="quiz_area">
     <?php
         $script = '';

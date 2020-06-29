@@ -11,39 +11,39 @@
                 <div class="modal-body">
                     <input type="hidden" name="contractId" id="contract-id">
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 col-form-label">Студент</label>
+                        <label class="col-12 col-sm-3 col-form-label" for="contract-pupilName">Студент</label>
                         <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="contract-pupilName">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 col-form-label">Группа</label>
+                        <label class="col-12 col-sm-3 col-form-label" for="contract-groupName">Группа</label>
                         <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="contract-groupName">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 col-form-label">Сумма</label>
+                        <label class="col-12 col-sm-3 col-form-label" for="contract-amount">Сумма</label>
                         <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="contract-amount">
                         </div>
                     </div>
                     <div id="contract-pupil-exists" class="collapse">
                         <div class="form-group row">
-                            <label class="col-12 col-sm-3 col-form-label">Занимается с</label>
+                            <label class="col-12 col-sm-3 col-form-label" for="contract-pupilDateStart">Занимается с</label>
                             <div class="col-12 col-sm-9">
                                 <input readonly class="form-control-plaintext" id="contract-pupilDateStart">
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-12 col-sm-3 col-form-label">Оплачено до</label>
+                            <label class="col-12 col-sm-3 col-form-label" for="contract-pupilDateCharge">Оплачено до</label>
                             <div class="col-12 col-sm-9">
                                 <input readonly class="form-control-plaintext" id="contract-pupilDateCharge">
                             </div>
                         </div>
                     </div>
                     <div id="contract-pupil-new" class="form-group row collapse">
-                        <label class="col-12 col-sm-3 col-form-label">Начало занятий в группе</label>
+                        <label class="col-12 col-sm-3 col-form-label" for="contract-createDate">Начало занятий в группе</label>
                         <div class="col-12 col-sm-9">
                             <input class="form-control datepicker" name="contractPupilDateStart" id="contract-createDate" value="" required pattern="\d{2}\.\d{2}\.\d{4}" autocomplete="off">
                         </div>

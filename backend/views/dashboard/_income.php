@@ -13,13 +13,13 @@
                     <input type="hidden" name="income[userId]" id="income-user-id" required>
                     <input type="hidden" name="income[groupId]" id="income-group-id" required>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label">Студент</label>
+                        <label class="col-12 col-sm-3 control-label" for="income-pupil-name">Студент</label>
                         <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="income-pupil-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label">Группа</label>
+                        <label class="col-12 col-sm-3 control-label" for="income-group-name">Группа</label>
                         <div class="col-12 col-sm-9">
                             <input readonly class="form-control-plaintext" id="income-group-name">
                         </div>

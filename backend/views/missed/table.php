@@ -1,23 +1,21 @@
 <?php
 
 use backend\models\EventMember;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use \common\components\helpers\Calendar;
 use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $dataMap array */
-/* @var $date \DateTime */
+/* @var $date \DateTimeImmutable */
 /* @var $daysCount int */
 /* @var $group \common\models\Group|null */
 /* @var $groups \common\models\Group[] */
 
 $this->title = 'Посещаемость';
 $this->params['breadcrumbs'][] = $this->title;
-$prevMonth = clone $date;
-$prevMonth->modify('-1 month');
-$nextMonth = clone $date;
-$nextMonth->modify('+1 month');
+$prevMonth = $date->modify('-1 month');
+$nextMonth = $date->modify('+1 month');
 ?>
 <div class="missed-table-index">
     <h1>
@@ -54,8 +52,8 @@ $nextMonth->modify('+1 month');
                 <?php for ($i = 1; $i <= $daysCount; $i++): ?><td<?php
                  if (array_key_exists($i, $pupilData)) {
                      switch ($pupilData[$i]['status']) {
-                         case EventMember::STATUS_MISS: echo ' class="danger"'; break;
-                         case EventMember::STATUS_ATTEND: echo ' class="success"'; break;
+                         case EventMember::STATUS_MISS: echo ' class="table-danger"'; break;
+                         case EventMember::STATUS_ATTEND: echo ' class="table-success"'; break;
                      }
                  } ?>>
                     <?= array_key_exists($i, $pupilData) ? $pupilData[$i]['mark'] : ''; ?>

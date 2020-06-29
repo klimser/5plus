@@ -4,7 +4,7 @@ use backend\components\UserComponent;
 use common\models\User;
 use common\models\UserSearch;
 use yii\grid\ActionColumn;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use yii\helpers\Url;
 use yii\data\ActiveDataProvider;
@@ -75,7 +75,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'pager' => ['class' => \yii\bootstrap4\LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'options' => ['class' => 'grid-view table-responsive'],
-        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->status == User::STATUS_LOCKED) ? ['class' => 'inactive'] : [];},
+        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->status == User::STATUS_LOCKED) ? ['class' => 'table-secondary'] : [];},
         'columns' => [
 //            'username',
             [
@@ -117,21 +117,21 @@ $this->params['breadcrumbs'][] = $this->title;
                     'update' =>  function($url,$model) {
                         return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
                             'title' => Yii::t('app', 'update'),
-                            'class' => 'btn btn-outline-dark mr-2',
+                            'class' => 'btn btn-outline-dark',
                         ]);
                     },
                     'lock' => function ($url, $model, $key) {
                         return $model->status == User::STATUS_ACTIVE
-                            ? Html::button(Html::tag('span', '', ['class' => 'fas fa-lock']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 0);', 'class' => 'btn btn-outline-dark mr-2', 'type' => 'button', 'title' => 'Заблокировать'])
-                            : Html::button(Html::tag('span', '', ['class' => 'fas fa-lock-open']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 1);', 'class' => 'btn btn-outline-dark mr-2', 'type' => 'button', 'title' => 'Разблокировать']);
+                            ? Html::button(Html::tag('span', '', ['class' => 'fas fa-lock']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 0);', 'class' => 'btn btn-outline-dark ml-2', 'type' => 'button', 'title' => 'Заблокировать'])
+                            : Html::button(Html::tag('span', '', ['class' => 'fas fa-lock-open']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 1);', 'class' => 'btn btn-outline-dark ml-2', 'type' => 'button', 'title' => 'Разблокировать']);
                     },
                     'money_income' => function ($url, $model, $key) {
                         if ($model->role != User::ROLE_PUPIL) return '';
-                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), Url::to(['money/income', 'user' => $model->id]), ['class' => 'btn btn-outline-dark mr-2', 'title' => 'Внести деньги']);
+                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), Url::to(['money/income', 'user' => $model->id]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'Внести деньги']);
                     },
                     'payment_history' => function ($url, $model, $key) {
                         if ($model->role != User::ROLE_PUPIL) return '';
-                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-list-alt']), Url::to(['money/payment', 'PaymentSearch' => ['user_id' => $model->id]]), ['class' => 'btn btn-outline-dark mr-2', 'title' => 'История платежей']);
+                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-list-alt']), Url::to(['money/payment', 'PaymentSearch' => ['user_id' => $model->id]]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'История платежей']);
                     },
                 ],
             ],

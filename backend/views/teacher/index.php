@@ -2,7 +2,7 @@
 
 use common\models\Teacher;
 use yii\grid\ActionColumn;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use yii\helpers\Url;
 
@@ -25,7 +25,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return  = [];
             if ($model->page_visibility == Teacher::STATUS_INACTIVE) {
-                $return['class'] = 'warning';
+                $return['class'] = 'table-warning';
             }
             return $return;
         },

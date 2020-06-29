@@ -5,6 +5,6 @@ class Html extends \yii\bootstrap4\Html
 {
     public static function phoneLink(string $phone, ?string $text = null, array $options = []): string
     {
-        return self::a($text ?? $phone, "tel:$phone", $options);
+        return static::a(static::tag('span', $text ?? $phone, ['class' => 'text-nowrap']), "tel:$phone", $options);
     }
 }

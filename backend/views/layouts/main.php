@@ -5,7 +5,7 @@
 
 use common\models\User;
 use yii\bootstrap4\Breadcrumbs;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\bootstrap4\Nav;
 use yii\bootstrap4\NavBar;
 use yii\jui\JuiAsset;

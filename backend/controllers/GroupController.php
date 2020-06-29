@@ -429,18 +429,18 @@ class GroupController extends AdminController
      */
     public function actionMoveMoney(int $userId, int $groupId)
     {
-        if (!Yii::$app->user->can('moveMoney')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('moveMoney');
 
         $user = User::findOne($userId);
         $group = Group::findOne($groupId);
         if (!$user) throw new BadRequestHttpException('User not found');
         if (!$group) throw new BadRequestHttpException('Group not found');
-        if (GroupPupil::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE, 'date_end' => null])->one()) {
+        if (GroupPupil::findOne(['user_id' => $user->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE, 'date_end' => null])) {
             throw new BadRequestHttpException('Студент ещё занимается в группе');
         }
         /** @var GroupPupil[] $groupPupils */
-        $groupPupils = GroupPupil::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id])->all();
-        if (count($groupPupils) == 0) throw new BadRequestHttpException('Pupil not found');
+        $groupPupils = GroupPupil::findAll(['user_id' => $user->id, 'group_id' => $group->id]);
+        if (count($groupPupils) === 0) throw new BadRequestHttpException('Pupil not found');
 
         $moneyLeft = Payment::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id])->select('SUM(amount)')->scalar();
         if ($moneyLeft <= 0) throw new BadRequestHttpException('Не осталось денег для перевода');
@@ -466,7 +466,7 @@ class GroupController extends AdminController
             if (!$groupToId) throw new BadRequestHttpException('No group selected');
             $groupTo = Group::findOne($groupToId);
             if (!$groupTo) throw new BadRequestHttpException('Group not found');
-            $groupPupilsTo = GroupPupil::find()->andWhere(['user_id' => $user->id, 'group_id' => $groupTo->id, 'active' => GroupPupil::STATUS_ACTIVE])->all();
+            $groupPupilsTo = GroupPupil::findAll(['user_id' => $user->id, 'group_id' => $groupTo->id, 'active' => GroupPupil::STATUS_ACTIVE]);
             if (count($groupPupilsTo) == 0) throw new BadRequestHttpException('Pupil in destination group is not found');
 
             $transaction = \Yii::$app->db->beginTransaction();
@@ -482,7 +482,6 @@ class GroupController extends AdminController
             } catch (\Throwable $exception) {
                 $transaction->rollBack();
                 \Yii::$app->session->addFlash('error', $exception->getMessage());
-                throw $exception;
             }
         }
 

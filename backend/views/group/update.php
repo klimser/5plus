@@ -100,7 +100,7 @@ SCRIPT
                             'labelOptions' => ['label' => 'C', 'class' => 'mr-2 mt-2'],
                         ]
                     )
-                    ->widget(DatePicker::class, array_merge_recursive(
+                    ->widget(DatePicker::class, ArrayHelper::merge(
                         DefaultValuesComponent::getDatePickerSettings(),
                         ['options' => [
                             'required' => true,
@@ -118,7 +118,7 @@ SCRIPT
                             'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2 mt-2'],
                         ]
                     )
-                    ->widget(DatePicker::class, array_merge_recursive(
+                    ->widget(DatePicker::class, ArrayHelper::merge(
                         DefaultValuesComponent::getDatePickerSettings(),
                         ['options' => [
                             'autocomplete' => 'off',
@@ -163,7 +163,7 @@ SCRIPT
                             'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2 mt-2'],
                         ]
                     )
-                    ->widget(DatePicker::class, array_merge_recursive(
+                    ->widget(DatePicker::class, ArrayHelper::merge(
                         DefaultValuesComponent::getDatePickerSettings(),
                         [
                             'options' => ['autocomplete' => 'off'],
@@ -208,7 +208,7 @@ SCRIPT
                                 'labelOptions' => ['label' => 'C', 'class' => 'mr-2 mt-2'],
                             ]
                         )
-                        ->widget(DatePicker::class, array_merge_recursive(
+                        ->widget(DatePicker::class, ArrayHelper::merge(
                             DefaultValuesComponent::getDatePickerSettings(),
                             [
                                 'options' => [
@@ -216,7 +216,7 @@ SCRIPT
                                     'id' => 'group-pupil-old-date-start-' . $groupPupil->id,
                                     'required' => true,
                                     'autocomplete' => 'off',
-                                    'class' => 'pupil-date-start',
+                                    'class' => 'form-control pupil-date-start',
                                     'onchange' => 'Main.handleDateRangeFrom(this)',
                                     'data' => ['target-to-closest' => '.group-pupil-block', 'target-to-selector' => '.pupil-date-end'],
                                 ],
@@ -235,14 +235,14 @@ SCRIPT
                                 'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2 mt-2'],
                             ]
                         )
-                        ->widget(DatePicker::class, array_merge_recursive(
+                        ->widget(DatePicker::class, ArrayHelper::merge(
                             DefaultValuesComponent::getDatePickerSettings(),
                             [
                                 'options' => [
                                     'name' => 'pupil_end[]',
                                     'id' => 'group-pupil-old-date-end-' . $groupPupil->id,
                                     'autocomplete' => 'off',
-                                    'class' => 'pupil-date-end',
+                                    'class' => 'form-control pupil-date-end',
                                     'onchange' => 'Main.handleDateRangeTo(this); Group.handlePupilEndDate(this);',
                                     'data' => [
                                         'target-from-closest' => '.group-pupil-block',

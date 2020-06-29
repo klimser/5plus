@@ -1,9 +1,13 @@
 <?php
 
 use common\components\DefaultValuesComponent;
-use yii\helpers\Html;
+use kartik\field\FieldRange;
+use yii\bootstrap4\Html;
+use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use \common\models\Contract;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
 use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
@@ -26,11 +30,10 @@ $this->params['breadcrumbs'][] = $this->title;
             $return = [];
             switch ($model->status) {
                 case Contract::STATUS_PAID:
-                    if ($model->discount) $return['class'] = 'info';
-                    else $return['class'] = 'success';
+                    $return['class'] = $model->discount ? 'table-info' : 'table-success';
                     break;
                 case Contract::STATUS_PROCESS:
-                    $return['class'] = 'warning';
+                    $return['class'] = 'table-warning';
                     break;
             }
             return $return;
@@ -53,7 +56,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'group_id',
                 'label' => 'Группа',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->group_id ? Html::a($model->group->name, \yii\helpers\Url::to(['group/view', 'id' => $model->group_id])) : null;
+                    return $model->group_id ? Html::a($model->group->name, Url::to(['group/view', 'id' => $model->group_id])) : null;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -64,7 +67,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'attribute' => 'amount',
-                'filter' => \kartik\field\FieldRange::widget([
+                'filter' => FieldRange::widget([
                     'model' => $searchModel,
                     'attribute1' => 'amountFrom',
                     'attribute2' => 'amountTo',
@@ -72,14 +75,14 @@ $this->params['breadcrumbs'][] = $this->title;
 //                    'name2'=>'amountTo',
                     'separator' => '-',
                     'template' => '{widget}',
-                    'type' => \kartik\field\FieldRange::INPUT_TEXT,
+                    'type' => FieldRange::INPUT_TEXT,
                 ]),
                 'contentOptions' => ['class' => 'text-right'],
             ],
             [
                 'attribute' => 'created_at',
                 'format' => 'datetime',
-                'filter' => DatePicker::widget(array_merge_recursive(
+                'filter' => DatePicker::widget(ArrayHelper::merge(
                     DefaultValuesComponent::getDatePickerSettings(),
                     [
                         'model' => $searchModel,
@@ -93,7 +96,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'paid_at',
                 'format' => 'datetime',
-                'filter' => DatePicker::widget(array_merge_recursive(
+                'filter' => DatePicker::widget(ArrayHelper::merge(
                     DefaultValuesComponent::getDatePickerSettings(),
                     [
                         'model' => $searchModel,
@@ -105,11 +108,11 @@ $this->params['breadcrumbs'][] = $this->title;
                     ])),
             ],
             [
-                'class' => \yii\grid\ActionColumn::class,
+                'class' => ActionColumn::class,
                 'template' => '{print}',
                 'buttons' => [
                     'print' => function ($url, $model, $key) {
-                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-print']), \yii\helpers\Url::to(['contract/print', 'id' => $model->id]), ['class' => 'btn btn-default', 'title' => 'Печать']);
+                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-print']), Url::to(['contract/print', 'id' => $model->id]), ['class' => 'btn btn-outline-dark', 'title' => 'Печать']);
                     },
                 ],
             ]

@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $class = 'review-' . $model->id;
             if ($model->status == 'new') {
-                $class .= ' warning';
+                $class .= ' table-warning';
             }
 
             return ['class' => $class];

@@ -1,7 +1,9 @@
 <?php
 
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
+use yii\grid\ActionColumn;
 use yii\grid\GridView;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -26,13 +28,22 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'name',
                 'format' => 'html',
                 'content' => function ($model, $key, $index, $column) {
-                    return Html::a($model->name, \yii\helpers\Url::to(['menu/update', 'id' => $model->id]));
+                    return Html::a($model->name, Url::to(['menu/update', 'id' => $model->id]));
                 }
             ],
             [
-                'class' => \yii\grid\ActionColumn::class,
+                'class' => ActionColumn::class,
                 'template' => '{delete}',
-                'buttonOptions' => ['class' => 'btn btn-default'],
+                'buttons' => [
+                    'delete' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-trash-alt"></span>', $url, [
+                            'title' => Yii::t('app', 'delete'),
+                            'class' => 'btn btn-outline-dark',
+                            'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+                            'data-method' => 'post',
+                        ]);
+                    },
+                ],
             ],
         ],
     ]); ?>

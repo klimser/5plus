@@ -1,6 +1,6 @@
 <?php
 
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
@@ -21,7 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return  = [];
             if (!$model->active) {
-                $return['class'] = 'warning';
+                $return['class'] = 'table-warning';
             }
             return $return;
         },
@@ -38,7 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         Html::button(
                         $model->active ? '<span class="fas fa-minus-circle"></span>' : '<span class="fas fa-plus-circle"></span>',
                         [
-                            'class' => 'btn btn-default',
+                            'class' => 'btn btn-outline-dark',
                             'onclick' => 'Main.changeEntityActive("gift-card-type", ' . $model->id . ', this, ' . ($model->active ? 0 : 1) . ');',
                             'title' => $model->active ? 'Запретить' : 'Разрешить',
                         ]

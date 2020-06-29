@@ -262,9 +262,9 @@ let Dashboard = {
         let form = $("#new-contract-form");
         $(form).find("#new-contract-user-id").val($(e).data("user"));
         $(form).find("#new-contract-group-id").val(groupId);
-        $(form).find("#new-contract-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#new-contract-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
         $(form).find(".income-amount").val(0);
-        $(form).find("#new-contract-group-name").text(group.name);
+        $(form).find("#new-contract-group-name").val(group.name);
         let amountHelpersBlock = $(form).find(".amount-helper-buttons");
         $(amountHelpersBlock).find(".price").data('price', group.price);
         $(amountHelpersBlock).find(".price3").data('price', group.price3);
@@ -410,7 +410,7 @@ let Dashboard = {
         let groupLimitDate = $(e).data("date");
         let limitDate = this.pupilLimitDate !== null && this.pupilLimitDate > groupLimitDate ? this.pupilLimitDate : groupLimitDate;
         let datepickerOptions = Main.datepickerDefaultSettings;
-        datepickerOptions.startDate = new Date(limitDate);
+        datepickerOptions.minDate = new Date(limitDate);
         $(form).find(".datepicker").datepicker(datepickerOptions);
 
         $("#modal-end-pupil").modal("show");

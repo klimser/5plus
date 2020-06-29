@@ -1,6 +1,6 @@
 <?php
 
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
@@ -16,9 +16,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($menu, 'title')->textInput(['maxlength' => true]) ?>
 
-    <div class="form-group">
-        <?= Html::submitButton($menu->isNewRecord ? 'Создать' : 'Сохранить', ['class' => $menu->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-    </div>
+    <?= Html::submitButton($menu->isNewRecord ? 'Создать' : 'Сохранить', ['class' => $menu->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
 
     <?php ActiveForm::end(); ?>
 

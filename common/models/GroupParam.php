@@ -80,10 +80,10 @@ class GroupParam extends ActiveRecord
 
     /**
      * @param Group $group
-     * @param \DateTime $date
+     * @param \DateTimeInterface $date
      * @return null|GroupParam|\yii\db\ActiveRecord
      */
-    public static function findByDate(Group $group, \DateTime $date)
+    public static function findByDate(Group $group, \DateTimeInterface $date)
     {
         return self::find()->where(['group_id' => $group->id, 'year' => $date->format('Y'), 'month' => $date->format('n')])->one();
     }

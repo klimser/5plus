@@ -1,6 +1,6 @@
 <?php
 
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\widgets\DetailView;
 
 /* @var $this yii\web\View */
@@ -36,9 +36,9 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'html',
                 'value' => function ($model, $widget) {
                     return $model->message_image
-                        ? Html::img(Yii::getAlias('@uploadsUrl') . $model->message_image, ['class' => 'max-width-100', 'style' => 'max-width: 200px;'])
+                        ? Html::img(Yii::getAlias('@uploadsUrl') . $model->message_image, ['class' => 'img-fluid', 'style' => 'max-width: 200px;'])
                         : '-';
-                },  
+                },
             ],
             [
                 'attribute' => 'data',
@@ -54,18 +54,15 @@ $this->params['breadcrumbs'][] = $this->title;
                         }
                         $content = '<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#mailing-result" aria-expanded="false" aria-controls="mailing-result">'
                             . $buttonLabel . '</button>
-                            <div class="collapse" id="mailing-result">
-                              <div class="well">';
+                            <div class="collapse mt-3" id="mailing-result">';
                         foreach ($model->usersResult as $result) {
                             $content .= $result['user']->name . ' - ' . (
                                     $result['result']['status'] === 'ok'
-                                        ? '<span class="label label-success">ok</span>'
-                                        : '<span class="label label-success">error</span> ' . $result['result']['error_message']
+                                        ? '<span class="badge badge-success">ok</span>'
+                                        : '<span class="badge badge-danger">error</span> ' . $result['result']['error_message']
                                 ) . '<br>';
                         }
-                        $content .= '</div>
-                            </div>
-                        ';
+                        $content .= '</div>';
                     }
                     return $content;
                 }

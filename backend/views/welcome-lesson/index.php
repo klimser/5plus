@@ -11,6 +11,7 @@ use yii\grid\Column;
 use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
 use yii\jui\DatePicker;
 use yii\web\View;
 
@@ -51,16 +52,16 @@ SCRIPT
                 'deny-reason' => $model->deny_reason]];
             switch ($model->status) {
                 case WelcomeLesson::STATUS_PASSED:
-                    $return['class'] .= ' success';
+                    $return['class'] .= ' table-success';
                     break;
                 case WelcomeLesson::STATUS_MISSED:
-                    $return['class'] .= ' warning';
+                    $return['class'] .= ' table-warning';
                     break;
                 case WelcomeLesson::STATUS_CANCELED:
-                    $return['class'] .= ' info';
+                    $return['class'] .= ' table-info';
                     break;
                 case WelcomeLesson::STATUS_DENIED:
-                    $return['class'] .= ' danger';
+                    $return['class'] .= ' table-danger';
                     break;
             }
             return $return;
@@ -119,7 +120,7 @@ SCRIPT
                 'format' => 'datetime',
                 'label' => 'Дата',
                 'filter' => DatePicker::widget(
-                    array_merge_recursive(DefaultValuesComponent::getDatePickerSettings(),
+                    ArrayHelper::merge(DefaultValuesComponent::getDatePickerSettings(),
                         [
                     'model' => $searchModel,
                     'attribute' => 'lessonDateString',

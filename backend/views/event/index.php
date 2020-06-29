@@ -1,7 +1,7 @@
 <?php
 
 use common\components\helpers\WordForm;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use common\components\helpers\Calendar;
 use \backend\models\Event;
 use \backend\models\EventMember;

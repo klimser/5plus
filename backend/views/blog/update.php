@@ -1,6 +1,8 @@
 <?php
 
-use yii\helpers\Html;
+use common\components\DefaultValuesComponent;
+use dosamigos\tinymce\TinyMce;
+use yii\bootstrap4\Html;
 use yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
@@ -25,15 +27,16 @@ $this->params['breadcrumbs'][] = $this->title;
             ->fileInput(['required' => $blog->isNewRecord, 'accept' => 'image/jpeg,image/png', 'data' => ['id' => $blog->id]]);
         ?>
 
-        <div class="col-xs-2">
-            <?php if ($blog->image): ?>
-                <img src="<?= $blog->imageUrl; ?>" style="max-width: 100%;">
-            <?php endif; ?>
+        <div class="row mb-3">
+            <div class="col-12 col-sm-6 col-md-3 col-lg-2">
+                <?php if ($blog->image): ?>
+                    <img class="img-fluid" src="<?= $blog->imageUrl; ?>">
+                <?php endif; ?>
+            </div>
         </div>
-        <div class="clearfix"></div>
 
         <?=
-        $form->field($blog, 'content')->widget(\dosamigos\tinymce\TinyMce::class, \common\components\DefaultValuesComponent::getTinyMceSettings());
+        $form->field($blog, 'content')->widget(TinyMce::class, DefaultValuesComponent::getTinyMceSettings());
         ?>
 
         <?= $this->render('/webpage/_form', [

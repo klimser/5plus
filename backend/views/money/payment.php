@@ -1,6 +1,6 @@
 <?php
 
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
@@ -24,9 +24,9 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return = [];
             if ($model->amount > 0) {
-                $return['class'] = $model->discount ? 'info' : 'success';
+                $return['class'] = $model->discount ? 'table-info' : 'table-success';
             } elseif ($model->amount < 0) {
-                $return['class'] = $model->discount ? 'warning' : 'danger';
+                $return['class'] = $model->discount ? 'table-warning' : 'table-danger';
             }
             return $return;
         },

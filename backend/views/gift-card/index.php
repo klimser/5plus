@@ -1,12 +1,14 @@
 <?php
 
+use common\components\DefaultValuesComponent;
+use common\components\helpers\Html;
 use common\models\GiftCard;
 use common\models\GiftCardSearch;
-use dosamigos\datepicker\DatePicker;
-use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use yii\data\ActiveDataProvider;
+use yii\jui\DatePicker;
 use yii\web\View;
 
 /* @var $this View */
@@ -21,17 +23,17 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <ul class="nav nav-pills">
-        <li role="presentation" <?= $status === null ? 'class="active"' : ''; ?>>
-            <a href="<?= Url::to(['gift-card/index']); ?>">Все</a>
+        <li class="nav-item">
+            <a class="nav-link <?= $status === null ? ' active ' : ''; ?>" href="<?= Url::to(['gift-card/index']); ?>">Все</a>
         </li>
-        <li role="presentation" <?= $status === GiftCard::STATUS_NEW ? 'class="active"' : ''; ?>>
-            <a href="<?= Url::to(['gift-card/index', 'status' => GiftCard::STATUS_NEW]); ?>">Не оплаченные</a>
+        <li class="nav-item">
+            <a class="nav-link <?= $status === GiftCard::STATUS_NEW ? ' active ' : ''; ?>" href="<?= Url::to(['gift-card/index', 'status' => GiftCard::STATUS_NEW]); ?>">Не оплаченные</a>
         </li>
-        <li role="presentation" <?= $status == GiftCard::STATUS_PAID ? 'class="active"' : ''; ?>>
-            <a href="<?= Url::to(['gift-card/index', 'status' => GiftCard::STATUS_PAID]); ?>">Оплаченные</a>
+        <li class="nav-item">
+            <a class="nav-link <?= $status == GiftCard::STATUS_PAID ? ' active ' : ''; ?>" href="<?= Url::to(['gift-card/index', 'status' => GiftCard::STATUS_PAID]); ?>">Оплаченные</a>
         </li>
-        <li role="presentation" <?= $status == GiftCard::STATUS_USED ? 'class="active"' : ''; ?>>
-            <a href="<?= Url::to(['gift-card/index', 'status' => GiftCard::STATUS_USED]); ?>">Активированные</a>
+        <li class="nav-item">
+            <a class="nav-link <?= $status == GiftCard::STATUS_USED ? ' active ' : ''; ?>" href="<?= Url::to(['gift-card/index', 'status' => GiftCard::STATUS_USED]); ?>">Активированные</a>
         </li>
     </ul>
     <hr>
@@ -43,10 +45,10 @@ $this->params['breadcrumbs'][] = $this->title;
             $return  = [];
             switch ($model->status) {
                 case GiftCard::STATUS_PAID:
-                    $return['class'] = 'success';
+                    $return['class'] = 'table-success';
                     break;
                 case GiftCard::STATUS_USED:
-                    $return['class'] = 'warning';
+                    $return['class'] = 'table-warning';
                     break;
             }
             return $return;
@@ -58,50 +60,50 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'customer_phone',
                 'content' => function ($model, $key, $index, $column) {
-                    return "<span class='text-nowrap'>{$model->phoneFull}</span>";
+                    return Html::phoneLink($model->phone, $model->phoneFormatted);
                 },
             ],
             [
                 'attribute' => 'created_at',
                 'format' => 'datetime',
-                'filter' => DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'createDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
+                'filter' => DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'createDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
             [
                 'attribute' => 'paid_at',
                 'format' => 'datetime',
-                'filter' => DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'paidDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
+                'filter' => DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'paidDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
             [
                 'attribute' => 'used_at',
                 'format' => 'datetime',
-                'filter' => DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'usedDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
+                'filter' => DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'usedDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
         ],
     ]); ?>

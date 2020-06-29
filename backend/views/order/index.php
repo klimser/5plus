@@ -2,7 +2,7 @@
 
 use common\models\OrderSearch;
 use yii\grid\ActionColumn;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use dosamigos\datepicker\DatePicker;
 use yii\data\ActiveDataProvider;
@@ -26,13 +26,13 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             switch ($model->status) {
                 case 'unread':
-                    $class = 'info';
+                    $class = 'table-info';
                     break;
                 case 'done':
-                    $class = 'success';
+                    $class = 'table-success';
                     break;
                 case 'problem':
-                    $class = 'danger';
+                    $class = 'table-danger';
                     break;
             }
             $return = ['title' => $model->admin_comment];

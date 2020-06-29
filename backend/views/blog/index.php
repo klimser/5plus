@@ -1,7 +1,9 @@
 <?php
 
-use yii\helpers\Html;
+use yii\grid\ActionColumn;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -10,7 +12,7 @@ $this->title = 'Блог';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="subject-index">
-    <div class="float-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Настройки страницы списка постов</a></div>
+    <div class="float-right"><a href="<?= Url::to(['page']); ?>">Настройки страницы списка постов</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
@@ -22,7 +24,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return  = [];
             if (!$model->active) {
-                $return['class'] = 'warning';
+                $return['class'] = 'table-warning';
             }
             return $return;
         },
@@ -46,9 +48,18 @@ $this->params['breadcrumbs'][] = $this->title;
                 ],
             ],
             [
-                'class' => \yii\grid\ActionColumn::class,
+                'class' => ActionColumn::class,
                 'template' => '{delete}',
-                'buttonOptions' => ['class' => 'btn btn-default'],
+                'buttons' => [
+                    'delete' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-trash-alt"></span>', $url, [
+                            'title' => Yii::t('app', 'delete'),
+                            'class' => 'btn btn-outline-dark',
+                            'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+                            'data-method' => 'post',
+                        ]);
+                    },
+                ],
             ],
         ],
     ]); ?>
