@@ -26,6 +26,11 @@ let QuizList = {
     jump: function(button) {
         $(".step-content").addClass("hidden");
         $("#" + $(button).data("href")).removeClass("hidden");
+    },
+    startAllowed: function(form) {
+        let gToken = grecaptcha.getResponse();
+        return gToken.length !== 0;
+        
     }
 };
 let Quiz = {

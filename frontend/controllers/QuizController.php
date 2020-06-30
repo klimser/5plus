@@ -46,7 +46,7 @@ class QuizController extends Controller
         if ($quizId) $quiz = Quiz::findOne($quizId);
         if (!$quiz) throw new yii\web\NotFoundHttpException('Wrong request.');
 
-        $quizResult = new QuizResult();
+        $quizResult = new QuizResult(['scenario' => QuizResult::SCENARIO_NEW]);
         if (Yii::$app->request->isPost) {
             if ($quizResult->load(Yii::$app->request->post())) {
                 $quizResult->hash = sha1(strval(time()));

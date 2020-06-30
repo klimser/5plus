@@ -1,6 +1,7 @@
 <?php
 
 use common\models\Quiz;
+use himiklab\yii2\recaptcha\ReCaptcha;
 use yii\bootstrap4\ActiveForm;
 use yii\bootstrap4\Html;
 use yii\helpers\Url;
@@ -21,7 +22,7 @@ $script = '';
 <?php $form = ActiveForm::begin([
         'action' => Url::to(['quiz/view']),
         'options' => [
-            'onsubmit' => 'ymTrackQuizStart(); fbTrackQuizStart(); return true;']
+            'onsubmit' => 'if (!QuizList.startAllowed(this)) return false; ymTrackQuizStart(); fbTrackQuizStart(); return true;']
         ]
 ); ?>
     <input type="hidden" name="quiz_id" required> 
@@ -50,8 +51,8 @@ $script = '';
                 </a>
             </div>
         </nav>
-        <div class="tab-content" id="nav-tabContent">
-            <div class="tab-pane fade pt-3 show active" id="step-1" role="tabpanel" aria-labelledby="step-1-tab">
+        <div class="tab-content pt-3" id="nav-tabContent">
+            <div class="tab-pane active" id="step-1" role="tabpanel" aria-labelledby="step-1-tab">
                 <h2>На старт!</h2>
                 <div class="list-group">
                     <?php
@@ -69,19 +70,21 @@ $script = '';
                     endforeach; ?>
                 </div>
             </div>
-            <div class="tab-pane fade pt-3 show" id="step-2" role="tabpanel" aria-labelledby="step-2-tab">
+            <div class="tab-pane" id="step-2" role="tabpanel" aria-labelledby="step-2-tab">
                 <h2>Внимание!</h2>
                 <div class="list-group mb-3" id="quiz-list"></div>
 
                 <button type="button" class="btn btn-secondary" onclick="MultiStepForm.jump($('.step-tab[data-step-order=1]'));">назад</button>
             </div>
-            <div class="tab-pane fade pt-3 show" id="step-3" role="tabpanel" aria-labelledby="step-3-tab">
+            <div class="tab-pane" id="step-3" role="tabpanel" aria-labelledby="step-3-tab">
                 <h2>Марш!</h2>
                 <p>Тест состоит из <span id="question-count"></span> вопросов. На решение теста отводится <?= Quiz::TEST_TIME; ?> минут. Начиная тест, убедитесь в том, что у вас есть <?= Quiz::TEST_TIME; ?> минут времени для его решения, тест нельзя приостановить и продолжить позже.</p><br>
 
                 <?= $form->field($quizResult, 'student_name')
                     ->textInput(['maxlength' => true, 'placeholder' => 'ФИО', 'required' => true])
                     ->label('Укажите ваши фамилию, имя, отчество'); ?>
+
+                <?= $form->field($quizResult, 'reCaptcha', ['labelOptions' => ['label' => null]])->widget(ReCaptcha::class); ?>
 
                 <button type="button" class="btn btn-secondary" onclick="MultiStepForm.jump($('.step-tab[data-step-order=2]'));">назад</button>
                 <?= Html::submitButton('Начать тест', ['class' => 'btn btn-success']); ?>
