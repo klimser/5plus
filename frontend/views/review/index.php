@@ -1,6 +1,6 @@
 <?php
 
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 use common\components\WidgetHtml;
 
 /* @var $this \yii\web\View */

@@ -4,6 +4,7 @@ namespace common\models;
 
 use common\models\traits\Inserted;
 use common\components\extended\ActiveRecord;
+use himiklab\yii2\recaptcha\ReCaptchaValidator;
 
 /**
  * This is the model class for table "{{%quiz_result}}".
@@ -27,15 +28,18 @@ class QuizResult extends ActiveRecord
 {
     use Inserted;
 
+    const SCENARIO_NEW = 'new';
+    const SCENARIO_EXISTING = 'existing';
+
     private $_questionsArray = null;
     private $_answersArray = null;
     
-
     public static function tableName()
     {
         return '{{%quiz_result}}';
     }
 
+    public $reCaptcha;
 
     public function rules()
     {
@@ -44,6 +48,7 @@ class QuizResult extends ActiveRecord
             [['questions_data', 'answers_data'], 'string'],
             [['subject_name'], 'string', 'max' => 50],
             [['hash', 'student_name', 'quiz_name'], 'string', 'max' => 255],
+            [['reCaptcha'], ReCaptchaValidator::class, 'on' => self::SCENARIO_NEW],
         ];
     }
 
