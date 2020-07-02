@@ -5,7 +5,7 @@ prod_back:
   options:
     style: compressed
   files:
-    "backend/web/assets/grunt/css/main.css": "frontend/resources/src/sass/main.scss"
+    "backend/web/assets/grunt/css/main.css": "backend/resources/src/sass/main.scss"
 dev_front:
   files:
     "frontend/web/assets/grunt/css/styles.css": "frontend/resources/src/sass/styles.sass"
