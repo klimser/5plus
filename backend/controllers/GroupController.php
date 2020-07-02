@@ -39,14 +39,14 @@ class GroupController extends AdminController
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
         if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
-        $user = User::findOne(7227);
-        foreach ($user->groupPupils as $groupPupil) {
+//        $user = User::findOne(7227);
+//        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
 //            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
-            MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
+//            MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
 //            GroupComponent::calculateTeacherSalary($groupPupil->group);
 //            MoneyComponent::recalculateDebt($groupPupil->user, $groupPupil->group);
-        }
+//        }
 
 //        $groupPupil = GroupPupil::findOne(1146);
 //        EventComponent::fillSchedule($groupPupil->group);
@@ -152,15 +152,17 @@ class GroupController extends AdminController
     private function processGroupData(Group $group)
     {
         if (Yii::$app->request->isPost) {
+            if (empty($group->groupPupils)) {
+                $group->scenario = Group::SCENARIO_EMPTY;
+            }
             $group->load(Yii::$app->request->post());
             $groupVal = Yii::$app->request->post('Group', []);
             $newPupils = Yii::$app->request->post('pupil', []);
             $error = false;
-            if (!empty($groupVal['date_start']) && !empty($group->groupPupils)) {
-                Yii::$app->session->addFlash('error', 'Вы не можете изменять дату начала занятий группы');
-                $error = true;
+
+            if (empty($group->groupPupils)) {
+                $group->startDateObject = !empty($groupVal['date_start']) ? new \DateTime($groupVal['date_start']) : null;
             }
-            $group->startDateObject = !empty($groupVal['date_start']) ? new \DateTime($groupVal['date_start']) : null;
             $group->endDateObject = !empty($groupVal['date_end']) ? new \DateTime($groupVal['date_end']) : null;
 
             if (!$group->date_start && !empty($newPupils)) {

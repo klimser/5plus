@@ -54,45 +54,21 @@ let Group = {
         });
         return list;
     },
-    pupilsMap: [],
     pupilsActive: [],
-    loadPupilsMap: function () {
-        if (this.pupilsMap.length === 0) {
-            $.ajax({
-                url: '/user/pupils',
-                dataType: 'json',
-                success: function (data) {
-                    data.forEach(function(pupil) {
-                        Group.pupilsMap.push(pupil);
-                    });
-                }
-            });
-        }
-    },
     renderPupilForm: function () {
-        let pupilSelect = '<select name="pupil[]" class="form-control chosen pupil-id"><option value=""></option>';
-        this.pupilsMap.forEach(function(pupil) {
-            let used = false;
-            for (let j = 0; j < Group.pupilsActive.length; j++) {
-                if (pupil.id === Group.pupilsActive[j]) {
-                    used = true;
-                    break;
-                }
-            }
-            if (!used) pupilSelect += '<option value="' + pupil.id + '">' + pupil.name + '</option>';
-        });
-        pupilSelect += '</select>';
+        let pupilSelect = '<input type="hidden" class="autocomplete-user-id pupil-id" name="pupil[]">' +
+            '<input class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" required data-role="3">';
 
         let formHtml = '<div class="row row-pupil mt-3"><div class="col-12">' +
             '<div class="row form-group">' +
-                '<div class="col-9 col-sm-10 col-md-auto">' + pupilSelect + '</div>' +
+                '<div class="col-9 col-sm-10 col-md-6 col-lg-4">' + pupilSelect + '</div>' +
                 '<div class="col-3 col-sm-2 col-md-auto">' +
                     '<button type="button" class="btn btn-outline-dark" onclick="return Group.removePupil(this);" title="Удалить">' +
                     '<span class="fas fa-user-minus"></span></button>' +
                 '</div>' +
             '</div>';
         if (!this.isNew) {
-            formHtml += '<div class="row form-group">' +
+            formHtml += '<div class="row form-group group-pupil-block">' +
                 '<div class="col-6 col-sm-auto form-inline align-items-start">' +
                     '<label class="mr-2 mt-2">C</label>' +
                     '<input type="text" class="form-control pupil-date-start" name="pupil_start[]" id="group-pupil-new-date-start-' + Group.increment + '" ' +
@@ -107,13 +83,10 @@ let Group = {
             '</div>';
             Group.increment++;
         }
-        formHtml += '</div></div>';
+        formHtml += '</div></div><hr>';
         $("#group_pupils").append(formHtml);
-        $('#group_pupils .row-pupil:last .chosen').chosen({
-            disable_search_threshold: 6,
-            no_results_text: 'Студент не найден',
-            placeholder_text_single: 'Выберите студента'
-        });
+        
+        Main.initAutocompleteUser('#group_pupils .row-pupil:last .autocomplete-user');
         if (!this.isNew) {
             $('#group_pupils .row-pupil:last .pupil-date-start').datepicker({
                 format: "dd.mm.yyyy",
@@ -139,12 +112,14 @@ let Group = {
     submitForm: function () {
         var validForm = true;
         var startDate = null, endDate = null;
-        var startString = $("#group-date_start").val();
-        var endString = $("#group-date_end").val();
+        var startDateInput = $("#group-date_start");
+        var endDateInput = $("#group-date_end");
+        var startString = $(startDateInput).val();
+        var endString = $(endDateInput).val();
 
         if (startString.length > 0) {
             if (!this.dateRegexp.test(startString)) {
-                $("#group_date").addClass('has-error');
+                $(startDateInput).addClass('is-invalid');
                 validForm = false;
             } else {
                 startDate = new Date(parseInt(startString.substr(6)), parseInt(startString.substr(3, 2)), parseInt(startString.substr(0, 2)));
@@ -152,7 +127,7 @@ let Group = {
         }
         if (endString.length > 0) {
             if (!this.dateRegexp.test(endString)) {
-                $("#group_date").addClass('has-error');
+                $(endDateInput).addClass('is-invalid');
                 validForm = false;
             } else {
                 endDate = new Date(parseInt(endString.substr(6)), parseInt(endString.substr(3, 2)), parseInt(endString.substr(0, 2)));
@@ -160,29 +135,36 @@ let Group = {
         }
         if (validForm) {
             if (startDate === null || (endDate !== null && endDate <= startDate)) {
-                $("#group_date").addClass('has-error');
+                $(endDateInput).addClass('is-invalid');
                 validForm = false;
             }
         }
-        if (validForm) $("#group_date").removeClass('has-error');
+        if (validForm) {
+            $(startDateInput).removeClass('is-invalid');
+            $(endDateInput).removeClass('is-invalid');
+        }
 
         if ($('input[name^="weekday"]:checked').length === 0) {
-            $("#weekdays").addClass('has-error');
+            $('input[name^="weekday"]').addClass('is-invalid');
             validForm = false;
-        } else $("#weekdays").removeClass('has-error');
+        } else {
+            $('input[name^="weekday"]').removeClass('is-invalid');
+        }
 
-        $("select.pupil-id").each(function () {
-            if (!$(this).val().length) {
-                $(this).closest(".form-group").addClass('has-error');
+        $("input.pupil-id").each(function () {
+            if ($(this).val() > 0) {
+                $(this).removeClass('is-invalid');
+            } else {
+                $(this).addClass('is-invalid');
                 validForm = false;
-            } else $(this).closest(".form-group").removeClass('has-error');
+            }
         });
         if (validForm) {
-            $(".pupil-start").each(function () {
+            $(".pupil-date-start").each(function () {
                 startString = $(this).val();
-                endString = $(this).closest(".form-group").find('.pupil-end').val();
+                endString = $(this).closest(".group-pupil-block").find('.pupil-date-end').val();
                 if (!startString.length || !Group.dateRegexp.test(startString) || (endString.length && !Group.dateRegexp.test(endString))) {
-                    $(this).closest(".form-group").addClass('has-error');
+                    $(this).addClass('is-invalid');
                     validForm = false;
                 } else {
                     if (endString.length) {
@@ -190,10 +172,10 @@ let Group = {
                         var pupilEndDate = new Date(parseInt(endString.substr(6)), parseInt(endString.substr(3, 2)), parseInt(endString.substr(0, 2)));
 
                         if (pupilStartDate < startDate || (endDate !== null && pupilEndDate > endDate) || pupilEndDate <= pupilStartDate) {
-                            $(this).closest(".form-group").addClass('has-error');
+                            $(this).addClass('is-invalid');
                             validForm = false;
-                        } else $(this).closest(".form-group").removeClass('has-error');
-                    } else $(this).closest(".form-group").removeClass('has-error');
+                        } else $(this).removeClass('is-invalid');
+                    } else $(this).removeClass('is-invalid');
                 }
             });
         }

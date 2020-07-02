@@ -43,12 +43,25 @@ use yii\db\ActiveQuery;
 class Group extends ActiveRecord
 {
     use GroupParamTrait;
+    
+    public const SCENARIO_EMPTY = 'empty';
+    
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
         return '{{%group}}';
+    }
+
+    public function scenarios()
+    {
+        return [
+            self::SCENARIO_EMPTY => ['name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'date_start', 'room_number',
+                'lesson_price_discount', 'lesson_duration', 'teacher_rate', 'date_end'],
+            self::SCENARIO_DEFAULT => ['name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'room_number',
+                'lesson_price_discount', 'lesson_duration', 'teacher_rate', 'date_end'],
+        ];
     }
 
     /**
@@ -65,7 +78,8 @@ class Group extends ActiveRecord
             [['schedule'], 'string', 'max' => 255],
             [['room_number'], 'string', 'max' => 25],
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
-            [['date_start', 'date_end'], 'safe'],
+            [['date_start'], 'safe', 'on' => self::SCENARIO_EMPTY],
+            [['date_end'], 'safe'],
             [['subject_id'], 'exist', 'targetRelation' => 'subject'],
             [['teacher_id'], 'exist', 'targetRelation' => 'teacher'],
             [['type_id'], 'exist', 'targetRelation' => 'type'],

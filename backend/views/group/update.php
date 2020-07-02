@@ -21,7 +21,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerJs(<<<SCRIPT
     Group.loadTeacherMap();
-    Group.loadPupilsMap();
 SCRIPT
     );
 ?>
@@ -154,7 +153,7 @@ SCRIPT
                 <div class="col-12 col-sm-6 col-md-auto form-group">
                     C <?= $group->startDateObject->format('d.m.Y'); ?>
                 </div>
-                <?= $form->field($group,'date_start', ['template' => '{input}', 'options' => ['class' => []]])->hiddenInput(); ?>
+                <?= Html::hiddenInput('Group[date_start]', $group->startDateObject->format('d.m.Y'), ['id' => 'group-date_start']); ?>
                 <?= $form->field(
                         $group,
                         'date_end',
