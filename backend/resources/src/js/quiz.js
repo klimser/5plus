@@ -16,7 +16,7 @@ var Quiz = {
                         tinymce.get($(this).attr("id")).remove();
                     });
                 }
-                $(form).empty().append(data.content).removeClass("hidden");
+                $(form).empty().append(data.content).collapse("show");
                 eval(data.script);
             }
         });
@@ -31,7 +31,7 @@ var Quiz = {
                     question_id: questionId
                 },
                 success: function(data) {
-                    if (data.status === "ok") location.reload(true);
+                    if (data.status === "ok") location.reload();
                     else {
                         Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
                     }
@@ -41,16 +41,16 @@ var Quiz = {
     },
     addAnswer: function(e) {
         $(e).closest("form").find(".answers").append('<div class="row">' +
-                '<div class="col-xs-9 col-md-10"><input class="form-control" name="wrongAnswers[]"></div>' +
-                '<div class="col-xs-3 col-md-2">' +
-                    '<button class="btn btn-default" onclick="return Quiz.removeAnswer(this);"><span class="glyphicon glyphicon-remove"></span></button>' +
+                '<div class="col-9 col-lg-10"><input class="form-control" name="wrongAnswers[]"></div>' +
+                '<div class="col-3 col-lg-2">' +
+                    '<button class="btn btn-outline-dark" onclick="return Quiz.removeAnswer(this);"><span class="fas fa-times"></span></button>' +
                 '</div>' +
             '</div>'
         );
         return false;
     },
     removeAnswer: function(e) {
-        $(e).closest('div').remove();
+        $(e).closest('div.row').remove();
         return false;
     }
 };

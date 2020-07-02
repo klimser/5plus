@@ -5,6 +5,7 @@ use common\components\Action;
 use common\components\DefaultValuesComponent;
 use kartik\field\FieldRange;
 use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
 use yii\grid\GridView;
 use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
@@ -39,6 +40,8 @@ $renderTable = function(array $arr)
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+        'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return = [];
             if ($model->amount > 0) $return['class'] = 'table-success';

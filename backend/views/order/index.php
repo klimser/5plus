@@ -1,11 +1,15 @@
 <?php
 
+use common\components\DefaultValuesComponent;
+use common\models\Order;
 use common\models\OrderSearch;
+use yii\bootstrap4\LinkPager;
 use yii\grid\ActionColumn;
 use yii\bootstrap4\Html;
 use yii\grid\GridView;
-use dosamigos\datepicker\DatePicker;
 use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
+use yii\jui\DatePicker;
 use yii\web\View;
 
 /* @var $this View */
@@ -22,7 +26,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'options' => ['class' => 'grid-view table-responsive'],
+        'options' => ['class' => 'grid-view table-responsive-xl'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             switch ($model->status) {
                 case 'unread':
@@ -73,35 +78,50 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'created_at',
                 'format' => 'datetime',
-                'filter' => DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'createDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
+                'filter' => DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'createDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
             'source',
             [
                 'attribute' => 'status',
                 'format' => 'html',
                 'content' => function ($model, $key, $index, $column) {
-                    return Html::activeDropDownList($model, 'status', \common\models\Order::$statusLabels, ['class' => 'form-control input-sm', 'onchange' => 'Main.changeEntityStatus("order", ' . $model->id . ', $(this).val(), this);', 'id' => 'order-status-' . $key, 'autocomplete' => 'off']);
+                    return Html::activeDropDownList($model, 'status', Order::$statusLabels, ['class' => 'form-control input-sm', 'onchange' => 'Main.changeEntityStatus("order", ' . $model->id . ', $(this).val(), this);', 'id' => 'order-status-' . $key, 'autocomplete' => 'off']);
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'status',
-                    array_merge(['' => 'Любой'], \common\models\Order::$statusLabels),
+                    array_merge(['' => 'Любой'], Order::$statusLabels),
                     ['class' => 'form-control']
                 ),
             ],
             [
                 'class' => ActionColumn::class,
                 'template' => '<span class="text-nowrap">{update}{delete}</span>',
-                'buttonOptions' => ['class' => 'btn btn-default mr-2'],
+                'buttons' => [
+                    'update' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
+                            'title' => Yii::t('yii', 'Update'),
+                            'class' => 'btn btn-outline-dark',
+                        ]);
+                    },
+                    'delete' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-trash-alt"></span>', $url, [
+                            'title' => Yii::t('yii', 'Delete'),
+                            'class' => 'btn btn-outline-dark ml-2',
+                            'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+                            'data-method' => 'post',
+                        ]);
+                    },
+                ],
             ],
         ],
     ]); ?>

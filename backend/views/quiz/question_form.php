@@ -1,5 +1,7 @@
 <?php
 
+use common\components\DefaultValuesComponent;
+use dosamigos\tinymce\TinyMce;
 use yii\bootstrap4\Html;
 use yii\widgets\ActiveForm;
 
@@ -14,13 +16,13 @@ use yii\widgets\ActiveForm;
 
     <?= Html::activeHiddenInput($question, 'quiz_id'); ?>
 
-    <?= $form->field($question, 'content')->widget(\dosamigos\tinymce\TinyMce::class, array_merge(\common\components\DefaultValuesComponent::getTinyMceSettings(), ['options' => ['rows' => 6, 'id' => 'question-content-' . $question->id]])); ?>
+    <?= $form->field($question, 'content')->widget(TinyMce::class, array_merge(DefaultValuesComponent::getTinyMceSettings(), ['options' => ['rows' => 6, 'id' => 'question-content-' . $question->id]])); ?>
 
     <?php /*
     $form->field($model, 'content')->textarea(['rows' => 6, 'id' => 'question-content-' . $model->id]); */ ?>
     
-    <div class="bg-success form-group">
-        <?= Html::label('Правильный ответ', null, ['class' => 'control-label']); ?>
+    <div class="bg-success text-white form-group">
+        <?= Html::label('Правильный ответ', null, ['class' => 'pt-1 pl-2']); ?>
         <?= Html::textInput('rightAnswer', $question->rightAnswer ? $question->rightAnswer->content : '', ['class' => 'form-control', 'required' => true]); ?>
     </div>
     <?= Html::label('Неправильные ответы'); ?>
@@ -36,8 +38,8 @@ use yii\widgets\ActiveForm;
     </div>
     <button class="btn btn-sm btn-info" onclick="return Quiz.addAnswer(this);">Добавить неправильный ответ</button>
 
-    <div class="form-group">
-        <?= Html::submitButton(($question->isNewRecord ? 'Добавить' : 'Сохранить') . ' вопрос', ['class' => 'float-right btn ' . ($question->isNewRecord ? 'btn-success' : 'btn-primary')]) ?>
+    <div class="form-group text-right">
+        <?= Html::submitButton(($question->isNewRecord ? 'Добавить' : 'Сохранить') . ' вопрос', ['class' => 'btn ' . ($question->isNewRecord ? 'btn-success' : 'btn-primary')]) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

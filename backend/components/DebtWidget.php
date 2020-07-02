@@ -28,9 +28,9 @@ class DebtWidget extends Widget
             }
             
             if ($debtAmount) {
-                return '<div class="pull-right alert alert-danger">Задолженность: <b>' . $debtAmount . '</b></div>';
+                return '<div class="float-right alert alert-danger">Задолженность: <b>' . number_format($debtAmount, 0, '.', ' ') . '</b></div>';
             } else {
-                return '<div class="pull-right alert alert-info">Баланс: <b>' . $balance . '</b></div>';
+                return '<div class="float-right alert alert-info">Баланс: <b>' . number_format($balance, 0, '.', ' ') . '</b></div>';
             }
         }
         return '';

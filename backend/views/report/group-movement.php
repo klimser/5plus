@@ -1,6 +1,9 @@
 <?php
 
+use common\components\DefaultValuesComponent;
 use \yii\bootstrap4\Html;
+use yii\helpers\ArrayHelper;
+use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
 
@@ -9,20 +12,24 @@ $this->params['breadcrumbs'][] = $this->title;
 
 
 ?>
-<div class="row">
-    <div class="col-xs-12">
-        <?= Html::beginForm('', 'post', ['class' => 'form-inline']); ?>
-            <?= \dosamigos\datepicker\DatePicker::widget([
-                'name' => 'date',
-                'value' => date('m.Y'),
-                'clientOptions' => [
-                    'autoclose' => true,
-                    'format' => 'mm.yyyy',
-                    'language' => 'ru',
-                    'viewMode' => 'months',
-                ]
-            ]);?>
-            <button class="btn btn-primary">Получить</button>
-        <?= Html::endForm(); ?>
+
+<?= Html::beginForm('', 'post', ['class' => 'form-inline']); ?>
+    <div class="form-group">
+        <div class="input-group">
+            <?= DatePicker::widget(ArrayHelper::merge(
+                DefaultValuesComponent::getDatePickerSettings(),
+                [
+                    'id' => 'report-month',
+                    'name' => 'date',
+                    'value' => date('d.m.Y'),
+                    'dateFormat' => 'MM.y',
+                    'options' => [
+                        'pattern' => '\d{2}.\d{4}',
+                    ],
+                ])); ?>
+            <div class="input-group-append">
+                <button class="btn btn-primary">Получить</button>
+            </div>
+        </div>
     </div>
-</div>
+<?= Html::endForm(); ?>

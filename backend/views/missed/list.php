@@ -1,6 +1,5 @@
 <?php
 
-use backend\models\UserCall;
 use yii\helpers\Url;
 use yii\web\View;
 
@@ -34,17 +33,16 @@ $this->params['breadcrumbs'][] = $this->title;
                     <?php endif; ?>
                 </td>
                 <td>
-                    <?php
-                    /** @var UserCall $call */
-                    foreach ($pupilData['calls'] as $call): ?>
-                        <?= $call->createDate->format('d.m.y H:i'); ?>
-                        <?= $call->admin->name; ?>
-                        <i><?= $call->comment; ?></i>
-                        <hr class="thin">
-                    <?php endforeach; ?>
+                    <?= implode('<hr class="thin">',
+                    array_map(function($call) {
+                        /** @var \backend\models\UserCall $call */
+                        return $call->createDate->format('d.m.y H:i') . ' '
+                            . $call->admin->name . ' '
+                            . '<i>' . $call->comment . '</i>';
+                    }, $pupilData['calls'])); ?>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-default" onclick="return Missed.showCall(<?= $pupilData['groupPupil']->id; ?>, this);">
+                    <button type="button" class="btn btn-outline-dark" onclick="return Missed.showCall(<?= $pupilData['groupPupil']->id; ?>, this);">
                         <span class="fas fa-phone"></span>
                     </button>
                     <div id="phone_call_<?= $pupilData['groupPupil']->id; ?>"></div>

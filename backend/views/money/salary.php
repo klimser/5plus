@@ -2,50 +2,54 @@
 
 use yii\bootstrap4\Html;
 use \common\components\helpers\Calendar;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $salaryMap array */
-/* @var $date \DateTime */
+/* @var $date \DateTimeImmutable */
 
 $this->title = 'Зарплата';
 $this->params['breadcrumbs'][] = $this->title;
-$monthInterval = new \DateInterval('P1M');
-$prevMonth = clone $date;
-$prevMonth->sub($monthInterval);
-$nextMonth = clone $date;
-$nextMonth->add($monthInterval);
+$prevMonth = $date->modify('-1 month');
+$nextMonth = $date->modify('+1 month');
 ?>
-<div class="salary-index">
-    <h1>
-        <a href="<?= \yii\helpers\Url::to(['salary', 'year' => $prevMonth->format('Y'), 'month' => $prevMonth->format('n')]); ?>"
-        ><span class="fas fa-arrow-left"></span></a>
-        <?= Html::encode($this->title) ?> <?= Calendar::$monthNames[$date->format('n')]; ?> <?= $date->format('Y'); ?>
-        <a href="<?= \yii\helpers\Url::to(['salary-details', 'year' => $date->format('Y'), 'month' => $date->format('n')]); ?>"><span class="fas fa-file"></span></a>
-        <a href="<?= \yii\helpers\Url::to(['salary', 'year' => $nextMonth->format('Y'), 'month' => $nextMonth->format('n')]); ?>"
-        ><span class="fas fa-arrow-right"></span></a>
-    </h1>
 
-    <?php foreach ($salaryMap as $payments): ?>
-        <div class="panel panel-info">
-            <div class="panel-heading">
-                <h3 class="panel-title"><?= $payments[0]['teacher']; ?></h3>
+<h1>
+    <a href="<?= Url::to(['salary', 'year' => $prevMonth->format('Y'), 'month' => $prevMonth->format('n')]); ?>"
+    ><span class="fas fa-arrow-left"></span></a>
+    <?= Html::encode($this->title) ?> <?= Calendar::$monthNames[$date->format('n')]; ?> <?= $date->format('Y'); ?>
+    <a href="<?= Url::to(['salary-details', 'year' => $date->format('Y'), 'month' => $date->format('n')]); ?>"><span class="fas fa-file"></span></a>
+    <a href="<?= Url::to(['salary', 'year' => $nextMonth->format('Y'), 'month' => $nextMonth->format('n')]); ?>"
+    ><span class="fas fa-arrow-right"></span></a>
+</h1>
+
+<?php foreach ($salaryMap as $payments): ?>
+    <div class="card border-info mb-3">
+        <h3 class="card-header text-white bg-info">
+            <?= $payments[0]['teacher']; ?>
+        </h3>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-8 font-weight-bold">Группа</div>
+                <div class="col-4 text-right font-weight-bold">Оплата</div>
             </div>
-            <table class="table">
-                <thead><tr><th>Группа</th><th class="text-right">Оплата</th><th></th></tr></thead>
-                <tbody>
-                    <?php
-                        $totalSalary = 0;
-                        foreach ($payments as $payment):
-                            $totalSalary += $payment['amount']; ?>
-                        <tr>
-                            <td><?= $payment['group']; ?></td>
-                            <td class="text-right"><?= $payment['amount']; ?></td>
-                            <td><a href="<?= \yii\helpers\Url::to(['salary-details', 'group' => $payment['group_id'], 'year' => $date->format('Y'), 'month' => $date->format('n')]); ?>"><span class="fas fa-file"></span></a></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    <tr><td><b>Итого</b></td><td class="text-right"><?= $totalSalary; ?></td><td></td></tr>
-                </tbody>
-            </table>
+            <?php
+                $totalSalary = 0;
+                foreach ($payments as $payment):
+                    $totalSalary += $payment['amount']; ?>
+                <div class="row border-bottom">
+                    <div class="col-8">
+                        <?= $payment['group']; ?>
+                        <a href="<?= Url::to(['salary-details', 'group' => $payment['group_id'], 'year' => $date->format('Y'), 'month' => $date->format('n')]); ?>"><span class="fas fa-file"></span></a></div>
+                    <div class="col-4 text-right">
+                        <?= number_format($payment['amount'], 0, '.', ' '); ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+            <div class="row">
+                <div class="col-8 font-weight-bold">Итого</div>
+                <div class="col-4 text-right"><?= number_format($totalSalary, 0, '.', ' '); ?></div>
+            </div>
         </div>
-    <?php endforeach; ?>
-</div>
+    </div>
+<?php endforeach; ?>

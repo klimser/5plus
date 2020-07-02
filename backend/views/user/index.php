@@ -3,6 +3,7 @@
 use backend\components\UserComponent;
 use common\models\User;
 use common\models\UserSearch;
+use yii\bootstrap4\LinkPager;
 use yii\grid\ActionColumn;
 use yii\bootstrap4\Html;
 use yii\grid\GridView;
@@ -73,7 +74,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'pager' => ['class' => \yii\bootstrap4\LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'options' => ['class' => 'grid-view table-responsive'],
         'rowOptions' => function ($model, $key, $index, $grid) {return ($model->status == User::STATUS_LOCKED) ? ['class' => 'table-secondary'] : [];},
         'columns' => [
@@ -116,7 +117,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'buttons' => [
                     'update' =>  function($url,$model) {
                         return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
-                            'title' => Yii::t('app', 'update'),
+                            'title' => Yii::t('yii', 'Update'),
                             'class' => 'btn btn-outline-dark',
                         ]);
                     },

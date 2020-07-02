@@ -47,32 +47,32 @@ let WelcomeLesson = {
         switch (data.status) {
             case this.statusUnknown:
                 contents =
-                    '<button type="button" title="Проведено" class="btn btn-primary mr-2" onclick="WelcomeLesson.changeStatusHandler(this, ' + id + ', ' + WelcomeLesson.statusPassed + ')">' +
+                    '<button type="button" title="Проведено" class="btn btn-primary" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusPassed + ')">' +
                         '<span class="fas fa-check"></span>' +
                     '</buttona>' +
-                    '<button type="button" title="Отменено" class="btn btn-danger margin-right-10" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusCanceled + ');">' +
+                    '<button type="button" title="Отменено" class="btn btn-danger ml-2" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusCanceled + ');">' +
                         '<span class="fas fa-times"></span>' +
                     '</button>' +
-                    '<button type="button" title="Перенести" class="btn btn-default" onclick="WelcomeLesson.showRescheduleForm(this, ' + data.id + ', \'' + data.date + '\');">' +
-                    '<span class="fas fa-history"></span>' +
+                    '<button type="button" title="Перенести" class="btn btn-outline-dark ml-2" onclick="WelcomeLesson.showRescheduleForm(this, ' + data.id + ', \'' + data.date + '\');">' +
+                        '<span class="fas fa-history"></span>' +
                     '</button>';
                 break;
             case this.statusPassed:
                 contents =
-                    '<button class="btn btn-primary mr-2" type="button" title="В группу!" onclick="WelcomeLesson.showMovingForm(this, ' + data.id + ')">' +
-                    '<span class="fas fa-user-check"></span>' +
+                    '<button class="btn btn-primary" type="button" title="В группу!" onclick="WelcomeLesson.showMovingForm(this, ' + data.id + ')">' +
+                        '<span class="fas fa-user-check"></span>' +
                     '</button>' +
-                    '<button type="button" title="Не пришёл" class="btn btn-warning mr-2" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusMissed + ')">' +
-                    '<span class="fas fa-user-slash"></span>' +
+                    '<button type="button" title="Не пришёл" class="btn btn-warning ml-2" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusMissed + ')">' +
+                        '<span class="fas fa-user-slash"></span>' +
                     '</buttona>' +
-                    '<button type="button" title="Не будет ходить" class="btn btn-danger" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusDenied + ')">' +
-                    '<span class="fas fa-running"></span>' +
+                    '<button type="button" title="Не будет ходить" class="btn btn-danger ml-2" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusDenied + ')">' +
+                        '<span class="fas fa-running"></span>' +
                     '</buttona>';
                 break;
             case this.statusDenied:
                 if (!data.denyReason) {
                     contents =
-                        '<form method="post" class="deny-details-form" onsubmit="return WelcomeLesson.setDenyDetails(' + id + ', this);">' +
+                        '<form method="post" class="deny-details-form" onsubmit="return WelcomeLesson.setDenyDetails(' + data.id + ', this);">' +
                             '<div class="form-check"><label class="form-check-label">' +
                             '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonTeacher + '"> не понравился учитель</label></div>' +
                             '<div class="form-check"><label class="form-check-label">' +
@@ -120,10 +120,13 @@ let WelcomeLesson = {
                     let proposals = '';
                     let checkProposal = (data.groupIds.length === 1);
                     data.groupIds.forEach(function (groupId) {
-                        proposals += '<div class="radio"><label>' +
-                            '<input type="radio" name="welcome_lesson[group_proposal]" value="' + groupId + '" ' +
-                            ' onchange="WelcomeLesson.groupChange(this);" ' + (checkProposal ? ' checked' : '') + ' required> '
-                            + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')' + '</label></div>';
+                        proposals += '<div class="form-check">' +
+                            '<label class="form-check-label">' +
+                            '<input class="form-check-input" type="radio" name="welcome_lesson[group_proposal]" ' +
+                            'value="' + groupId + '" onchange="WelcomeLesson.groupChange(this);" ' + (checkProposal ? ' checked' : '') + ' required>' +
+                            Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')' +
+                            '</label>' +
+                            '</div>';
                     });
                     $(form).find(".group-proposal").html(proposals);
                     let groupList = '';

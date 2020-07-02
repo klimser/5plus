@@ -333,7 +333,7 @@ class MoneyController extends AdminController
         }
 
         return $this->render('salary', [
-            'date' => new \DateTime("$year-$month-01 midnight"),
+            'date' => new \DateTimeImmutable("$year-$month-01 midnight"),
             'salaryMap' => $salaryMap,
         ]);
     }

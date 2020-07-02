@@ -1,7 +1,7 @@
 <?php
 
 use common\models\Quiz;
-use himiklab\yii2\recaptcha\ReCaptcha;
+use himiklab\yii2\recaptcha\ReCaptcha2;
 use yii\bootstrap4\ActiveForm;
 use yii\bootstrap4\Html;
 use yii\helpers\Url;
@@ -84,7 +84,7 @@ $script = '';
                     ->textInput(['maxlength' => true, 'placeholder' => 'ФИО', 'required' => true])
                     ->label('Укажите ваши фамилию, имя, отчество'); ?>
 
-                <?= $form->field($quizResult, 'reCaptcha', ['labelOptions' => ['label' => null]])->widget(ReCaptcha::class); ?>
+                <?= $form->field($quizResult, 'reCaptcha', ['labelOptions' => ['label' => null]])->widget(ReCaptcha2::class); ?>
 
                 <button type="button" class="btn btn-secondary" onclick="MultiStepForm.jump($('.step-tab[data-step-order=2]'));">назад</button>
                 <?= Html::submitButton('Начать тест', ['class' => 'btn btn-success']); ?>

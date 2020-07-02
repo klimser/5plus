@@ -4,7 +4,7 @@
 /* @var $content string */
 
 use common\models\Menu;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\bootstrap4\Nav;
 use common\components\WidgetHtml;
 use yii\helpers\Url;

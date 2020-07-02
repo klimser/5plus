@@ -3,6 +3,7 @@
 use common\components\DefaultValuesComponent;
 use common\models\Feedback;
 use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use yii\helpers\ArrayHelper;
@@ -22,7 +23,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'options' => ['class' => 'grid-view table-responsive-md'],
+        'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             switch ($model->status) {
                 case 'new':
@@ -76,7 +78,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'buttons' => [
                     'delete' =>  function($url,$model) {
                         return Html::a('<span class="fas fa-trash-alt"></span>', $url, [
-                            'title' => Yii::t('app', 'delete'),
+                            'title' => Yii::t('yii', 'Delete'),
                             'class' => 'btn btn-outline-dark',
                             'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
                             'data-method' => 'post',

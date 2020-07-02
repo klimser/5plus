@@ -84,23 +84,26 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
             <div class="parent-edit-block collapse">
                 <?php if (!$pupil->parent_id): ?>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="parent_type" value="none" onclick="Dashboard.changeParentType(this)" checked> Студент уже взрослый
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="parent_type" value="none" onclick="Dashboard.changeParentType(this)" checked>
+                            Студент уже взрослый
                         </label>
                     </div>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="parent_type" value="exist" onclick="Dashboard.changeParentType(this)"> Есть брат (сестра), выбрать родителей
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="parent_type" value="exist" onclick="Dashboard.changeParentType(this)">
+                            Есть брат (сестра), выбрать родителей
                         </label>
-                        <div class="parent-edit-option parent-edit-exist parent hidden">
-                            <input type="hidden" class="autocomplete-user-id" name="User[parent][id]">
-                            <input class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" required disabled data-role="<?= $pupil->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY; ?>">
-                        </div>
                     </div>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="parent_type" value="new" onclick="Dashboard.changeParentType(this)"> Родители
+                    <div class="parent-edit-option parent-edit-exist collapse">
+                        <input type="hidden" class="autocomplete-user-id" name="User[parent][id]">
+                        <input class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" required disabled data-role="<?= $pupil->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY; ?>">
+                    </div>
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="radio" name="parent_type" value="new" onclick="Dashboard.changeParentType(this)">
+                            Родители
                         </label>
                     </div>
                 <?php endif; ?>

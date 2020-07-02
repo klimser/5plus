@@ -26,7 +26,6 @@ use yii\data\Pagination;
 use yii\helpers\Url;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
-use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 /**
@@ -139,7 +138,6 @@ class UserController extends AdminController
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws Throwable
-     * @throws \yii\db\Exception
      */
     public function actionCreatePupil()
     {
@@ -234,8 +232,6 @@ class UserController extends AdminController
             'pupilLimitDate' => GroupComponent::getPupilLimitDate(),
             'incomeAllowed' => $incomeAllowed,
             'contractAllowed' => $contractAllowed,
-            'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
-            'existedCompanies' => User::find()->andWhere(['role' => User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
         ]);
     }
 
@@ -538,16 +534,20 @@ class UserController extends AdminController
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
-     * @throws \yii\db\Exception
      */
     public function actionUpdate($id = null)
     {
         $userToEdit = $id ?: Yii::$app->user->id;
         if (!Yii::$app->user->can('editUser', ['user' => $userToEdit])) throw new ForbiddenHttpException('Access denied!');
 
-        $user = $this->findModel($userToEdit);
-        $user->setScenario(in_array($user->role, [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]) ? User::SCENARIO_USER : User::SCENARIO_ADMIN);
         $isAdmin = Yii::$app->user->can('manageUsers');
+        $user = $this->findModel($userToEdit);
+        $user->setScenario(
+            in_array($user->role, [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY])
+                ? ($isAdmin ? User::SCENARIO_USER : User::SCENARIO_CUSTOMER)
+                : User::SCENARIO_ADMIN
+        );
+
         $editACL = Yii::$app->user->can('manageEmployees');
         $auth = Yii::$app->authManager;
         $parent = new User(['scenario' => User::SCENARIO_USER]);
@@ -570,9 +570,10 @@ class UserController extends AdminController
                     $user->moveErrorsToFlash();
                 } else {
                     if ($user->role == User::ROLE_PUPIL && !$user->parent_id) {
-                        $parent->load(Yii::$app->request->post('User', []), 'parent');
+                        $usersData = Yii::$app->request->post('User', []);
+                        $parent->load($usersData, 'parent');
                         $parentType = Yii::$app->request->post('parent_type', 'new');
-                        $existParentId = Yii::$app->request->post('parent_exists', 0);
+                        $existParentId = $usersData['parent']['id'] ?? 0;
                         $parent = $this->processParent($parent, $parentType, $user->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY, $existParentId);
                         if ($parent->id) {
                             $user->link('parent', $parent);
@@ -605,7 +606,6 @@ class UserController extends AdminController
             'isAdmin' => $isAdmin,
             'editACL' => $editACL,
             'authManager' => $auth,
-            'existedParents' => User::find()->andWhere(['role' => $user->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
             'parent' => $parent,
         ]);
     }

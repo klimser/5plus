@@ -6,6 +6,7 @@ use common\models\Group;
 use common\models\GroupSearch;
 use common\models\Subject;
 use common\models\Teacher;
+use yii\bootstrap4\LinkPager;
 use yii\grid\ActionColumn;
 use yii\helpers\ArrayHelper;
 use yii\bootstrap4\Html;
@@ -35,7 +36,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'options' => ['class' => 'grid-view table-responsive-md'],
+        'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == Group::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [];},
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
@@ -106,7 +108,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'buttons' => [
                     'update' =>  function($url,$model) {
                         return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
-                            'title' => Yii::t('app', 'update'),
+                            'title' => Yii::t('yii', 'Update'),
                             'class' => 'btn btn-outline-dark',
                         ]);
                     },

@@ -1,6 +1,9 @@
 <?php
 
+use common\components\DefaultValuesComponent;
 use \yii\bootstrap4\Html;
+use yii\helpers\ArrayHelper;
+use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
 /* @var $groups \common\models\Group[] */
@@ -11,34 +14,33 @@ $this->params['breadcrumbs'][] = $this->title;
 
 
 ?>
-<div class="row">
-    <?= Html::beginForm('', 'post'); ?>
-        <div class="form-group">
-            <label for="report-month">Месяц</label>
-            <?= \dosamigos\datepicker\DatePicker::widget([
+
+<?= Html::beginForm('', 'post'); ?>
+    <div class="form-group">
+        <label for="report-month">Месяц</label>
+        <?= DatePicker::widget(ArrayHelper::merge(
+            DefaultValuesComponent::getDatePickerSettings(),
+            [
                 'id' => 'report-month',
                 'name' => 'date',
-                'value' => date('m.Y'),
-                'clientOptions' => [
-                    'autoclose' => true,
-                    'format' => 'mm.yyyy',
-                    'language' => 'ru',
-                    'viewMode' => 'months',
-                ]
-            ]);?>
-        </div>
-        <div class="form-group">
-            <label for="report-group">Группа</label>
-            <?= Html::dropDownList(
-                'group',
-                null,
-                array_merge(
-                        $allowedTotal ? ['all' => 'Все группы'] : [],
-                    \yii\helpers\ArrayHelper::map($groups, function ($arr) {return 'group_' . strval($arr->id);}, 'name')
-                ),
-                ['id' => 'report-group', 'class' => 'form-control']
-            ); ?>
-        </div>
-        <button class="btn btn-primary">Получить</button>
-    <?= Html::endForm(); ?>
-</div>
+                'value' => date('d.m.Y'),
+                'dateFormat' => 'MM.y',
+                'options' => [
+                    'pattern' => '\d{2}.\d{4}',
+                ],
+            ])); ?>
+    </div>
+    <div class="form-group">
+        <label for="report-group">Группа</label>
+        <?= Html::dropDownList(
+            'group',
+            null,
+            array_merge(
+                    $allowedTotal ? ['all' => 'Все группы'] : [],
+                ArrayHelper::map($groups, function ($arr) {return "group_{$arr->id}";}, 'name')
+            ),
+            ['id' => 'report-group', 'class' => 'form-control']
+        ); ?>
+    </div>
+    <button class="btn btn-primary">Получить</button>
+<?= Html::endForm(); ?>

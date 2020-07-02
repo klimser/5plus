@@ -1,6 +1,7 @@
 <?php
 
 use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
@@ -20,6 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'showHeader' => false,
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'layout' => "{items}\n{pager}",
         'columns' => [
             [

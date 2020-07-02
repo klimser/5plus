@@ -6,7 +6,7 @@ use common\components\ComponentContainer;
 use common\components\extended\ActiveRecord;
 use common\models\traits\Inserted;
 use common\models\traits\Phone;
-use himiklab\yii2\recaptcha\ReCaptchaValidator;
+use himiklab\yii2\recaptcha\ReCaptchaValidator2;
 use yii;
 
 /**
@@ -81,7 +81,7 @@ class Order extends ActiveRecord
             [['source', 'name'], 'string', 'max' => 50],
             [['user_comment', 'admin_comment'], 'string', 'max' => 255],
             ['status', 'in', 'range' => self::$statusList],
-            [['reCaptcha'], ReCaptchaValidator::class, 'on' => self::SCENARIO_FRONTEND],
+            [['reCaptcha'], ReCaptchaValidator2::class, 'on' => self::SCENARIO_FRONTEND],
             ['source', 'default', 'value' => 'Сайт', 'on' => self::SCENARIO_FRONTEND],
             ['source', 'default', 'value' => 'Telegram бот', 'on' => self::SCENARIO_TELEGRAM],
             [['name', 'user_comment', 'tg_login'], 'default', 'value' => null],
@@ -93,7 +93,7 @@ class Order extends ActiveRecord
     {
         $labels = [
             'id' => 'ID',
-            'source' => 'Источник заявки',
+            'source' => 'Источник',
             'subject' => 'Предмет',
             'name' => 'Имя',
             'phone' => 'Номер телефона',

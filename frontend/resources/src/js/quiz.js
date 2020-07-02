@@ -83,16 +83,17 @@ let Quiz = {
             $("#question_content").html(this.questionList[questionNumber].question);
             let answersHtml = '';
             this.questionList[questionNumber].answers.forEach(function(answer, index) {
-                answersHtml += '<div class="radio"><label><input type="radio" name="answer" value="' + index + '"'
-                    + (Quiz.answerList[questionNumber] === index ? ' checked' : '') + '> '
-                    + answer + '</label></div>';
+                answersHtml += '<div class="form-check"><label class="form-check-label">' +
+                    '<input class="form-check-input" type="radio" name="answer" value="' + index + '" ' +
+                    (Quiz.answerList[questionNumber] === index ? ' checked ' : '') + '>' +
+                    answer + '</label></div>';
             });
             $("#answer_list").html(answersHtml);
         }
-        $("#question_content").removeClass("hidden");
-        $("#answer_list").removeClass("hidden");
-        $("#answer_button").removeClass("hidden");
-        $("#question_list a").removeClass("active");
+        $("#question_content").collapse("show");
+        $("#answer_list").collapse("show");
+        $("#answer_button").collapse("show");
+        $("#question_list a").collapse("show");
         $("#question_list").find("a:eq(" + questionNumber + ")").addClass("active");
     },
     saveAnswer: function () {
@@ -146,10 +147,10 @@ let Quiz = {
     checkFinished: function() {
         let isFinished = this.answerList.every(function(item) {return item >= 0;});
         if (isFinished) {
-            $("#complete_button").removeClass("hidden");
-            $("#question_content").addClass("hidden");
-            $("#answer_list").addClass("hidden");
-            $("#answer_button").addClass("hidden");
+            $("#complete_button").collapse("show");
+            $("#question_content").collapse("hide");
+            $("#answer_list").collapse("hide");
+            $("#answer_button").collapse("hide");
             return true;
         }
         return false;

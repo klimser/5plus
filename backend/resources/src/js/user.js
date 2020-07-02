@@ -10,6 +10,13 @@ let User = {
     init: function(noAdd) {
         return $.when(Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
             .done(function() {
+                let autocompleteInputs = $("input.autocomplete-user");
+                if (autocompleteInputs.length > 0) {
+                    $(autocompleteInputs).each(function () {
+                        Main.initAutocompleteUser(this);
+                    });
+                }
+                
                 if (noAdd === true) return;
 
                 if (User.consultationList.length > 0) {
@@ -27,13 +34,6 @@ let User = {
                 User.groupList.forEach(function(groupData) {
                     User.addGroup(groupData);
                 });
-
-                let autocompleteInputs = $(".user-create").find(".autocomplete-user");
-                if (autocompleteInputs.length > 0) {
-                    $(autocompleteInputs).each(function () {
-                        Main.initAutocompleteUser(this);
-                    });
-                }
             })
             .fail(Main.logAndFlashAjaxError);
     },
@@ -269,44 +269,6 @@ let User = {
             case '4':
                 $("#parents_block").collapse("hide");
                 $("#company_block").collapse("show");
-                break;
-        }
-    },
-    changeParentType: function() {
-        switch ($('input[name="parent_type"]:checked').val()) {
-            case 'none':
-                $("#parents_select").addClass('hidden');
-                $("#parents_form").addClass('hidden');
-                break;
-            case 'exist':
-                $("#parents_select").removeClass('hidden');
-                $("#parents_form").addClass('hidden');
-                $('#parents_select select.chosen').chosen({
-                    disable_search_threshold: 6,
-                    no_results_text: 'Не найдено',
-                    placeholder_text_single: 'Выберите родителей'
-                });
-                break;
-            case 'new':
-                $("#parents_select").addClass('hidden');
-                $("#parents_form").removeClass('hidden');
-                break;
-        }
-    },
-    changeCompanyType: function() {
-        switch ($('input[name="company_type"]:checked').val()) {
-            case 'exist':
-                $("#company_select").removeClass('hidden');
-                $("#company_form").addClass('hidden');
-                $('#company_select select.chosen').chosen({
-                    disable_search_threshold: 6,
-                    no_results_text: 'Не найдено',
-                    placeholder_text_single: 'Выберите компанию'
-                });
-                break;
-            case 'new':
-                $("#company_select").addClass('hidden');
-                $("#company_form").removeClass('hidden');
                 break;
         }
     },

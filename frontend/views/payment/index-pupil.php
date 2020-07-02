@@ -1,6 +1,6 @@
 <?php
 
-use himiklab\yii2\recaptcha\ReCaptcha;
+use himiklab\yii2\recaptcha\ReCaptcha2;
 use yii\bootstrap4\Html;
 use yii\helpers\Url;
 
@@ -21,7 +21,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для учащих�
                 </div>
             </div>
             <div class="float-left mw-100">
-                <?= ReCaptcha::widget(['name' => 'reCaptcha']) ?>
+                <?= ReCaptcha2::widget(['name' => 'reCaptcha']) ?>
             </div>
             <div class="float-right mw-100">
                 <button class="btn btn-primary btn-lg">найти</button>

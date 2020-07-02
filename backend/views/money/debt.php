@@ -2,6 +2,7 @@
 
 use kartik\field\FieldRange;
 use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
 use yii\grid\GridView;
 use yii\helpers\Url;
 
@@ -23,6 +24,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'columns' => [
             [
                 'attribute' => 'user_id',
@@ -68,8 +70,9 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'content' => function ($model, $key, $index, $column) use ($canCorrect) {
-                    return Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), Url::to(['money/income', 'user' => $model->user_id]), ['class' => 'btn btn-outline-dark', 'title' => 'Внести деньги'])
-                        . ($canCorrect ? Html::a(Html::tag('span', '', ['class' => 'fas fa-fire-extinguisher']), Url::to(['money/correction', 'userId' => $model->user_id, 'groupId' => $model->group_id]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'Погасить долг']) : '');
+                    return '<div class="text-nowrap">' . Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), Url::to(['money/income', 'user' => $model->user_id]), ['class' => 'btn btn-outline-dark', 'title' => 'Внести деньги'])
+                        . ($canCorrect ? Html::a(Html::tag('span', '', ['class' => 'fas fa-fire-extinguisher']), Url::to(['money/correction', 'userId' => $model->user_id, 'groupId' => $model->group_id]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'Погасить долг']) : '')
+                        . '</div>';
                 },
             ],
         ],

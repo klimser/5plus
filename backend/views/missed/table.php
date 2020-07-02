@@ -41,21 +41,21 @@ $nextMonth = $date->modify('+1 month');
     </h1>
 
     <?php if ($dataMap): ?>
-        <table class="table table-bordered table-condensed">
+        <table class="table table-bordered table-sm table-responsive-lg text-center">
             <tr>
-                <th>Студент</th>
-                <?php for ($i = 1; $i <= $daysCount; $i++): ?><th><?= $i; ?></th><?php endfor; ?>
+                <th class="text-left">Студент</th>
+                <?php for ($i = 1; $i <= $daysCount; $i++): ?><th class="p-1"><?= $i; ?></th><?php endfor; ?>
             </tr>
         <?php foreach ($dataMap as $pupilData): ?>
             <tr>
-                <td><?= $pupilData[0]; ?></td>
-                <?php for ($i = 1; $i <= $daysCount; $i++): ?><td<?php
+                <td class="text-left"><?= $pupilData[0]; ?></td>
+                <?php for ($i = 1; $i <= $daysCount; $i++): ?><td class="p-1 <?php
                  if (array_key_exists($i, $pupilData)) {
                      switch ($pupilData[$i]['status']) {
-                         case EventMember::STATUS_MISS: echo ' class="table-danger"'; break;
-                         case EventMember::STATUS_ATTEND: echo ' class="table-success"'; break;
+                         case EventMember::STATUS_MISS: echo ' table-danger '; break;
+                         case EventMember::STATUS_ATTEND: echo ' table-success '; break;
                      }
-                 } ?>>
+                 } ?>">
                     <?= array_key_exists($i, $pupilData) ? $pupilData[$i]['mark'] : ''; ?>
                 </td><?php endfor; ?>
             </tr>

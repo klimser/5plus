@@ -4,6 +4,7 @@ use common\components\DefaultValuesComponent;
 use common\components\helpers\Html;
 use common\models\GiftCard;
 use common\models\GiftCardSearch;
+use yii\bootstrap4\LinkPager;
 use yii\grid\GridView;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
@@ -41,6 +42,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return  = [];
             switch ($model->status) {

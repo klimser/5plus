@@ -1,12 +1,14 @@
 <?php
 
+use common\components\DefaultValuesComponent;
 use common\models\OrderSearch;
 use common\models\Review;
 use common\models\Subject;
+use yii\bootstrap4\LinkPager;
 use yii\grid\ActionColumn;
 use yii\bootstrap4\Html;
 use yii\grid\GridView;
-use dosamigos\datepicker\DatePicker;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use yii\data\ActiveDataProvider;
 use yii\web\View;
@@ -25,6 +27,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+        'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $class = 'review-' . $model->id;
             if ($model->status == 'new') {
@@ -44,16 +48,16 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'created_at',
                 'format' => 'datetime',
-                'filter' => DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'createDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
+                'filter' => \yii\jui\DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'createDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
             [
                 'attribute' => 'status',
@@ -71,13 +75,26 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'class' => ActionColumn::class,
                 'template' => '<span class="text-nowrap">{approve}{update}{delete}</span>',
-                'buttonOptions' => ['class' => 'btn btn-default mr-2'],
                 'buttons' => [
                     'approve' => function ($url, $model, $key) {
                         if ($model->status == Review::STATUS_APPROVED) return false;
                         /** @var Subject $model */
-                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ok']), '#', ['class' => 'btn btn-default mr-2 approve', 'title' => 'Утвердить', 'onclick' => 'return Main.changeEntityStatus("review", ' . $model->id . ', "' . Review::STATUS_APPROVED . '");']);
-                    }
+                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-check']), '#', ['class' => 'btn btn-outline-dark approve', 'title' => 'Утвердить', 'onclick' => 'return Main.changeEntityStatus("review", ' . $model->id . ', "' . Review::STATUS_APPROVED . '");']);
+                    },
+                    'update' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
+                            'title' => Yii::t('yii', 'Update'),
+                            'class' => 'btn btn-outline-dark ml-2',
+                        ]);
+                    },
+                    'delete' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-trash-alt"></span>', $url, [
+                            'title' => Yii::t('yii', 'Delete'),
+                            'class' => 'btn btn-outline-dark ml-2',
+                            'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+                            'data-method' => 'post',
+                        ]);
+                    },
                 ],
             ],
         ],

@@ -7,6 +7,7 @@ use common\models\Group;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
+use yii\bootstrap4\LinkPager;
 use yii\grid\Column;
 use yii\bootstrap4\Html;
 use yii\grid\GridView;
@@ -44,6 +45,7 @@ SCRIPT
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             /** @var WelcomeLesson $model */
             $return = ['class' => 'welcome-row', 'data' => [

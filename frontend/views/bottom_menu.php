@@ -11,7 +11,7 @@ $renderList = function(array $item) {
                 <dt class="bottom_menu_header"><?= $item['label']; ?></dt>
             <?php endif;
             foreach ($item['items'] as $menuItem) {
-                if (isset($menuItem['url'])) echo \yii\helpers\Html::tag('dd', \yii\helpers\Html::a($menuItem['label'], $menuItem['url']));
+                if (isset($menuItem['url'])) echo \yii\bootstrap4\Html::tag('dd', \yii\bootstrap4\Html::a($menuItem['label'], $menuItem['url']));
             }
             ?>
         </dl>

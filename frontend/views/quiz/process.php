@@ -43,9 +43,9 @@ $this->params['showWelcome'] = false;
                 </div>
             </div>
             <div class="col-12 col-md-9 col-lg-10">
-                <div id="time_left" class="float-right hidden"></div>
+                <div id="time_left" class="float-right collapse"></div>
                 <div id="question_content">Загрузка...</div>
-                <fieldset id="answer_list" class="hidden"></fieldset>
+                <fieldset id="answer_list" class="collapse"></fieldset>
 
                 <?php
                 $ymId = \Yii::$app->params['ym_id'];
@@ -60,8 +60,8 @@ SCRIPT
                     , \yii\web\View::POS_HEAD, 'track_quiz_end');
                 ?>
 
-                <button class="btn btn-success float-left hidden" id="complete_button" onclick="ymTrackQuizEnd(); fbTrackQuizEnd(); Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
-                <button class="btn btn-success float-right hidden" id="answer_button" onclick="Quiz.errorCount = 0; return Quiz.saveAnswer();">Ответить</button>
+                <button class="btn btn-success float-left collapse" id="complete_button" onclick="ymTrackQuizEnd(); fbTrackQuizEnd(); Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
+                <button class="btn btn-success float-right collapse" id="answer_button" onclick="Quiz.errorCount = 0; return Quiz.saveAnswer();">Ответить</button>
                 <div id="msg_place"></div>
             </div>
         <?php endif; ?>

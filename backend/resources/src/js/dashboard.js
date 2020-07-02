@@ -123,16 +123,13 @@ let Dashboard = {
                 data: {id: $(childrenInfoBlock).data("id"), tab: activeTab}
             })
                 .done(function(data) {
+                    let htmlAddon = '<button type="button" class="btn btn-outline-secondary float-right" onclick="Dashboard.refreshPupilInfo(this);"><span class="fas fa-sync"></span></button>';
+                    $(childrenInfoBlock).html(htmlAddon + data);
+                    Main.initPhoneFormatted();
                     User.init(true)
                         .fail(Main.jumpToTop);
                     WelcomeLesson.init()
                         .fail(Main.jumpToTop);
-                    let htmlAddon = '<button type="button" class="btn btn-outline-secondary float-right" onclick="Dashboard.refreshPupilInfo(this);"><span class="fas fa-sync"></span></button>';
-                    $(childrenInfoBlock).html(htmlAddon + data);
-                    Main.initPhoneFormatted();
-                    $(childrenInfoBlock).find(".autocomplete-user").each(function() {
-                        Main.initAutocompleteUser(this);
-                    });
                 })
                 .fail(Main.logAndFlashAjaxError)
                 .fail(Main.jumpToTop);
@@ -144,17 +141,20 @@ let Dashboard = {
         $(container).find("." + prefix + "-edit-block").collapse("show")
             .find("input, textarea").prop("disabled", false);
     },
-    changeParentType: function(e) {
+    changeParentType: function(e, inputName) {
         let block = $(e).closest(".parent-edit-block");
         $(block).find(".parent-edit-option").each(function() {
-            $(this).addClass("hidden");
-            $(this).find("input, select").prop("disabled", true);
+            $(this).collapse("hide");
+            $(this).find("input").prop("disabled", true);
         });
-        let checkedVal = $(block).find('input[name="parent_type"]:checked').val();
+        if (inputName === undefined) {
+            inputName = 'parent_type';
+        }
+        let checkedVal = $(block).find('input[name="' + inputName + '"]:checked').val();
         let activeBlock = $(block).find(".parent-edit-" + checkedVal);
         if (activeBlock.length > 0) {
-            $(activeBlock).removeClass("hidden");
-            $(activeBlock).find("input, select").prop("disabled", false);
+            $(activeBlock).collapse("show");
+            $(activeBlock).find("input").prop("disabled", false);
         }
     },
     savePupil: function(form) {

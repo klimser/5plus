@@ -109,9 +109,7 @@ $this->params['breadcrumbs'][] = $this->title;
                             <div class="form-group">
                                 <div class="input-group">
                                     <input id="amount" name="payment_sum" type="number" min="1000" step="1000" class="form-control input-lg" placeholder="Сумма оплаты" required>
-                                    <div class="input-group-append">
-                                        <div class="input-group-text">сум</div>
-                                    </div>
+                                    <div class="input-group-append"><div class="input-group-text">сум</div></div>
                                 </div>
                             </div>
                             <div class="form-group">

@@ -88,10 +88,9 @@ return [
             'class' => \common\components\Action::class,
         ],
         'reCaptcha' => [
-            'name' => 'reCaptcha',
-            'class' => \himiklab\yii2\recaptcha\ReCaptcha::class,
-            'siteKey' => $params['reCaptcha-siteKey'],
-            'secret' => $params['reCaptcha-secret'],
+            'class' => \himiklab\yii2\recaptcha\ReCaptchaConfig::class,
+            'siteKeyV2' => $params['reCaptcha-siteKey'],
+            'secretV2' => $params['reCaptcha-secret'],
         ],
         'tinifier' => [
             'class' => \common\components\Tinifier::class,

@@ -2,6 +2,7 @@
 
 use yii\bootstrap4\Html;
 use yii\bootstrap4\ActiveForm;
+use yii\jui\Sortable;
 
 /* @var $this yii\web\View */
 /* @var $quizes \common\models\Quiz[] */
@@ -15,25 +16,21 @@ $this->params['breadcrumbs'][] = 'Настройки страницы';
 <h1><?= Html::encode($this->title) ?></h1>
 
 <?php $form = ActiveForm::begin(['options' => ['onSubmit' => 'return Main.submitSortableForm(this);']]); ?>
-    <div class="row">
-        <div class="col-xs-12">
-            <?php
-            $sortableItems = [];
-            foreach ($quizes as $quiz) {
-                $sortableItems[] = [
-                    'content' => '<span class="glyphicon glyphicon-sort"></span> ' . $quiz->name . ' (<small>' . $quiz->subject->subjectCategory->name . '/' . $quiz->subject->name . '</small>)',
-                    'options' => ['id' => $prefix . $quiz->id],
-                ];
-            }
-            ?>
-            <?= \yii\jui\Sortable::widget([
-                'items' => $sortableItems,
-                'options' => ['tag' => 'ol'],
-                'itemOptions' => ['tag' => 'li'],
-                'clientOptions' => ['cursor' => 'move'],
-            ]); ?>
-        </div>
-    </div>
+    <?php
+    $sortableItems = [];
+    foreach ($quizes as $quiz) {
+        $sortableItems[] = [
+            'content' => '<span class="fas fa-arrows-alt"></span> ' . $quiz->name . ' (<small>' . $quiz->subject->subjectCategory->name . '/' . $quiz->subject->name . '</small>)',
+            'options' => ['id' => $prefix . $quiz->id],
+        ];
+    }
+    ?>
+    <?= Sortable::widget([
+        'items' => $sortableItems,
+        'options' => ['tag' => 'ol'],
+        'itemOptions' => ['tag' => 'li', 'class' => 'border px-2 py-1 my-1'],
+        'clientOptions' => ['cursor' => 'move'],
+    ]); ?>
     <hr>
 
     <?= $this->render('/webpage/_form', [

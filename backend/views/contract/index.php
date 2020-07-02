@@ -3,6 +3,7 @@
 use common\components\DefaultValuesComponent;
 use kartik\field\FieldRange;
 use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use \common\models\Contract;
@@ -26,6 +27,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return = [];
             switch ($model->status) {

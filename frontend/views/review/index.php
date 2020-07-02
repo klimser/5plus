@@ -1,7 +1,11 @@
 <?php
 
+use common\components\DefaultValuesComponent;
+use himiklab\yii2\recaptcha\ReCaptcha2;
 use yii\bootstrap4\Html;
 use common\components\WidgetHtml;
+use yii\helpers\Url;
+use yii\widgets\LinkPager;
 
 /* @var $this \yii\web\View */
 /* @var $webpage common\models\Webpage */
@@ -31,9 +35,9 @@ $this->params['breadcrumbs'][] = 'Отзывы';
 </div>
 
 <nav class="pagination-box">
-    <?= \yii\widgets\LinkPager::widget(
+    <?= LinkPager::widget(
         array_merge(
-            \common\components\DefaultValuesComponent::getPagerSettings(),
+            DefaultValuesComponent::getPagerSettings(),
             ['pagination' => $pager, 'maxButtonCount' => 4,]
         )
     ); ?>
@@ -42,7 +46,7 @@ $this->params['breadcrumbs'][] = 'Отзывы';
 <div id="review_form" class="modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <?= Html::beginForm(\yii\helpers\Url::to(['review/create']), 'post', ['onsubmit' => 'return Review.complete(this);']); ?>
+            <?= Html::beginForm(Url::to(['review/create']), 'post', ['onsubmit' => 'return Review.complete(this);']); ?>
             <div class="modal-header">
                 <h5 class="modal-title">Оставить отзыв</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -59,7 +63,7 @@ $this->params['breadcrumbs'][] = 'Отзывы';
                         <label for="review-message">Ваш отзыв</label>
                         <textarea name="review[message]" id="review-message" class="form-control" required maxlength="1000"></textarea>
                     </div>
-                    <?= \himiklab\yii2\recaptcha\ReCaptcha::widget(['name' => 'review[reCaptcha]']) ?>
+                    <?= ReCaptcha2::widget(['name' => 'review[reCaptcha]']) ?>
                 </div>
                 <div id="review_form_extra" class="hidden"></div>
             </div>

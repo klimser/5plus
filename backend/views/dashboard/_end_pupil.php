@@ -36,9 +36,10 @@ use common\models\GroupPupil;
                         <label class="col-12 col-sm-4 col-form-label">Причина</label>
                         <div class="col-12 col-sm-8">
                             <?php foreach (GroupPupil::END_REASON_LABELS as $id => $label): ?>
-                                <div class="radio">
-                                    <label>
-                                        <input type="radio" name="end-pupil[reasonId]" value="<?= $id; ?>" required> <?= $label; ?>
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input class="form-check-input" type="radio" name="end-pupil[reasonId]" value="<?= $id; ?>" required>
+                                        <?= $label; ?>
                                     </label>
                                 </div>
                             <?php endforeach; ?>

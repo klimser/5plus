@@ -27,7 +27,7 @@
     "kartik-v/yii2-field-range": "^1",
     "google/apiclient": "^2.2",
     "yiisoft/yii2-authclient": "^2.1",
-    "himiklab/yii2-recaptcha-widget": "^1.2",
+    "himiklab/yii2-recaptcha-widget": "^2",
     "phpoffice/phpspreadsheet": "^1.4",
     "longman/telegram-bot": "^0.54.0",
     "picqer/php-barcode-generator": "^2",
