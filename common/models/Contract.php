@@ -3,7 +3,7 @@
 namespace common\models;
 
 use common\components\extended\ActiveRecord;
-use common\components\helpers\Money;
+use common\components\helpers\MoneyHelper;
 use common\models\traits\Inserted;
 use yii\db\ActiveQuery;
 
@@ -173,7 +173,7 @@ class Contract extends ActiveRecord
      */
     public function getAmountString(): string
     {
-        return Money::numberToStringRus($this->amount, true);
+        return MoneyHelper::numberToStringRus($this->amount, true);
     }
 
     public function getGroupParam(): GroupParam

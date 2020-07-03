@@ -16,7 +16,6 @@ dev_back:
     versionsMapFile: "backend/views/grunt-assets.php"
     versionsMapTrimPath: "backend/web/"
     tasks:
-      - copy:css_back
       - sass:dev_back
       - uglify:vendors_back
       - uglify:main_back
@@ -34,7 +33,6 @@ prod_back:
     versionsMapFile: "backend/views/grunt-assets.php"
     versionsMapTrimPath: "backend/web/"
     tasks:
-      - copy:css_back
       - sass:prod_back
       - uglify:vendors_back
       - uglify:main_back

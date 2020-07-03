@@ -23,10 +23,6 @@ let QuizList = {
         MultiStepForm.jump($("#step-3-tab"));
         return false;
     },
-    jump: function(button) {
-        $(".step-content").addClass("hidden");
-        $("#" + $(button).data("href")).removeClass("hidden");
-    },
     startAllowed: function(form) {
         let gToken = grecaptcha.getResponse();
         return gToken.length !== 0;
@@ -48,7 +44,7 @@ let Quiz = {
         else {window.clearInterval(this.timerId); $("#complete_button").click();}
         let minutes = Math.floor(this.timeLeft / 60);
         let seconds = this.timeLeft % 60;
-        $("#time_left").text(minutes + ':' + (seconds < 10 ? '0' : '') + seconds).removeClass("hidden");
+        $("#time_left").text(minutes + ':' + (seconds < 10 ? '0' : '') + seconds).collapse("show");
         if (minutes <= 2) $("#time_left").addClass("bg-danger");
     },
     loadQuiz: function () {

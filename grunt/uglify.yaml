@@ -18,7 +18,6 @@ vendors_back:
       - "node_modules/inputmask/dist/min/inputmask/jquery.inputmask.min.js"
       - "node_modules/inputmask/dist/min/inputmask/inputmask.numeric.extensions.min.js"
       - "node_modules/nestedSortable/jquery.mjs.nestedSortable.js"
-      - "node_modules/chosen-js/chosen.jquery.js"
       - "backend/resources/src/vendor/js/*.js"
 main_front:
   files:

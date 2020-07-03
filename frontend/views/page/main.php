@@ -43,7 +43,7 @@ foreach ($subjectCategoryCollection as $subjectCategory): ?>
                 </button>
             </div>
             <div class="modal-body">
-                <div id="order_form_body">
+                <div id="order_form_body" class="collapse show">
                     <div class="form-group">
                         <label for="order-name">Ваше имя</label>
                         <input name="order[name]" id="order-name" class="form-control" required minlength="2" maxlength="50">
@@ -67,7 +67,7 @@ foreach ($subjectCategoryCollection as $subjectCategory): ?>
                     </div>
                     <?= ReCaptcha2::widget(['name' => 'order[reCaptcha]']) ?>
                 </div>
-                <div id="order_form_extra" class="hidden"></div>
+                <div id="order_form_extra" class="collapse"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>

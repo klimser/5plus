@@ -10,10 +10,10 @@ var MainPage = {
             }
             targetSelect.append('<optgroup label="' + this.subjectList[i].name + '">' + options + '</optgroup>');
         }
-        if ($("#order_form_body").hasClass("hidden")) grecaptcha.reset();
-        $("#order_form_body").removeClass("hidden");
-        $("#order_form_extra").html('').addClass("hidden");
-        $("#order_form").find(".modal-footer").removeClass("hidden");
+        if (!$("#order_form_body").hasClass("show")) grecaptcha.reset();
+        $("#order_form_body").collapse("show");
+        $("#order_form_extra").html('').collapse("hide");
+        $("#order_form").find(".modal-footer").collapse("show");
         $("#order_form").modal();
     },
     completeOrder: function(form) {
@@ -27,19 +27,19 @@ var MainPage = {
             data: $(form).serialize(),
             success: function (data) {
                 if (data.status === 'ok') {
-                    $("#order_form_body").addClass("hidden");
-                    $("#order_form").find(".modal-footer").addClass("hidden");
+                    $("#order_form_body").collapse("hide");
+                    $("#order_form").find(".modal-footer").collapse("hide");
                     Main.throwFlashMessage("#order_form_extra", 'Ваша заявка принята. Наши менеджеры свяжутся с вами в ближайшее время.', 'alert-success');
                 } else {
                     Main.throwFlashMessage("#order_form_extra", 'Не удалось отправить заявку: ' + data.errors , 'alert-danger');
                     grecaptcha.reset();
                 }
-                $("#order_form_extra").removeClass("hidden");
+                $("#order_form_extra").collapse("show");
                 $("#order_form").find("button.btn-primary").prop("disabled", false);
             },
             error: function (xhr, textStatus, errorThrown) {
                 Main.throwFlashMessage("#order_form_extra", 'Произошла ошибка при отправке заявки. Вы также можете оставить заявку по телефону.', 'alert-danger');
-                $("#order_form_extra").removeClass("hidden");
+                $("#order_form_extra").collapse("show");
                 $("#order_form").find("button.btn-primary").prop("disabled", false);
             }
         });

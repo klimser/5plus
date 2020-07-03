@@ -1,6 +1,6 @@
 <?php
 
-use common\components\helpers\Money;
+use common\components\helpers\MoneyHelper;
 
 /* @var $this \yii\web\View */
 /* @var $pupil \common\models\User */
@@ -59,7 +59,7 @@ foreach ($payments as $payment) {
                     ?>">
                     <td><?= $payment->group->name; ?></td>
                     <td><?= $payment->createDate->format('d.m.Y'); ?></td>
-                    <td class="text-right"><?= Money::formatThousands($payment->amount); ?></td>
+                    <td class="text-right"><?= MoneyHelper::formatThousands($payment->amount); ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>

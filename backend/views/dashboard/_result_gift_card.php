@@ -1,5 +1,5 @@
 <?php
-use common\components\helpers\Money;
+use common\components\helpers\MoneyHelper;
 use common\models\User;
 use yii\bootstrap4\Html;
 
@@ -12,7 +12,7 @@ use yii\bootstrap4\Html;
     </div>
     <div class="card-body">
         <p>Предмет <b><?= $giftCard->name; ?></b></p>
-        <p>Сумма <b><?= Money::formatThousands($giftCard->amount); ?></b></p>
+        <p>Сумма <b><?= MoneyHelper::formatThousands($giftCard->amount); ?></b></p>
         <?php if ($giftCard->isNew()): ?>
             <span class="label label-danger">не оплачена</span>
         <?php endif; ?>

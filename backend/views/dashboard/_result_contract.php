@@ -4,7 +4,7 @@
 /* @var $contract \common\models\Contract */
 
 use yii\helpers\Url;
-use common\components\helpers\Money;
+use common\components\helpers\MoneyHelper;
 
 ?>
 
@@ -18,7 +18,7 @@ use common\components\helpers\Money;
                 <table class="small table table-sm">
                     <tr><td>Студент</td><td><b><?= $contract->user->name; ?></b></td></tr>
                     <tr><td>Группа</td><td><b><?= $contract->group->name; ?></b></td></tr>
-                    <tr><td>Сумма</td><td><b><?= Money::formatThousands($contract->amount); ?></b> <?= $contract->discount ? ' <span class="label label-success">со скидкой</span>' : ''; ?></td></tr>
+                    <tr><td>Сумма</td><td><b><?= MoneyHelper::formatThousands($contract->amount); ?></b> <?= $contract->discount ? ' <span class="label label-success">со скидкой</span>' : ''; ?></td></tr>
                     <tr><td>Дата договора</td><td><b><?= $contract->createDate->format('d.m.Y'); ?></b></td></tr>
                     <?php if ($contract->isPaid()): ?>
                         <tr class="small bg-success"><td>Оплачен</td><td><b><?= $contract->paidDate->format('d.m.Y'); ?></b></td></tr>

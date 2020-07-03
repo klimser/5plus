@@ -54,7 +54,7 @@ $this->params['breadcrumbs'][] = 'Отзывы';
                 </button>
             </div>
             <div class="modal-body">
-                <div id="review_form_body">
+                <div id="review_form_body" class="collapse show">
                     <div class="form-group">
                         <label for="review-name">Ваше имя</label>
                         <input name="review[name]" id="review-name" class="form-control" required minlength="2" maxlength="50">
@@ -65,7 +65,7 @@ $this->params['breadcrumbs'][] = 'Отзывы';
                     </div>
                     <?= ReCaptcha2::widget(['name' => 'review[reCaptcha]']) ?>
                 </div>
-                <div id="review_form_extra" class="hidden"></div>
+                <div id="review_form_extra" class="collapse"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>

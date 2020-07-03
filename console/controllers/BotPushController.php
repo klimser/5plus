@@ -3,7 +3,7 @@
 namespace console\controllers;
 
 use common\components\ComponentContainer;
-use common\components\telegram\Request;
+use Longman\TelegramBot\Request;
 use common\models\BotPush;
 use common\models\User;
 use yii;

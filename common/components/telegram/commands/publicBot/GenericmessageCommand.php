@@ -2,7 +2,7 @@
 
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
-use common\components\telegram\Request;
+use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Commands\SystemCommand;

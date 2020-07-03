@@ -1,7 +1,7 @@
 <?php
 namespace common\components\helpers;
 
-class Money
+class MoneyHelper
 {
     /**
      * @param int $amount

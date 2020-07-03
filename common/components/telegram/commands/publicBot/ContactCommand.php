@@ -3,7 +3,7 @@
 namespace Longman\TelegramBot\Commands\UserCommands;
 
 use common\components\telegram\commands\ConversationTrait;
-use common\components\telegram\Request;
+use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use Longman\TelegramBot\Commands\UserCommand;
 

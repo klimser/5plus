@@ -41,8 +41,7 @@ var QuizResult = {
             }
             $("#answer_list").html(answersHtml);
         }
-        $("#question_content").removeClass("hidden");
-        $("#answer_list").removeClass("hidden");
+        $("#answer_list").collapse("show");
         $("#question_list a").removeClass("active");
         $("#question_list").find("a:eq(" + questionNumber + ")").addClass("active");
     }

@@ -1,7 +1,7 @@
 <?php
 namespace common\components\helpers;
 
-class Xml
+class XmlHelper
 {
     /**
      * @param \SimpleXMLElement $xmlElement

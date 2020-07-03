@@ -1,7 +1,7 @@
 <?php
 /* @var $this yii\web\View */
 
-use common\components\helpers\Money;
+use common\components\helpers\MoneyHelper;
 use common\components\helpers\WordForm;
 use common\models\GroupPupil;
 
@@ -41,7 +41,7 @@ foreach ($groupPupils as $groupPupil) {
                         <div class="col-12 col-md-4 col-lg-3">
                             <?php $moneyLeft = $groupPupil->moneyLeft; ?>
                             <?= $moneyLeft < 0 ? 'долг ' : ''; ?>
-                            <span class="badge badge-<?= $moneyLeft < 0 ? 'danger' : 'success'; ?>"><?= Money::formatThousands(abs($moneyLeft)); ?></span><br>
+                            <span class="badge badge-<?= $moneyLeft < 0 ? 'danger' : 'success'; ?>"><?= MoneyHelper::formatThousands(abs($moneyLeft)); ?></span><br>
                             
                             <?php if ($groupPupil->paid_lessons >= 0): ?>
                                 <b><?= $groupPupil->paid_lessons; ?></b> <?= WordForm::getLessonsForm($groupPupil->paid_lessons); ?><br>
@@ -83,7 +83,7 @@ foreach ($groupPupils as $groupPupil) {
                         <?php endif; ?>
                     <?php elseif ($moveMoneyAllowed && $groupPupil->moneyLeft > 0): ?>
                         <button type="button" title="перенести оставшиеся деньги" class="btn btn-outline-dark mb-2" onclick="Dashboard.showMoveMoneyForm(this);"
-                            data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>" data-amount="<?= Money::formatThousands($groupPupil->moneyLeft); ?>"
+                            data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>" data-amount="<?= MoneyHelper::formatThousands($groupPupil->moneyLeft); ?>"
                             data-groups="<?= implode(',', array_keys($activeGroupIdSet)); ?>">
                             <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>
                         </button>

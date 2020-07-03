@@ -1,5 +1,5 @@
 <?php
-use common\components\helpers\Money;
+use common\components\helpers\MoneyHelper;
 use common\models\Contract;
 use yii\helpers\Url;
 
@@ -22,7 +22,7 @@ $contracts = $pupil->getContracts()->with('group')->all();
         <?php foreach ($contracts as $contract): ?>
             <tr <?php if ($contract->status === Contract::STATUS_PAID): ?> class="table-success"<?php endif; ?> >
                 <td><?= $contract->group->name; ?></td>
-                <td class="text-right"><?= Money::formatThousands($contract->amount); ?></td>
+                <td class="text-right"><?= MoneyHelper::formatThousands($contract->amount); ?></td>
                 <td><?= $contract->createDate->format('d.m.Y'); ?></td>
                 <td>
                     <?php if ($contract->payment_type): ?>

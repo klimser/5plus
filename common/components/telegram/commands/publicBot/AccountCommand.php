@@ -5,12 +5,13 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 use backend\models\Event;
 use backend\models\EventMember;
 use common\components\ComponentContainer;
+use common\components\helpers\TelegramHelper;
 use common\components\helpers\WordForm;
 use common\components\PaymentComponent;
 use common\components\SmsConfirmation;
 use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
-use common\components\telegram\Request;
+use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use common\models\Payment;
 use common\models\User;
@@ -110,7 +111,7 @@ class AccountCommand extends UserCommand
                 
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_1_TEXT),
+                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_1_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -201,7 +202,7 @@ class AccountCommand extends UserCommand
         $keyboard->setResizeKeyboard(true)->setSelective(false);
         return [
             'parse_mode' => 'MarkdownV2',
-            'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_2_SELECT_USER),
+            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_2_SELECT_USER),
             'reply_markup' => $keyboard,
         ];
     }
@@ -239,16 +240,16 @@ class AccountCommand extends UserCommand
         
         $rows = [];
         if (count($eventMembers) === 0) {
-            $rows[] = Request::escapeMarkdownV2(PublicMain::ATTEND_NO_MISSED);
+            $rows[] = TelegramHelper::escapeMarkdownV2(PublicMain::ATTEND_NO_MISSED);
         } else {
-            $rows[] = Request::escapeMarkdownV2(sprintf(PublicMain::ATTEND_HAS_MISSED, count($eventMembers)));
+            $rows[] = TelegramHelper::escapeMarkdownV2(sprintf(PublicMain::ATTEND_HAS_MISSED, count($eventMembers)));
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
                 if ($eventMember->event->group_id != $groupId) {
-                    $rows[] = '*' . Request::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
+                    $rows[] = '*' . TelegramHelper::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
                     $groupId = $eventMember->event->group_id;
                 }
-                $rows[] = Request::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i'));
+                $rows[] = TelegramHelper::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i'));
             }
         }
 
@@ -295,16 +296,16 @@ class AccountCommand extends UserCommand
 
         $rows = [];
         if (count($eventMembers) === 0) {
-            $rows[] = Request::escapeMarkdownV2(PublicMain::MARKS_NONE);
+            $rows[] = TelegramHelper::escapeMarkdownV2(PublicMain::MARKS_NONE);
         } else {
-            $rows[] = Request::escapeMarkdownV2(PublicMain::MARKS_TEXT);
+            $rows[] = TelegramHelper::escapeMarkdownV2(PublicMain::MARKS_TEXT);
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
                 if ($eventMember->event->group_id != $groupId) {
-                    $rows[] = '*' . Request::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
+                    $rows[] = '*' . TelegramHelper::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
                     $groupId = $eventMember->event->group_id;
                 }
-                $rows[] = Request::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - ') . "*{$eventMember->mark}*";
+                $rows[] = TelegramHelper::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - ') . "*{$eventMember->mark}*";
             }
         }
 
@@ -342,14 +343,14 @@ class AccountCommand extends UserCommand
                     ->select('SUM(amount)')
                     ->scalar();
                 if ($groupPupil->active || $balance < 0) {
-                    $rows[] = Request::escapeMarkdownV2($groupPupil->group->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
+                    $rows[] = TelegramHelper::escapeMarkdownV2($groupPupil->group->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
                         . '\\(*' . abs($groupPupil->paid_lessons) . '* ' . WordForm::getLessonsForm(abs($groupPupil->paid_lessons)) . '\\) '
                         . '[' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($groupPupil->user_id, $groupPupil->group_id)->url . ')';
                 }
             }
         }
         if (!empty($rows)) {
-            array_unshift($rows, '*' . Request::escapeMarkdownV2(PublicMain::BANALCE_TEXT) . '*');
+            array_unshift($rows, '*' . TelegramHelper::escapeMarkdownV2(PublicMain::BANALCE_TEXT) . '*');
         }
 
         $conversation->notes['step']--;
@@ -358,7 +359,7 @@ class AccountCommand extends UserCommand
         return [
             'parse_mode' => 'MarkdownV2',
             'disable_web_page_preview' => true,
-            'text' => empty($rows) ? Request::escapeMarkdownV2(PublicMain::BALANCE_NO_GROUP) : implode("\n", $rows),
+            'text' => empty($rows) ? TelegramHelper::escapeMarkdownV2(PublicMain::BALANCE_NO_GROUP) : implode("\n", $rows),
         ];
     }
 
@@ -391,12 +392,12 @@ class AccountCommand extends UserCommand
         foreach ($payments as $payment) {
             if (!array_key_exists($payment->group_id, $groupSet)) {
                 $groupSet[$payment->group_id] = true;
-                $rows[] = "\n*" . Request::escapeMarkdownV2($payment->group->legal_name) . '*';
+                $rows[] = "\n*" . TelegramHelper::escapeMarkdownV2($payment->group->legal_name) . '*';
             }
-            $rows[] = Request::escapeMarkdownV2($payment->createDate->format('d.m.Y') . ' - ' . abs($payment->amount) . PublicMain::CURRENCY_SIGN);
+            $rows[] = TelegramHelper::escapeMarkdownV2($payment->createDate->format('d.m.Y') . ' - ' . abs($payment->amount) . PublicMain::CURRENCY_SIGN);
         }
         if (!empty($rows)) {
-            array_unshift($rows, '*' . Request::escapeMarkdownV2(PublicMain::PAYMENT_TEXT) . '*');
+            array_unshift($rows, '*' . TelegramHelper::escapeMarkdownV2(PublicMain::PAYMENT_TEXT) . '*');
         }
 
         $conversation->notes['step']--;
@@ -404,7 +405,7 @@ class AccountCommand extends UserCommand
 
         return [
             'parse_mode' => 'MarkdownV2',
-            'text' => empty($rows) ? Request::escapeMarkdownV2(PublicMain::PAYMENT_NO_PAYMENTS) : implode("\n", $rows),
+            'text' => empty($rows) ? TelegramHelper::escapeMarkdownV2(PublicMain::PAYMENT_NO_PAYMENTS) : implode("\n", $rows),
         ];
     }
     
@@ -452,7 +453,7 @@ class AccountCommand extends UserCommand
         }
         
         if (count($users) === 1) {
-            $text = Request::escapeMarkdownV2($users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_YES : PublicMain::SUBSCRIPTION_NO);
+            $text = TelegramHelper::escapeMarkdownV2($users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_YES : PublicMain::SUBSCRIPTION_NO);
             $buttons = [
                 $users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_DISABLE : PublicMain::SUBSCRIPTION_ENABLE,
                 [PublicMain::TO_BACK, PublicMain::TO_MAIN]
@@ -478,7 +479,7 @@ class AccountCommand extends UserCommand
                 }
                 
                 if ($name) {
-                    $rows[] = Request::escapeMarkdownV2($name . ' - ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CHECK : PublicMain::ICON_CROSS));
+                    $rows[] = TelegramHelper::escapeMarkdownV2($name . ' - ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CHECK : PublicMain::ICON_CROSS));
                     $buttons[] = $i . ' ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CROSS : PublicMain::ICON_CHECK) . ' ' . $name;
                     $i++;
                 }
@@ -500,7 +501,7 @@ class AccountCommand extends UserCommand
     {
         $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_EDIT_PUPILS);
         
-        $text = Request::escapeMarkdownV2(PublicMain::PUPILS_TEXT);
+        $text = TelegramHelper::escapeMarkdownV2(PublicMain::PUPILS_TEXT);
         
         if ($conversation->notes['step'] === 3) {
             if ($this->getMessage()->getText() === PublicMain::PUPILS_ADD) {
@@ -585,7 +586,7 @@ class AccountCommand extends UserCommand
             case 2:
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_TEXT),
+                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_TEXT),
                     'reply_markup' => PublicMain::getPhoneKeyboard([PublicMain::ACCOUNT_CONFIRM_SMS]),
                 ];
                 break;
@@ -607,7 +608,7 @@ class AccountCommand extends UserCommand
                     if (count($users) === 0) {
                         return [
                             'parse_mode' => 'MarkdownV2',
-                            'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND),
+                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND),
                             'reply_markup' => PublicMain::getPhoneKeyboard([PublicMain::ACCOUNT_CONFIRM_SMS]),
                         ];
                     }
@@ -628,7 +629,7 @@ class AccountCommand extends UserCommand
                 } else {
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_3_TEXT),
+                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_3_TEXT),
                         'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
                     ];
                 }
@@ -664,7 +665,7 @@ class AccountCommand extends UserCommand
                     
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => Request::escapeMarkdownV2($errorMessage),
+                        'text' => TelegramHelper::escapeMarkdownV2($errorMessage),
                         'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
                     ];
                 }
@@ -693,7 +694,7 @@ class AccountCommand extends UserCommand
                     
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_TEXT),
+                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_TEXT),
                         'reply_markup' => Keyboard::remove(),
                     ];
                 } else {
@@ -702,7 +703,7 @@ class AccountCommand extends UserCommand
                     
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => Request::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_FAILED),
+                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_FAILED),
                         'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
                     ];
                 }
@@ -725,7 +726,7 @@ class AccountCommand extends UserCommand
 
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => Request::escapeMarkdownV2($errorMessage),
+                        'text' => TelegramHelper::escapeMarkdownV2($errorMessage),
                         'reply_markup' => PublicMain::getBackAndMainKeyboard(),
                     ];
                 }
@@ -738,7 +739,7 @@ class AccountCommand extends UserCommand
                     ->all();
                 $rows = $this->confirmUsers($users);
                 if (empty($rows)) {
-                    $rows[] = Request::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_SUCCESS_NONE);
+                    $rows[] = TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_SUCCESS_NONE);
                 } else {
                     SmsConfirmation::invalidate($conversation->notes['sms_confirm_phone']);
                     $this->removeNote($conversation, 'sms_confirm_phone');
@@ -796,7 +797,7 @@ class AccountCommand extends UserCommand
             if (!$user->telegramSettings['trusted']) {
                 $user->telegramSettings = array_merge($user->telegramSettings, ['trusted' => true]);
                 $user->save();
-                $rows[] = Request::escapeMarkdownV2($user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS);
+                $rows[] = TelegramHelper::escapeMarkdownV2($user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS);
             }
         }
         

@@ -22,7 +22,7 @@ var Payment = {
                 htmlData += '<button class="btn btn-lg full-width btn-' + addonClass + '" type="button" data-id="' + this.users[this.user].groups[i].id + '" onclick="Payment.toggleGroup(this);">' +
                         this.users[this.user].groups[i].name +
                         (addonText.length > 0 ? '<br><small>' + addonText + '</small>' : '') +
-                    '</button><div id="payment-' + this.users[this.user].groups[i].id + '" class="group-payments hidden" data-groupid="' + this.users[this.user].groups[i].id + '" data-groupname="' + this.users[this.user].groups[i].name + '"><br><div class="row">';
+                    '</button><div id="payment-' + this.users[this.user].groups[i].id + '" class="group-payments collapse" data-groupid="' + this.users[this.user].groups[i].id + '" data-groupname="' + this.users[this.user].groups[i].name + '"><br><div class="row">';
                 if (this.users[this.user].groups[i].debt > 0) {
                     htmlData += '<div class="col-xs-12 col-sm-6 col-md-4"><button class="btn btn-primary full-width" data-sum="' + this.users[this.user].groups[i].debt + '" onclick="Payment.selectSum(this);">' +
                         'Погасить задолженность ' + this.users[this.user].groups[i].debt + ' сум' +
@@ -44,8 +44,8 @@ var Payment = {
         }
     },
     toggleGroup: function(e) {
-        $(".group-payments").addClass("hidden");
-        $("#payment-" + $(e).data("id")).removeClass("hidden");
+        $(".group-payments").collapse("hide");
+        $("#payment-" + $(e).data("id")).collapse("show");
     },
     selectSum: function(e) {
         var sum = $(e).data("sum");

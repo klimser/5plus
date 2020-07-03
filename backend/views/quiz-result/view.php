@@ -39,6 +39,6 @@ $this->params['breadcrumbs'][] = $quizResult->quiz_name;
     </div>
     <div class="col-9 col-xl-10">
         <div id="question_content">Загрузка...</div>
-        <ul id="answer_list" class="list-group hidden"></ul>
+        <ul id="answer_list" class="list-group collapse"></ul>
     </div>
 </div>
