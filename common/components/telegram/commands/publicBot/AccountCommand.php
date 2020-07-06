@@ -161,7 +161,9 @@ class AccountCommand extends UserCommand
         $users = User::find()
             ->alias('u')
             ->joinWith('children u2')
-            ->andWhere(['status' => User::STATUS_ACTIVE, 'u.tg_chat_id' => $this->getMessage()->getChat()->getId()])
+            ->andWhere(['u.tg_chat_id' => $this->getMessage()->getChat()->getId()])
+            ->andWhere(['not', ['u.status' => User::STATUS_LOCKED]])
+            ->andWhere(['or', ['u2.id' => null], ['not', ['u2.status' => User::STATUS_LOCKED]]])
             ->orderBy(['u.name' => SORT_ASC, 'u2.name' => SORT_ASC])
             ->all();
 

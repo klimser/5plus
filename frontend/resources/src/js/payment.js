@@ -24,20 +24,20 @@ var Payment = {
                         (addonText.length > 0 ? '<br><small>' + addonText + '</small>' : '') +
                     '</button><div id="payment-' + this.users[this.user].groups[i].id + '" class="group-payments collapse" data-groupid="' + this.users[this.user].groups[i].id + '" data-groupname="' + this.users[this.user].groups[i].name + '"><br><div class="row">';
                 if (this.users[this.user].groups[i].debt > 0) {
-                    htmlData += '<div class="col-xs-12 col-sm-6 col-md-4"><button class="btn btn-primary full-width" data-sum="' + this.users[this.user].groups[i].debt + '" onclick="Payment.selectSum(this);">' +
+                    htmlData += '<div class="col-12 col-md-6 col-lg-4"><button class="btn btn-primary btn-block" data-sum="' + this.users[this.user].groups[i].debt + '" onclick="Payment.selectSum(this);">' +
                         'Погасить задолженность ' + this.users[this.user].groups[i].debt + ' сум' +
                         '</button></div>';
                 }
-                htmlData += '<div class="col-xs-12 col-sm-6 col-md-4"><button class="btn btn-default full-width" data-sum="' + this.users[this.user].groups[i].price + '" onclick="Payment.selectSum(this);">' +
+                htmlData += '<div class="col-12 col-md-6 col-lg-4"><button class="btn btn-secondary btn-block" data-sum="' + this.users[this.user].groups[i].price + '" onclick="Payment.selectSum(this);">' +
                     'за 1 месяц ' + this.users[this.user].groups[i].price + ' сум' +
                     '</button></div>' +
 
-                    '<div class="col-xs-12 col-sm-6 col-md-4"><button class="btn btn-default full-width" data-sum="' + this.users[this.user].groups[i].priceDiscount + '" onclick="Payment.selectSum(this);">' +
+                    '<div class="col-12 col-md-6 col-lg-4"><button class="btn btn-secondary btn-block" data-sum="' + this.users[this.user].groups[i].priceDiscount + '" onclick="Payment.selectSum(this);">' +
                     'за 3 месяца ' + this.users[this.user].groups[i].priceDiscount + ' сум' +
                     '</button></div>' +
 
-                    '<div class="col-xs-12 col-sm-6 col-md-4"><div class="input-group"><input type="number" min="1000" step="1000" class="form-control custom_sum" placeholder="сумма">' +
-                    '<span class="input-group-btn"><button class="btn btn-default" data-sum="none" onclick="Payment.selectSum(this);">другая сумма</button></span></div></div>' +
+                    '<div class="col-12 col-md-6 col-lg-4"><div class="input-group w-100"><input type="number" min="1000" step="1000" class="form-control custom_sum" placeholder="сумма">' +
+                    '<span class="input-group-append"><button class="btn btn-secondary" data-sum="none" onclick="Payment.selectSum(this);">другая сумма</button></span></div></div>' +
                     '</div></div><hr>';
             }
             $("#group_select").html(htmlData);
@@ -48,13 +48,18 @@ var Payment = {
         $("#payment-" + $(e).data("id")).collapse("show");
     },
     selectSum: function(e) {
-        var sum = $(e).data("sum");
+        let sum = $(e).data("sum");
         if (sum === 'none') {
-            sum = parseInt($(e).closest('.input-group').find('input.custom_sum').val());
+            let sumValue = $(e).closest('.input-group').find('input.custom_sum').val();
+            if (sumValue.length === 0) {
+                $(e).closest('.input-group').find('input.custom_sum').focus();
+                return;
+            }
+            sum = parseInt(sumValue);
         } else {
             sum = parseInt(sum);
         }
-        if (sum < 1000) return;
+        if (isNaN(sum) || sum < 1000) return;
 
         $("#pupil").data("val", this.user).val(this.users[this.user].name);
         $("#group").data("val", $(e).closest(".group-payments").data("groupid")).val($(e).closest(".group-payments").data("groupname"));

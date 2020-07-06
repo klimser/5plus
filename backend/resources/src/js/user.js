@@ -265,10 +265,12 @@ let User = {
             case '2':
                 $("#parents_block").collapse("show");
                 $("#company_block").collapse("hide");
+                $("#company_block .parent-edit-option input").prop("disabled", true);
                 break;
             case '4':
-                $("#parents_block").collapse("hide");
                 $("#company_block").collapse("show");
+                $("#parents_block").collapse("hide");
+                $("#parents_block .parent-edit-option input").prop("disabled", true);
                 break;
         }
     },

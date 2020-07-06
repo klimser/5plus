@@ -10,15 +10,17 @@ use \yii\helpers\Url;
 
 $this->title = 'Панель управления';
 ?>
-<div class="row">
-    <div class="col-12">
-        <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('dashboard/index'); ?>">
-            <span class="fas fa-tachometer-alt fa-3x"></span><hr>
-            Панель управления
-        </a>
+<?php if ($admin->can('moneyManagement')): ?>
+    <div class="row">
+        <div class="col-12">
+            <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('dashboard/index'); ?>">
+                <span class="fas fa-tachometer-alt fa-3x"></span><hr>
+                Панель управления
+            </a>
+        </div>
     </div>
-</div>
-<hr>
+    <hr>
+<?php endif; ?>
 <div class="row">
     <?php if ($admin->can('moneyManagement')): ?>
         <div class="col-6 col-md mb-3">

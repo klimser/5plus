@@ -46,11 +46,11 @@ $this->params['breadcrumbs'][] = $this->title;
                     /** @var Payment $model */
                     return
                     ($model->contract_id && $model->contract->payment_type != Contract::PAYMENT_TYPE_MANUAL
-                        ? '<span class="label label-info">online</span> '
+                        ? '<span class="badge badge-info">online</span> '
                         : ''
                     )
                     . ($model->cash_received == Payment::STATUS_INACTIVE
-                        ? '<span class="label label-danger">деньги не получены</span> '
+                        ? '<span class="badge badge-danger">деньги не получены</span> '
                         : ''
                     )
                     . ($model->admin_id ? $model->admin->name : '');
@@ -103,7 +103,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'content' => function ($model, $key, $index, $column) {
                     return $model->amount
                         . ($model->amount < 0 && $model->used_payment_id === null
-                            ? ' <span class="label label-warning">no</span>'
+                            ? ' <span class="badge badge-warning">no</span>'
                             : ''
                         );
                 },

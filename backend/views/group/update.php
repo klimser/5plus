@@ -192,7 +192,7 @@ SCRIPT
                         <?php endif; ?>
                     </div>
                     <div class="col-3 col-sm-2 col-md-auto">
-                        <a href="<?= Url::to(['group/move-pupil', 'user' => $groupPupil->user_id, 'group' => $groupPupil->group_id]); ?>" class="btn btn-sm btn-outline-dark">
+                        <a href="<?= Url::to(['group/move-pupil', 'groupPupilId' => $groupPupil->id]); ?>" class="btn btn-sm btn-outline-dark">
                             <span class="d-none d-md-inline">Перевести</span>
                             <span class="fas fa-arrow-right"></span>
                         </a>

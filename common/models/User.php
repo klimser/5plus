@@ -377,10 +377,6 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     public function beforeValidate() {
-        if (!parent::beforeValidate()) {
-            return false;
-        }
-            
         if ($this->isNewRecord) {
             $this->generateAuthKey();
             $this->created_by = Yii::$app->user->id;
@@ -393,6 +389,11 @@ class User extends ActiveRecord implements IdentityInterface
         if ($this->password_hash === null) {
             $this->password_hash = '';
         }
+        
+        if (!parent::beforeValidate()) {
+            return false;
+        }
+        
         return true;
     }
 

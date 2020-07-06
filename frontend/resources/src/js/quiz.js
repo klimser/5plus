@@ -89,7 +89,7 @@ let Quiz = {
         $("#question_content").collapse("show");
         $("#answer_list").collapse("show");
         $("#answer_button").collapse("show");
-        $("#question_list a").collapse("show");
+        $("#question_list a").removeClass("active");
         $("#question_list").find("a:eq(" + questionNumber + ")").addClass("active");
     },
     saveAnswer: function () {

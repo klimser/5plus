@@ -328,11 +328,10 @@ class GroupController extends AdminController
      * @return string|Response
      * @throws ForbiddenHttpException
      */
-    public function actionMovePupil()
+    public function actionMovePupil($groupPupilId = null)
     {
         $this->checkAccess('manageGroups');
 
-        $groupPupilId = Yii::$app->request->get('group_pupil_id', null);
         $groupPupil = null;
         if ($groupPupilId) {
             $groupPupil = GroupPupil::findOne(['id' => $groupPupilId, 'active' => GroupPupil::STATUS_ACTIVE]);

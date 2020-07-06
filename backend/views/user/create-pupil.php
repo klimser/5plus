@@ -83,13 +83,13 @@ $this->params['breadcrumbs'][] = $this->title;
                 </div>
 
                 <div class="parent-edit-option parent-edit-new collapse <?= $parentData['type'] === 'new' ? ' show ' : ''; ?>">
-                    <?= $form->field($parent, '[parent]name')->textInput(['maxlength' => true]); ?>
+                    <?= $form->field($parent, '[parent]name')->textInput(['maxlength' => true, 'disabled' => $personType !== User::ROLE_PARENTS]); ?>
 
                     <?= $form->field($parent, '[parent]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
-                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'required' => true]); ?>
+                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'required' => true, 'disabled' => $personType !== User::ROLE_PARENTS]); ?>
 
                     <?= $form->field($parent, '[parent]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
-                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'disabled' => $personType !== User::ROLE_PARENTS]); ?>
                 </div>
             </div>
 
@@ -114,13 +114,14 @@ $this->params['breadcrumbs'][] = $this->title;
                 </div>
 
                 <div class="parent-edit-option parent-edit-new collapse <?= $companyData['type'] === 'new' ? ' show ' : ''; ?>">
-                    <?= $form->field($parentCompany, '[parentCompany]name', ['labelOptions' => ['label' => 'Название']])->textInput(['maxlength' => true]); ?>
+                    <?= $form->field($parentCompany, '[parentCompany]name', ['labelOptions' => ['label' => 'Название']])
+                        ->textInput(['maxlength' => true, 'disabled' => $personType !== User::ROLE_COMPANY]); ?>
 
                     <?= $form->field($parentCompany, '[parentCompany]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
-                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'required' => true]); ?>
+                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'required' => true, 'disabled' => $personType !== User::ROLE_COMPANY]); ?>
 
                     <?= $form->field($parentCompany, '[parentCompany]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
-                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+                        ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'disabled' => $personType !== User::ROLE_COMPANY]); ?>
                 </div>
             </div>
         </div>

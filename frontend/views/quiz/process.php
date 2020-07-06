@@ -60,9 +60,15 @@ SCRIPT
                     , \yii\web\View::POS_HEAD, 'track_quiz_end');
                 ?>
 
-                <button class="btn btn-success float-left collapse" id="complete_button" onclick="ymTrackQuizEnd(); fbTrackQuizEnd(); Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
-                <button class="btn btn-success float-right collapse" id="answer_button" onclick="Quiz.errorCount = 0; return Quiz.saveAnswer();">Ответить</button>
-                <div id="msg_place"></div>
+                <div class="row mt-3 justify-content-between">
+                    <div class="col-auto">
+                        <button class="btn btn-success collapse" id="complete_button" onclick="ymTrackQuizEnd(); fbTrackQuizEnd(); Quiz.errorCount = 0; Quiz.complete();">Завершить тест</button>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-success collapse" id="answer_button" onclick="Quiz.errorCount = 0; return Quiz.saveAnswer();">Ответить</button>
+                    </div>
+                </div>
+                <div id="msg_place" class="mt-3"></div>
             </div>
         <?php endif; ?>
     </div>
