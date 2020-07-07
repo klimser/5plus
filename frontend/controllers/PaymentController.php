@@ -57,8 +57,8 @@ class PaymentController extends Controller
     public function actionFind()
     {
         $validator = new ReCaptchaValidator2();
-
-        if (!$validator->validate(Yii::$app->request->post('reCaptcha'))) {
+        $reCaptcha = Yii::$app->request->post('reCaptcha');
+        if (!$reCaptcha || !$validator->validate($reCaptcha)) {
             Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
             return $this->render('index-pupil', $this->getPageParams('pupil'));
         } else {

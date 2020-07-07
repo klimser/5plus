@@ -90,7 +90,7 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
                     <div class="form-group">
                         <label for="amount" class="col-4 col-md-3 col-xl-2 control-label">Сумма</label>
                         <div class="col-8 col-md-9 col-xl-10">
-                            <input class="form-control" id="amount" disabled>
+                            <input type="number" class="form-control" id="amount" min="1000" step="1000" required disabled>
                         </div>
                     </div>
                     <div class="form-group">

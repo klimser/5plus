@@ -3,44 +3,47 @@ var Payment = {
     user: null,
     selectPupil: function(e) {
         this.user = $(e).data("pupil");
-        $("#user_select").find("button.pupil-button").removeClass('btn-primary').addClass('btn-default');
-        $(e).addClass('btn-primary').removeClass('btn-default');
+        $("#user_select").find("button.pupil-button").removeClass('btn-primary').addClass('btn-outline-dark');
+        $(e).addClass('btn-primary').removeClass('btn-outline-dark');
         this.renderGroupSelect();
     },
     renderGroupSelect: function() {
         if (this.user !== null && this.users.hasOwnProperty(this.user)) {
-            var htmlData = '';
-            for (var i = 0; i < this.users[this.user].groups.length; i++) {
-                var addonClass = 'default';
-                var addonText = '';
-                if (this.users[this.user].groups[i].debt > 0) {
+            let htmlData = '';
+            this.users[this.user].groups.forEach(function(group) {
+                let addonClass = 'outline-dark';
+                let addonText = '';
+                if (group.debt > 0) {
                     addonClass = 'danger';
-                    addonText = 'задолженность ' + this.users[this.user].groups[i].debt + ' сум';
-                } else if (this.users[this.user].groups[i].paid.length > 0) {
-                    addonText = 'оплачено до ' + this.users[this.user].groups[i].paid;
+                    addonText = 'задолженность ' + group.debt + ' сум';
+                } else if (group.paid.length > 0) {
+                    addonText = 'оплачено до ' + group.paid;
                 }
-                htmlData += '<button class="btn btn-lg full-width btn-' + addonClass + '" type="button" data-id="' + this.users[this.user].groups[i].id + '" onclick="Payment.toggleGroup(this);">' +
-                        this.users[this.user].groups[i].name +
-                        (addonText.length > 0 ? '<br><small>' + addonText + '</small>' : '') +
-                    '</button><div id="payment-' + this.users[this.user].groups[i].id + '" class="group-payments collapse" data-groupid="' + this.users[this.user].groups[i].id + '" data-groupname="' + this.users[this.user].groups[i].name + '"><br><div class="row">';
-                if (this.users[this.user].groups[i].debt > 0) {
-                    htmlData += '<div class="col-12 col-md-6 col-lg-4"><button class="btn btn-primary btn-block" data-sum="' + this.users[this.user].groups[i].debt + '" onclick="Payment.selectSum(this);">' +
-                        'Погасить задолженность ' + this.users[this.user].groups[i].debt + ' сум' +
+                htmlData += '<button class="mb-3 btn btn-lg btn-' + addonClass + '" type="button" data-id="' + group.id + '" onclick="Payment.toggleGroup(this);">' +
+                    group.name +
+                    (addonText.length > 0 ? '<br><small>' + addonText + '</small>' : '') +
+                    '</button><div id="payment-' + group.id + '" class="group-payments collapse" data-groupid="' + group.id + '" data-groupname="' + group.name + '"><div class="row">';
+                if (group.debt > 0) {
+                    htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-primary btn-block" data-sum="' + group.debt + '" onclick="Payment.selectSum(this);">' +
+                        'Погасить задолженность ' + group.debt + ' сум' +
                         '</button></div>';
                 }
-                htmlData += '<div class="col-12 col-md-6 col-lg-4"><button class="btn btn-secondary btn-block" data-sum="' + this.users[this.user].groups[i].price + '" onclick="Payment.selectSum(this);">' +
-                    'за 1 месяц ' + this.users[this.user].groups[i].price + ' сум' +
+                htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.price + '" onclick="Payment.selectSum(this);">' +
+                    'за 1 месяц ' + group.price + ' сум' +
                     '</button></div>' +
 
-                    '<div class="col-12 col-md-6 col-lg-4"><button class="btn btn-secondary btn-block" data-sum="' + this.users[this.user].groups[i].priceDiscount + '" onclick="Payment.selectSum(this);">' +
-                    'за 3 месяца ' + this.users[this.user].groups[i].priceDiscount + ' сум' +
+                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceDiscount + '" onclick="Payment.selectSum(this);">' +
+                    'за 3 месяца ' + group.priceDiscount + ' сум' +
                     '</button></div>' +
 
-                    '<div class="col-12 col-md-6 col-lg-4"><div class="input-group w-100"><input type="number" min="1000" step="1000" class="form-control custom_sum" placeholder="сумма">' +
-                    '<span class="input-group-append"><button class="btn btn-secondary" data-sum="none" onclick="Payment.selectSum(this);">другая сумма</button></span></div></div>' +
+                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="none" onclick="Payment.selectSum(this);">другая сумма</button></div>' +
                     '</div></div><hr>';
-            }
+            });
+
             $("#group_select").html(htmlData);
+            if (this.users[this.user].groups.length === 1) {
+                $("#group_select").find('button').get(0).click();
+            }
         }
     },
     toggleGroup: function(e) {
@@ -48,22 +51,16 @@ var Payment = {
         $("#payment-" + $(e).data("id")).collapse("show");
     },
     selectSum: function(e) {
+        let amountInput = $("#amount");
         let sum = $(e).data("sum");
         if (sum === 'none') {
-            let sumValue = $(e).closest('.input-group').find('input.custom_sum').val();
-            if (sumValue.length === 0) {
-                $(e).closest('.input-group').find('input.custom_sum').focus();
-                return;
-            }
-            sum = parseInt(sumValue);
+            $(amountInput).val(0).prop('disabled', false);
         } else {
-            sum = parseInt(sum);
+            $(amountInput).val(parseInt(sum)).prop('disabled', true);
         }
-        if (isNaN(sum) || sum < 1000) return;
 
         $("#pupil").data("val", this.user).val(this.users[this.user].name);
         $("#group").data("val", $(e).closest(".group-payments").data("groupid")).val($(e).closest(".group-payments").data("groupname"));
-        $("#amount").val(sum);
         $("#payment_form").modal();
     },
     lockPayButton: function() {

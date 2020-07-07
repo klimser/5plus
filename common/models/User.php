@@ -381,7 +381,7 @@ class User extends ActiveRecord implements IdentityInterface
             $this->generateAuthKey();
             $this->created_by = Yii::$app->user->id;
         } elseif (!$this->created_by) {
-            $this->created_by = Yii::$app->user->id;
+            $this->created_by = Yii::$app->user->id ?? self::SYSTEM_USER_ID;
         }
         if ($this->password) {
             $this->setPassword($this->password);

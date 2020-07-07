@@ -71,7 +71,7 @@ class Group extends ActiveRecord
     {
         return [
             [['name', 'legal_name', 'room_number'], 'trim'],
-            [['name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'date_start'], 'required'],
+            [['name', 'legal_name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'date_start'], 'required'],
             [['subject_id', 'teacher_id', 'type_id', 'lesson_price', 'lesson_price_discount', 'lesson_duration', 'active'], 'integer'],
             [['teacher_rate'], 'number', 'min'=> 0, 'max' => 100],
             [['name', 'legal_name'], 'string', 'max' => 50],
