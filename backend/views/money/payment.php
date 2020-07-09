@@ -3,6 +3,7 @@
 use common\components\DefaultValuesComponent;
 use common\models\Contract;
 use common\models\Payment;
+use common\models\User;
 use kartik\field\FieldRange;
 use yii\bootstrap4\Html;
 use yii\bootstrap4\LinkPager;
@@ -14,12 +15,12 @@ use yii\jui\DatePicker;
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $searchModel \common\models\PaymentSearch */
-/* @var $studentMap \common\models\User[] */
-/* @var $adminMap \common\models\User[] */
-/* @var $groupMap \common\models\User[] */
+/* @var $adminMap User[] */
+/* @var $groupMap User[] */
 
 $this->title = 'Платежи';
 $this->params['breadcrumbs'][] = $this->title;
+$this->registerJs('Main.initAutocompleteUser("#search-student");');
 ?>
 <div class="payment-index">
     <div class="float-right"><a href="<?= Url::to(['money/income']); ?>" class="btn btn-info">Внести оплату</a></div>
@@ -67,12 +68,9 @@ $this->params['breadcrumbs'][] = $this->title;
                 'content' => function ($model, $key, $index, $column) {
                     return $model->user->name;
                 },
-                'filter' => Html::activeDropDownList(
-                    $searchModel,
-                    'user_id',
-                    $studentMap,
-                    ['class' => 'form-control']
-                )
+                'filter' => '<div><input type="hidden" class="autocomplete-user-id" name="PaymentSearch[user_id]" value="' . $searchModel->user_id . '">
+                            <input id="search-student" class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" data-role="' . User::ROLE_PUPIL . '"
+                            value="' . ($searchModel->user_id ? $searchModel->user->name : '') . '"></div>',
             ],
             [
                 'attribute' => 'group_id',

@@ -3,6 +3,7 @@
 use backend\models\ActionSearch;
 use common\components\Action;
 use common\components\DefaultValuesComponent;
+use common\models\User;
 use kartik\field\FieldRange;
 use yii\bootstrap4\Html;
 use yii\bootstrap4\LinkPager;
@@ -15,13 +16,13 @@ use yii\web\View;
 /* @var $this View */
 /* @var $dataProvider ActiveDataProvider */
 /* @var $searchModel ActionSearch */
-/* @var $studentMap string[] */
 /* @var $adminMap string[] */
 /* @var $groupMap string[] */
 /* @var $typeMap string[] */
 
 $this->title = 'Действия';
 $this->params['breadcrumbs'][] = $this->title;
+$this->registerJs('Main.initAutocompleteUser("#search-student");');
 
 $renderTable = function(array $arr)
 {
@@ -78,12 +79,9 @@ $renderTable = function(array $arr)
                 'content' => function ($model, $key, $index, $column) {
                     return $model->user_id ? $model->user->name : null;
                 },
-                'filter' => Html::activeDropDownList(
-                    $searchModel,
-                    'user_id',
-                    $studentMap,
-                    ['class' => 'form-control']
-                ),
+                'filter' => '<div><input type="hidden" class="autocomplete-user-id" name="ActionSearch[user_id]" value="' . $searchModel->user_id . '">
+                            <input id="search-student" class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" data-role="' . User::ROLE_PUPIL . '"
+                            value="' . ($searchModel->user_id ? $searchModel->user->name : '') . '"></div>',
             ],
             [
                 'attribute' => 'group_id',

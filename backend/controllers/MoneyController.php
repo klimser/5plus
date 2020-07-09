@@ -35,7 +35,7 @@ class MoneyController extends AdminController
      */
     public function actionIncome()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('moneyManagement');
 
         $params = [
             'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
@@ -58,10 +58,9 @@ class MoneyController extends AdminController
     {
         $this->checkRequestIsAjax();
         $this->checkAccess('moneyManagement');
-
         Yii::$app->response->format = Response::FORMAT_JSON;
-        $formData = Yii::$app->request->post('income', []);
 
+        $formData = Yii::$app->request->post('income', []);
         if (!isset($formData['userId'], $formData['groupId'], $formData['amount'], $formData['comment'])) {
             return self::getJsonErrorResult('Wrong request');
         }
@@ -88,38 +87,35 @@ class MoneyController extends AdminController
     }
 
     /**
-     * @return Response
+     * @return mixed
      * @throws ForbiddenHttpException
      * @throws yii\web\BadRequestHttpException
      */
     public function actionProcessContract()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
+        $this->checkRequestIsAjax();
+        $this->checkAccess('moneyManagement');
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
         $contractId = Yii::$app->request->post('contractId');
-        if (!$contractId) $jsonData = self::getJsonErrorResult('No contract ID');
-        else {
-            $contract = Contract::findOne($contractId);
-            if (!$contract) $jsonData = self::getJsonErrorResult('Договор не найден');
-            else {
-                $pupilStartDate = null;
-                if (!$contract->activeGroupPupil) {
-                    $pupilStartDate = new \DateTime(Yii::$app->request->post('contractPupilDateStart', 'now'));
-                }
-                $transaction = Yii::$app->db->beginTransaction();
-                try {
-                    $paymentId = MoneyComponent::payContract($contract, $pupilStartDate, Contract::PAYMENT_TYPE_MANUAL);
-                    $transaction->commit();
-                    $jsonData = self::getJsonOkResult(['paymentId' => $paymentId]);
-                } catch (\Throwable $ex) {
-                    $transaction->rollBack();
-                    $jsonData = self::getJsonErrorResult($ex->getMessage());
-                }
-            }
+        if (!$contractId) return self::getJsonErrorResult('No contract ID');
+        
+        $contract = Contract::findOne($contractId);
+        if (!$contract) return self::getJsonErrorResult('Договор не найден');
+        
+        $pupilStartDate = null;
+        if (!$contract->activeGroupPupil) {
+            $pupilStartDate = new \DateTime(Yii::$app->request->post('contractPupilDateStart', 'now'));
         }
-
-        return $this->asJson($jsonData);
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $paymentId = MoneyComponent::payContract($contract, $pupilStartDate, Contract::PAYMENT_TYPE_MANUAL);
+            $transaction->commit();
+            return self::getJsonOkResult(['paymentId' => $paymentId]);
+        } catch (\Throwable $ex) {
+            $transaction->rollBack();
+            return self::getJsonErrorResult($ex->getMessage());
+        }
     }
 
     /**
@@ -131,8 +127,8 @@ class MoneyController extends AdminController
     {
         $this->checkRequestIsAjax();
         $this->checkAccess('moneyManagement');
-
         Yii::$app->response->format = Response::FORMAT_JSON;
+
         $giftCardId = Yii::$app->request->post('gift_card_id');
         if (!$giftCardId) return self::getJsonErrorResult('No gift card ID');
 
@@ -211,7 +207,7 @@ class MoneyController extends AdminController
      */
     public function actionDebt()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('moneyManagement');
 
         $searchModel = new DebtSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -237,15 +233,10 @@ class MoneyController extends AdminController
 
     public function actionPayment()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('moneyManagement');
 
         $searchModel = new PaymentSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        /** @var User[] $students */
-        $students = User::find()->where(['role' => User::ROLE_PUPIL])->orderBy(['name' => SORT_ASC])->all();
-        $studentMap = [null => 'Все'];
-        foreach ($students as $student) $studentMap[$student->id] = $student->name;
 
         /** @var User[] $admins */
         $admins = User::find()->where(['role' => [User::ROLE_ROOT, User::ROLE_MANAGER]])->orderBy(['name' => SORT_ASC])->all();
@@ -260,7 +251,6 @@ class MoneyController extends AdminController
         return $this->render('payment', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'studentMap' => $studentMap,
             'adminMap' => $adminMap,
             'groupMap' => $groupMap,
         ]);
@@ -268,15 +258,10 @@ class MoneyController extends AdminController
 
     public function actionActions()
     {
-        if (!Yii::$app->user->can('moneyManagement')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('moneyManagement');
 
         $searchModel = new ActionSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        /** @var User[] $students */
-        $students = User::find()->where(['role' => User::ROLE_PUPIL])->orderBy(['name' => SORT_ASC])->all();
-        $studentMap = [null => 'Все'];
-        foreach ($students as $student) $studentMap[$student->id] = $student->name;
 
         /** @var User[] $admins */
         $admins = User::find()->where(['role' => [User::ROLE_ROOT, User::ROLE_MANAGER]])->orderBy(['name' => SORT_ASC])->all();
@@ -294,7 +279,6 @@ class MoneyController extends AdminController
         return $this->render('actions', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'studentMap' => $studentMap,
             'adminMap' => $adminMap,
             'groupMap' => $groupMap,
             'typeMap' => $typeMap,
@@ -310,7 +294,7 @@ class MoneyController extends AdminController
      */
     public function actionSalary(int $year = 0, int $month = 0)
     {
-        if (!Yii::$app->user->can('viewSalary')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('viewSalary');
 
         if (!$year) $year = intval(date('Y'));
         if (!$month) $month = intval(date('n'));
@@ -348,7 +332,7 @@ class MoneyController extends AdminController
      */
     public function actionSalaryDetails(int $year, int $month, int $group = 0)
     {
-        if (!Yii::$app->user->can('viewSalary')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('viewSalary');
 
         $date = new \DateTime("$year-$month-01 midnight");
         if ($group) {
@@ -406,7 +390,7 @@ class MoneyController extends AdminController
 
     public function actionCorrection(int $userId, int $groupId)
     {
-        if (!Yii::$app->user->can('moneyCorrection')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('moneyCorrection');
 
         $pupil = User::findOne($userId);
         $group = Group::findOne($groupId);

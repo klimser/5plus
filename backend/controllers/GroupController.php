@@ -325,6 +325,7 @@ class GroupController extends AdminController
     }
 
     /**
+     * @param null $groupPupilId
      * @return string|Response
      * @throws ForbiddenHttpException
      */
@@ -421,40 +422,32 @@ class GroupController extends AdminController
     }
 
     /**
-     * @param int $userId
-     * @param int $groupId
+     * @param int $groupPupilId
      * @return string|Response
      * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
-     * @throws \Throwable
      */
-    public function actionMoveMoney(int $userId, int $groupId)
+    public function actionMoveMoney(int $groupPupilId)
     {
         $this->checkAccess('moveMoney');
 
-        $user = User::findOne($userId);
-        $group = Group::findOne($groupId);
-        if (!$user) throw new BadRequestHttpException('User not found');
-        if (!$group) throw new BadRequestHttpException('Group not found');
-        if (GroupPupil::findOne(['user_id' => $user->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE, 'date_end' => null])) {
+        $groupPupil = GroupPupil::findOne($groupPupilId);
+        if (!$groupPupil) throw new BadRequestHttpException('Pupil not found');
+        
+        if (GroupPupil::findOne(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id, 'active' => GroupPupil::STATUS_ACTIVE, 'date_end' => null])) {
             throw new BadRequestHttpException('Студент ещё занимается в группе');
         }
-        /** @var GroupPupil[] $groupPupils */
-        $groupPupils = GroupPupil::findAll(['user_id' => $user->id, 'group_id' => $group->id]);
-        if (count($groupPupils) === 0) throw new BadRequestHttpException('Pupil not found');
 
-        $moneyLeft = Payment::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id])->select('SUM(amount)')->scalar();
+        $moneyLeft = Payment::find()->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])->select('SUM(amount)')->scalar();
         if ($moneyLeft <= 0) throw new BadRequestHttpException('Не осталось денег для перевода');
 
-        $dateEnd = null;
-        foreach ($groupPupils as $groupPupil) {
-            if (!$dateEnd || $groupPupil->endDateObject > $dateEnd) {
-                $dateEnd = $groupPupil->endDateObject;
-            }
-        }
-        $unknownEvent = EventComponent::getUncheckedEvent($group, $dateEnd);
+        $dateEnd = GroupPupil::find()->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])->select('MAX(date_end)')->scalar();
+        if (!$dateEnd) throw new BadRequestHttpException('Студент ещё занимается в группе');
+        $dateEnd = new \DateTimeImmutable($dateEnd);
+        
+        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $dateEnd);
         if ($unknownEvent !== null) {
-            throw new BadRequestHttpException("В группе {$group->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
+            throw new BadRequestHttpException("В группе {$groupPupil->group->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
                 . Html::a(
                     $unknownEvent->eventDateTime->format('d.m.Y'),
                     Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
@@ -462,38 +455,37 @@ class GroupController extends AdminController
             );
         }
 
-        if (\Yii::$app->request->isPost) {
-            $groupToId = \Yii::$app->request->post('group_to');
+        if (Yii::$app->request->isPost) {
+            $groupToId = Yii::$app->request->post('money-move')['groupId'];
             if (!$groupToId) throw new BadRequestHttpException('No group selected');
             $groupTo = Group::findOne($groupToId);
             if (!$groupTo) throw new BadRequestHttpException('Group not found');
-            $groupPupilsTo = GroupPupil::findAll(['user_id' => $user->id, 'group_id' => $groupTo->id, 'active' => GroupPupil::STATUS_ACTIVE]);
-            if (count($groupPupilsTo) == 0) throw new BadRequestHttpException('Pupil in destination group is not found');
+            $groupPupilsTo = GroupPupil::findAll(['user_id' => $groupPupil->user_id, 'group_id' => $groupTo->id, 'active' => GroupPupil::STATUS_ACTIVE]);
+            if (count($groupPupilsTo) === 0) throw new BadRequestHttpException('Pupil in destination group is not found');
 
-            $transaction = \Yii::$app->db->beginTransaction();
+            $transaction = Yii::$app->db->beginTransaction();
             try {
-                GroupComponent::moveMoney($group, $groupTo, $user);
+                GroupComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user);
 
-                foreach ($groupPupils as $groupPupil) {
+                foreach (GroupPupil::findAll(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id, 'active' => GroupPupil::STATUS_ACTIVE]) as $groupPupil) {
                     $groupPupil->active = GroupPupil::STATUS_INACTIVE;
                     $groupPupil->save();
                 }
                 $transaction->commit();
-                \Yii::$app->session->addFlash('success', 'Средства перенесены');
+                Yii::$app->session->addFlash('success', 'Средства перенесены');
             } catch (\Throwable $exception) {
                 $transaction->rollBack();
-                \Yii::$app->session->addFlash('error', $exception->getMessage());
+                Yii::$app->session->addFlash('error', $exception->getMessage());
             }
         }
 
         return $this->render('move_money', [
-            'group' => $group,
-            'user' => $user,
+            'groupPupil' => $groupPupil,
             'moneyLeft' => $moneyLeft,
             'groupList' => Group::find()
                 ->joinWith('groupPupils')
-                ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE, GroupPupil::tableName() . '.user_id' => $user->id])
-                ->andWhere(Group::tableName() . '.id != :groupFrom', ['groupFrom' => $group->id])
+                ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE, GroupPupil::tableName() . '.user_id' => $groupPupil->user_id])
+                ->andWhere(Group::tableName() . '.id != :groupFrom', ['groupFrom' => $groupPupil->group_id])
                 ->distinct(true)
                 ->orderBy(Group::tableName() . '.name')->all(),
         ]);

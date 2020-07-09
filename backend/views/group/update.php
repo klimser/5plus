@@ -291,7 +291,7 @@ SCRIPT
                         <td class="text-right">
                             <?= $groupPupil->startDateObject->format('d.m.Y'); ?> - <?= $groupPupil->endDateObject->format('d.m.Y'); ?>
                             <?php if ($canMoveMoney && $groupPupil->moneyLeft > 0): ?>
-                                <a href="<?= Url::to(['group/move-money', 'userId' => $groupPupil->user_id, 'groupId' => $groupPupil->group_id]); ?>" class="btn btn-sm btn-outline-dark" title="Перенести оставшиеся деньги">
+                                <a href="<?= Url::to(['group/move-money', 'groupPupilId' => $groupPupil->id]); ?>" class="btn btn-sm btn-outline-dark" title="Перенести оставшиеся деньги">
                                     <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>
                                 </a>
                             <?php endif; ?>

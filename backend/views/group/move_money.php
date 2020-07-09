@@ -3,8 +3,7 @@
 use yii\bootstrap4\Html;
 
 /* @var $this yii\web\View */
-/* @var $user \common\models\User */
-/* @var $group \common\models\Group */
+/* @var $groupPupil \common\models\GroupPupil */
 /* @var $moneyLeft int */
 /* @var $groupList \common\models\Group[] */
 
@@ -20,13 +19,13 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="form-group row">
         <label class="col-12 col-sm-3 control-label">Студент</label>
         <div class="col-12 col-sm-9">
-            <input readonly class="form-control-plaintext" value="<?= $user->name; ?> (<?= $user->phoneFull; ?>)">
+            <input readonly class="form-control-plaintext" value="<?= $groupPupil->user->name; ?> (<?= $groupPupil->user->phoneFull; ?>)">
         </div>
     </div>
     <div class="form-group row">
         <label class="col-12 col-sm-3 control-label">Из группы</label>
         <div class="col-12 col-sm-9">
-            <input readonly class="form-control-plaintext" value="<?= $group->name; ?>">
+            <input readonly class="form-control-plaintext" value="<?= $groupPupil->group->name; ?>">
         </div>
     </div>
     <div class="form-group row">
@@ -45,5 +44,5 @@ $this->params['breadcrumbs'][] = $this->title;
             </select>
         </div>
     </div>
-    <button class="btn btn-primary">Перенести</button>
+    <button class="form-group btn btn-primary">Перенести</button>
 <?= Html::endForm(); ?>
