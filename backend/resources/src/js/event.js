@@ -15,10 +15,10 @@ let Event = {
     },
     toggleEvent: function(eventId) {
         let detailsBlock = $("#event_details_" + eventId);
-        if ($(detailsBlock).hasClass("collapse")) {
+        if (parseInt($(detailsBlock).data('status')) !== this.eventStatusUnknown) {
             let pupilsBlock = $(detailsBlock).find(".pupils_block");
             if (parseInt($(pupilsBlock).data("buttonState")) === 0) {
-                $(pupilsBlock).find(".event_member").each(function() {
+                $(pupilsBlock).find(".event_member").each(function () {
                     Event.fillMemberButtons($(this).data("id"));
                 });
                 $(pupilsBlock).data("buttonState", 1);
@@ -66,12 +66,13 @@ let Event = {
                 let eventDetailsBlock = $('#event_details_' + data.eventId);
                 $(eventDetailsBlock).data("status", data.eventStatus).find(".status_block").remove();
                 let pupilsBlock = $(eventDetailsBlock).find(".pupils_block");
-                if (data.eventStatus === Event.eventStatusCancelled) {
-                    $(pupilsBlock).find(".event_member").each(function() {
+                $(pupilsBlock).find(".event_member").each(function() {
+                    if (data.eventStatus === Event.eventStatusCancelled) {
                         $(this).data("status", Event.memberStatusMiss);
-                        Event.fillMemberButtons($(this).data("id"));
-                    });
-                }
+                    }
+                    Event.fillMemberButtons($(this).data("id"));
+                });
+                
                 $(pupilsBlock).collapse('show');
             } else {
                 Main.throwFlashMessage('#messages_place_event_' + Event.processingEventId, 'Ошибка: ' + data.message, 'alert-danger');

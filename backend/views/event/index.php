@@ -107,7 +107,7 @@ Event.init(' . time() . ');
                                 </div>
                             </div>
                         <?php endif; ?>
-                        
+
                         <?php if ($event->status == Event::STATUS_UNKNOWN && $event->eventDateTime <= $limitDate): ?>
                             <div class="card-body status_block">
                                 <div id="messages_place_event_<?= $event->id; ?>"></div>
@@ -125,8 +125,8 @@ Event.init(' . time() . ');
                                 </div>
                             </div>
                         <?php endif; ?>
-                        
-                        <ul class="list-group list-group-flush pupils_block <?= $event->status == Event::STATUS_UNKNOWN ? ' collapse' : ''; ?>" data-button-state="0">
+
+                        <ul class="list-group list-group-flush pupils_block collapse <?= $event->status == Event::STATUS_UNKNOWN ? '' : ' show '; ?>" data-button-state="0">
                             <li class="list-group-item list-group-item-secondary text-center">Студенты</li>
                             <?php foreach ($event->members as $member): ?>
                                 <li class="list-group-item p-2">
@@ -163,7 +163,7 @@ Event.init(' . time() . ');
         </div>
     </div>
     <hr>
-    <div class="row justify-content-end">
+    <div class="row justify-content-end mb-2">
         <div class="col-12 col-md-4 col-lg-3">
             <a class="btn btn-outline-dark btn-block" href="<?= Url::to(['index', 'date' => $nextDate->format('d.m.Y')]); ?>">
                 <span class="fas fa-chevron-down"></span>
