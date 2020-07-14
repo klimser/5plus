@@ -202,7 +202,7 @@ $this->render('/grunt-assets');
 
 <footer class="footer">
     <div class="container">
-        <div class="row pt-lg-5">
+        <div class="row pt-lg-5 d-md-block">
             <div class="col-12 col-md-6 col-lg-7 float-md-left">
                 <div class="row align-items-center my-3">
                     <div class="col-3 col-lg-2 pr-0 pr-lg-3">
@@ -246,7 +246,7 @@ $this->render('/grunt-assets');
                 </ul> */ ?>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-7 float-md-left">
+            <div class="col-12 col-md-6 col-lg-7 float-md-left mb-3 mt-md-3">
                 <div id="map" class="map"></div>
             </div>
         </div>
