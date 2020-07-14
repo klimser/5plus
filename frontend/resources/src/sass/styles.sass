@@ -23,7 +23,7 @@
 		align-items: center
 		justify-content: space-between
 		padding: 5px 15px
-		z-index: 7
+		z-index: 70
 		.btn-menu-open
 			cursor: pointer
 			span
@@ -1296,111 +1296,92 @@ body.front-page
 	width: 100%
 	margin-top: auto
 	background: #111331 url('../images/footer-bg.jpg') no-repeat 50% 50% / cover
-	.footer-box
-		display: -webkit-flex
-		display: -moz-flex
-		display: -ms-flex
-		display: flex
-		padding-top: 86px
-		padding-bottom: 60px
-		position: relative
-		.logo-n-map-block
-			width: 55%
-			padding-bottom: 20px
-			.logo
-				margin-bottom: 48px
-				img
-					max-width: 100px
-					width: 100px
-				.name
-					margin-left: 34px
-					color: white
-					font:
-						family: $ms7
-						size: 2.5rem
-				.name-small
-					font-size: 1.1rem
-					line-height: 90%
-			.map
-				width: 100%
-				height: 303px
-				position: relative
-				overflow: hidden
-				border-radius: 10px
-		.contacts-block
-			width: 45%
-			padding-bottom: 12px
-			padding-left: 89px
-			.block-title
-				font: 38px $ms7
+	.name
+		color: white
+		font:
+			family: $ms7
+			size: 2.5rem
+		.name-small
+			font-size: 1.1rem
+			line-height: 90%
+	//.map
+	//	width: 100%
+	//	height: 303px
+	//	position: relative
+	//	overflow: hidden
+	//	border-radius: 10px
+	
+	.contacts-block
+		.block-title
+			font: 38px $ms7
+			color: #fff
+			margin-bottom: 50px
+		.item
+			display: -webkit-flex
+			display: -moz-flex
+			display: -ms-flex
+			display: flex
+			align-items: flex-start
+			margin-bottom: 34px
+			.ico
+				width: 18px
+				min-width: 18px
+				margin-right: 17px
+				color: #D8D8D8
+				height: 20px
+				font-size: 20px
+			.text
+				margin-top: -5px
+				.title
+					font: 20px $ms3
+					color: #8d8d8d
+					margin-bottom: 5px
+				.desc
+					font: 20px $ms3
+					color: #fff
+					a
+						color: #fff
+						text-decoration: none
+		.item.landmark
+			margin-bottom: 68px
+			.ico
+				opacity: 0.3
+		.item.phone
+			margin-bottom: 26px
+			.title
+				margin-bottom: 1px
+			.desc
+				font-size: 25px
+		.social
+			padding-left: 35px
+			.title
+				font: 16px $ms5
 				color: #fff
-				margin-bottom: 50px
-			.item
+				opacity: 0.79
+			.social-list
+				padding: 0
+				margin: 0 -8px
+				list-style: none
 				display: -webkit-flex
 				display: -moz-flex
 				display: -ms-flex
 				display: flex
-				align-items: flex-start
-				margin-bottom: 34px
-				.ico
-					width: 18px
-					min-width: 18px
-					margin-right: 17px
-					color: #D8D8D8
-					height: 20px
-					font-size: 20px
-				.text
-					margin-top: -5px
-					.title
-						font: 20px $ms3
-						color: #8d8d8d
-						margin-bottom: 5px
-					.desc
-						font: 20px $ms3
+				flex-wrap: wrap
+				.item
+					margin: 8px
+					a
+						display: -webkit-flex
+						display: -moz-flex
+						display: -ms-flex
+						display: flex
+						align-items: center
+						justify-content: center
+						width: 34px
+						height: 34px
 						color: #fff
-						a
-							color: #fff
-							text-decoration: none
-			.item.landmark
-				margin-bottom: 68px
-				.ico
-					opacity: 0.3
-			.item.phone
-				margin-bottom: 26px
-				.title
-					margin-bottom: 1px
-				.desc
-					font-size: 25px
-			.social
-				padding-left: 35px
-				.title
-					font: 16px $ms5
-					color: #fff
-					opacity: 0.79
-				.social-list
-					padding: 0
-					margin: 0 -8px
-					list-style: none
-					display: -webkit-flex
-					display: -moz-flex
-					display: -ms-flex
-					display: flex
-					flex-wrap: wrap
-					.item
-						margin: 8px
-						a
-							display: -webkit-flex
-							display: -moz-flex
-							display: -ms-flex
-							display: flex
-							align-items: center
-							justify-content: center
-							width: 34px
-							height: 34px
-							color: #fff
-							text-decoration: none
-							border-radius: 34px
-							font-size: 21px
+						text-decoration: none
+						border-radius: 34px
+						font-size: 21px
 /* content-contacts */
 .content-contacts
 	display: -webkit-flex

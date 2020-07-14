@@ -201,45 +201,53 @@ $this->render('/grunt-assets');
 */ ?>
 
 <footer class="footer">
-    <div class="footer-box container">
-        <div class="logo-n-map-block">
-            <div class="logo row justify-content-start">
-                <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo_inverse.svg" alt="Учебный центр &quot;Пять с плюсом&quot;" title="Учебный центр &quot;Пять с плюсом&quot;">
-                <div class="name">
-                    Пять с плюсом
-                    <div class="name-small text-left">ВАШ УЧЕБНЫЙ ЦЕНТР</div>
+    <div class="container">
+        <div class="row pt-lg-5">
+            <div class="col-12 col-md-6 col-lg-7 float-md-left">
+                <div class="row align-items-center my-3">
+                    <div class="col-3 col-lg-2 pr-0 pr-lg-3">
+                        <img class="img-fluid" src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo_inverse.svg" alt="Учебный центр &quot;Пять с плюсом&quot;" title="Учебный центр &quot;Пять с плюсом&quot;">
+                    </div>
+                    <div class="col-9">
+                        <div class="name">
+                            Пять с плюсом
+                            <div class="name-small text-left">ВАШ УЧЕБНЫЙ ЦЕНТР</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div id="map" class="map"></div>
-        </div>
-        <div class="contacts-block">
-            <h2 class="block-title">Контактная информация</h2>
-            <div class="item">
-                <span class="ico icon-map"></span>
-                <div class="text">
-                    <?= WidgetHtml::getByName('address'); ?>
+            <div class="col-12 col-md-6 col-lg-5 my-3 float-md-right contacts-block">
+                <h2 class="block-title">Контактная информация</h2>
+                <div class="item">
+                    <span class="ico icon-map"></span>
+                    <div class="text">
+                        <?= WidgetHtml::getByName('address'); ?>
+                    </div>
                 </div>
-            </div>
-            <div class="item landmark">
-                <span class="ico icon-map"></span>
-                <div class="text">
-                    <?= WidgetHtml::getByName('landmark'); ?>
+                <div class="item landmark">
+                    <span class="ico icon-map"></span>
+                    <div class="text">
+                        <?= WidgetHtml::getByName('landmark'); ?>
+                    </div>
                 </div>
-            </div>
-            <div class="item phone">
-                <span class="ico icon-phone"></span>
-                <div class="text">
-                    <?= WidgetHtml::getByName('phones'); ?>
+                <div class="item phone">
+                    <span class="ico icon-phone"></span>
+                    <div class="text">
+                        <?= WidgetHtml::getByName('phones'); ?>
+                    </div>
                 </div>
-            </div>
-            <div class="social">
-                <?= WidgetHtml::getByName('social'); ?>
-                <?php /*<div class="title">Мы в соц сетях:</div>
+                <div class="social">
+                    <?= WidgetHtml::getByName('social'); ?>
+                    <?php /*<div class="title">Мы в соц сетях:</div>
                 <ul class="social-list">
                     <li class="item"><a class="bgc-ins" href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a></li>
                     <li class="item"><a class="bgc-fb" href="https://www.facebook.com/" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
                     <li class="item"><a class="bgc-tg" href="https://telegram.org/" target="_blank"><i class="fab fa-telegram-plane"></i></a></li>
                 </ul> */ ?>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-7 float-md-left">
+                <div id="map" class="map"></div>
             </div>
         </div>
     </div>
