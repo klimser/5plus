@@ -197,7 +197,7 @@ class TeacherController extends AdminController
      * @return Response
      * @throws yii\web\ForbiddenHttpException
      */
-    public function actionListJson($subject = null) {
+    public function actionListJson(?int $subject = null) {
         if (!Yii::$app->user->can('manageTeachers') && !Yii::$app->user->can('welcomeLessons')) {
             throw new yii\web\ForbiddenHttpException('Access denied!');
         }
