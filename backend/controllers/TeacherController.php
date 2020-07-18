@@ -193,34 +193,6 @@ class TeacherController extends AdminController
     }
 
     /**
-     * @param int|null $subject
-     * @return Response
-     * @throws yii\web\ForbiddenHttpException
-     */
-    public function actionListJson(?int $subject = null) {
-        if (!Yii::$app->user->can('manageTeachers') && !Yii::$app->user->can('welcomeLessons')) {
-            throw new yii\web\ForbiddenHttpException('Access denied!');
-        }
-        
-        $jsonData = [];
-        if (Yii::$app->request->isAjax) {
-            $query = Teacher::find()->andWhere(['active' => Teacher::STATUS_ACTIVE]);
-            if ($subject) {
-                $jsonData['subjectId'] = $subject;
-                $jsonData['teachers'] = $query
-                    ->innerJoinWith('teacherSubjects')
-                    ->andWhere(['subject_id' => $subject])
-                    ->orderBy(Teacher::tableName() . '.name')
-                    ->select(Teacher::tableName() . '.id')
-                    ->column();
-            } else {
-                $jsonData = $query->select(['id', 'name'])->asArray()->all();
-            }
-        }
-        return $this->asJson($jsonData);
-    }
-
-    /**
      * Deletes an existing Teacher model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param string $id
