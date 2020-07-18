@@ -3,56 +3,20 @@ let Group = {
     isNew: true,
     startDate: null,
     endDate: null,
-    active: '',
-    teacherList: [],
-    teacherMap: [],
+    activeTeacher: 0,
     dateRegexp: /\d{2}\.\d{2}\.\d{4}/,
-    loadTeacherMap: function () {
-        if (this.teacherMap.length === 0) {
-            this.active = parseInt($("#group-teacher_id").val());
-            $.ajax({
-                url: '/teacher/list-json',
-                type: 'get',
-                dataType: 'json',
-                success: function (data) {
-                    for (var i = 0; i < data.length; i++) Group.teacherMap[data[i].id] = data[i].name;
-                    Group.loadTeacherSelect($("#group-subject_id"));
-                }
-            });
-        }
-    },
     loadTeacherSelect: function (e) {
         let subjectId = parseInt($(e).val());
-        $("#group-teacher_id").data("subject", subjectId);
-
-        if (typeof this.teacherList[subjectId] === 'undefined') {
-            $.ajax({
-                url: '/teacher/list-json',
-                type: 'get',
-                dataType: 'json',
-                data: {subject: subjectId},
-                success: function (data) {
-                    let tList = [];
-                    data.teachers.forEach(function(teacher) {
-                        tList.push(teacher);
-                    });
-                    Group.teacherList[data.subjectId] = tList;
-                    Group.fillTeacherSelect(data.subjectId);
-                }
+        
+        let listHtml = '';
+        if (Main.teacherActiveList[subjectId] !== undefined) {
+            Main.teacherActiveList[subjectId].forEach(function (teacherId) {
+                listHtml += '<option value="' + teacherId + '"' +
+                    (teacherId === Group.activeTeacher ? ' selected ' : '') + '>' + Main.teacherMap[teacherId].name + '</option>';
             });
-        } else this.fillTeacherSelect(subjectId);
-    },
-    fillTeacherSelect: function (subjectId) {
-        if ($("#group-teacher_id").data("subject") === subjectId)
-            $("#group-teacher_id").html(this.getTeachersOptions(subjectId)).removeData("subject");
-    },
-    getTeachersOptions: function (subjectId) {
-        let list = '';
-        this.teacherList[subjectId].forEach(function(teacherId) {
-            list += '<option value="' + teacherId + '"' +
-                (teacherId === Group.active ? ' selected' : '') + '>' + Group.teacherMap[teacherId] + '</option>';
-        });
-        return list;
+        }
+        
+        $("#group-teacher_id").html(listHtml);
     },
     pupilsActive: [],
     renderPupilForm: function () {
@@ -186,11 +150,7 @@ let Group = {
         return validForm;
     },
     toggleWeekday: function (e) {
-        if ($(e).is(':checked')) {
-            $(e).closest('.one_day_block').find("input.weektime").prop('disabled', false);
-        } else {
-            $(e).closest('.one_day_block').find("input.weektime").prop('disabled', true);
-        }
+        $(e).closest('.one_day_block').find("input.weektime").prop('disabled', !$(e).is(':checked'));
     },
     setEndReason: function(form, triggerHide) {
         let groupPupilId = $(form).find("input[name=group_pupil_id]").val();

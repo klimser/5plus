@@ -19,10 +19,16 @@ $this->title = $group->id ? $group->name : 'Добавить группу';
 $this->params['breadcrumbs'][] = ['label' => 'Группы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
-$this->registerJs(<<<SCRIPT
-    Group.loadTeacherMap();
-SCRIPT
-    );
+$script = 'Main.loadActiveTeachers()';
+if (!$group->subject_id) {
+    $script .= '.done(function(teacherIds) {
+            Group.loadTeacherSelect($("#group-subject_id"));
+        })';
+}
+$script .= ";\n";
+if ($group->teacher_id) {
+    $script .= 'Group.activeTeacher = ' . $group->teacher_id . ";\n";
+}
 ?>
 <div class="group-update">
     <h1>
@@ -49,8 +55,7 @@ SCRIPT
     <?= $form->field($group, 'subject_id', ['options' => ['class' => 'form-group col-12 col-md-6']])
         ->dropDownList(ArrayHelper::map($subjects, 'id', 'name'), ['onChange' => 'Group.loadTeacherSelect(this);', 'required' => true, 'disabled' => count($group->pupils) > 0]); ?>
     <?php
-    if ($group->subject_id) $teachersList = ArrayHelper::map($group->subject->teachers, 'id', 'name');
-    else $teachersList = [];
+    $teachersList = $group->subject_id ? ArrayHelper::map($group->subject->teachers, 'id', 'name') : [];
     ?>
     <?= $form->field($group, 'teacher_id', ['options' => ['class' => 'form-group col-12 col-md-6']])
         ->dropDownList($teachersList, ['required' => true]); ?>
@@ -177,7 +182,7 @@ SCRIPT
         <h5>Студенты</h5>
         <div id="group_pupils">
             <?php
-            $script = 'Group.isNew = ' . (count($group->pupils) ? 'false' : 'true') . ";\n";
+            $script .= 'Group.isNew = ' . (count($group->pupils) ? 'false' : 'true') . ";\n";
             if ($group->date_start) $script .= 'Group.startDate = "' . $group->startDateObject->format('d.m.Y') . '";' . "\n";
             if ($group->date_end) $script .= 'Group.endDate = "' . $group->endDateObject->format('d.m.Y') . '";' . "\n";
             foreach ($group->activeGroupPupils as $groupPupil): ?>
