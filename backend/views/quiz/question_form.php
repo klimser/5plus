@@ -29,9 +29,9 @@ use yii\widgets\ActiveForm;
     <div class="answers">
         <?php foreach ($question->wrongAnswers as $answer): ?>
             <div class="row">
-                <div class="col-xs-9 col-md-10"><?= Html::textInput('wrongAnswers[]', $answer->content, ['class' => 'form-control']); ?></div>
-                <div class="col-xs-3 col-md-2">
-                    <button class="btn btn-default" onclick="return Quiz.removeAnswer(this);"><span class="glyphicon glyphicon-remove"></span></button>
+                <div class="col-9 col-lg-10"><?= Html::textInput('wrongAnswers[]', $answer->content, ['class' => 'form-control']); ?></div>
+                <div class="col-3 col-lg-2">
+                    <button class="btn btn-outline-dark" onclick="return Quiz.removeAnswer(this);"><span class="fas fa-times"></span></button>
                 </div>
             </div>
         <?php endforeach; ?>

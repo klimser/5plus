@@ -4,7 +4,7 @@
 /* @var $subject \common\models\Subject */
 
 ?>
-<div class="col-xs-12 col-sm-6 subject-item">
+<div class="col-12 col-md-6 subject-item">
     <?php if ($subject->image): ?>
         <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="float-left mw-50 top-left">
             <img src="<?= $subject->imageUrl; ?>" class="img-fluid">

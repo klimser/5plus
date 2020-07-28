@@ -131,7 +131,6 @@ class TeacherController extends AdminController
         return $this->render('update', [
             'teacher' => $teacher,
             'module' => Module::getModuleByControllerAndAction('teacher', 'view'),
-            'subjects' => Subject::find()->orderBy('name')->all(),
         ]);
     }
 

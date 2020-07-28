@@ -1,4 +1,4 @@
-var Payment = {
+let Payment = {
     users: {},
     user: null,
     selectPupil: function(e) {

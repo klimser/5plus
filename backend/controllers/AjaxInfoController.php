@@ -23,7 +23,7 @@ class AjaxInfoController extends AdminController
 
     private function getFilter(): array
     {
-        return Yii::$app->request->get('filter');
+        return Yii::$app->request->get('filter', []);
     }
 
     private function getOrder($defaultOrder = null): array

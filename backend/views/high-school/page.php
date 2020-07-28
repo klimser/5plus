@@ -21,7 +21,7 @@ $this->params['breadcrumbs'][] = 'Настройки страницы';
     $sortableItems = [];
     foreach ($highSchools as $highSchool) {
         $sortableItems[] = [
-            'content' => '<span class="glyphicon glyphicon-sort"></span> '. $highSchool->name,
+            'content' => '<span class="fas fa-arrows-alt"></span> '. $highSchool->name,
             'options' => ['id' => $prefix . $highSchool->id],
         ];
     }

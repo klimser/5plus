@@ -33,12 +33,12 @@ sort($bitrixSubjects);
         <?= $form->field($subject, 'bitrix_name')->dropDownList(ArrayHelper::map($bitrixSubjects, function($val) { return $val; }, function($val) { return $val; }), ['required' => true]); ?>
 
         <?=
-        $form->field($subject, 'imageFile', ['options' => ['class' => 'form-group col-xs-10']])
+        $form->field($subject, 'imageFile', ['options' => ['class' => 'form-group col-10']])
             ->fileInput(['required' => $subject->isNewRecord, 'accept' => 'image/jpeg,image/png', 'data' => ['id' => $subject->id]]);
         ?>
-        <div class="col-xs-2">
+        <div class="col-2">
             <?php if ($subject->image): ?>
-                <img alt="<?= $subject->name; ?>" src="<?= $subject->imageUrl; ?>" style="max-width: 100%;">
+                <img class="img-fluid" alt="<?= $subject->name; ?>" src="<?= $subject->imageUrl; ?>">
             <?php endif; ?>
         </div>
         <div class="clearfix"></div>

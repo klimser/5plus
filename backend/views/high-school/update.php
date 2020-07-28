@@ -1,7 +1,10 @@
 <?php
 
+use common\components\DefaultValuesComponent;
+use dosamigos\tinymce\TinyMce;
 use yii\bootstrap4\Html;
 use \yii\bootstrap4\ActiveForm;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $highSchool common\models\HighSchool */
@@ -25,11 +28,11 @@ $this->params['breadcrumbs'][] = $highSchool->isNewRecord ? $label : $highSchool
 
         <?= $form->field($highSchool, 'name_short')->textInput(['maxlength' => true]) ?>
 
-        <?= $form->field($highSchool, 'photoFile', ['options' => ['class' => 'form-group col-xs-10']])->fileInput(['accept' => 'image/jpeg,image/png']); ?>
-        <div class="col-xs-2 text-center" id="highschool_photo">
+        <?= $form->field($highSchool, 'photoFile', ['options' => ['class' => 'form-group col-10']])->fileInput(['accept' => 'image/jpeg,image/png']); ?>
+        <div class="col-2 text-center" id="highschool_photo">
             <?php if ($highSchool->photo): ?>
-                <img src="<?= $highSchool->photoUrl; ?>" style="width: 100%;">
-                <a href="<?= \yii\helpers\Url::to(['high-school/delete-photo', 'id' => $highSchool->id]); ?>" onclick="return HighSchool.deletePhoto(this);" class="text-danger"><span class="glyphicon glyphicon-remove"></span> Удалить</a>
+                <img class="img-fluid" src="<?= $highSchool->photoUrl; ?>">
+                <a href="<?= Url::to(['high-school/delete-photo', 'id' => $highSchool->id]); ?>" onclick="return HighSchool.deletePhoto(this);" class="text-danger"><span class="fas fa-times"></span> Удалить</a>
             <?php endif; ?>
         </div>
         <div class="clearfix"></div>
@@ -37,7 +40,7 @@ $this->params['breadcrumbs'][] = $highSchool->isNewRecord ? $label : $highSchool
         <?= $form->field($highSchool, 'descriptionForEdit')->hint('Чтобы выделить часть текста цветом, заключите текст в {{текст}}')->textarea(['rows' => 6]) ?>
 
         <?=
-        $form->field($highSchool, 'description')->widget(\dosamigos\tinymce\TinyMce::class, \common\components\DefaultValuesComponent::getTinyMceSettings()); ?>
+        $form->field($highSchool, 'description')->widget(TinyMce::class, DefaultValuesComponent::getTinyMceSettings()); ?>
 
         <div class="form-group">
             <?= Html::submitButton($highSchool->isNewRecord ? 'Добавить' : 'Сохранить', ['class' => $highSchool->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

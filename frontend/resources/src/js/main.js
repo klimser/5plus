@@ -49,6 +49,11 @@ var Main = {
     initPhoneFormatted: function(selector) {
         if (selector === undefined) selector = ".phone-formatted";
         $(selector).inputmask({"mask": "99 999-9999"});
+    },
+    toggleMainMenu: function(e) {
+        $("body").toggleClass("menu-open");
+        $($(e).data('target')).collapse('toggle');
+        return false;
     }
 };
 

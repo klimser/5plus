@@ -49,50 +49,50 @@ $this->render('/grunt-assets');
 <?php $this->beginBody() ?>
 <?= YII_ENV == 'prod' ? WidgetHtml::getByName('yandex_metrika') : ''; ?>
 
-<header class="header">
-    <div class="mobile-header">
-        <div class="btn-menu-open">
-            <span class="line1"></span>
-            <span class="line2"></span>
-            <span class="line3"></span>
-        </div>
-    </div>
-    <div class="header-box container">
-        <div class="logo-block">
-            <a href="<?= Yii::$app->homeUrl; ?>" class="d-flex">
-                <div class="logo">
-                    <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo.svg" alt="Учебный центр &quot;Пять с плюсом&quot;" title="Учебный центр &quot;Пять с плюсом&quot;">
+<header class="header w-100">
+    <div class="header-box">
+        <div class="bg-light d-lg-none w-100 navbar-bg"></div>
+        <div class="container navbar-body">
+            <div class="row no-gutters align-items-center justify-content-between align-items-lg-start justify-content-lg-center pt-lg-4">
+                <button class="btn-menu-open btn btn-light col-auto d-lg-none px-2" type="button" onclick="Main.toggleMainMenu(this);" data-target=".main-menu-collapsible">
+                    <span class="line1"></span>
+                    <span class="line2"></span>
+                    <span class="line3"></span>
+                </button>
+                <div class="logo-block col-6 ml-1 ml-sm-2 ml-lg-0 order-lg-1 d-flex">
+                    <a href="<?= Yii::$app->homeUrl; ?>" class="d-flex">
+                        <div class="row no-gutters align-items-center">
+                            <div class="logo col-3 col-sm-2 col-lg-3 pr-1 pr-lg-0">
+                                <img class="img-fluid" src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/logo.svg" alt="Учебный центр &quot;Пять с плюсом&quot;" title="Учебный центр &quot;Пять с плюсом&quot;">
+                            </div>
+                            <div class="name col-9 col-sm-10 col-lg-9 pl-lg-3">
+                                Пять с плюсом
+                                <div class="name-small text-uppercase">Ваш учебный центр</div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-                <div class="name">
-                    Пять с плюсом
-                    <div class="name-small">ВАШ УЧЕБНЫЙ ЦЕНТР</div>
+                <div class="social col-auto col-lg-2 order-lg-4 d-flex flex-lg-wrap">
+                    <div class="title d-none d-lg-flex w-100">Мы в соц сетях:</div>
+                    <?= WidgetHtml::getByName('social'); ?>
                 </div>
-            </a>
-        </div>
-        <div class="contacts-block">
-            <div class="address">
-                <span class="ico"></span>
-                <div class="text">
+                
+                <nav class="col-10 col-sm-6 pb-3 ml-n3 pt-1 col-lg-auto ml-lg-0 mt-lg-4 order-lg-10 main-menu-block collapse main-menu-collapsible d-lg-flex">
+                    <?= Nav::widget([
+                        'options' => ['class' => 'main-menu-list'],
+                        'items' => Menu::getMenuItemsCached(Menu::MAIN_MENU_ID, $webpage),
+                    ]); ?>
+                </nav>
+                <div class="w-100 d-none d-sm-block d-lg-none"></div>
+                <div class="address col-10 col-sm-6 pb-4 ml-n3 ml-lg-0 col-lg-2 order-lg-2 collapse main-menu-collapsible d-lg-flex flex-lg-wrap">
                     <?= WidgetHtml::getByName('address'); ?>
                 </div>
-            </div>
-            <div class="phone">
-                <span class="ico"></span>
-                <div class="text">
+                <div class="w-100 d-none d-sm-block d-lg-none"></div>
+                <div class="phone col-10 col-sm-6 pb-3 ml-n3 ml-lg-0 col-lg-2 order-lg-3 collapse main-menu-collapsible d-lg-flex flex-lg-wrap">
                     <?= WidgetHtml::getByName('phones'); ?>
                 </div>
             </div>
-            <div class="social">
-                <?= WidgetHtml::getByName('social'); ?>
-            </div>
         </div>
-
-        <nav class="main-menu-block">
-            <?= Nav::widget([
-                'options' => ['class' => 'main-menu-list'],
-                'items' => Menu::getMenuItemsCached(Menu::MAIN_MENU_ID, $webpage),
-            ]); ?>
-        </nav>
     </div>
     <?php if ($webpage && $webpage->main): ?>
         <div class="main-slider-box container">
@@ -106,10 +106,10 @@ $this->render('/grunt-assets');
                                 <div class="desc">We are a technology company that understands <br>complexity of businesses, and with our technical <br>expertise, we help them transform and scale</div>
                                 */ ?>
                                 <div class="btns-group flex-column align-items-center align-items-md-start">
-                                    <a href="<?= Url::to(['webpage', 'id' => $quizWebpage->id]); ?>" class="btn btn-danger btn-ico btn-lg">Проверь свои знания <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/puzzle-ico.png" alt="ico" class="ico"></a>
-                                    <siv class="btn btn-primary btn-ico btn-lg" data-container="body" data-toggle="popover" data-placement="bottom" data-trigger="click" data-html="true" data-content="<a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'pupil']); ?>'>для учащихся</a><br><br> <a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'new']); ?>'>для новых студентов</a>">
+                                    <a href="<?= Url::to(['webpage', 'id' => $quizWebpage->id]); ?>" class="btn btn-danger btn-ico btn-lg p-3 p-lg-4">Проверь свои знания <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/puzzle-ico.png" alt="ico" class="ico"></a>
+                                    <div class="btn btn-primary btn-ico btn-lg p-3 p-lg-4" data-container="body" data-toggle="popover" data-placement="bottom" data-trigger="click" data-html="true" data-content="<a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'pupil']); ?>'>для учащихся</a><br><br> <a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'new']); ?>'>для новых студентов</a>">
                                         Онлайн оплата <span class="far fa-credit-card ml-3"></span>
-                                    </siv>
+                                    </div>
                                     <?php /* <a href="#" class="btn btn-outline-info btn-ico btn-lg">Мы вам перезвоним <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/phone-ico.png" alt="ico" class="ico"></a> */ ?>
                                 </div>
                             </div>
@@ -129,76 +129,10 @@ $this->render('/grunt-assets');
         <?php endif; ?>
     <?php endif; ?>
 </header>
+
 <main class="content">
     <?= $content ?>
 </main>
-<?php /*
-<div class="container main-content">
-    <div class="row">
-        <?= Alert::widget(); ?>
-
-        <?php if (array_key_exists('h1', $this->params) && $this->params['h1']): ?>
-            <div class="col-xs-12">
-                <h1><?= $this->params['h1']; ?></h1>
-            </div>
-        <?php endif; ?>
-    </div>
-    <div class="row">
-        <div class="col-xs-12">
-            <?= Breadcrumbs::widget([
-                'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
-                'homeLink' => ['url' => Yii::$app->homeUrl, 'label' => '<span class="glyphicon glyphicon-home"></span>', 'encode' => false],
-                'options' => ['class' => 'breadcrumb', 'role' => 'navigation', 'aria-label' => 'breadcrumbs'],
-            ]) ?>
-        </div>
-    </div>
-    <?= $content ?>
-    <?php if (!array_key_exists('hide_social', $this->params) || !$this->params['hide_social']): ?>
-        <div class="row">
-            <div class="col-xs-12">
-                <?= YII_ENV == 'prod' ? WidgetHtml::getByName('social_share') : ''; ?>
-            </div>
-        </div>
-    <?php endif; ?>
-</div>
-
-<?php // <?= YII_ENV == 'prod' ? WidgetHtml::getByName('fb_chat_plugin') : ''; ?>
-
-<footer class="footer">
-    <div class="clouds-line-bottom"></div>
-    <div class="content-block">
-        <div class="container">
-            <div class="row">
-                <div class="col-xs-5 col-sm-3 col-md-2 company_name">
-                    <div>&copy; НОУ "Exclusive Education", <?= date('Y'); ?></div>
-                    <img alt="" src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/footer_dots.svg">
-                </div>
-                <div class="phone-block col-xs-7 col-sm-3 col-md-2 col-md-offset-1">
-                    <?= WidgetHtml::getByName('phones'); ?>
-                </div>
-                <div class="email-block col-xs-6 col-sm-3 col-md-2">
-                    <?= WidgetHtml::getByName('email'); ?>
-                </div>
-                <div class="address-block col-xs-12 col-sm-3 col-md-2">
-                    <?= WidgetHtml::getByName('address'); ?>
-                </div>
-                <div class="visible-sm clearfix"></div>
-                <div class="social-block col-xs-12 col-md-3">
-                    <div class="social-links text-center">
-                        <?= WidgetHtml::getByName('social'); ?>
-                    </div>
-                    <div>
-                        Сайт сделал <a href="https://sergey-klimov.ru"><b>Сергей Климов</b></a>
-                    </div>
-                    <div>
-                        Дизайн <a href="http://korden.uz"><img alt="korden" src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/korden_logo.png"></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</footer>
-*/ ?>
 
 <footer class="footer">
     <div class="container">
@@ -236,8 +170,13 @@ $this->render('/grunt-assets');
                         <?= WidgetHtml::getByName('phones'); ?>
                     </div>
                 </div>
-                <div class="social">
-                    <?= WidgetHtml::getByName('social'); ?>
+                <div class="social text-center">
+                    <div class="title">Мы в соц сетях:</div>
+                    <div class="row justify-content-center mt-2">
+                        <div class="col-auto">
+                            <?= WidgetHtml::getByName('social'); ?>
+                        </div>
+                    </div>
                     <?php /*<div class="title">Мы в соц сетях:</div>
                 <ul class="social-list">
                     <li class="item"><a class="bgc-ins" href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a></li>

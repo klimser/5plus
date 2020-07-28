@@ -5,9 +5,9 @@
 /* @var $grid bool */
 
 ?>
-<div class="news-item <?php if ($grid): ?>col-xs-12 col-sm-6 col-md-3<?php endif; ?>">
+<div class="news-item <?php if ($grid): ?>col-12 col-md-6 col-lg-3<?php endif; ?>">
     <a href="<?= Yii::$app->homeUrl . $promotion->webpage->url; ?>">
-        <img src="<?= $promotion->imageUrl; ?>" class="mw-100">
+        <img src="<?= $promotion->imageUrl; ?>" class="img-fluid">
         <div class="link-body"><?= $promotion->name; ?></div>
     </a>
 </div>

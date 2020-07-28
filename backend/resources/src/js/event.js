@@ -113,7 +113,7 @@ let Event = {
                     '</div></div></form>';
             case this.memberStatusMiss:
                 if (this.isAttendEditAllowed(memberId)) {
-                    return '<button class="btn btn-default" onclick="Event.revertMissStatus(this, ' + memberId + ');">' +
+                    return '<button class="btn btn-outline-dark" onclick="Event.revertMissStatus(this, ' + memberId + ');">' +
                            '<span class="fas fa-pencil-alt"></span>' +
                         '</button>';
                 }

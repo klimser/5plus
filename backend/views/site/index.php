@@ -297,7 +297,3 @@ $this->title = 'Панель управления';
         </ul>
     </div>
 </div>
-
-    <?php
-/*        <a href="<?= \yii\helpers\Url::to(['user/schedule']); ?>" class="btn btn-outline-dark btn-lg col-xs-12 col-sm-4 col-md-3 col-lg-2"><span class="glyphicon glyphicon-list-alt"></span> Дневники</a>*/
-?>

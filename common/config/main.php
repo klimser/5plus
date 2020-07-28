@@ -29,6 +29,7 @@ return [
                     ],
                     'jsOptions' => [
                         'crossorigin' => 'anonymous',
+                        'integrity' => YII_ENV_DEV ? false : 'sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=',
                     ],
                 ],
                 \yii\jui\JuiAsset::class => [
@@ -37,6 +38,7 @@ return [
                     ],
                     'jsOptions' => [
                         'crossorigin' => 'anonymous',
+                        'integrity' => YII_ENV_DEV ? false : 'sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=',
                     ],
                     'css' => [
                         YII_ENV_DEV ? 'themes/smoothness/jquery-ui.css' : '//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css',
@@ -47,10 +49,11 @@ return [
                 ],
                 \yii\bootstrap4\BootstrapPluginAsset::class => [
                     'js' => [
-                        YII_ENV_DEV ? 'js/bootstrap.bundle.js' : '//stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js',
+                        YII_ENV_DEV ? 'js/bootstrap.bundle.js' : '//stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js',
                     ],
                     'jsOptions' => [
                         'crossorigin' => 'anonymous',
+                        'integrity' => YII_ENV_DEV ? false : 'sha384-1CmrxMRARb6aLqgBO7yyAxTOQE2AKb9GfXnEo760AUcUmFx3ibVJJAzGytlQcNXd',
                     ],
                 ],
             ],

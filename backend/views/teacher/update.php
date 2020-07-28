@@ -8,25 +8,20 @@ use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
 /* @var $teacher common\models\Teacher */
-/* @var $subjects \common\models\Subject[] */
 
 $this->title = $teacher->isNewRecord ? 'Новый учитель' : $teacher->name;
 $this->params['breadcrumbs'][] = ['label' => 'Учителя', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="teacher-update">
-
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?php
     $script = '';
-    foreach ($subjects as $subject) {
-    $script .= 'Teacher.subjects.push({id: ' . $subject->id . ', name: "' . $subject->name . '"});' . "\n";
-    }
     foreach ($teacher->subjects as $subject) {
-    $script .= 'Teacher.activeSubjects.push(' . $subject->id . ');' . "\n";
+        $script .= 'Teacher.activeSubjectIds.push(' . $subject->id . ');' . "\n";
     }
-    $script .= 'Teacher.renderExisted();' . "\n";
+    $script .= 'Teacher.init();' . "\n";
     $this->registerJs($script);
 
     ?>
@@ -59,14 +54,26 @@ $this->params['breadcrumbs'][] = $this->title;
     ?>
     <div class="col-2">
         <?php if ($teacher->photo): ?>
-            <img src="<?= $teacher->imageUrl; ?>" style="max-width: 100%;">
+            <img class="img-fluid" src="<?= $teacher->imageUrl; ?>">
         <?php endif; ?>
     </div>
     <div class="clearfix"></div>
 
     <div class="col-12">
         <b>Предметы:</b><br>
-        <div id="teacher_subjects" class="container-fluid"></div>
+        <div id="teacher_subjects" class="container-fluid">
+            <?php foreach ($teacher->subjects as $subject): ?>
+                <div class="row form-group">
+                    <div class="col-10 col-md-11">
+                        <input type="hidden" name="subject[]" value="<?= $subject->id; ?>">
+                        <input readonly class="form-control-plaintext" value="<?= $subject->name; ?>">
+                    </div>
+                    <div class="col-2 col-md-1">
+                        <button class="btn btn-outline-dark" onclick="return Teacher.removeSubject(this);"><span class="fas fa-times"></span></button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
         <button class="btn btn-outline-dark btn-sm" onclick="return Teacher.renderSubjectForm();"><span class="fas fa-plus"></span> Добавить предмет</button>
         <hr>
 

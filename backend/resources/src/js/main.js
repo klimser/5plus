@@ -42,7 +42,7 @@ let Main = {
             let problemEdit = $("#problem-comment-" + entityId);
             if (!problemEdit.length) {
                 $(e).after('<textarea id="problem-comment-' + entityId + '" placeholder="Комментарий к проблеме"></textarea>' +
-                    '<button class="btn btn-default" value="problem" onclick="Main.changeEntityStatus(\'' + entityType + '\', ' + entityId + ', \'' + newStatus + '\', this);">OK</button>');
+                    '<button class="btn btn-outline-dark" value="problem" onclick="Main.changeEntityStatus(\'' + entityType + '\', ' + entityId + ', \'' + newStatus + '\', this);">OK</button>');
                 return null;
             } else if (!$(problemEdit).val().length) {
                 return null;

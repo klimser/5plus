@@ -84,7 +84,7 @@ foreach ($groupPupils as $groupPupil) {
                     <?php elseif ($moveMoneyAllowed && $groupPupil->moneyLeft > 0): ?>
                         <button type="button" title="перенести оставшиеся деньги" class="btn btn-outline-dark mb-2" onclick="Dashboard.showMoveMoneyForm(this);"
                             data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>" data-amount="<?= MoneyHelper::formatThousands($groupPupil->moneyLeft); ?>"
-                            data-groups="<?= implode(',', array_keys($activeGroupIdSet)); ?>">
+                            data-groups="42<?= ''; //implode(',', array_keys($activeGroupIdSet)); ?>">
                             <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>
                         </button>
                     <?php endif; ?>

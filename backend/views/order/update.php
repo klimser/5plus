@@ -1,5 +1,6 @@
 <?php
 
+use common\models\Order;
 use yii\bootstrap4\Html;
 use yii\bootstrap4\ActiveForm;
 
@@ -23,15 +24,10 @@ $this->params['breadcrumbs'][] = $order->name;
 
         <?= $form->field($order, 'name', ['options' => ['class' => 'form-group col-12 col-md-6']])->textInput(['maxlength' => true]) ?>
 
-        <?php 
-//        $form->field($order, 'phoneFormatted', ['options' => ['class' => 'col-xs-12 col-md-6'], 'inputTemplate' => '<div class="input-group"><span class="input-group-addon">+998</span>{input}</div>'])
-//            ->textInput(['required' => true, 'maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}']);
-         ?>
-
         <?= $form->field($order, 'phone', ['options' => ['class' => 'form-group col-12 col-md-6']])
             ->textInput(['required' => true, 'maxlength' => true]); ?>
 
-        <?= $form->field($order, 'status', ['options' => ['class' => 'form-group col-12 col-md-6']])->dropDownList(\common\models\Order::$statusLabels) ?>
+        <?= $form->field($order, 'status', ['options' => ['class' => 'form-group col-12 col-md-6']])->dropDownList(Order::$statusLabels) ?>
 
         <?= $form->field($order, 'user_comment', ['options' => ['class' => 'form-group col-12 col-md-6']])->textarea(['maxlength' => true, 'disabled' => '']) ?>
 

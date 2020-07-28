@@ -161,7 +161,7 @@ let Quiz = {
             success: function(data) {
                 if (data.status === 'ok') {
                     $("#msg_place").text("").removeClass("alert").removeClass("alert-danger");
-                    let blockHtml = '<div class="col-xs-12"><div class="alert alert-success">' + "\n"
+                    let blockHtml = '<div class="col-12"><div class="alert alert-success">' + "\n"
                         + 'Тест завершён.<br>' + "\n"
                         + 'Ваш результат - <b>' + data.right_answers + ' правильных из ' + data.total_answers + '</b>.<br>' + "\n"
                         + 'Приходите в <a href="/contacts">наш офис</a>, назовите ваше имя <b>' + data.student_name + '</b> и мы подберём вам подходящую группу по результатам теста.' + "\n"

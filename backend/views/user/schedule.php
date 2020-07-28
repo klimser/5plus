@@ -1,19 +1,23 @@
 <?php
 
+use backend\components\DebtWidget;
+use common\models\Group;
+use common\models\User;
 use yii\bootstrap4\Html;
 use common\components\helpers\Calendar;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $eventMonth \DateTime */
-/* @var $user \common\models\User */
+/* @var $user User */
 /* @var $eventMap \backend\models\EventMember[][] */
 /* @var $groupMap array */
 
 $this->title = 'Дневник';
-if (Yii::$app->user->identity->role == \common\models\User::ROLE_ROOT) {
+if (Yii::$app->user->identity->role == User::ROLE_ROOT) {
     $this->params['breadcrumbs'][] = ['label' => 'Студенты', 'url' => ['schedule']];
     $this->params['breadcrumbs'][] = $user->name;
-} elseif (Yii::$app->user->identity->role == \common\models\User::ROLE_PARENTS && count(Yii::$app->user->identity->children) > 1) {
+} elseif (Yii::$app->user->identity->role == User::ROLE_PARENTS && count(Yii::$app->user->identity->children) > 1) {
     $this->params['breadcrumbs'][] = ['label' => 'Мои дети', 'url' => ['schedule']];
     $this->params['breadcrumbs'][] = $this->title . ': ' . $user->name;
 } else {
@@ -29,15 +33,15 @@ $intervalMonth = new \DateInterval('P1M');
     <div class="row">
         <div class="col-xs-12">
             <h1 class="float-left mt-0"><?= Html::encode($this->title) ?></h1>
-            <?= \backend\components\DebtWidget::widget(['user' => $user]); ?>
+            <?= DebtWidget::widget(['user' => $user]); ?>
         </div>
         <div class="clearfix"></div>
     </div>
     <?php $eventMonth->sub($intervalMonth); ?>
     <div class="row">
         <div class="col-xs-12">
-            <a class="btn btn-default w-100" href="<?= \yii\helpers\Url::to(array_merge($queryParams, ['schedule', 'month' => $eventMonth->format('Y-m')])); ?>">
-                <span class="glyphicon glyphicon-menu-up"></span> <?= Calendar::$monthNames[$eventMonth->format('n')]; ?> <?= $eventMonth->format('Y'); ?>
+            <a class="btn btn-outline-dark w-100" href="<?= Url::to(array_merge($queryParams, ['schedule', 'month' => $eventMonth->format('Y-m')])); ?>">
+                <span class="fas fa-chevron-up"></span> <?= Calendar::$monthNames[$eventMonth->format('n')]; ?> <?= $eventMonth->format('Y'); ?>
             </a>
         </div>
     </div>
@@ -53,13 +57,13 @@ $intervalMonth = new \DateInterval('P1M');
             <div class="col-xs-12">
                 <hr><h4>Занятия в группах:</h4>
                 <?php foreach ($groupMap as $groupId => $groupData):
-                    /** @var \common\models\Group $groupInfo */
+                    /** @var Group $groupInfo */
                     $groupInfo = $groupData['group'];
                     /** @var \common\models\Payment[] $payments */
                     $payments = $groupData['payments'];
                     ?>
-                    <div class="well well-sm<?= $groupInfo->active == \common\models\Group::STATUS_INACTIVE ? ' text-muted' : ''; ?>">
-                        <?php if ($groupInfo->active == \common\models\Group::STATUS_INACTIVE): ?>
+                    <div class="well well-sm <?= $groupInfo->active == Group::STATUS_INACTIVE ? ' text-muted' : ''; ?>">
+                        <?php if ($groupInfo->active == Group::STATUS_INACTIVE): ?>
                             <div class="row">
                                 <div class="col-xs-12"><small>Занятия в этой группе больше не проводятся.</small></div>
                             </div>
@@ -195,8 +199,8 @@ $intervalMonth = new \DateInterval('P1M');
     <?php $eventMonth->add($intervalMonth); ?>
     <div class="row">
         <div class="col-xs-12">
-            <a class="btn btn-default w-100" href="<?= \yii\helpers\Url::to(array_merge($queryParams, ['schedule', 'month' => $eventMonth->format('Y-m')])); ?>">
-                <span class="glyphicon glyphicon-menu-down"></span> <?= Calendar::$monthNames[$eventMonth->format('n')]; ?> <?= $eventMonth->format('Y'); ?>
+            <a class="btn btn-outline-dark w-100" href="<?= Url::to(array_merge($queryParams, ['schedule', 'month' => $eventMonth->format('Y-m')])); ?>">
+                <span class="fas fa-chevron-down"></span> <?= Calendar::$monthNames[$eventMonth->format('n')]; ?> <?= $eventMonth->format('Y'); ?>
             </a>
         </div>
     </div>

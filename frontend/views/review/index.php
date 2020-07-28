@@ -23,7 +23,7 @@ $this->params['breadcrumbs'][] = 'Отзывы';
         <?php endif; ?>
         <div class="col">
             <div class="text-right">
-                <a id="add-review-button" href="#" onclick="Review.launchModal(); return false;">+ написать отзыв</a>
+                <a class="btn btn-lg btn-danger " href="#" onclick="Review.launchModal(); return false;">+ написать отзыв</a>
             </div>
         </div>
     </div>

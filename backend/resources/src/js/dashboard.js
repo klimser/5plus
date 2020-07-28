@@ -354,15 +354,19 @@ let Dashboard = {
         $('#money-move-messages-place').html('');
         let form = $("#money-move-form");
         $(form).find("#money-move-id").val(groupPupilId);
-        $(form).find("#money-move-amount").text($(e).data("amount"));
-        $(form).find("#money-move-group").text(group.name);
-        $(form).find("#money-move-pupil-name").text($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#money-move-amount").val($(e).data("amount"));
+        $(form).find("#money-move-group").val(group.name);
+        $(form).find("#money-move-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
         let optionsHtml = '';
         let allowedGroupIds = $(e).data('groups');
-        if (allowedGroupIds.length > 0) {
+        if (typeof allowedGroupIds === 'number') {
+            allowedGroupIds = [allowedGroupIds];
+        } else if (allowedGroupIds.length > 0) {
             allowedGroupIds = allowedGroupIds.split(',').map(function (x) {
                 return parseInt(x, 10);
             });
+        }
+        if (allowedGroupIds.length > 0) {
             allowedGroupIds.forEach(function (groupId) {
                 optionsHtml += '<option value="' + groupId + '">' + Main.groupMap[groupId].name + '</option>';
             });

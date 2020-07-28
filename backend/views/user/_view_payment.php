@@ -51,10 +51,9 @@ foreach ($payments as $payment) {
             <?php foreach ($payments as $payment): ?>
                 <tr class="group-<?= $payment->group_id; ?> collapse table-<?php
                     if ($payment->amount > 0) {
-                        echo $payment->discount ? 'info' : 'success';
-                        echo ' show ';
+                        echo $payment->discount ? 'info' : 'success', ' show ';
                     } elseif ($payment->amount < 0) {
-                        echo ' expense ', $payment->discount ? 'warning' : 'danger';
+                        echo $payment->discount ? 'warning' : 'danger', ' expense ';
                     }
                     ?>">
                     <td><?= $payment->group->name; ?></td>

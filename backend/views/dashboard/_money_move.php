@@ -38,7 +38,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>
-                    <button class="btn btn-primary" id="group-move-button">перевести</button>
+                    <button class="btn btn-primary" id="money-move-button">перевести</button>
                 </div>
             </form>
         </div>

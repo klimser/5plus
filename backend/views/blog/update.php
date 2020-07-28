@@ -23,16 +23,13 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $form->field($blog, 'name')->textInput(['required' => true, 'maxlength' => true]) ?>
 
         <?=
-        $form->field($blog, 'imageFile', ['options' => ['class' => 'form-group col-xs-10']])
+        $form->field($blog, 'imageFile', ['options' => ['class' => 'form-group col-10']])
             ->fileInput(['required' => $blog->isNewRecord, 'accept' => 'image/jpeg,image/png', 'data' => ['id' => $blog->id]]);
         ?>
-
-        <div class="row mb-3">
-            <div class="col-12 col-sm-6 col-md-3 col-lg-2">
-                <?php if ($blog->image): ?>
-                    <img class="img-fluid" src="<?= $blog->imageUrl; ?>">
-                <?php endif; ?>
-            </div>
+        <div class="col-2">
+            <?php if ($blog->image): ?>
+                <img class="img-fluid" src="<?= $blog->imageUrl; ?>">
+            <?php endif; ?>
         </div>
 
         <?=
