@@ -1,5 +1,7 @@
 <?php
 
+use yii\helpers\Url;
+
 /* @var $this \frontend\components\extended\View */
 /* @var $subject common\models\Subject */
 /* @var $webpage common\models\Webpage */
@@ -12,9 +14,9 @@ $this->params['breadcrumbs'][] = $subject->name;
 ?>
 
 <div class="container">
-    <div class="content-box">
+    <div class="content-box subject-page">
         <?php if ($quizCount): ?>
-            <a class="btn btn-info btn-lg float-right m-l-3 m-b-3" href="<?= \yii\helpers\Url::to(['webpage', 'id' => $quizWebpage->id, 'subjectId' => $subject->id]); ?>">
+            <a class="btn btn-info btn-lg float-right w-100 w-md-25 w-lg-auto mw-lg-25 ml-md-1 ml-lg-3 mb-3" href="<?= Url::to(['webpage', 'id' => $quizWebpage->id, 'subjectId' => $subject->id]); ?>">
                 Узнайте свой уровень.
             </a>
         <?php endif; ?>

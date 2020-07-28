@@ -7,6 +7,8 @@
 
 @import "nestedSortable";
 
+@import "../../../../frontend/resources/src/sass/sizing";
+
 $half-gutter-width: floor(($grid-gutter-width / 2));
 
 main {
@@ -167,9 +169,9 @@ hr.medium {margin-top: 10px; margin-bottom: 10px;}
   font-size: 170%;
 }
 
-.mw-50 {
-  max-width: 50%;
-}
+.mw-50 { max-width: 50% !important; }
+.mw-25 { max-width: 25% !important; }
+.mw-20 { max-width: 20% !important; }
 
 .separated-button {
   margin: 0 15px 15px 0;

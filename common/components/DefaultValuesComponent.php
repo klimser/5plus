@@ -69,7 +69,7 @@ class DefaultValuesComponent extends Component
                         'classes' => 'img-fluid mx-auto',
                     ],
                 ],
-                'extended_valid_elements' => 'img[class=img-fluid|src|border=0|alt|title|hspace|vspace|align|onmouseover|onmouseout|name]',
+                'extended_valid_elements' => 'img[class=img-fluid|src|border=0|alt|title|hspace|vspace|align|onmouseover|onmouseout|name|style|width|height]',
                 'toolbar' => 'undo redo | styleselect | bold italic | subscript superscript | fontsizeselect | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | responsivefilemanager link image',
                 'imagetools_toolbar' => 'rotateleft rotateright | flipv fliph | editimage imageoptions',
                 'external_filemanager_path' => Yii::$app->getHomeUrl() . 'filemanager/filemanager/',
