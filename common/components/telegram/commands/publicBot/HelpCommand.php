@@ -2,8 +2,9 @@
 
 namespace Longman\TelegramBot\Commands\UserCommands;
 
+use common\components\helpers\TelegramHelper;
 use common\components\telegram\commands\ConversationTrait;
-use common\components\telegram\Request;
+use Longman\TelegramBot\Request;
 use Longman\TelegramBot\Commands\Command;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Exception\TelegramException;
@@ -50,12 +51,12 @@ class HelpCommand extends UserCommand
         if ($commandStr === '') {
             $data['text'] = '*Команды*:' . PHP_EOL;
             foreach ($userCommands as $user_command) {
-                $data['text'] .= Request::escapeMarkdownV2('/' . $user_command->getName() . ' - ' . $user_command->getDescription() . PHP_EOL);
+                $data['text'] .= TelegramHelper::escapeMarkdownV2('/' . $user_command->getName() . ' - ' . $user_command->getDescription() . PHP_EOL);
             }
             if ($safeToShow && count($adminCommands) > 0) {
                 $data['text'] .= PHP_EOL . '*Команды администратора*:' . PHP_EOL;
                 foreach ($adminCommands as $admin_command) {
-                    $data['text'] .= Request::escapeMarkdownV2('/' . $admin_command->getName() . ' - ' . $admin_command->getDescription() . PHP_EOL);
+                    $data['text'] .= TelegramHelper::escapeMarkdownV2('/' . $admin_command->getName() . ' - ' . $admin_command->getDescription() . PHP_EOL);
                 }
             }
             $data['text'] .= PHP_EOL . 'Для конкретной команды введите: /help <command>';
@@ -64,7 +65,7 @@ class HelpCommand extends UserCommand
         $commandStr = str_replace('/', '', $commandStr);
         if (isset($allCommands[$commandStr]) && ($safeToShow || !$allCommands[$commandStr]->isAdminCommand())) {
             $command      = $allCommands[$commandStr];
-            $data['text'] = Request::escapeMarkdownV2(sprintf(
+            $data['text'] = TelegramHelper::escapeMarkdownV2(sprintf(
                 'Команда: %s (v%s)' . PHP_EOL .
                 'Описание: %s' . PHP_EOL .
                 'Использование: %s',
@@ -75,7 +76,7 @@ class HelpCommand extends UserCommand
             ));
             return Request::sendMessage($data);
         }
-        $data['text'] = Request::escapeMarkdownV2('Справка недоступна: Команда /' . $commandStr . ' не найдена');
+        $data['text'] = TelegramHelper::escapeMarkdownV2('Справка недоступна: Команда /' . $commandStr . ' не найдена');
         return Request::sendMessage($data);
     }
 

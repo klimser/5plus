@@ -2,23 +2,38 @@
 
 use backend\models\ActionSearch;
 use common\components\Action;
-use dosamigos\datepicker\DatePicker;
+use common\components\DefaultValuesComponent;
+use common\models\User;
 use kartik\field\FieldRange;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
 use yii\grid\GridView;
 use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
+use yii\jui\DatePicker;
 use yii\web\View;
 
 /* @var $this View */
 /* @var $dataProvider ActiveDataProvider */
 /* @var $searchModel ActionSearch */
-/* @var $studentMap string[] */
 /* @var $adminMap string[] */
 /* @var $groupMap string[] */
 /* @var $typeMap string[] */
 
 $this->title = 'Действия';
 $this->params['breadcrumbs'][] = $this->title;
+$this->registerJs('Main.initAutocompleteUser("#search-student");');
+
+$renderTable = function(array $arr)
+{
+    $html = '<table class="table table-striped table-sm break-word">';
+    foreach ($arr as $key => $value) {
+        $html .= "<tr><td><b>$key</b></td><td>$value</td></tr>";
+    }
+    $html .= '</table>';
+    return $html;
+}
+
 ?>
 <div class="actions-index">
     <h1><?= Html::encode($this->title) ?></h1>
@@ -26,10 +41,12 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+        'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return = [];
-            if ($model->amount > 0) $return['class'] = 'success';
-            elseif ($model->amount < 0) $return['class'] = 'danger';
+            if ($model->amount > 0) $return['class'] = 'table-success';
+            elseif ($model->amount < 0) $return['class'] = 'table-danger';
             return $return;
         },
         'columns' => [
@@ -44,12 +61,11 @@ $this->params['breadcrumbs'][] = $this->title;
                     $adminMap,
                     ['class' => 'form-control']
                 ),
-                'options' => ['class' => 'col-xs-2'],
             ],
             [
                 'attribute' => 'type',
                 'content' => function ($model, $key, $index, $column) {
-                    return '<span class="text-nowrap">' . Action::TYPE_LABELS[$model->type] . '</span>';
+                    return Action::TYPE_LABELS[$model->type];
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -57,20 +73,15 @@ $this->params['breadcrumbs'][] = $this->title;
                     $typeMap,
                     ['class' => 'form-control']
                 ),
-//                'options' => ['class' => 'col-xs-2'],
             ],
             [
                 'attribute' => 'user_id',
                 'content' => function ($model, $key, $index, $column) {
                     return $model->user_id ? $model->user->name : null;
                 },
-                'filter' => Html::activeDropDownList(
-                    $searchModel,
-                    'user_id',
-                    $studentMap,
-                    ['class' => 'form-control']
-                ),
-                'options' => ['class' => 'col-xs-2'],
+                'filter' => '<div><input type="hidden" class="autocomplete-user-id" name="ActionSearch[user_id]" value="' . $searchModel->user_id . '">
+                            <input id="search-student" class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" data-role="' . User::ROLE_PUPIL . '"
+                            value="' . ($searchModel->user_id ? $searchModel->user->name : '') . '"></div>',
             ],
             [
                 'attribute' => 'group_id',
@@ -83,7 +94,6 @@ $this->params['breadcrumbs'][] = $this->title;
                     $groupMap,
                     ['class' => 'form-control']
                 ),
-                'options' => ['class' => 'col-xs-2'],
 
             ],
             [
@@ -97,34 +107,28 @@ $this->params['breadcrumbs'][] = $this->title;
                     'type' => FieldRange::INPUT_TEXT,
                 ]),
                 'contentOptions' => ['class' => 'text-right'],
-//                'options' => ['class' => 'col-xs-1'],
             ],
             [
                 'attribute' => 'comment',
-//                'options' => ['class' => 'col-xs-1'],
-                'content' => function ($model, $key, $index, $column) {
+                'content' => function ($model, $key, $index, $column) use ($renderTable) {
                     $decodedData = json_decode($model->comment, true);
-                    return $decodedData === null ? $model->comment : \yii\widgets\DetailView::widget([
-                        'model'      => $decodedData,
-                        'attributes' => array_keys($decodedData),
-                    ]);
+                    return $decodedData === null ? $model->comment : $renderTable($decodedData);
                 },
             ],
             [
                 'attribute' => 'createDate',
                 'format' => 'datetime',
                 'label' => 'Дата операции',
-                'filter' => DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'createDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
-                'options' => ['class' => 'col-xs-2'],
+                'filter' => DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'createDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
         ],
     ]); ?>

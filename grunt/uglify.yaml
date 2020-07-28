@@ -5,21 +5,6 @@ options:
 vendors_front:
   files:
     "frontend/web/assets/grunt/js/vendor.js":
-      - "node_modules/jquery/dist/jquery.js"
-      - "vendor/yiisoft/yii2/assets/yii.js"
-      - "node_modules/bootstrap/js/transition.js"
-      - "node_modules/bootstrap/js/alert.js"
-      - "node_modules/bootstrap/js/button.js"
-      - "node_modules/bootstrap/js/carousel.js"
-      - "node_modules/bootstrap/js/collapse.js"
-      - "node_modules/bootstrap/js/dropdown.js"
-      - "node_modules/bootstrap/js/modal.js"
-      - "node_modules/bootstrap/js/tooltip.js"
-      - "node_modules/bootstrap/js/popover.js"
-      - "node_modules/bootstrap/js/scrollspy.js"
-      - "node_modules/bootstrap/js/tab.js"
-      - "node_modules/bootstrap/js/affix.js"
-      - "node_modules/owl.carousel/dist/owl.carousel.js"
       - "node_modules/inputmask/dist/min/inputmask/inputmask.min.js"
       - "node_modules/inputmask/dist/min/inputmask/jquery.inputmask.min.js"
       - "node_modules/inputmask/dist/min/inputmask/inputmask.numeric.extensions.min.js"
@@ -29,26 +14,10 @@ vendors_front:
 vendors_back:
   files:
     "backend/web/assets/grunt/js/vendor.js":
-#      - "node_modules/jquery/dist/jquery.js"
-#      - "vendor/bower-asset/jquery-ui/jquery-ui.js"
-      - "vendor/yiisoft/yii2/assets/yii.js"
-#      - "node_modules/bootstrap/js/transition.js"
-#      - "node_modules/bootstrap/js/alert.js"
-#      - "node_modules/bootstrap/js/button.js"
-#      - "node_modules/bootstrap/js/carousel.js"
-#      - "node_modules/bootstrap/js/collapse.js"
-#      - "node_modules/bootstrap/js/dropdown.js"
-#      - "node_modules/bootstrap/js/modal.js"
-#      - "node_modules/bootstrap/js/tooltip.js"
-#      - "node_modules/bootstrap/js/popover.js"
-#      - "node_modules/bootstrap/js/scrollspy.js"
-#      - "node_modules/bootstrap/js/tab.js"
-#      - "node_modules/bootstrap/js/affix.js"
       - "node_modules/inputmask/dist/min/inputmask/inputmask.min.js"
       - "node_modules/inputmask/dist/min/inputmask/jquery.inputmask.min.js"
       - "node_modules/inputmask/dist/min/inputmask/inputmask.numeric.extensions.min.js"
       - "node_modules/nestedSortable/jquery.mjs.nestedSortable.js"
-      - "node_modules/chosen-js/chosen.jquery.js"
       - "backend/resources/src/vendor/js/*.js"
 main_front:
   files:

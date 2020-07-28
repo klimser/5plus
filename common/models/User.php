@@ -2,7 +2,9 @@
 namespace common\models;
 
 use backend\models\Action;
+use backend\models\Consultation;
 use backend\models\EventMember;
+use backend\models\WelcomeLesson;
 use common\components\helpers\MaskString;
 use common\models\traits\InsertedUpdated;
 use common\models\traits\Phone;
@@ -27,6 +29,7 @@ use yii\web\IdentityInterface;
  * @property int $status
  * @property int $money
  * @property int $role
+ * @property int $individual
  * @property int $parent_id
  * @property int $teacher_id
  * @property int $tg_chat_id
@@ -34,11 +37,14 @@ use yii\web\IdentityInterface;
  * @property array $telegramSettings
  * @property int $bitrix_id
  * @property int $bitrix_sync_status
+ * @property int $created_by
  * @property string $password write-only password
  * @property array $nameParts
+ * @property array $firstName
  * @property User $parent
  * @property Teacher $teacher
  * @property User[] $children
+ * @property User[] $notLockedChildren
  * @property GroupPupil[] $groupPupils
  * @property Group[] $groups
  * @property GroupPupil[] $activeGroupPupils
@@ -48,7 +54,11 @@ use yii\web\IdentityInterface;
  * @property Payment[] $payments
  * @property Payment[] $paymentsAsAdmin
  * @property Debt[] $debts
- * @property string nameHidden
+ * @property Consultation[] $consultations
+ * @property WelcomeLesson[] $welcomeLessons
+ * @property Contract[] $contracts
+ * @property string $nameHidden
+ * @property User $createdAdmin
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -71,15 +81,16 @@ class User extends ActiveRecord implements IdentityInterface
 
     const SCENARIO_ADMIN = 'admin';
     const SCENARIO_USER = 'user';
+    const SCENARIO_CUSTOMER = 'customer';
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'role', 'password', 'teacher_id'];
+        $scenarios[self::SCENARIO_CUSTOMER] = ['username', 'password'];
         $scenarios[self::SCENARIO_USER] = ['name', 'note', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'password'];
         return $scenarios;
     }
-
 
     public static function tableName()
     {
@@ -94,6 +105,7 @@ class User extends ActiveRecord implements IdentityInterface
             [['name', 'username', 'note'], 'trim'],
             ['status', 'default', 'value' => self::STATUS_INACTIVE, 'on' => self::SCENARIO_USER],
             ['status', 'default', 'value' => self::STATUS_ACTIVE,  'on' => self::SCENARIO_ADMIN],
+            ['individual', 'default', 'value' => 1],
             ['role', 'default', 'value' => self::ROLE_PUPIL],
             ['bitrix_sync_status', 'default', 'value' => 0],
             [['password_hash'], 'default', 'value' => ''],
@@ -112,6 +124,7 @@ class User extends ActiveRecord implements IdentityInterface
                 }
                 return true;
             }"],
+            [['created_by'], 'required'],
             [['status', 'money', 'role', 'parent_id', 'teacher_id', 'bitrix_id', 'tg_chat_id'], 'integer'],
             [['username', 'note', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
             [['name'], 'string', 'max' => 127],
@@ -125,30 +138,16 @@ class User extends ActiveRecord implements IdentityInterface
             [['password'], 'safe'],
             [['password'], 'required', 'on' => self::SCENARIO_ADMIN, 'when' => function ($model) {return $model->isNewRecord;},
                 'whenClient' => "function (attribute, value) {
-                    return $(attribute.input).data(\"id\").length == 0;
-                }"],
-            [['phoneFormatted'], 'required', 'on' => self::SCENARIO_USER,
-                'whenClient' => "function (attribute, value) {
-                    var parentExpr = /\[parent\].*/;
-                    var companyExpr = /\[parentCompany\].*/;
-                    if (parentExpr.test(attribute.name)
-                        && ($('input[name=\"person_type\"]:checked').val() != \"" . self::ROLE_PARENTS . "\" || $('input[name=\"parent_type\"]:checked').val() != \"new\")) {
-                        return false;
-                    }
-                    if (companyExpr.test(attribute.name)
-                        && ($('input[name=\"person_type\"]:checked').val() != \"" . self::ROLE_COMPANY . "\" || $('input[name=\"company_type\"]:checked').val() != \"new\")) {
-                        return false;
-                    }
-                    return true;
+                    return $(attribute.input).data(\"id\").length === 0;
                 }"],
 
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_LOCKED]],
             ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER, self::ROLE_TEACHER]],
             ['bitrix_sync_status', 'in', 'range' => [0, 1]],
             ['teacher_id', 'exist', 'targetRelation' => 'teacher'],
+            ['created_by', 'exist', 'targetRelation' => 'createdAdmin'],
         ];
     }
-
 
     public function attributeLabels()
     {
@@ -187,6 +186,14 @@ class User extends ActiveRecord implements IdentityInterface
     public function getChildren()
     {
         return $this->hasMany(User::class, ['parent_id' => 'id'])->orderBy('name')->inverseOf('parent');
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getNotLockedChildren()
+    {
+        return $this->hasMany(User::class, ['parent_id' => 'id'])->andWhere('status != :locked', [':locked' => self::STATUS_LOCKED]) ->orderBy('name');
     }
 
     /**
@@ -266,9 +273,17 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * @return ActiveQuery
      */
+    public function getContracts()
+    {
+        return $this->hasMany(Contract::class, ['user_id' => 'id'])->orderBy(['created_at' => SORT_DESC]);
+    }
+    
+    /**
+     * @return ActiveQuery
+     */
     public function getPayments()
     {
-        return $this->hasMany(Payment::class, ['user_id' => 'id']);
+        return $this->hasMany(Payment::class, ['user_id' => 'id'])->orderBy(['created_at' => SORT_DESC]);
     }
 
     /**
@@ -277,6 +292,30 @@ class User extends ActiveRecord implements IdentityInterface
     public function getPaymentsAsAdmin()
     {
         return $this->hasMany(Payment::class, ['admin_id' => 'id']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getCreatedAdmin()
+    {
+        return $this->hasOne(User::class, ['id' => 'created_by']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getConsultations()
+    {
+        return $this->hasMany(Consultation::class, ['user_id' => 'id'])->with('subject')->addOrderBy(['created_at' => SORT_DESC]);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getWelcomeLessons()
+    {
+        return $this->hasMany(WelcomeLesson::class, ['user_id' => 'id'])->with(['subject', 'teacher', 'group'])->addOrderBy(['lesson_date' => SORT_DESC]);
     }
 
     /**
@@ -317,6 +356,16 @@ class User extends ActiveRecord implements IdentityInterface
         return $parts;
     }
     
+    public function getFirstName(): string 
+    {
+        $nameParts = $this->nameParts;
+        if (count($nameParts) === 1) {
+            return $nameParts[0];
+        } else {
+            return $nameParts[1];
+        }
+    }
+    
     public function getNameHidden(): string
     {
         $nameParts = $this->nameParts;
@@ -328,20 +377,24 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     public function beforeValidate() {
-        if (parent::beforeValidate()) {
-            if ($this->isNewRecord) {
-                $this->generateAuthKey();
-            }
-            if ($this->password) {
-                $this->setPassword($this->password);
-            }
-            if ($this->password_hash === null) {
-                $this->password_hash = '';
-            }
-            return true;
-        } else {
+        if ($this->isNewRecord) {
+            $this->generateAuthKey();
+            $this->created_by = Yii::$app->user->id;
+        } elseif (!$this->created_by) {
+            $this->created_by = Yii::$app->user->id ?? self::SYSTEM_USER_ID;
+        }
+        if ($this->password) {
+            $this->setPassword($this->password);
+        }
+        if ($this->password_hash === null) {
+            $this->password_hash = '';
+        }
+        
+        if (!parent::beforeValidate()) {
             return false;
         }
+        
+        return true;
     }
 
 

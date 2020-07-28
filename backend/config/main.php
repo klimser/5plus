@@ -13,6 +13,13 @@ return [
     'bootstrap' => ['log'],
     'modules' => [],
     'components' => [
+        'assetManager' => [
+            'bundles' => [
+                \dosamigos\datepicker\DatePickerLanguageAsset::class => [
+                    'js' => ['bootstrap-datepicker.ru.min.js']
+                ],
+            ],
+        ],
         'authManager' => [
             'class' => \yii\rbac\PhpManager::class,
             'ruleFile' => '@backend/config/rbac/rules.php',
@@ -43,6 +50,21 @@ return [
                     'defaults' => ['page' => 1, 'letter' => 'ALL', 'year' => -1],
                 ],
             ]
+        ],
+        'assetManager' => [
+            'bundles' => [
+                \yii\jui\JuiAsset::class => [
+                    'js' => [
+                        YII_ENV_DEV ? 'jquery-ui.js' : '//code.jquery.com/ui/1.12.1/jquery-ui.min.js',
+                    ],
+                    'jsOptions' => [
+                        'crossorigin' => 'anonymous',
+                    ],
+                    'css' => [
+                        YII_ENV_DEV ? 'themes/base/jquery-ui.css' : '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.min.css',
+                    ],
+                ],
+            ],
         ],
     ],
     'params' => $params,

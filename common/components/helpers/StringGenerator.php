@@ -3,6 +3,8 @@ namespace common\components\helpers;
 
 class StringGenerator
 {
+    private const EXCLUDE_CHARS = ['o', 'O', 'l', 'I'];
+
     public static function generate(int $stringLength, bool $allowNumbers = true, bool $allowLetters = false, bool $allowUppercase = false): string
     {
         if ($stringLength <= 0) {
@@ -21,9 +23,15 @@ class StringGenerator
             $base = ord('a');
             $baseUppercase = ord('A');
             for ($i = 0; $i < 26; $i++) {
-                $charset[] = chr($base + $i);
+                $char = chr($base + $i);
+                if (!in_array($char, self::EXCLUDE_CHARS)) {
+                    $charset[] = $char;
+                }
                 if ($allowUppercase) {
-                    $charset[] = chr($baseUppercase + $i);
+                    $char = chr($baseUppercase + $i);
+                    if (!in_array($char, self::EXCLUDE_CHARS)) {
+                        $charset[] = $char;
+                    }
                 }
             }
         }

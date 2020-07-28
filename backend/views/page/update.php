@@ -1,7 +1,9 @@
 <?php
 
-use yii\helpers\Html;
-use \yii\bootstrap\ActiveForm;
+use common\components\DefaultValuesComponent;
+use dosamigos\tinymce\TinyMce;
+use yii\bootstrap4\Html;
+use \yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $page common\models\Page */
@@ -21,7 +23,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $form->field($page, 'title')->textInput(['required' => true, 'maxlength' => true]) ?>
 
         <?=
-        $form->field($page, 'content')->widget(\dosamigos\tinymce\TinyMce::class, \common\components\DefaultValuesComponent::getTinyMceSettings());
+        $form->field($page, 'content')->widget(TinyMce::class, DefaultValuesComponent::getTinyMceSettings());
         ?>
 
         <?= $this->render('/webpage/_form', [

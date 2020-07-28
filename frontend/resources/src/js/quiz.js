@@ -23,10 +23,6 @@ let QuizList = {
         MultiStepForm.jump($("#step-3-tab"));
         return false;
     },
-    jump: function(button) {
-        $(".step-content").addClass("hidden");
-        $("#" + $(button).data("href")).removeClass("hidden");
-    },
     startAllowed: function(form) {
         let gToken = grecaptcha.getResponse();
         return gToken.length !== 0;
@@ -48,7 +44,7 @@ let Quiz = {
         else {window.clearInterval(this.timerId); $("#complete_button").click();}
         let minutes = Math.floor(this.timeLeft / 60);
         let seconds = this.timeLeft % 60;
-        $("#time_left").text(minutes + ':' + (seconds < 10 ? '0' : '') + seconds).removeClass("hidden");
+        $("#time_left").text(minutes + ':' + (seconds < 10 ? '0' : '') + seconds).collapse("show");
         if (minutes <= 2) $("#time_left").addClass("bg-danger");
     },
     loadQuiz: function () {
@@ -83,15 +79,16 @@ let Quiz = {
             $("#question_content").html(this.questionList[questionNumber].question);
             let answersHtml = '';
             this.questionList[questionNumber].answers.forEach(function(answer, index) {
-                answersHtml += '<div class="radio"><label><input type="radio" name="answer" value="' + index + '"'
-                    + (Quiz.answerList[questionNumber] === index ? ' checked' : '') + '> '
-                    + answer + '</label></div>';
+                answersHtml += '<div class="form-check"><label class="form-check-label">' +
+                    '<input class="form-check-input" type="radio" name="answer" value="' + index + '" ' +
+                    (Quiz.answerList[questionNumber] === index ? ' checked ' : '') + '>' +
+                    answer + '</label></div>';
             });
             $("#answer_list").html(answersHtml);
         }
-        $("#question_content").removeClass("hidden");
-        $("#answer_list").removeClass("hidden");
-        $("#answer_button").removeClass("hidden");
+        $("#question_content").collapse("show");
+        $("#answer_list").collapse("show");
+        $("#answer_button").collapse("show");
         $("#question_list a").removeClass("active");
         $("#question_list").find("a:eq(" + questionNumber + ")").addClass("active");
     },
@@ -146,10 +143,10 @@ let Quiz = {
     checkFinished: function() {
         let isFinished = this.answerList.every(function(item) {return item >= 0;});
         if (isFinished) {
-            $("#complete_button").removeClass("hidden");
-            $("#question_content").addClass("hidden");
-            $("#answer_list").addClass("hidden");
-            $("#answer_button").addClass("hidden");
+            $("#complete_button").collapse("show");
+            $("#question_content").collapse("hide");
+            $("#answer_list").collapse("hide");
+            $("#answer_button").collapse("hide");
             return true;
         }
         return false;
@@ -164,7 +161,7 @@ let Quiz = {
             success: function(data) {
                 if (data.status === 'ok') {
                     $("#msg_place").text("").removeClass("alert").removeClass("alert-danger");
-                    let blockHtml = '<div class="col-xs-12"><div class="alert alert-success">' + "\n"
+                    let blockHtml = '<div class="col-12"><div class="alert alert-success">' + "\n"
                         + 'Тест завершён.<br>' + "\n"
                         + 'Ваш результат - <b>' + data.right_answers + ' правильных из ' + data.total_answers + '</b>.<br>' + "\n"
                         + 'Приходите в <a href="/contacts">наш офис</a>, назовите ваше имя <b>' + data.student_name + '</b> и мы подберём вам подходящую группу по результатам теста.' + "\n"

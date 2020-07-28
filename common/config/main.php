@@ -24,19 +24,37 @@ return [
         'assetManager' => [
             'bundles' => [
                 \yii\web\JqueryAsset::class => [
-                    'js' => []
+                    'js' => [
+                        YII_ENV_DEV ? 'jquery.js' : '//code.jquery.com/jquery-3.5.1.min.js',
+                    ],
+                    'jsOptions' => [
+                        'crossorigin' => 'anonymous',
+                        'integrity' => YII_ENV_DEV ? false : 'sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=',
+                    ],
                 ],
-                \yii\bootstrap\BootstrapAsset::class => [
-                    'css' => []
-                ],
-                \yii\bootstrap\BootstrapPluginAsset::class => [
-                    'js' => []
+                \yii\jui\JuiAsset::class => [
+                    'js' => [
+                        YII_ENV_DEV ? 'jquery-ui.js' : '//code.jquery.com/ui/1.12.1/jquery-ui.min.js',
+                    ],
+                    'jsOptions' => [
+                        'crossorigin' => 'anonymous',
+                        'integrity' => YII_ENV_DEV ? false : 'sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=',
+                    ],
+                    'css' => [
+                        YII_ENV_DEV ? 'themes/smoothness/jquery-ui.css' : '//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css',
+                    ]
                 ],
                 \yii\bootstrap4\BootstrapAsset::class => [
                     'css' => []
                 ],
                 \yii\bootstrap4\BootstrapPluginAsset::class => [
-                    'js' => []
+                    'js' => [
+                        YII_ENV_DEV ? 'js/bootstrap.bundle.js' : '//stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js',
+                    ],
+                    'jsOptions' => [
+                        'crossorigin' => 'anonymous',
+                        'integrity' => YII_ENV_DEV ? false : 'sha384-1CmrxMRARb6aLqgBO7yyAxTOQE2AKb9GfXnEo760AUcUmFx3ibVJJAzGytlQcNXd',
+                    ],
                 ],
             ],
             'linkAssets' => true,
@@ -73,10 +91,9 @@ return [
             'class' => \common\components\Action::class,
         ],
         'reCaptcha' => [
-            'name' => 'reCaptcha',
-            'class' => \himiklab\yii2\recaptcha\ReCaptcha::class,
-            'siteKey' => $params['reCaptcha-siteKey'],
-            'secret' => $params['reCaptcha-secret'],
+            'class' => \himiklab\yii2\recaptcha\ReCaptchaConfig::class,
+            'siteKeyV2' => $params['reCaptcha-siteKey'],
+            'secretV2' => $params['reCaptcha-secret'],
         ],
         'tinifier' => [
             'class' => \common\components\Tinifier::class,

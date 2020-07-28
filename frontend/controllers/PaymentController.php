@@ -16,7 +16,7 @@ use common\models\Module;
 use common\models\PaymentLink;
 use common\models\User;
 use common\models\Webpage;
-use himiklab\yii2\recaptcha\ReCaptchaValidator;
+use himiklab\yii2\recaptcha\ReCaptchaValidator2;
 use Yii;
 use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
@@ -56,9 +56,9 @@ class PaymentController extends Controller
 
     public function actionFind()
     {
-        $validator = new ReCaptchaValidator();
-
-        if (!$validator->validate(Yii::$app->request->post('reCaptcha'))) {
+        $validator = new ReCaptchaValidator2();
+        $reCaptcha = Yii::$app->request->post('reCaptcha');
+        if (!$reCaptcha || !$validator->validate($reCaptcha)) {
             Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
             return $this->render('index-pupil', $this->getPageParams('pupil'));
         } else {

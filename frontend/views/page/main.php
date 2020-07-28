@@ -1,11 +1,10 @@
 <?php
 
-use common\components\WidgetHtml;
 use frontend\components\widgets\ReviewCarouselWidget;
 use frontend\components\widgets\SubjectCarouselWidget;
 use frontend\components\widgets\TeacherCarouselWidget;
 use yii\bootstrap4\Html;
-use \himiklab\yii2\recaptcha\ReCaptcha;
+use \himiklab\yii2\recaptcha\ReCaptcha2;
 use yii\helpers\Url;
 
 /* @var $this \yii\web\View */
@@ -44,7 +43,7 @@ foreach ($subjectCategoryCollection as $subjectCategory): ?>
                 </button>
             </div>
             <div class="modal-body">
-                <div id="order_form_body">
+                <div id="order_form_body" class="collapse show">
                     <div class="form-group">
                         <label for="order-name">Ваше имя</label>
                         <input name="order[name]" id="order-name" class="form-control" required minlength="2" maxlength="50">
@@ -66,9 +65,9 @@ foreach ($subjectCategoryCollection as $subjectCategory): ?>
                         <label for="order-comment">Дополнительные сведения, пожелания</label>
                         <textarea name="order[user_comment]" id="order-comment" class="form-control" maxlength="255"></textarea>
                     </div>
-                    <?= ReCaptcha::widget(['name' => 'order[reCaptcha]']) ?>
+                    <?= ReCaptcha2::widget(['name' => 'order[reCaptcha]']) ?>
                 </div>
-                <div id="order_form_extra" class="hidden"></div>
+                <div id="order_form_extra" class="collapse"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>

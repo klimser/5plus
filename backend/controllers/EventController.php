@@ -40,20 +40,14 @@ class EventController extends AdminController
 
     /**
      * Lists all Event models.
+     * @param string|null $date
      * @return mixed
      * @throws \Exception
      */
-    public function actionIndex()
+    public function actionIndex(?string $date = null)
     {
-        $eventsDate = Yii::$app->request->getQueryParam('date');
-        if ($eventsDate) {
-            $startDate = new \DateTime($eventsDate);
-        } else {
-            $startDate = new \DateTime();
-        }
-        $startDate->modify('midnight');
-        $endDate = clone($startDate);
-        $endDate->modify('+1 day');
+        $startDate = new \DateTimeImmutable(($date ?? 'now') . ' midnight');
+        $endDate = $startDate->modify('+1 day');
 
         $eventsQuery = Event::find()
             ->where('event_date > :startDate', [':startDate' => $startDate->format('Y-m-d H:i:s')])

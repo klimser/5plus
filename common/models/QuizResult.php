@@ -4,7 +4,7 @@ namespace common\models;
 
 use common\models\traits\Inserted;
 use common\components\extended\ActiveRecord;
-use himiklab\yii2\recaptcha\ReCaptchaValidator;
+use himiklab\yii2\recaptcha\ReCaptchaValidator2;
 
 /**
  * This is the model class for table "{{%quiz_result}}".
@@ -48,7 +48,7 @@ class QuizResult extends ActiveRecord
             [['questions_data', 'answers_data'], 'string'],
             [['subject_name'], 'string', 'max' => 50],
             [['hash', 'student_name', 'quiz_name'], 'string', 'max' => 255],
-            [['reCaptcha'], ReCaptchaValidator::class, 'on' => self::SCENARIO_NEW],
+            [['reCaptcha'], ReCaptchaValidator2::class, 'on' => self::SCENARIO_NEW],
         ];
     }
 

@@ -106,10 +106,10 @@ class EventComponent extends Component
 
     /**
      * @param Group $group
-     * @param DateTime $limitDate
+     * @param \DateTimeInterface $limitDate
      * @return Event|null
      */
-    public static function getUncheckedEvent(Group $group, DateTime $limitDate): ?Event
+    public static function getUncheckedEvent(Group $group, \DateTimeInterface $limitDate): ?Event
     {
         /** @var Event|null $event */
         $event = Event::find()

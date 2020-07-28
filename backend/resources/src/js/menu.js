@@ -18,7 +18,7 @@ var Menu = {
         editForm.find("#menuitem-attr").val(src.data("attr"));
         editForm.find(".btn").text("Сохранить");
 
-        editForm.removeClass("hidden");
+        editForm.collapse("show");
     },
     deleteItem: function(itemId) {
         if (confirm("Вы уверены, что хотите удалить элемент меню?")) {

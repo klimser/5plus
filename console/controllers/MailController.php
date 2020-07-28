@@ -2,7 +2,7 @@
 
 namespace console\controllers;
 
-use common\components\telegram\Request;
+use Longman\TelegramBot\Request;
 use common\models\EmailQueue;
 use common\models\GiftCard;
 use Longman\TelegramBot\DB;

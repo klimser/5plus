@@ -1,7 +1,7 @@
 <?php
 
-use yii\helpers\Html;
-use yii\bootstrap\ActiveForm;
+use yii\bootstrap4\ActiveForm;
+use yii\bootstrap4\Html;
 
 /* @var $this yii\web\View */
 /* @var $company common\models\Company */
@@ -47,7 +47,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $form->field($company, 'mfo')->textInput(['maxlength' => true]) ?>
 
         <div class="form-group">
-            <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
+            <?= Html::submitButton($company->isNewRecord ? 'Создать' : 'Сохранить', ['class' => 'btn btn-success']) ?>
         </div>
 
         <?php ActiveForm::end(); ?>

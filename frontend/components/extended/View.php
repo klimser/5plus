@@ -4,7 +4,7 @@ namespace frontend\components\extended;
 
 
 use common\models\Webpage;
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 
 class View extends \yii\web\View
 {

@@ -1,19 +1,23 @@
 <?php
 
 /* @var $this yii\web\View */
-/* @var $form yii\bootstrap\ActiveForm */
+/* @var $form yii\bootstrap4\ActiveForm */
 /* @var $model \backend\models\LoginForm */
 
-use yii\helpers\Html;
-use yii\bootstrap\ActiveForm;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\ActiveForm;
 
 $this->title = 'Личный кабинет';
 ?>
-<div class="row">
-    <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
+<div class="row justify-content-center">
+    <div class="col-auto">
         <div class="row">
-            <div class="col-xs-2 text-center"><?= Html::img('/images/logo.png', ['style' => 'margin-top: 20px;']); ?></div>
-            <div class="col-xs-10"><h1 class="text-center"><?= Html::encode($this->title) ?></h1></div>
+            <div class="col-2 align-items-center justify-content-center">
+                <?= Html::img('/images/logo.png', ['class' => 'd-flex']); ?>
+            </div>
+            <div class="col-10">
+                <h1 class="text-center"><?= Html::encode($this->title) ?></h1>
+            </div>
         </div>
 
         <?php $form = ActiveForm::begin([
@@ -35,7 +39,7 @@ $this->title = 'Личный кабинет';
 
             <?= $form->field($model, 'password')->passwordInput() ?>
 
-            <?= $form->field($model, 'rememberMe')->checkbox() ?>
+            <?= $form->field($model, 'rememberMe', ['options' => ['class' => 'form-group row justify-content-center']])->checkbox() ?>
 
             <div class="form-group text-center">
                 <?= Html::submitButton('Войти', ['class' => 'btn btn-primary', 'name' => 'login-button']) ?>

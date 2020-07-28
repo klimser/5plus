@@ -4,9 +4,6 @@
 /* @var $webpage common\models\Webpage */
 /* @var $highSchools \common\models\HighSchool[] */
 
-$this->registerJs('HighSchool.init();');
-
-$tocContents = [];
 ?>
 
 <div class="two-col-box container">

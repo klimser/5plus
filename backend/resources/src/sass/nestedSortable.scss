@@ -1,0 +1,44 @@
+ol.nested-sortable-container .ui-sortable-placeholder {
+    outline: 1px dashed #4183C4;
+    background: #DEF;
+    min-height: 15px;
+}
+
+ol.nested-sortable-container .mjs-nestedSortable-error {
+    background: #fbe3e4;
+    border-color: transparent;
+}
+
+ol.nested-sortable-container li {
+    margin: 0.1em 0;
+}
+
+ol.nested-sortable-container li div {
+    border: 1px solid #D4D4D4;
+    border-radius: 3px;
+    background: #FFF;
+    cursor: move;
+    margin: 0;
+    padding: 0.2em 0.2em 0.2em 0.7em;
+}
+
+li.mjs-nestedSortable-collapsed.mjs-nestedSortable-hovering div {
+    border-color: #999;
+}
+
+ol.nested-sortable-container li.mjs-nestedSortable-collapsed > ol {
+    display: none;
+}
+
+ol.nested-sortable-container li.mjs-nestedSortable-branch > div > .disclose {
+    display: inline-block;
+}
+
+ol.nested-sortable-container span.ui-icon {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+ol.nested-sortable-container li.inactive-item {
+    color: #999;
+}

@@ -2,15 +2,18 @@
 
 use backend\models\WelcomeLesson;
 use backend\models\WelcomeLessonSearch;
+use common\components\DefaultValuesComponent;
 use common\models\Group;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
-use dosamigos\datepicker\DatePicker;
+use yii\bootstrap4\LinkPager;
 use yii\grid\Column;
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
+use yii\jui\DatePicker;
 use yii\web\View;
 
 /* @var $this View */
@@ -26,6 +29,12 @@ use yii\web\View;
 
 $this->title = 'Пробные уроки';
 $this->params['breadcrumbs'][] = $this->title;
+
+$this->registerJs(<<<SCRIPT
+WelcomeLesson.init();
+SCRIPT
+);
+
 ?>
 <div class="welcome-lesson-index">
     <h1><?= Html::encode($this->title) ?></h1>
@@ -36,20 +45,25 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
-            $return = ['class' => 'welcome-row', 'data' => ['status' => $model->status, 'deny-reason' => $model->deny_reason]];
+            /** @var WelcomeLesson $model */
+            $return = ['class' => 'welcome-row', 'data' => [
+                'date' => $model->lessonDateTime->format('d.m.Y'),
+                'status' => $model->status,
+                'deny-reason' => $model->deny_reason]];
             switch ($model->status) {
                 case WelcomeLesson::STATUS_PASSED:
-                    $return['class'] .= ' success';
+                    $return['class'] .= ' table-success';
                     break;
                 case WelcomeLesson::STATUS_MISSED:
-                    $return['class'] .= ' warning';
+                    $return['class'] .= ' table-warning';
                     break;
                 case WelcomeLesson::STATUS_CANCELED:
-                    $return['class'] .= ' info';
+                    $return['class'] .= ' table-info';
                     break;
                 case WelcomeLesson::STATUS_DENIED:
-                    $return['class'] .= ' danger';
+                    $return['class'] .= ' table-danger';
                     break;
             }
             return $return;
@@ -107,16 +121,17 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'lesson_date',
                 'format' => 'datetime',
                 'label' => 'Дата',
-                'filter' => DatePicker::widget([
+                'filter' => DatePicker::widget(
+                    ArrayHelper::merge(DefaultValuesComponent::getDatePickerSettings(),
+                        [
                     'model' => $searchModel,
                     'attribute' => 'lessonDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
+                    'dateFormat' => 'y-MM-dd',
+                    'options' => [
+                        'pattern' => '\d{4}-\d{2}-\d{2}',
+                        'autocomplete' => 'off',
                     ],
-                ]),
+                ])),
             ],
             [
                 'attribute' => 'status',
@@ -150,6 +165,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'class' => Column::class,
                 'header' => 'Действия',
+                'contentOptions' => ['class' => 'buttons-column'],
                 'content' => function ($model, $key, $index, $column) {
                     return '';
                 }
@@ -157,49 +173,5 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
     ]); ?>
 
-    <?php
-    $this->registerJs(<<<SCRIPT
-    $("table tr.welcome-row").each(function() {
-        if ($(this).find("td:last-child").html().length === 0) {
-            WelcomeLesson.setButtons($(this).find("td:last-child"), $(this).data("key"), $(this).data("status"), $(this).data("deny-reason"));
-        }
-    });
-SCRIPT
-    );
-    ?>
-
-    <div class="modal fade" id="moving-modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <form id="moving-form" onsubmit="return WelcomeLesson.movePupil(this);">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title">В группу!</h4>
-                    </div>
-                    <div class="modal-body">
-                        <div id="modal_messages_place"></div>
-                        <h3 id="pupil"></h3>
-                        <div id="start_date"></div>
-                        <input type="hidden" name="id" id="lesson_id" required>
-                        <b>Группа</b>
-                        <div id="group_proposal"></div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="group_proposal" value="0" onchange="WelcomeLesson.groupChange(this);"> Другая
-                            </label>
-                        </div>
-                        <select name="group_id" id="other_group" class="form-control" disabled>
-                            <?php foreach ($groups as $group): ?>
-                                <option value="<?= $group->id; ?>"><?= $group->name; ?> (<?= $group->teacher->name; ?>)</option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">отмена</button>
-                        <button class="btn btn-primary">В группу!</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    <?= $this->render('_modal'); ?>
 </div>

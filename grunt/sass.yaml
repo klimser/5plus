@@ -1,10 +1,16 @@
+dev_back:
+  files:
+    "backend/web/assets/grunt/css/main.css": "backend/resources/src/sass/main.scss"
+prod_back:
+  options:
+    style: compressed
+  files:
+    "backend/web/assets/grunt/css/main.css": "backend/resources/src/sass/main.scss"
 dev_front:
   files:
     "frontend/web/assets/grunt/css/styles.css": "frontend/resources/src/sass/styles.sass"
-    "frontend/web/assets/grunt/css/media.css": "frontend/resources/src/sass/media.sass"
 prod_front:
   options:
     style: compressed
   files:
     "frontend/web/assets/grunt/css/styles.css": "frontend/resources/src/sass/styles.sass"
-    "frontend/web/assets/grunt/css/media.css": "frontend/resources/src/sass/media.sass"

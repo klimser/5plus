@@ -103,7 +103,7 @@ class BotPush extends BaseObject
             ComponentContainer::getNotifyQueue()->add(
                 $user->parent,
                 Notify::TEMPLATE_PARENT_DEBT,
-                ['debt' => abs($lessonDebt)],
+                ['debt' => abs($lessonDebt), 'child_id' => $groupPupil->user_id],
                 $groupPupil->group
             );
         }

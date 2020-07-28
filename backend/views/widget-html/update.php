@@ -1,7 +1,7 @@
 <?php
 
-use yii\helpers\Html;
-use \yii\bootstrap\ActiveForm;
+use yii\bootstrap4\Html;
+use \yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $widget common\models\WidgetHtml */
@@ -32,9 +32,13 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $form->field($widget, 'editor', ['template' => '{input}', 'options' => ['class' => []]])->hiddenInput(); ?>
 
         <div>
-            <ul class="nav nav-tabs" role="tablist">
-                <li role="presentation" <?= $widget->editor ? '' : 'class="active"'; ?>><a href="#without_editor" role="tab" data-toggle="tab">Без редактора</a></li>
-                <li role="presentation" <?= $widget->editor ? 'class="active"' : ''; ?>><a href="#with_editor" role="tab" data-toggle="tab">С редактором</a></li>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link <?= $widget->editor ? '' : ' active '; ?>" href="#without_editor" role="tab" data-toggle="tab">Без редактора</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $widget->editor ? ' active ' : ''; ?>" href="#with_editor" role="tab" data-toggle="tab">С редактором</a>
+                </li>
             </ul>
 
             <div class="tab-content">

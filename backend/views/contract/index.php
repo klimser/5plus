@@ -1,8 +1,15 @@
 <?php
 
-use yii\helpers\Html;
+use common\components\DefaultValuesComponent;
+use kartik\field\FieldRange;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
+use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use \common\models\Contract;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
+use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -20,15 +27,15 @@ $this->params['breadcrumbs'][] = $this->title;
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return = [];
             switch ($model->status) {
                 case Contract::STATUS_PAID:
-                    if ($model->discount) $return['class'] = 'info';
-                    else $return['class'] = 'success';
+                    $return['class'] = $model->discount ? 'table-info' : 'table-success';
                     break;
                 case Contract::STATUS_PROCESS:
-                    $return['class'] = 'warning';
+                    $return['class'] = 'table-warning';
                     break;
             }
             return $return;
@@ -51,7 +58,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'group_id',
                 'label' => 'Группа',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->group_id ? Html::a($model->group->name, \yii\helpers\Url::to(['group/view', 'id' => $model->group_id])) : null;
+                    return $model->group_id ? Html::a($model->group->name, Url::to(['group/view', 'id' => $model->group_id])) : null;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -62,7 +69,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'attribute' => 'amount',
-                'filter' => \kartik\field\FieldRange::widget([
+                'filter' => FieldRange::widget([
                     'model' => $searchModel,
                     'attribute1' => 'amountFrom',
                     'attribute2' => 'amountTo',
@@ -70,44 +77,44 @@ $this->params['breadcrumbs'][] = $this->title;
 //                    'name2'=>'amountTo',
                     'separator' => '-',
                     'template' => '{widget}',
-                    'type' => \kartik\field\FieldRange::INPUT_TEXT,
+                    'type' => FieldRange::INPUT_TEXT,
                 ]),
                 'contentOptions' => ['class' => 'text-right'],
             ],
             [
                 'attribute' => 'created_at',
                 'format' => 'datetime',
-                'filter' => \dosamigos\datepicker\DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'createDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
+                'filter' => DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'createDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
             [
                 'attribute' => 'paid_at',
                 'format' => 'datetime',
-                'filter' => \dosamigos\datepicker\DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'paidDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
+                'filter' => DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'paidDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
             [
-                'class' => \yii\grid\ActionColumn::class,
+                'class' => ActionColumn::class,
                 'template' => '{print}',
                 'buttons' => [
                     'print' => function ($url, $model, $key) {
-                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-print']), \yii\helpers\Url::to(['contract/print', 'id' => $model->id]), ['class' => 'btn btn-default', 'title' => 'Печать']);
+                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-print']), Url::to(['contract/print', 'id' => $model->id]), ['class' => 'btn btn-outline-dark', 'title' => 'Печать']);
                     },
                 ],
             ]

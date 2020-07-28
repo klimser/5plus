@@ -1,13 +1,15 @@
 <?php
 
 use common\components\helpers\Calendar;
+use common\components\helpers\WordForm;
 use common\models\Group;
 use common\models\GroupSearch;
 use common\models\Subject;
 use common\models\Teacher;
+use yii\bootstrap4\LinkPager;
 use yii\grid\ActionColumn;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use yii\helpers\Url;
 use yii\data\ActiveDataProvider;
@@ -25,7 +27,7 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="group-index">
 
-    <div class="pull-right"><a href="<?= Url::to(['inactive']); ?>">Завершённые группы</a></div>
+    <div class="float-right"><a href="<?= Url::to(['inactive']); ?>">Завершённые группы</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
@@ -34,7 +36,9 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == Group::STATUS_INACTIVE) ? ['class' => 'inactive'] : [];},
+        'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
+        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == Group::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [];},
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             [
@@ -87,20 +91,28 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'format' => 'text',
-                'header' => 'Ученики',
+                'header' => 'Студенты',
                 'content' => function ($model, $key, $index, $column) {
-                    return '<div class="pupils"><span class="text-nowrap">' . count($model->activeGroupPupils) . ' учеников '
-                        . '<a href="#" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').toggle(); return false;"><span class="glyphicon glyphicon-chevron-down"></span></a></span>'
-                        . '<div class="pupil_list" style="display: none;">'
-                        . implode('<br>', ArrayHelper::getColumn($model->activeGroupPupils, 'user.name'))
-                        . '</div></div>';
+                    return '<div class="pupils"><span class="text-nowrap">' . count($model->activeGroupPupils) . ' ' . WordForm::getPupilsForm(count($model->activeGroupPupils)) . ' '
+                        . '<button type="button" class="btn btn-link" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').collapse(\'toggle\');">'
+                        . '<span class="fas fa-chevron-down"></span>'
+                        . '</button></span>'
+                        . '<ul class="list-group pupil_list collapse"><li class="list-group-item p-1">'
+                        . implode('</li><li class="list-group-item p-1">', ArrayHelper::getColumn($model->activeGroupPupils, 'user.name'))
+                        . '</li></ul></div>';
                 },
             ],
             [
                 'class' => ActionColumn::class,
                 'template' => $canEdit ? '{update}' : '',
-                'buttonOptions' => ['class' => 'btn btn-default'],
-
+                'buttons' => [
+                    'update' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
+                            'title' => Yii::t('yii', 'Update'),
+                            'class' => 'btn btn-outline-dark',
+                        ]);
+                    },
+                ],
             ],
         ],
     ]); ?>

@@ -7,7 +7,7 @@
 <h3>Наши крусы:</h3>
 <div class="row">
     <?php foreach ($subjectCategories as $subjectCategory): ?>
-        <div class="col-xs-12 col-sm-6 col-md-3">
+        <div class="col-12 col-md-6 col-lg-3">
             <h4><?= $subjectCategory->name; ?></h4>
             <ul class="list-unstyled">
                 <?php foreach ($subjectCategory->activeSubjects as $subject): ?>

@@ -8,6 +8,7 @@ use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
 use DateTime;
+use Yii;
 use yii\db\ActiveQuery;
 
 /**
@@ -23,12 +24,14 @@ use yii\db\ActiveQuery;
  * @property int $deny_reason
  * @property string $comment
  * @property int $bitrix_sync_status
+ * @property int $created_by
  * @property-read User $user
  * @property-read Subject $subject
  * @property-read Teacher $teacher
  * @property-read Group $group
  * @property DateTime $lessonDateTime
  * @property-read string $lessonDateString
+ * @property User $createdAdmin
  */
 class WelcomeLesson extends ActiveRecord
 {
@@ -38,7 +41,8 @@ class WelcomeLesson extends ActiveRecord
     public const STATUS_CANCELED = 4;
     public const STATUS_DENIED = 5;
     public const STATUS_SUCCESS = 6;
-    
+    public const STATUS_RESCHEDULED = 7;
+
     public const DENY_REASON_TEACHER = 1;
     public const DENY_REASON_LEVEL_TOO_LOW = 2;
     public const DENY_REASON_LEVEL_TOO_HIGH = 3;
@@ -54,6 +58,7 @@ class WelcomeLesson extends ActiveRecord
         self::STATUS_CANCELED,
         self::STATUS_DENIED,
         self::STATUS_SUCCESS,
+        self::STATUS_RESCHEDULED,
     ];
 
     public const STATUS_LABELS = [
@@ -63,6 +68,7 @@ class WelcomeLesson extends ActiveRecord
         self::STATUS_CANCELED => 'Отменено',
         self::STATUS_DENIED => 'Студент отказался ходить',
         self::STATUS_SUCCESS => 'Студент добавлен в группу',
+        self::STATUS_RESCHEDULED => 'Перенесено',
     ];
     
     public const DENY_REASON_LIST = [
@@ -99,7 +105,7 @@ class WelcomeLesson extends ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'subject_id', 'teacher_id', 'group_id', 'status', 'deny_reason', 'bitrix_sync_status'], 'integer'],
+            [['user_id', 'subject_id', 'teacher_id', 'group_id', 'status', 'deny_reason', 'bitrix_sync_status', 'created_by'], 'integer'],
             [['user_id', 'lesson_date'], 'required'],
             [['comment'], 'string'],
             [['subject_id', 'teacher_id', 'group_id', 'deny_reason'], 'default', 'value' => null],
@@ -114,6 +120,7 @@ class WelcomeLesson extends ActiveRecord
             ['user_id', 'exist', 'targetRelation' => 'user'],
             ['subject_id', 'exist', 'targetRelation' => 'subject'],
             ['teacher_id', 'exist', 'targetRelation' => 'teacher'],
+            ['created_by', 'exist', 'targetRelation' => 'createdAdmin'],
         ];
     }
 
@@ -187,5 +194,24 @@ class WelcomeLesson extends ActiveRecord
     {
         $this->lesson_date = $newDate->format('Y-m-d H:i:s');
         return $this;
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getCreatedAdmin()
+    {
+        return $this->hasOne(User::class, ['id' => 'created_by']);
+    }
+
+    public function beforeValidate() {
+        if (!parent::beforeValidate()) {
+            return false;
+        }
+
+        if ($this->isNewRecord) {
+            $this->created_by = Yii::$app->user->id;
+        }
+        return true;
     }
 }

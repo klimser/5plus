@@ -1,8 +1,8 @@
 <?php
 
 use common\components\DefaultValuesComponent;
-use dosamigos\datepicker\DatePicker;
-use yii\bootstrap\ActiveForm;
+use yii\bootstrap4\ActiveForm;
+use yii\jui\DatePicker;
 
 
 /* @var $this yii\web\View */
@@ -26,9 +26,9 @@ $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
 
     <div class="form-group">
         <label for="group">Группа</label>
-        <select class="form-control" id="group" name="group[id]">
+        <select class="form-control" id="group" name="group[groupId]">
             <?php foreach ($groups as $group): ?>
-                <option value="<?= $group->id; ?>" <?= array_key_exists('id', $groupData) && intval($groupData['id']) == $group->id ? 'selected' : ''; ?>>
+                <option value="<?= $group->id; ?>" <?= array_key_exists('id', $groupData) && intval($groupData['groupId']) == $group->id ? 'selected' : ''; ?>>
                     <?= $group->name; ?> (с <?= $group->startDateObject->format('d.m.Y') . ($group->endDateObject ? "по {$group->endDateObject->format('d.m.Y')}" : ''); ?>) <?=$group->price3Month; ?> за 3 месяца
                 </option>
             <?php endforeach; ?>
@@ -39,8 +39,8 @@ $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
         <?= DatePicker::widget(array_merge(
                 DefaultValuesComponent::getDatePickerSettings(),
                 [
-                    'name' => 'group[date_from]',
-                    'value' => array_key_exists('date_from', $groupData) ? $groupData['date_from'] : date('d.m.Y'),
+                    'name' => 'group[date]',
+                    'value' => array_key_exists('date', $groupData) ? $groupData['date'] : date('d.m.Y'),
                     'options' => ['id' => 'group_date_from', 'required' => true],
                 ]
         ));?>

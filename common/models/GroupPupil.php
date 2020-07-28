@@ -39,6 +39,7 @@ class GroupPupil extends ActiveRecord
     public const END_REASON_TOO_CROWDED = 6;
     public const END_REASON_SUBJECT = 7;
     public const END_REASON_OTHER = 8;
+    public const END_REASON_VACATION = 9;
     
     public const END_REASON_LIST = [
         self::END_REASON_FINISH,
@@ -48,6 +49,7 @@ class GroupPupil extends ActiveRecord
         self::END_REASON_OTHER_GROUP,
         self::END_REASON_TOO_CROWDED,
         self::END_REASON_SUBJECT,
+        self::END_REASON_VACATION,
         self::END_REASON_OTHER,
     ];
 
@@ -59,6 +61,7 @@ class GroupPupil extends ActiveRecord
         self::END_REASON_OTHER_GROUP => 'придет в другую группу',
         self::END_REASON_TOO_CROWDED => 'слишком большая группа',
         self::END_REASON_SUBJECT => 'не нужен предмет для поступления',
+        self::END_REASON_VACATION => 'каникулы',
         self::END_REASON_OTHER => 'другое',
     ];
 

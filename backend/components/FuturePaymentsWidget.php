@@ -3,7 +3,7 @@ namespace backend\components;
 
 use common\models\User;
 use common\components\helpers\Calendar;
-use common\components\helpers\Money;
+use common\components\helpers\MoneyHelper;
 use yii\base\Widget;
 
 class FuturePaymentsWidget extends Widget
@@ -20,19 +20,19 @@ class FuturePaymentsWidget extends Widget
                 if ($currentPayments['total'] > 0) {
                     $htmlData = '<div class="alert alert-warning"><b>Ожидаемые списания:</b><br>';
                     foreach ($currentPayments['payments'] as $payment) {
-                        $htmlData .= '<div class="pull-left">' . $payment['group']->name . ' за ' . Calendar::$monthNames[$payment['date']->format('n')] . '</div><div class="pull-right">' . Money::roundThousand($payment['amount']) . '</div><div class="clearfix"></div>';
+                        $htmlData .= '<div class="pull-left">' . $payment['group']->name . ' за ' . Calendar::$monthNames[$payment['date']->format('n')] . '</div><div class="pull-right">' . MoneyHelper::roundThousand($payment['amount']) . '</div><div class="clearfix"></div>';
                     }
-                    $htmlData .= '<b>Вам необходимо оплатить ещё <i>' . Money::roundThousand($currentPayments['total']) . '</i></b></div>';
+                    $htmlData .= '<b>Вам необходимо оплатить ещё <i>' . MoneyHelper::roundThousand($currentPayments['total']) . '</i></b></div>';
                 } elseif (date('j') >= 25) {
                     $nextPayments = $this->user->nextMonthPayments;
 
                     if (!empty($nextPayments['payments'])) {
                         $htmlData = '<div class="alert alert-info"><b>Ожидаемые списания:</b><br>';
                         foreach ($nextPayments['payments'] as $payment) {
-                            $htmlData .= '<div class="pull-left">' . $payment['group']->name . ' за ' . Calendar::$monthNames[$payment['date']->format('n')] . '</div><div class="pull-right">' . Money::roundThousand($payment['amount']) . '</div><div class="clearfix"></div>';
+                            $htmlData .= '<div class="pull-left">' . $payment['group']->name . ' за ' . Calendar::$monthNames[$payment['date']->format('n')] . '</div><div class="pull-right">' . MoneyHelper::roundThousand($payment['amount']) . '</div><div class="clearfix"></div>';
                         }
                         if ($nextPayments['total'] > 0) {
-                            $htmlData .= '<b>Вам необходимо оплатить ещё <i>' . Money::roundThousand($nextPayments['total']) . '</i></b>';
+                            $htmlData .= '<b>Вам необходимо оплатить ещё <i>' . MoneyHelper::roundThousand($nextPayments['total']) . '</i></b>';
                         }
                         $htmlData .= '</div>';
                     }
@@ -46,13 +46,13 @@ class FuturePaymentsWidget extends Widget
                         if (!$hasCurrentDebt) $htmlData = '<div class="alert alert-warning"><b>Ожидаемые списания:</b><br>';
                         $hasCurrentDebt = true;
                         foreach ($currentPayments['payments'] as $payment) {
-                            $htmlData .= '<div class="pull-left">' . $child->name . ' в ' . $payment['group']->name . ' за ' . Calendar::$monthNames[$payment['date']->format('n')] . '</div><div class="pull-right">' . Money::roundThousand($payment['amount']) . '</div><div class="clearfix"></div>';
+                            $htmlData .= '<div class="pull-left">' . $child->name . ' в ' . $payment['group']->name . ' за ' . Calendar::$monthNames[$payment['date']->format('n')] . '</div><div class="pull-right">' . MoneyHelper::roundThousand($payment['amount']) . '</div><div class="clearfix"></div>';
                         }
                         $totalDebt += $currentPayments['total'];
                     }
                 }
                 if ($hasCurrentDebt) {
-                    $htmlData .= '<b>Вам необходимо оплатить ещё <i>' . Money::roundThousand($totalDebt) . '</i></b></div>';
+                    $htmlData .= '<b>Вам необходимо оплатить ещё <i>' . MoneyHelper::roundThousand($totalDebt) . '</i></b></div>';
                 } elseif (date('j') >= 25) {
                     $hasNextPayments = false;
                     foreach ($this->user->children as $child) {
@@ -61,7 +61,7 @@ class FuturePaymentsWidget extends Widget
                             if (!$hasNextPayments) $htmlData = '<div class="alert alert-warning"><b>Ожидаемые списания:</b><br>';
                             $hasNextPayments = true;
                             foreach ($nextPayments['payments'] as $payment) {
-                                $htmlData .= '<div class="pull-left">' . $child->name . ' в ' . $payment['group']->name . ' за ' . Calendar::$monthNames[$payment['date']->format('n')] . '</div><div class="pull-right">' . Money::roundThousand($payment['amount']) . '</div><div class="clearfix"></div>';
+                                $htmlData .= '<div class="pull-left">' . $child->name . ' в ' . $payment['group']->name . ' за ' . Calendar::$monthNames[$payment['date']->format('n')] . '</div><div class="pull-right">' . MoneyHelper::roundThousand($payment['amount']) . '</div><div class="clearfix"></div>';
                             }
                             if ($nextPayments['total'] > 0) {
                                 $totalDebt += $nextPayments['total'];
@@ -69,7 +69,7 @@ class FuturePaymentsWidget extends Widget
                         }
                     }
                     if ($totalDebt) {
-                        $htmlData .= '<b>Вам необходимо оплатить ещё <i>' . Money::roundThousand($totalDebt) . '</i></b>';
+                        $htmlData .= '<b>Вам необходимо оплатить ещё <i>' . MoneyHelper::roundThousand($totalDebt) . '</i></b>';
                     }
                     $htmlData .= '</div>';
                 }

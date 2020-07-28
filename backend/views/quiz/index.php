@@ -1,7 +1,10 @@
 <?php
 
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
+use yii\grid\ActionColumn;
 use yii\grid\GridView;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -10,7 +13,7 @@ $this->title = 'Тесты';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="quiz-index">
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Настройки страницы</a></div>
+    <div class="float-right"><a href="<?= Url::to(['page']); ?>">Настройки страницы</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
@@ -20,6 +23,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'showHeader' => false,
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'layout' => "{items}\n{pager}",
         'columns' => [
             [
@@ -28,14 +32,14 @@ $this->params['breadcrumbs'][] = $this->title;
                 'content' => function ($model, $key, $index, $column) {
                     return Html::a(
                         $model->name . ' (<small>' . $model->subject->subjectCategory->name . ' / ' . $model->subject->name . '</small>)',
-                        \yii\helpers\Url::to(['update', 'id' => $model->id])
+                        Url::to(['update', 'id' => $model->id])
                     );
                 }
             ],
             [
-                'class' => \yii\grid\ActionColumn::class,
+                'class' => ActionColumn::class,
                 'template' => '{delete}',
-                'buttonOptions' => ['class' => 'btn btn-default'],
+                'buttonOptions' => ['class' => 'btn btn-outline-dark'],
             ],
         ],
     ]); ?>

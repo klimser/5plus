@@ -7,7 +7,7 @@ use yii\base\Component;
 
 class DefaultValuesComponent extends Component
 {
-    public static function getPagerSettings()
+    public static function getPagerSettings(): array
     {
         return [
             'maxButtonCount' => 4,
@@ -26,22 +26,23 @@ class DefaultValuesComponent extends Component
             'disableCurrentPageButton' => true,
         ];
     }
-    public static function getDatePickerSettings()
+    public static function getDatePickerSettings(): array
     {
         return [
+            'dateFormat' => 'dd.MM.y',
             'clientOptions' => [
-                'autoclose' => true,
-                'format' => 'dd.mm.yyyy',
-                'language' => 'ru',
-                'weekStart' => 1,
-                'todayHighlight' => true,
-            ]
+                'firstDay' => 1,
+            ],
+            'options' => [
+                'class' => 'form-control',
+                'pattern' => '\d{2}\.\d{2}\.\d{4}',
+            ],
         ];
     }
-    public static function getTinyMceSettings()
+    public static function getTinyMceSettings(): array
     {
         return [
-            'options' => ['rows' => 6],
+            'options' => ['rows' => 16],
             'language' => 'ru',
             'clientOptions' => [
                 'element_format' => 'html',
@@ -59,28 +60,16 @@ class DefaultValuesComponent extends Component
                         'title' => 'Картинка слева вверху',
                         'selector' => 'img',
                         'attributes' => ['height' => ''],
-                        'styles' => [
-                            'float' => 'left',
-                            'margin' => '0 10px 10px 0',
-                            'max-width' => '100%',
-                        ],
+                        'classes' => 'img-fluid float-left mr-2 mb-2',
                     ],
                     [
                         'title' => 'Картинка в середине',
                         'selector' => 'img',
                         'attributes' => ['height' => ''],
-                        'styles' => [
-                            'margin' => '0 auto',
-                            'max-width' => '100%',
-                        ],
-                    ],
-                    [
-                        'title' => 'Картинка любая',
-                        'selector' => 'img',
-                        'attributes' => ['height' => ''],
-                        'styles' => ['max-width' => '100%'],
+                        'classes' => 'img-fluid mx-auto',
                     ],
                 ],
+                'extended_valid_elements' => 'img[class=img-fluid|src|border=0|alt|title|hspace|vspace|align|onmouseover|onmouseout|name]',
                 'toolbar' => 'undo redo | styleselect | bold italic | subscript superscript | fontsizeselect | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | responsivefilemanager link image',
                 'imagetools_toolbar' => 'rotateleft rotateright | flipv fliph | editimage imageoptions',
                 'external_filemanager_path' => Yii::$app->getHomeUrl() . 'filemanager/filemanager/',
@@ -92,5 +81,10 @@ class DefaultValuesComponent extends Component
                 'relative_urls' => false,
             ]
         ];
+    }
+    
+    public static function getPhoneInputTemplate(): string
+    {
+        return '<div class="input-group"><div class="input-group-prepend"><span class="input-group-text">+998</span></div>{input}</div>';
     }
 }

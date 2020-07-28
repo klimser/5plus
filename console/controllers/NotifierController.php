@@ -3,10 +3,10 @@
 namespace console\controllers;
 
 use common\components\ComponentContainer;
+use common\components\helpers\TelegramHelper;
 use common\components\helpers\WordForm;
 use common\components\paygram\PaygramApiException;
 use common\components\PaymentComponent;
-use common\components\telegram\Request;
 use common\components\telegram\text\PublicMain;
 use common\models\BotPush;
 use common\models\GroupPupil;
@@ -63,27 +63,27 @@ class NotifierController extends Controller
                 $message = null;
                 switch ($toSend->template_id) {
                     case Notify::TEMPLATE_PUPIL_DEBT:
-                        $message = 'У вас задолженность в группе *' . Request::escapeMarkdownV2($toSend->group->legal_name) . '*'
-                            . Request::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
+                        $message = 'У вас задолженность в группе *' . TelegramHelper::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . TelegramHelper::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PUPIL_LOW:
-                        $message = 'В группе *' . Request::escapeMarkdownV2($toSend->group->legal_name) . '*'
-                            . Request::escapeMarkdownV2(" у вас осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
+                        $message = 'В группе *' . TelegramHelper::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . TelegramHelper::escapeMarkdownV2(" у вас осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PARENT_DEBT:
                         $child = User::findOne($toSend->parameters['child_id']);
-                        $message = 'У студента ' . Request::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
-                            . ' задолженность в группе *' . Request::escapeMarkdownV2($toSend->group->legal_name) . '*'
-                            . Request::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
+                        $message = 'У студента ' . TelegramHelper::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
+                            . ' задолженность в группе *' . TelegramHelper::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . TelegramHelper::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PARENT_LOW:
                         $child = User::findOne($toSend->parameters['child_id']);
-                        $message = 'У студента ' . Request::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
-                            . ' в группе *' . Request::escapeMarkdownV2($toSend->group->legal_name) . '*'
-                            . Request::escapeMarkdownV2(" осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
+                        $message = 'У студента ' . TelegramHelper::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
+                            . ' в группе *' . TelegramHelper::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . TelegramHelper::escapeMarkdownV2(" осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
                         break;
                 }

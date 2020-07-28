@@ -11,11 +11,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class CashReport
 {
-    public static function create(DateTime $date, bool $kids): Spreadsheet
+    public static function create(\DateTimeImmutable $date, bool $kids): Spreadsheet
     {
-        $date->modify('midnight');
-        $endDate = clone $date;
-        $endDate->modify('+1 day')->modify('-1 second');
+        $date = $date->modify('midnight');
+        $endDate = $date->modify('+1 day -1 second');
 
         /** @var Payment[] $payments */
         $payments = Payment::find()

@@ -16,7 +16,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                 Указывайте свои данные корректно и полностью, они будут указаны в договоре между Вами и учебным центром.
             </div>
             <div class="row">
-                <div class="col-xs-12 col-md-6">
+                <div class="col-12 col-lg-6">
                     <div class="form-group required">
                         <label for="giftcard-pupil-name">Фамилия, имя, отчество студента</label>
                         <input name="giftcard[pupil_name]" id="giftcard-pupil-name" class="form-control" maxlength="127" required>
@@ -31,7 +31,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                         </div>
                     </div>
                 </div>
-                <div class="col-xs-12 col-md-6">
+                <div class="col-12 col-lg-6">
                     <div class="form-group">
                         <label for="giftcard-parents-name">Фамилия, имя, отчество родителей</label>
                         <input name="giftcard[parents_name]" id="giftcard-parents-name" class="form-control" maxlength="127">

@@ -1,7 +1,7 @@
 <?php
 namespace frontend\controllers;
 
-use common\components\helpers\Xml;
+use common\components\helpers\XmlHelper;
 use common\models\Module;
 use common\models\Page;
 use common\models\Subject;
@@ -83,6 +83,6 @@ class SiteController extends Controller
         $headers = Yii::$app->response->headers;
         $headers->add('Content-Type', 'application/xml');
 
-        return Xml::arrayToXml([['tag' => 'urlset', '@attributes' => ['xmlns' => 'http://www.sitemaps.org/schemas/sitemap/0.9'], 'body' => $data]]);
+        return XmlHelper::arrayToXml([['tag' => 'urlset', '@attributes' => ['xmlns' => 'http://www.sitemaps.org/schemas/sitemap/0.9'], 'body' => $data]]);
     }
 }

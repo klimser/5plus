@@ -1,7 +1,9 @@
 <?php
 
-use yii\helpers\Html;
-use yii\bootstrap\ActiveForm;
+use common\components\DefaultValuesComponent;
+use dosamigos\tinymce\TinyMce;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $promotion common\models\Promotion */
@@ -21,19 +23,19 @@ $this->params['breadcrumbs'][] = $promotion->name;
         <?= $form->field($promotion, 'name')->textInput(['required' => true, 'maxlength' => true]) ?>
 
         <?=
-        $form->field($promotion, 'imageFile', ['options' => ['class' => 'form-group col-xs-10']])
+        $form->field($promotion, 'imageFile', ['options' => ['class' => 'form-group col-10']])
             ->fileInput(['required' => $promotion->isNewRecord, 'accept' => 'image/jpeg,image/png', 'data' => ['id' => $promotion->id]]);
         ?>
 
-        <div class="col-xs-2">
+        <div class="col-2">
             <?php if ($promotion->image): ?>
-                <img src="<?= $promotion->imageUrl; ?>" style="max-width: 100%;">
+                <img class="img-fluid" src="<?= $promotion->imageUrl; ?>">
             <?php endif; ?>
         </div>
         <div class="clearfix"></div>
 
         <?=
-        $form->field($promotion, 'content')->widget(\dosamigos\tinymce\TinyMce::class, \common\components\DefaultValuesComponent::getTinyMceSettings());
+        $form->field($promotion, 'content')->widget(TinyMce::class, DefaultValuesComponent::getTinyMceSettings());
         ?>
 
         <?= $this->render('/webpage/_form', [

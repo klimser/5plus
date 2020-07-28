@@ -1,8 +1,12 @@
 <?php
 
-use yii\helpers\Html;
+use common\components\DefaultValuesComponent;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
+use yii\grid\ActionColumn;
 use yii\grid\GridView;
-use dosamigos\datepicker\DatePicker;
+use yii\helpers\ArrayHelper;
+use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
 /* @var $searchModel common\models\QuizResultSearch */
@@ -18,6 +22,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'columns' => [
             //'hash',
             [
@@ -32,17 +37,16 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'created_at',
                 'format' => 'datetime',
-                'filter' => DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'createDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
-                'options' => ['class' => 'col-xs-2'],
+                'filter' => DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'createDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
             [
                 'label' => 'Результат',
@@ -51,9 +55,18 @@ $this->params['breadcrumbs'][] = $this->title;
                 },
             ],
             [
-                'class' => 'yii\grid\ActionColumn',
+                'class' => ActionColumn::class,
                 'template' => '{delete}',
-                'buttonOptions' => ['class' => 'btn btn-default'],
+                'buttons' => [
+                    'delete' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-trash-alt"></span>', $url, [
+                            'title' => Yii::t('yii', 'Delete'),
+                            'class' => 'btn btn-outline-dark',
+                            'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+                            'data-method' => 'post',
+                        ]);
+                    },
+                ],
             ],
         ],
     ]); ?>

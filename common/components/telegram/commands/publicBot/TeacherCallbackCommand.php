@@ -2,7 +2,8 @@
 
 namespace common\components\telegram\commands\publicBot;
 
-use common\components\telegram\Request;
+use common\components\helpers\TelegramHelper;
+use Longman\TelegramBot\Request;
 use common\models\Teacher;
 use Longman\TelegramBot\Entities\CallbackQuery;
 
@@ -24,10 +25,10 @@ class TeacherCallbackCommand
                         'caption' => $teacher->officialName,
                     ]);
                 } else {
-                    $message .= '*' . Request::escapeMarkdownV2($teacher->officialName) . "*\n";
+                    $message .= '*' . TelegramHelper::escapeMarkdownV2($teacher->officialName) . "*\n";
                 }
                 
-                $message .= str_replace(['{{', '}}'], '*', Request::escapeMarkdownV2($teacher->descriptionForEdit));
+                $message .= str_replace(['{{', '}}'], '*', TelegramHelper::escapeMarkdownV2($teacher->descriptionForEdit));
                 Request::sendMessage([
                     'chat_id' => $callbackQuery->getMessage()->getChat()->getId(),
                     'parse_mode' => 'MarkdownV2',

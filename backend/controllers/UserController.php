@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use backend\models\Consultation;
 use backend\models\TeacherSubjectLink;
 use backend\models\WelcomeLesson;
 use common\components\GroupComponent;
@@ -25,7 +26,6 @@ use yii\data\Pagination;
 use yii\helpers\Url;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
-use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 /**
@@ -54,95 +54,164 @@ class UserController extends AdminController
         ]);
     }
 
+    private function saveConsultations(User $pupil)
+    {
+        $consultationData = Yii::$app->request->post('consultation', []);
+        $errors = [];
+
+        foreach ($consultationData as $subjectId) {
+            $consultation = new Consultation();
+            $consultation->subject_id = $subjectId;
+            $consultation->user_id = $pupil->id;
+
+            if (!$consultation->save()) {
+                $errors = array_merge($errors, $consultation->getErrorsAsStringArray());
+            }
+        }
+
+        return $errors;
+    }
+
+    private function saveWelcomeLessons(User $pupil)
+    {
+        $welcomeLessonData = self::remapRequestData(Yii::$app->request->post('welcome_lesson', []));
+        $errors = [];
+
+        $ids = [];
+        foreach ($welcomeLessonData as $welcomeLessonInfo) {
+            try {
+                $welcomeLesson = $this->addPupilToWelcomeLesson($pupil, $welcomeLessonInfo);
+                $ids[] = $welcomeLesson->id;
+            } catch (Throwable $exception) {
+                $errors = array_merge($errors, $exception->getMessage());
+            }
+        }
+        $infoFlashArray = [];
+        if (empty($errors)) {
+            $infoFlashArray[] = '<a target="_blank" href="' . Url::to(['welcome-lesson/print', 'id' => $ids]) . '">Распечатать информацию о пробных уроках</a>';
+        }
+
+        return [$errors, $infoFlashArray];
+    }
+
+    private function saveGroups(User $pupil)
+    {
+        $groupData = self::remapRequestData(Yii::$app->request->post('group', []));
+        $errors = $infoFlashArray = [];
+
+        foreach ($groupData as $groupInfo) {
+            try {
+                /** @var Group $group */
+                $group = Group::find()->andWhere(['id' => $groupInfo['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
+                if (!$group) throw new Exception('Группа не найдена');
+
+                if ($groupInfo['dateDefined']) {
+                    $this->addPupilToGroup($pupil, $groupInfo);
+                    MoneyComponent::setUserChargeDates($pupil, $group);
+                }
+                if (Yii::$app->user->can('contractManagement') && !empty($groupInfo['contract'])) {
+                    $contract = MoneyComponent::addPupilContract(
+                        Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
+                        $pupil,
+                        $groupInfo['amount'],
+                        $group
+                    );
+                    $infoFlashArray[] = 'Договор ' . $contract->number . ' зарегистрирован '
+                        . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>';
+
+                    if (Yii::$app->user->can('moneyManagement') && !empty($groupInfo['payment'])) {
+                        MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $groupInfo['paymentComment']);
+                    }
+                }
+
+            } catch (Throwable $exception) {
+                $errors = array_merge($errors, [$exception->getMessage()]);
+            }
+        }
+
+        return [$errors, $infoFlashArray];
+    }
+
     /**
      * Creates a new Pupil.
      * If creation is successful, the browser will be redirected to the 'index' page.
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws Throwable
-     * @throws \yii\db\Exception
      */
     public function actionCreatePupil()
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('manageUsers');
 
         $parent = new User(['scenario' => User::SCENARIO_USER]);
         $parentCompany = new User(['scenario' => User::SCENARIO_USER]);
         $pupil = new User(['scenario' => User::SCENARIO_USER]);
-        $groupData = [];
-        $paymentData = [];
-        $contractData = [];
+        $consultationData = [];
         $welcomeLessonData = [];
-        $amount = 0;
+        $groupData = [];
+        $incomeAllowed = Yii::$app->user->can('moneyManagement');
+        $contractAllowed = Yii::$app->user->can('contractManagement');
+        $personType = User::ROLE_PARENTS;
+        $parentType = $companyType = 'new';
+        $parentId = $companyId = 0;
 
         if (Yii::$app->request->isPost) {
             User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
             $pupil->role = User::ROLE_PUPIL;
-            $groupData = Yii::$app->request->post('group', []);
-            $welcomeLessonData = Yii::$app->request->post('welcome_lesson', []);
-            $paymentData = Yii::$app->request->post('payment', []);
-            $contractData = Yii::$app->request->post('contract', []);
-            $amount = intval(Yii::$app->request->post('amount', 0));
 
             $transaction = User::getDb()->beginTransaction();
             try {
                 if (UserComponent::isPhoneUsed(User::ROLE_PUPIL, $pupil->phone, $pupil->phone2)) {
-                    throw new \Exception('Студент с таким номером телефона уже существует!');
+                    throw new Exception('Студент с таким номером телефона уже существует!');
                 }
 
                 $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
+                $parentType = Yii::$app->request->post('parent_type', 'new');
+                $parentId = Yii::$app->request->post('parent_exists', 0);
+                $companyType = Yii::$app->request->post('company_type', 'new');
+                $companyId = Yii::$app->request->post('company_exists', 0);
+                
                 switch ($personType) {
                     case User::ROLE_PARENTS:
-                        $parent = $this->processParent($parent, 'parent', $personType);
+                        $pupil->individual = 1;
+                        $parent = $this->processParent($parent, $parentType, $personType, $parentId);
                         $pupil->parent_id = $parent->id;
                         break;
                     case User::ROLE_COMPANY:
-                        $parentCompany = $this->processParent($parentCompany, 'company', $personType);
+                        $pupil->individual = 0;
+                        $parentCompany = $this->processParent($parentCompany, $companyType, $personType, $companyId);
                         $pupil->parent_id = $parentCompany->id;
                         break;
                 }
 
-                if ($pupil->save()) {
-                    $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
-                    $addWelcomeLesson = array_key_exists('add', $welcomeLessonData) && $welcomeLessonData['add'];
-                    $addPayment = array_key_exists('add', $paymentData) && $paymentData['add'];
-                    $addContract = array_key_exists('add', $contractData) && $contractData['add'];
-                    $company = Company::findOne(Company::COMPANY_EXCLUSIVE_ID);
-
-                    $groupPupil = null;
-                    if ($addGroup) {
-                        $groupPupil = $this->addPupilToGroup($pupil, $groupData);
-
-                        if (Yii::$app->user->can('moneyManagement') && $addPayment) {
-                            $this->addPupilMoneyIncome($company, $groupPupil, $amount, $paymentData);
-                        }
-                        MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
-                    } elseif ($addWelcomeLesson) {
-                        $this->addPupilToWelcomeLesson($pupil, $welcomeLessonData);
-                    }
-                    if (!$addPayment && $addContract) {
-                        $contract = MoneyComponent::addPupilContract(
-                            $company,
-                            $pupil,
-                            $amount,
-                            $groupPupil ? $groupPupil->group : Group::findOne($contractData['group'])
-                        );
-
-                        Yii::$app->session->addFlash(
-                            'success',
-                            'Договор ' . $contract->number . ' зарегистрирован '
-                            . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
-                        );
-                    }
-
-                    $transaction->commit();
-                    Yii::$app->session->addFlash('success', 'Добавлено');
-                    UserComponent::clearSearchCache();
-
-                    return $this->redirect(['index']);
-                } else {
+                if (!$pupil->save()) {
                     $pupil->moveErrorsToFlash();
                     $transaction->rollBack();
+                } else {
+                    $errors = $infoFlashArray = [];
+                    $errors = array_merge($errors, $this->saveConsultations($pupil));
+                    $welcomeLessonResults = $this->saveWelcomeLessons($pupil);
+                    $errors = array_merge($errors, $welcomeLessonResults[0]);
+                    $infoFlashArray = array_merge($infoFlashArray, $welcomeLessonResults[1]);
+                    $groupResults = $this->saveGroups($pupil);
+                    $errors = array_merge($errors, $groupResults[0]);
+                    $infoFlashArray = array_merge($infoFlashArray, $groupResults[1]);
+
+                    if (empty($errors)) {
+                        $transaction->commit();
+                        Yii::$app->session->addFlash('success', 'Добавлено');
+                        foreach ($infoFlashArray as $message) {
+                            Yii::$app->session->addFlash('info', $message);
+                        }
+                        UserComponent::clearSearchCache();
+
+                        return $this->redirect(['index']);
+                    } else {
+                        $transaction->rollBack();
+                        foreach ($errors as $error) {
+                            Yii::$app->session->addFlash('error', $error);
+                        }
+                    }
                 }
             } catch (Throwable $e) {
                 $transaction->rollBack();
@@ -154,36 +223,32 @@ class UserController extends AdminController
             'parent' => $parent,
             'parentCompany' => $parentCompany,
             'pupil' => $pupil,
-            'groupData' => $groupData,
-            'paymentData' => $paymentData,
-            'contractData' => $contractData,
+            'personType' => $personType,
+            'parentData' => ['type' => $parentType, 'id' => $parentId],
+            'companyData' => ['type' => $companyType, 'id' => $companyId],
+            'consultationData' => $consultationData,
             'welcomeLessonData' => $welcomeLessonData,
-            'amount' => $amount,
-            'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
-            'contractAllowed' => Yii::$app->user->can('contractManagement'),
-            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
-            'subjects' => Subject::find()->andWhere(['active' => Subject::STATUS_ACTIVE])->with('subjectCategory')
-                ->orderBy(['category_id' => SORT_ASC, 'name' => SORT_ASC])->all(),
-            'existedParents' => User::find()->andWhere(['role' => User::ROLE_PARENTS])->orderBy(['name' => SORT_ASC])->all(),
-            'existedCompanies' => User::find()->andWhere(['role' => User::ROLE_COMPANY])->orderBy(['name' => SORT_ASC])->all(),
+            'groupData' => $groupData,
+            'pupilLimitDate' => GroupComponent::getPupilLimitDate(),
+            'incomeAllowed' => $incomeAllowed,
+            'contractAllowed' => $contractAllowed,
         ]);
     }
 
     /**
      * @param User $parent
-     * @param string $prefix
+     * @param string $parentType
      * @param int $personType
+     * @param int $existParentId
      * @return User
-     * @throws Exception
+     * @throws NotFoundHttpException
      */
-    private function processParent(User $parent, string $prefix, int $personType): User
+    private function processParent(User $parent, string $parentType, int $personType, int $existParentId = 0): User
     {
-        $parentType = Yii::$app->request->post($prefix . '_type', 'new');
         switch ($parentType) {
             case 'exist':
-                $parentId = Yii::$app->request->post($prefix . '_exists');
-                if (!$parentId) throw new Exception("Choose $prefix from the list");
-                $parent = $this->findModel($parentId);
+                if (!$existParentId) throw new Exception("Choose parent from the list");
+                $parent = $this->findModel($existParentId);
                 if ($parent->role != $personType || $parent->status == User::STATUS_LOCKED) throw new Exception('Parents not found');
                 break;
             case 'new':
@@ -211,15 +276,12 @@ class UserController extends AdminController
     private function addPupilToGroup(User $pupil, array $groupData): GroupPupil
     {
         /** @var Group $group */
-        $group = Group::find()->andWhere(['id' => $groupData['id'], 'active' => Group::STATUS_ACTIVE])->one();
+        $group = Group::find()->andWhere(['id' => $groupData['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
         if (!$group) throw new Exception('Группа не найдена');
-        $startDate = date_create_from_format('d.m.Y', $groupData['date_from']);
+        $startDate = new \DateTime($groupData['date']);
         if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
-        $groupPupil = GroupComponent::addPupilToGroup($pupil, $group, $startDate);
-
-        Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
-        return $groupPupil;
+        return GroupComponent::addPupilToGroup($pupil, $group, $startDate);
     }
 
     /**
@@ -232,23 +294,22 @@ class UserController extends AdminController
     {
         $welcomeLesson = new WelcomeLesson();
 
-        if (!empty($welcomeLessonData['group_id'])) {
+        if (!empty($welcomeLessonData['groupId'])) {
             /** @var Group $group */
-            $group = Group::find()->andWhere(['id' => $welcomeLessonData['group_id'], 'active' => Subject::STATUS_ACTIVE])->one();
+            $group = Group::find()->andWhere(['id' => $welcomeLessonData['groupId'], 'active' => Subject::STATUS_ACTIVE])->one();
             if (!$group) throw new Exception('Группа не найдена');
             $welcomeLesson->group_id = $group->id;
             $welcomeLesson->subject_id = $group->subject_id;
             $welcomeLesson->teacher_id = $group->teacher_id;
-        }
-        if (!empty($welcomeLessonData['subject_id'])) {
+        } elseif (!empty($welcomeLessonData['subjectId'])) {
             /** @var Subject $subject */
-            $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subject_id'], 'active' => Subject::STATUS_ACTIVE])->one();
+            $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subjectId'], 'active' => Subject::STATUS_ACTIVE])->one();
             if (!$subject) throw new Exception('Предмет не найден');
             $welcomeLesson->subject_id = $subject->id;
 
-            if ($welcomeLessonData['teacher_id']) {
+            if ($welcomeLessonData['teacherId']) {
                 /** @var Teacher $teacher */
-                $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacher_id'], 'active' => Teacher::STATUS_ACTIVE])->one();
+                $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacherId'], 'active' => Teacher::STATUS_ACTIVE])->one();
                 if (!$teacher) throw new Exception('Учитель не найден');
                 $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
                 if (!$teacherSubject) throw new Exception('Учитель не найден');
@@ -256,7 +317,7 @@ class UserController extends AdminController
             }
         }
         
-        $startDate = date_create_from_format('d.m.Y', $welcomeLessonData['date']);
+        $startDate = new \DateTime($welcomeLessonData['date']);
         if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
         $welcomeLesson->user_id = $pupil->id;
@@ -269,44 +330,18 @@ class UserController extends AdminController
         return $welcomeLesson;
     }
 
-    /**
-     * @param Company $company
-     * @param GroupPupil $groupPupil
-     * @param int $amount
-     * @param array $paymentData
-     * @return int
-     * @throws Exception
-     */
-    private function addPupilMoneyIncome(Company $company, GroupPupil $groupPupil, int $amount, array $paymentData)
-    {
-        $contract = MoneyComponent::addPupilContract(
-            $company,
-            $groupPupil->user,
-            $amount,
-            $groupPupil->group
-        );
-
-        Yii::$app->session->addFlash(
-            'success',
-            'Договор ' . $contract->number . ' зарегистрирован '
-            . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
-        );
-
-        $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $paymentData['comment']);
-
-        Yii::$app->session->addFlash('success', 'Внесение денег зарегистрировано, номер транзакции: ' . $paymentId);
-        return $paymentId;
-    }
-
     public function actionAddToGroup($userId)
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('manageUsers');
+
         /** @var User $pupil */
         $pupil = User::find()
             ->andWhere(['id' => $userId, 'role' => User::ROLE_PUPIL])
             ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
             ->one();
-        if (!$pupil) throw new NotFoundHttpException('Pupil not found');
+        if (!$pupil) {
+            throw new NotFoundHttpException('Pupil not found');
+        }
 
         $groupData = [];
         if (Yii::$app->request->isPost) {
@@ -314,9 +349,10 @@ class UserController extends AdminController
 
             $transaction = Yii::$app->db->beginTransaction();
             try {
-                $this->addPupilToGroup($pupil, $groupData);
+                $groupPupil = $this->addPupilToGroup($pupil, $groupData);
+                MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                 $transaction->commit();
-                Yii::$app->session->addFlash('success', 'Добавлено');
+                Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
             } catch (Throwable $e) {
                 $transaction->rollBack();
                 Yii::$app->session->addFlash('error', $e->getMessage());
@@ -403,22 +439,115 @@ class UserController extends AdminController
         ]);
     }
 
+    public function actionUpdateAjax()
+    {
+        $this->checkRequestIsAjax();
+        $this->checkAccess('manageUsers');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $usersData = Yii::$app->request->post('User', []);
+        if (!isset($usersData['pupil'], $usersData['pupil']['id'])) {
+            return self::getJsonErrorResult('Wrong request');
+        }
+        $pupilData = $usersData['pupil'];
+        $parentData = $usersData['parent'] ?? [];
+        $parentType = Yii::$app->request->post('parent_type', null);
+
+        /** @var User $pupil */
+        $pupil = User::find()
+            ->andWhere(['id' => $pupilData['id'], 'role' => User::ROLE_PUPIL])
+            ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
+            ->one();
+        if (!$pupil) {
+            return self::getJsonErrorResult('Pupil not found');
+        }
+        $pupil->setScenario(User::SCENARIO_USER);
+        $pupil->load($pupilData, '');
+        $errors = [];
+        $transaction = User::getDb()->beginTransaction();
+
+        if (!$pupil->save()) {
+            $errors = array_merge($errors, $pupil->getErrorsAsStringArray());
+        }
+        
+        if ($pupil->parent_id) {
+            if ($parentData) {
+                $pupil->parent->setScenario(User::SCENARIO_USER);
+                $pupil->parent->load($parentData, '');
+                if (!$pupil->parent->save()) {
+                    $errors = array_merge($errors, $pupil->parent->getErrorsAsStringArray());
+                }
+            }
+        } elseif ($parentType) {
+            $parentRole = $pupil->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY;
+            switch ($parentType) {
+                case 'exist':
+                    /** @var User $parent */
+                    $parent = User::find()
+                        ->andWhere(['role' => $parentRole, 'id' => $parentData['id']])
+                        ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
+                        ->one();
+                    if (!$parent) {
+                        $errors[] = 'Parent not found';
+                    } else {
+                        $pupil->parent_id = $parent->id;
+                        $pupil->save(true, ['parent_id']);
+                    }
+                    break;
+                case 'new':
+                    $parent = new User(['scenario' => User::SCENARIO_USER]);
+                    $parent->role = $parentRole;
+
+                    if (UserComponent::isPhoneUsed($parentRole, $parent->phone, $parent->phone2)) {
+                        $errors[] = 'Родитель/компания с таким номером телефона уже существует!';
+                    } elseif (!$parent->save()) {
+                        $errors = array_merge($errors, $parent->getErrorsAsStringArray());
+                    } else {
+                        $pupil->parent_id = $parent->id;
+                        $pupil->save(true, ['parent_id']);
+                    }
+                    break;
+            }
+        }
+
+        $infoFlashArray = [];
+        $errors = array_merge($errors, $this->saveConsultations($pupil));
+        $welcomeLessonResults = $this->saveWelcomeLessons($pupil);
+        $errors = array_merge($errors, $welcomeLessonResults[0]);
+        $infoFlashArray = array_merge($infoFlashArray, $welcomeLessonResults[1]);
+        $groupResults = $this->saveGroups($pupil);
+        $errors = array_merge($errors, $groupResults[0]);
+        $infoFlashArray = array_merge($infoFlashArray, $groupResults[1]);
+
+        if (empty($errors)) {
+            $transaction->commit();
+            return self::getJsonOkResult(['infoFlash' => $infoFlashArray]);
+        }
+
+        $transaction->rollBack();
+        return array_merge(['errors' => $errors], self::getJsonErrorResult());
+    }
+
     /**
      * Updates an existing User model.
      * @param string|int|null $id
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
-     * @throws \yii\db\Exception
      */
     public function actionUpdate($id = null)
     {
         $userToEdit = $id ?: Yii::$app->user->id;
         if (!Yii::$app->user->can('editUser', ['user' => $userToEdit])) throw new ForbiddenHttpException('Access denied!');
 
-        $user = $this->findModel($userToEdit);
-        $user->setScenario(in_array($user->role, [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]) ? User::SCENARIO_USER : User::SCENARIO_ADMIN);
         $isAdmin = Yii::$app->user->can('manageUsers');
+        $user = $this->findModel($userToEdit);
+        $user->setScenario(
+            in_array($user->role, [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY])
+                ? ($isAdmin ? User::SCENARIO_USER : User::SCENARIO_CUSTOMER)
+                : User::SCENARIO_ADMIN
+        );
+
         $editACL = Yii::$app->user->can('manageEmployees');
         $auth = Yii::$app->authManager;
         $parent = new User(['scenario' => User::SCENARIO_USER]);
@@ -441,8 +570,11 @@ class UserController extends AdminController
                     $user->moveErrorsToFlash();
                 } else {
                     if ($user->role == User::ROLE_PUPIL && !$user->parent_id) {
-                        $parent->load(Yii::$app->request->post('User', []), 'parent');
-                        $parent = $this->processParent($parent, 'parent', User::ROLE_PARENTS);
+                        $usersData = Yii::$app->request->post('User', []);
+                        $parent->load($usersData, 'parent');
+                        $parentType = Yii::$app->request->post('parent_type', 'new');
+                        $existParentId = $usersData['parent']['id'] ?? 0;
+                        $parent = $this->processParent($parent, $parentType, $user->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY, $existParentId);
                         if ($parent->id) {
                             $user->link('parent', $parent);
                         }
@@ -474,40 +606,82 @@ class UserController extends AdminController
             'isAdmin' => $isAdmin,
             'editACL' => $editACL,
             'authManager' => $auth,
-            'existedParents' => User::find()->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY]])->orderBy(['name' => SORT_ASC])->all(),
             'parent' => $parent,
         ]);
     }
 
-    public function actionChangeActive($id)
+    public function actionView(int $id, ?string $tab = null)
     {
-        $jsonData = [];
-        if (Yii::$app->request->isAjax) {
-            if (!Yii::$app->user->can('manageUsers')) $jsonData = self::getJsonErrorResult('Access denied!');
-            else {
-                $user = $this->findModel($id);
+        $this->checkRequestIsAjax();
+        $this->checkAccess('manageUsers');
+        
+        $pupil = $this->findModel($id);
 
-                $activeState = Yii::$app->request->post('active');
-                $jsonData = self::getJsonOkResult(['id' => $user->id]);
-                if (($user->status == User::STATUS_ACTIVE) != $activeState) {
-                    $user->status = $activeState ? User::STATUS_ACTIVE : User::STATUS_LOCKED;
-                    if (!$user->save()) $jsonData = self::getJsonErrorResult($user->getErrorsAsString());
-                    UserComponent::clearSearchCache();
-                }
+        if (!$tab) {
+            if (!empty($pupil->activeGroupPupils)) {
+                $tab = 'group';
+            } elseif (!empty($pupil->welcomeLessons)) {
+                $tab = 'welcome_lesson';
+            } else {
+                $tab = 'consultation';
             }
         }
-        return $this->asJson($jsonData);
+        
+        return $this->renderPartial('view', [
+            'pupil' => $pupil,
+            'activeTab' => $tab,
+            'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
+            'contractAllowed' => Yii::$app->user->can('contractManagement'),
+            'groupManagementAllowed' => Yii::$app->user->can('manageGroups'),
+            'moveMoneyAllowed' => Yii::$app->user->can('moveMoney'),
+            'welcomeLessonsAllowed' => Yii::$app->user->can('welcomeLessons'),
+        ]);
+    }
+    
+    public function actionFind(string $term, int $role = User::ROLE_PUPIL)
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        return User::find()
+            ->andWhere(['role' => $role])
+            ->andWhere(['or', ['like', 'name', "$term%", false], ['like', 'name', "% $term%", false]])
+            ->orderBy(['name' => SORT_ASC])
+            ->select(['id', 'name AS label'])
+            ->asArray()
+            ->all();
+        
+    }
+
+    public function actionChangeActive($id)
+    {
+        $this->checkRequestIsAjax();
+        $this->checkAccess('manageUsers');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        $user = $this->findModel($id);
+
+        $activeState = Yii::$app->request->post('active');
+        if (($user->status == User::STATUS_ACTIVE) != $activeState) {
+            $user->status = $activeState ? User::STATUS_ACTIVE : User::STATUS_LOCKED;
+            if (!$user->save()) {
+                return self::getJsonErrorResult($user->getErrorsAsString());
+            }
+            UserComponent::clearSearchCache();
+        }
+
+        return self::getJsonOkResult(['id' => $user->id]);
     }
 
     public function actionFindByPhone()
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
+        $this->checkRequestIsAjax();
+        $this->checkAccess('manageUsers');
 
         $jsonData = self::getJsonOkResult(['phone' => Yii::$app->request->post('phone', '')]);
         $phone = preg_replace('#\D#', '', $jsonData['phone']);
 
-        if (!empty($phone) && strlen($phone) == 9) {
+        if (!empty($phone) && strlen($phone) === 9) {
             $searchString = "+998$phone";
             $pupils = [];
             $searchResult = User::find()
@@ -531,12 +705,11 @@ class UserController extends AdminController
                     $data = $pupil->toArray(['id', 'name']);
                     $data['groups'] = [];
                     foreach ($pupil->activeGroupPupils as $groupPupil) {
-                        $groupParam = GroupComponent::getGroupParam($groupPupil->group, new DateTime());
-                        $groupData = $groupPupil->group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
-                        $groupData['month_price'] = $groupParam->priceMonth;
-                        $groupData['discount_price'] = $groupParam->price3Month;
-                        $groupData['date_start'] = $groupPupil->startDateObject->format('d.m.Y');
-                        $groupData['date_charge_till'] = $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '';
+                        $groupData = [
+                            'id' => $groupPupil->group_id,
+                            'date_start' => $groupPupil->startDateObject->format('d.m.Y'),
+                            'date_charge_till' => $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '',
+                        ];
 
                         $data['groups'][] = $groupData;
                     }

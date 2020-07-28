@@ -5,6 +5,9 @@ let Money = {
     pupilId: null,
     groupId: null,
     paymentType: null,
+    init: function() {
+        Main.loadActiveGroups();
+    },
     findContract: function () {
         $('#messages_place').html('');
         $.ajax({
@@ -14,13 +17,14 @@ let Money = {
                 number: $("#search_contract").val()
             },
             dataType: 'json',
-            success: function (data) {
+        })
+            .done(function(data) {
                 if (data.status !== 'ok') {
                     Main.throwFlashMessage('#contract_result_block', data.message, 'alert-warning');
                 } else {
-                    let contractForm = '<form id="contract_form" onsubmit="return Money.completeContract(this);">' +
-                        '<input type="hidden" name="id" value="' + data.id + '">' +
-                        '<table class="table">' +
+                    let contractForm = '<form id="contract_form" onsubmit="Money.completeContract(this); return false;">' +
+                        '<input type="hidden" name="contractId" value="' + data.id + '">' +
+                        '<table class="table table-sm">' +
                         '<tr><td><b>Студент</b></td><td>' + data.user_name + '</td></tr>' +
                         '<tr><td><b>Группа</b></td><td>' + data.group_name + '</td></tr>'+
                         '<tr><td><b>Сумма</b></td><td><span class="big-font">' + data.amount + '</span>'
@@ -33,13 +37,13 @@ let Money = {
                     } else {
                         contractForm += '<tr><td><b>Начало занятий в группе</b></td><td>' +
                             '<div class="input-group date">' +
-                            '<input class="form-control" name="pupil_start_date" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
-                            '<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>' +
+                            '<input class="form-control" name="contractPupilDateStart" value="' + data.create_date + '" required pattern="\\d{2}\\.\\d{2}\\.\\d{4}">' +
+                            '<span class="input-group-addon"><i class="far fa-calendar-alt"></i></span>' +
                             '</div>' +
                             '</td></tr>';
                     }
                     contractForm += '</table>' +
-                        '<div class="form-group"><button class="btn btn-success btn-lg" id="contract_button">внести</button></div>';
+                        '<div class="form-group"><button class="btn btn-primary btn-lg" id="contract_button">внести</button></div>';
                     $('#contract_result_block').html(contractForm);
                     $('#contract_form').find(".date").datepicker({
                         "autoclose": true,
@@ -48,23 +52,23 @@ let Money = {
                         "weekStart": 1
                     });
                 }
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            }
-        });
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#contract_result_block');
+            });
     },
     findGiftCard: function () {
         $('#messages_place').html('');
         $('#gift_card_messages').html('');
         $.ajax({
-            url: '/gift-card/find',
-            type: 'post',
-            data: {
-                code: $("#search_gift_card").val()
-            },
-            dataType: 'json',
-            success: function (data) {
+                url: '/gift-card/find',
+                type: 'post',
+                data: {
+                    code: $("#search_gift_card").val()
+                },
+                dataType: 'json'
+            })
+            .done(function (data) {
                 if (data.status !== 'ok') {
                     Main.throwFlashMessage('#gift_card_messages', data.message, 'alert-warning');
                 } else {
@@ -80,9 +84,9 @@ let Money = {
 
                         let groupList = "";
                         data.existing_pupil.group_pupils.forEach(function(groupPupil) {
-                            groupList += '<button class="btn btn-default btn-lg margin-right-10 gift-card-existing-group" type="button" data-group="' + groupPupil.id + '" onclick="Money.setGiftGroup(this);">'
+                            groupList += '<button class="btn btn-outline-dark btn-lg mr-2 mb-2 gift-card-existing-group" type="button" data-group="' + groupPupil.group_id + '" onclick="Money.setGiftGroup(this);">'
                                 + groupPupil.group
-                                + ' с ' + groupPupil.from + '</button><br>';
+                                + ' с ' + groupPupil.from + '</button>';
                         });
 
                         $('#predefined_groups').html(groupList);
@@ -96,93 +100,91 @@ let Money = {
                         $("#predefined_groups").html("");
                     }
 
-                    $("#gift_card_result_block").removeClass("hidden");
+                    $("#gift_card_result_block").collapse("show");
                 }
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#gift_card_messages', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            }
-        });
+            })
+            .fail(Main.logAndFlashAjaxError);
     },
-    findPupils: function () {
+    resetSearchResults: function() {
         this.pupilId = null;
         this.groupId = null;
         this.paymentType = null;
         $('#messages_place').html('');
-        $("#income_form").addClass("hidden");
-        $("#payment_type_block").addClass("hidden");
-        $('.phone-search-result').html('');
-        User.findByPhone(
-            $("#search_phone").val(),
-            function (data) {
+        $("#income_form").removeClass("show");
+        $("#payment_type_block").removeClass("show");
+        $('#pupils_block').removeClass('show');
+        $('#groups_block').removeClass('show');
+    },
+    findPupils: function () {
+        this.resetSearchResults();
+        User.findByPhone($("#search_phone").val())
+            .done(function (data) {
                 if (data.pupils !== undefined && data.pupils.length > 0) {
                     let pupilList = '';
                     Money.pupils = {};
                     Money.groups = {};
                     data.pupils.forEach(function(pupil) {
-                        pupilList += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="pupil-' + pupil.id + '" onclick="' + Money.className + '.setPupil(' + pupil.id + ');">'
+                        pupilList += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 pupil-result-button" type="button" id="pupil-' + pupil.id + '" onclick="' + Money.className + '.setPupil(' + pupil.id + ');">'
                             + pupil.name
                             + '</button>';
-                        let newPupil = {name: pupil.name, groups: []};
-                        pupil.groups.forEach(function(group) {
-                            Money.groups[group.id] = group;
-                            newPupil.groups.push(group.id);
-                        });
-                        Money.pupils[pupil.id] = newPupil;
+                        Money.pupils[pupil.id] = pupil;
                     });
 
-                    $('#pupils_block').html('<div class="panel panel-default"><div class="panel-body">' + pupilList + '</div></div>');
-                    if (data.pupils.length === 1) $("#pupils_block").find('button:first').click();
+                    $('#pupils_result').html(pupilList);
+                    $("#pupils_block").collapse('show');
+                    if (data.pupils.length === 1) $("#pupils_result").find('button:first').click();
                 } else {
-                    Main.throwFlashMessage('#pupils_block', '<div class="panel panel-default"><div class="panel-body">Не найдено студентов<br><a href="/user/create-pupil" target="_blank" class="btn btn-success btn-lg">Добавить <span class="glyphicon glyphicon-new-window"></span></a></div></div>', 'alert-warning');
+                    Main.throwFlashMessage('#pupils_result', '<div class="card"><div class="card-body">Не найдено студентов<br><a href="/user/create-pupil" target="_blank" class="btn btn-success btn-lg">Добавить <span class="fas fa-external-link-alt"></span></a></div></div>', 'alert-warning');
+                    $("#pupils_block").collapse('show');
                 }
-            },
-            function (xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            }
-        );
+            })
+            .fail(Main.logAndFlashAjaxError);
     },
     setPupil: function (pupilId) {
         this.pupilId = pupilId;
-        $("#pupils_block").find("button").removeClass("btn-primary");
-        $("#pupil-" + pupilId).addClass('btn-primary');
+        $(".pupil-result-button").removeClass("btn-primary").addClass('btn-outline-dark');
+        $("#pupil-" + pupilId).addClass('btn-primary').removeClass('btn-outline-dark');
         this.renderGroupsBlock();
     },
     renderGroupsBlock: function () {
         let pupil = this.pupils[this.pupilId];
-        let blockHtml = '<div class="panel panel-default"><div class="panel-body">';
+        let blockHtml = '';
         pupil.groups.forEach(function(group) {
-            blockHtml += '<button class="btn btn-default btn-lg margin-right-10" type="button" id="group-' + group + '" onclick="Money.setGroup(' + group + ');">' + Money.groups[group].name + '</button>';
+            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + group.id + '" onclick="Money.setGroup(' + group.id + ', \'' + group.date_start + '\', \'' + group.date_charge_till + '\');">' + Main.groupMap[group.id].name + '</button>';
         });
-        blockHtml += '<a href="/user/add-to-group?userId=' + this.pupilId + '" target="_blank" class="btn btn-default btn-lg">Добавить в новую группу <span class="glyphicon glyphicon-new-window"></span></a>';
-        blockHtml += '</div></div>';
-        $("#groups_block").html(blockHtml);
-        if (pupil.groups.length === 1) $("#groups_block").find('button:first').click();
+        blockHtml += '<a href="/user/add-to-group?userId=' + this.pupilId + '" target="_blank" class="btn btn-outline-dark btn-lg">Добавить в новую группу <span class="fas fa-external-link-alt"></span></a>';
+        $("#groups_result").html(blockHtml);
+        $('#groups_block').collapse('show');
+        if (pupil.groups.length === 1) $("#groups_result").find('button:first').click();
     },
-    setGroup: function (groupId) {
+    setGroup: function (groupId, dateStart, dateChargeTill) {
         this.groupId = groupId;
-        $("#groups_block").find("button").removeClass("btn-primary");
-        $("#group-" + groupId).addClass('btn-primary');
+        $(".group-result-button").removeClass("btn-primary").addClass('btn-outline-dark');
+        $("#group-" + groupId).addClass('btn-primary').removeClass('btn-outline-dark');
 
-        let group = this.groups[this.groupId];
-        $("#payment-0").find(".price").text(group.month_price);
-        $("#payment-1").find(".price").text(group.discount_price);
-        $("#date_start").text(group.date_start);
-        $("#date_charge_till").text(group.date_charge_till);
-        $("#payment_type_block").removeClass("hidden").find("button").removeClass("btn-primary");
+        let group = Main.groupMap[this.groupId];
+        $("#payment-0").find(".price").text(group.price);
+        $("#payment-1").find(".price").text(group.price3);
+        if (dateStart !== undefined) {
+            $("#date_start").text(dateStart);
+        }
+        if (dateChargeTill !== undefined) {
+            $("#date_charge_till").text(dateChargeTill);
+        }
+        $("#payment_type_block").collapse("show").find("button").removeClass("btn-primary").addClass('btn-outline-dark');
     },
     setPayment: function(paymentType) {
-        $("#payment_type_block").find("button").removeClass("btn-primary");
-        $("#payment-" + paymentType).addClass('btn-primary');
+        $("#payment_type_block").find("button").removeClass("btn-primary").addClass('btn-outline-dark');
+        $("#payment-" + paymentType).addClass('btn-primary').removeClass('btn-outline-dark');
         this.paymentType = paymentType;
 
         let amountInput = $("#amount");
         if (this.paymentType === 1) {
-            $(amountInput).val(this.groups[this.groupId].discount_price);
+            $(amountInput).val(Main.groupMap[this.groupId].price3);
         } else {
-            $(amountInput).val(this.groups[this.groupId].month_price);
+            $(amountInput).val(Main.groupMap[this.groupId].price);
         }
-        $("#income_form").removeClass('hidden');
+        $("#income_form").collapse('show');
     },
     completeIncome: function(form) {
         if (!this.pupilId || !this.groupId || this.paymentType === null) return false;
@@ -192,34 +194,28 @@ let Money = {
             type: 'post',
             dataType: 'json',
             data: {
-                user: this.pupilId,
-                group: this.groupId,
-                amount: parseInt($(form).find("#amount").val()),
-                comment: $('#payment_comment').val(),
-            },
-            success: function(data) {
-                if (data.status === 'ok') {
-                    Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
+                income: {
+                    userId: this.pupilId,
+                    groupId: this.groupId,
+                    amount: parseInt($(form).find("#amount").val()),
+                    comment: $('#payment_comment').val()
+                }
+            }})
+            .done(function(data) {
+                if (data.status !== 'ok') {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+                } else {
                     $('#amount').val('');
                     $('#payment_comment').val('');
                     $("#payment_contract").val('');
                     $("#payment_date").val('');
-                    $("#income_form").addClass("hidden");
-                    $("#payment_type_block").addClass("hidden");
-                    $('.phone-search-result').html('');
-                    Money.pupilId = null;
-                    Money.groupId = null;
-                    Money.paymentType = null;
+                    Money.resetSearchResults();
+                    Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
+                    Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
                 }
-                else Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
-                Money.unlockIncomeButton();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Money.unlockIncomeButton();
-            }
-        });
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(Money.unlockIncomeButton);
         return false;
     },
     lockIncomeButton: function() {
@@ -230,25 +226,26 @@ let Money = {
     },
     completeContract: function(form) {
         this.lockContractButton();
-        $.ajax({
+        return $.ajax({
             url: '/money/process-contract',
             type: 'post',
             dataType: 'json',
-            data: $(form).serialize(),
-            success: function(data) {
+            data: $(form).serialize()
+        })
+            .done(function(data) {
                 if (data.status === 'ok') {
                     Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    $("#contract_result_block").html('');
+                    let contractResultBlock = $("#contract_result_block");
+                    if (contractResultBlock.length > 0) {
+                        $(contractResultBlock).html('');
+                    }
+                } else {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
-                else Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
-                Money.unlockContractButton();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Money.unlockContractButton();
-            }
-        });
-        return false;
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(Money.unlockContractButton)
+            .always(Main.jumpToTop);
     },
     lockContractButton: function() {
         $("#contract_button").prop('disabled', true);
@@ -257,42 +254,44 @@ let Money = {
         $("#contract_button").prop('disabled', false);
     },
     setGiftGroup: function(e) {
-        $(".gift-card-existing-group").removeClass("btn-primary");
+        $(".gift-card-existing-group").removeClass("btn-primary").addClass('btn-outline-dark');
         let existingElem = $("#existing_group_id");
         if (parseInt(existingElem.val()) === $(e).data("group")) {
             existingElem.val('');
         } else {
             existingElem.val($(e).data("group"));
-            $(e).addClass("btn-primary");
+            $(e).addClass("btn-primary").removeClass('btn-outline-dark');
         }
     },
     completeGiftCard: function(form) {
         this.lockGiftButton();
-        $.ajax({
-            url: '/money/process-gift-card',
-            type: 'post',
-            dataType: 'json',
-            data: $(form).serialize(),
-            success: function(data) {
-                if (data.status === 'ok') {
-                    Main.throwFlashMessage('#gift_card_messages', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
-                    Main.throwFlashMessage('#gift_card_messages', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
-                    $("#search_gift_card").val('');
+        return $.ajax({
+                url: '/money/process-gift-card',
+                type: 'post',
+                dataType: 'json',
+                data: $(form).serialize()
+            })
+            .done(function(data) {
+                if (data.status !== 'ok') {
+                    Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
+                } else {
+                    Main.throwFlashMessage('#messages_place', 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
+                    Main.throwFlashMessage('#messages_place', 'Договор зарегистрирован. <a target="_blank" href="' + data.contractLink + '">Распечатать</a>', 'alert-success', true);
+                    $("#gift_card_result_block").collapse("hide");
+                    let giftCardInputBlock = $("#search_gift_card");
+                    if (giftCardInputBlock.length > 0) {
+                        $(giftCardInputBlock).val('');
+                    }
                 }
-                else Main.throwFlashMessage('#gift_card_messages', 'Ошибка: ' + data.message, 'alert-danger');
-                Money.unlockGiftButton();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#gift_card_messages', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Money.unlockGiftButton();
-            }
-        });
-        return false;
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(Money.unlockGiftButton)
+            .always(Main.jumpToTop);
     },
     lockGiftButton: function() {
-        $("#gift_button").prop('disabled', true);
+        $("#gift-button").prop('disabled', true);
     },
     unlockGiftButton: function() {
-        $("#gift_button").prop('disabled', false);
+        $("#gift-button").prop('disabled', false);
     },
 };

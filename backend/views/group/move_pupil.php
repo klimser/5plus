@@ -1,14 +1,17 @@
 <?php
 
-use yii\helpers\Html;
+use \common\models\User;
+use yii\bootstrap4\Html;
+use yii\helpers\ArrayHelper;
+use \yii\jui\DatePicker;
+use \common\components\DefaultValuesComponent;
 
 /* @var $this yii\web\View */
-/* @var $userId int */
-/* @var $groupId int */
+/* @var $groupPupil \common\models\GroupPupil */
 /* @var $groupList \common\models\Group[] */
 
 $this->registerJs(<<<SCRIPT
-    Group.loadPupils();
+    GroupMove.init();
 SCRIPT
 );
 
@@ -16,57 +19,63 @@ $this->title = 'Перевести студента в другую группу
 $this->params['breadcrumbs'][] = $this->title;
 
 ?>
-<div class="row move-pupil">
-    <h1><?= Html::encode($this->title) ?></h1>
 
-    <div id="messages_place"></div>
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="form-group">
-                <label for="pupil">Студент</label>
-                <select id="pupil" class="form-control" data-pupil="<?= $userId; ?>" onchange="Group.loadGroups();"></select>
+<h1><?= Html::encode($this->title) ?></h1>
+
+<div id="messages_place"></div>
+<form id="move-pupil-form" onsubmit="GroupMove.movePupil(); return false;">
+    <div class="form-group">
+        <label for="pupil">Студент</label>
+        <?php if ($groupPupil): ?>
+            <input type="hidden" id="group-move-id" value="<?= $groupPupil->id; ?>">
+            <input readonly class="form-control-plaintext" value="<?= $groupPupil->user->name; ?>">
+        <?php else: ?>
+            <div>
+                <input type="hidden" id="group-move-id">
+                <input type="hidden" class="autocomplete-user-id" id="pupil-id" onchange="GroupMove.loadGroups();">
+                <input class="autocomplete-user form-control" id="pupil-to-move" placeholder="начните печатать фамилию или имя" data-role="<?= User::ROLE_PUPIL; ?>" required>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
     <div class="row">
-        <div class="col-xs-12 col-sm-6">
+        <div class="col-12 col-md-6">
             <div class="form-group">
                 <label for="group_from">Из группы</label>
-                <select id="group_from" class="form-control" data-group="<?= $groupId; ?>" onchange="Group.setMoveDateInterval(this);"></select>
+                <?php if ($groupPupil): ?>
+                    <input type="hidden" id="group_from" value="<?= $groupPupil->group_id; ?>">
+                    <input readonly class="form-control-plaintext" value="<?= $groupPupil->group->name; ?>">
+                <?php else: ?>
+                    <select id="group_from" class="form-control" onchange="GroupMove.selectGroup(this);" required></select>
+                <?php endif; ?>
+            </div>
+            <div class="form-group">
+                <label for="move_date">Последний день в старой группе</label>
+                <?= DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'name' => 'date_from',
+                        'value' => date('d.m.Y'),
+                        'options' => ['id' => 'group-move-date-from', 'required' => true],
+                    ]));?>
             </div>
         </div>
-        <div class="col-xs-12 col-sm-6">
+        <div class="col-12 col-md-6">
             <div class="form-group">
                 <label for="group_to">В группу</label>
-                <select id="group_to" class="form-control">
-                    <?php foreach ($groupList as $group): ?>
-                        <option value="<?= $group->id; ?>"><?= $group->name; ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <select id="group_to" class="form-control" onchange="GroupMove.setGroupToDateInterval(this);" required></select>
             </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-12">
             <div class="form-group">
-                <label for="move_date">Дата перехода (первый день в новой группе)</label>
-                <?= \dosamigos\datepicker\DatePicker::widget([
-                    'name' => 'move_date',
-                    'value' => date('d.m.Y'),
-                    'options' => ['id' => 'move_date'],
-                    'clientOptions' => [
-                        'autoclose' => true,
-                        'format' => 'dd.mm.yyyy',
-                        'language' => 'ru',
-                        'weekStart' => 1,
-                    ]
-                ]);?>
+                <label for="move_date">Первый день в новой группе</label>
+                <?= DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'name' => 'date_to',
+                        'value' => date('d.m.Y'),
+                        'options' => ['id' => 'group-move-date-to', 'required' => true],
+                    ]));?>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-xs-12">
-            <button class="btn btn-primary" id="move_pupil_button" onclick="Group.movePupil(); return false;">Перевести</button>
-        </div>
-    </div>
-</div>
+
+    <button class="btn btn-primary" id="move_pupil_button">Перевести</button>
+</form>

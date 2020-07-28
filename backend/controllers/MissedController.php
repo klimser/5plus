@@ -23,7 +23,7 @@ class MissedController extends AdminController
 
     public function actionList()
     {
-        if (!Yii::$app->user->can('callMissed')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('callMissed');
 
         /** @var Group[] $groups */
         $groups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all();
@@ -92,7 +92,7 @@ class MissedController extends AdminController
     public function actionCall()
     {
         if (!Yii::$app->request->isPost) throw new BadRequestHttpException('Only POST requests allowed');
-        if (!Yii::$app->user->can('callMissed')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('callMissed');
 
         $groupPupilId = Yii::$app->request->post('groupPupil');
         if (!$groupPupilId) throw new BadRequestHttpException('Wrong request');
@@ -128,7 +128,7 @@ class MissedController extends AdminController
      */
     public function actionTable(int $groupId = 0, int $year = 0, int $month = 0)
     {
-        if (!Yii::$app->user->can('viewMissed')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('viewMissed');
 
         $teacherId = null;
         if (Yii::$app->user->can('teacher')) {
@@ -137,9 +137,8 @@ class MissedController extends AdminController
 
         if (!$year) $year = intval(date('Y'));
         if (!$month) $month = intval(date('n'));
-        $dateStart = new \DateTime("$year-$month-01 00:00:00");
-        $dateEnd = clone $dateStart;
-        $dateEnd->modify('+1 month')->modify('-1 second');
+        $dateStart = new \DateTimeImmutable("$year-$month-01 midnight");
+        $dateEnd = $dateStart->modify('+1 month -1 second');
 
         $dataMap = [];
         $group = null;

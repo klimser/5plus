@@ -1,25 +1,3 @@
-// dynamically change the indentation in the plates under the menu relative to the height of the menu
-$(window).bind('resize', function () {
-  var $mt = $('.main-menu-block').outerHeight(true);
-  if (window.matchMedia("(max-width: 992px)").matches) {
-    $('.page-title').css({ 
-      'margin-top': 0,
-      'padding-top': 19
-    });
-    $('.main-slider').css({ 
-      'margin-top': 0,
-    });
-  } else {
-    $('.page-title').css({ 
-      'margin-top': -$mt + 12,
-      'padding-top': $mt + 6
-    });
-    $('.main-slider').css({ 
-      'margin-top': -$mt + 12,
-    });
-  }
-}).trigger('resize');
-
 // main slider
 var swiper = new Swiper('.swiper-main-slider', {
   speed: 500,
@@ -279,16 +257,15 @@ $(".swiper-container").hover(function() {
 });
 
 // header mobile
-$(document).ready(function(){
-  $(".btn-menu-open").click(function(){
-    $("body").toggleClass("menu-open"); return false;
-  });
-});
-$(document).click( function(event){
-  if( $(event.target).closest(".header-box").length ) 
-    return;
-  $('body').removeClass('menu-open');
-  event.stopPropagation();
+$(document).click(function(event) {
+    if (!$("body").hasClass("menu-open")
+        || $(event.target).hasClass("btn-menu-open")
+        || $(event.target).closest(".btn-menu-open").length > 0
+        || $(event.target).closest(".main-menu-collapsible").length > 0) {
+        return;
+    }
+    $(".btn-menu-open").click();
+    event.stopPropagation();
 });
 
 // universities-menu mobile show

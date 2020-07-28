@@ -2,10 +2,10 @@
 
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
+use common\components\helpers\TelegramHelper;
 use common\components\telegram\commands\ConversationTrait;
-use common\components\telegram\Request;
+use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
-use common\models\User;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\Keyboard;
 
@@ -61,7 +61,7 @@ class StartCommand extends SystemCommand
 
         $data = [
             'chat_id' => $this->getMessage()->getChat()->getId(),
-            'text'    => Request::escapeMarkdownV2(PublicMain::GREETING),
+            'text'    => TelegramHelper::escapeMarkdownV2(PublicMain::GREETING),
             'parse_mode' => 'MarkdownV2',
             'reply_markup' => $this->getKeyboard(),
         ];

@@ -8,6 +8,7 @@ use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\Payment;
 use common\models\User;
+use Yii;
 use yii\base\Component;
 
 class GroupComponent extends Component
@@ -93,17 +94,17 @@ class GroupComponent extends Component
      * @return GroupPupil
      * @throws \Exception
      */
-    public static function addPupilToGroup(User $pupil, Group $group, \DateTime $startDate, ?\DateTime $endDate = null, bool $fillSchedule = true): GroupPupil
+    public static function addPupilToGroup(User $pupil, Group $group, \DateTimeInterface $startDate, ?\DateTimeInterface $endDate = null, bool $fillSchedule = true): GroupPupil
     {
+        $startDate = (clone $startDate)->modify('midnight');
         if (!$group || !$startDate || ($endDate && $endDate < $startDate)) {
             throw new \Exception('Студент не добавлен в группу, введены некорректные значения даты начала и завершения занятий!');
         }
-        $startDate->modify('midnight');
         if ($group->endDateObject && $startDate > $group->endDateObject) {
             throw new \Exception('Студент не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
         }
         self::checkPupilDates(null, $startDate, $endDate);
-        $existedGroupPupil = GroupPupil::find()
+        $existingGroupPupil = GroupPupil::find()
             ->andWhere(['group_id' => $group->id, 'user_id' => $pupil->id])
             ->andWhere(['OR',
                 ['AND',
@@ -115,7 +116,7 @@ class GroupComponent extends Component
                 ]
             ])
             ->one();
-        if ($existedGroupPupil) {
+        if ($existingGroupPupil) {
             throw new \Exception('Студент уже был добавлен в группу в выбранном промежутке времени, не добавляйте его дважды, так нельзя!');
         }
 
@@ -123,8 +124,8 @@ class GroupComponent extends Component
         $groupPupil->user_id = $pupil->id;
         $groupPupil->group_id = $group->id;
         $groupPupil->date_start = $startDate < $group->startDateObject ? $group->date_start : $startDate->format('Y-m-d');
-        if ($endDate) {
-            $endDate->modify('midnight');
+        if (null !== $endDate) {
+            $endDate = (clone $endDate)->modify('midnight');
             if ($group->endDateObject && $endDate > $group->endDateObject) $endDate = $group->endDateObject;
             if ($endDate < $group->startDateObject) $endDate = $group->startDateObject;
             $groupPupil->date_end = $endDate->format('Y-m-d');
@@ -168,7 +169,7 @@ class GroupComponent extends Component
      * @param User $user
      * @param \DateTime|null $moveDate
      */
-    public static function moveMoney(Group $groupFrom, Group $groupTo, User $user, ?\DateTime $moveDate = null)
+    public static function moveMoney(Group $groupFrom, Group $groupTo, User $user, ?\DateTimeInterface $moveDate = null)
     {
         $moneyLeft = Payment::find()
             ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
@@ -192,7 +193,7 @@ class GroupComponent extends Component
 
                 $newPayment = new Payment();
                 $newPayment->user_id = $lastPayment->user_id;
-                $newPayment->admin_id = \Yii::$app->user->id;
+                $newPayment->admin_id = Yii::$app->user->id;
                 $newPayment->group_id = $groupTo->id;
                 $newPayment->contract_id = $lastPayment->contract_id;
                 $newPayment->amount = $moneyLeft;
@@ -210,22 +211,26 @@ class GroupComponent extends Component
         MoneyComponent::recalculateDebt($user, $groupTo);
     }
 
+    public static function getPupilLimitDate(): ?\DateTime
+    {
+        return Yii::$app->user->can('pupilChangePast') ? null : new \DateTime('-7 days');
+    }
+
     /**
      * @param GroupPupil|null $groupPupil
-     * @param \DateTime $startDate
-     * @param \DateTime|null $endDate
+     * @param \DateTimeInterface $startDate
+     * @param \DateTimeInterface|null $endDate
      * @throws \Exception
      */
-    public static function checkPupilDates(?GroupPupil $groupPupil, \DateTime $startDate, ?\DateTime $endDate)
+    public static function checkPupilDates(?GroupPupil $groupPupil, \DateTimeInterface $startDate, ?\DateTimeInterface $endDate)
     {
-        $limitDate = new \DateTime('-7 days');
-        if ((($groupPupil && $groupPupil->startDateObject != $startDate && ($groupPupil->startDateObject < $limitDate || $startDate < $limitDate))
+        $limitDate = self::getPupilLimitDate();
+        if ($limitDate && (($groupPupil && $groupPupil->startDateObject != $startDate && ($groupPupil->startDateObject < $limitDate || $startDate < $limitDate))
             || (!$groupPupil && $startDate < $limitDate)
             || ($groupPupil && $groupPupil->endDateObject != $endDate
                 && ($groupPupil->endDateObject && $groupPupil->endDateObject < $limitDate)
                 || ($endDate && $endDate < $limitDate))
-            || (!$groupPupil && $endDate && $endDate < $limitDate))
-            && !\Yii::$app->user->can('pupilChangePast')) {
+            || (!$groupPupil && $endDate && $endDate < $limitDate))) {
             throw new \Exception('Дата занятий студента ' . ($groupPupil ? $groupPupil->user->name : '') . ' может быть изменена только Александром Сергеевичем, обратитесь к нему.');
         }
     }

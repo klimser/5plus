@@ -5,7 +5,7 @@ namespace common\models;
 use common\components\ComponentContainer;
 use common\components\extended\ActiveRecord;
 use common\models\traits\Inserted;
-use himiklab\yii2\recaptcha\ReCaptchaValidator;
+use himiklab\yii2\recaptcha\ReCaptchaValidator2;
 use yii;
 
 /**
@@ -28,12 +28,12 @@ class Feedback extends ActiveRecord
     const STATUS_READ = 'read';
     const STATUS_COMPLETED = 'completed';
 
-    public static $statusList = [
+    public const STATUS_LIST = [
         self::STATUS_NEW,
         self::STATUS_READ,
         self::STATUS_COMPLETED,
     ];
-    public static $statusLabels = [
+    public const STATUS_LABELS = [
         self::STATUS_NEW => 'Новый',
         self::STATUS_READ => 'Просмотрен',
         self::STATUS_COMPLETED => 'Обработан',
@@ -67,8 +67,8 @@ class Feedback extends ActiveRecord
             [['ip'], 'string', 'max' => 40],
             [['name'], 'string', 'max' => 50],
             [['contact'], 'string', 'max' => 255],
-            ['status', 'in', 'range' => self::$statusList],
-            [['reCaptcha'], ReCaptchaValidator::class, 'on' => self::SCENARIO_USER],
+            ['status', 'in', 'range' => self::STATUS_LIST],
+            [['reCaptcha'], ReCaptchaValidator2::class, 'on' => self::SCENARIO_USER],
         ];
     }
 

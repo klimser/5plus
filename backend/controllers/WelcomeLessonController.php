@@ -6,30 +6,41 @@ use backend\models\WelcomeLesson;
 use backend\models\WelcomeLessonSearch;
 use common\components\ComponentContainer;
 use common\components\GroupComponent;
+use common\components\MoneyComponent;
 use common\models\Group;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
+use common\resources\documents\WelcomeLessons;
 use yii;
-use yii\web\ForbiddenHttpException;
+use yii\web\Response;
 
 /**
  * WelcomeLessonController implements management for welcome lessons.
  */
 class WelcomeLessonController extends AdminController
 {
-
     const PROPOSE_GROUP_LIMIT = 6;
 
+    protected $accessRule = 'welcomeLessons';
+
+    public function actionPrint(array $id)
+    {
+        $welcomeLessons = WelcomeLesson::find()->andWhere(['id' => $id])->all();
+        $doc = new WelcomeLessons($welcomeLessons);
+        return Yii::$app->response->sendContentAsFile(
+            $doc->save(),
+            'doc.pdf',
+            ['inline' => true, 'mimeType' => 'application/pdf']
+        );
+    }
+    
     /**
      * Monitor all welcome lessons.
      * @return mixed
-     * @throws ForbiddenHttpException
      */
     public function actionIndex()
     {
-        if (!Yii::$app->user->can('welcomeLessons')) throw new ForbiddenHttpException('Access denied!');
-
         $searchModel = new WelcomeLessonSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -76,159 +87,209 @@ class WelcomeLessonController extends AdminController
         ]);
     }
 
+    private function getAjaxInfoResult(WelcomeLesson $welcomeLesson)
+    {
+        return self::getJsonOkResult([
+            'result' => [
+                'id' => $welcomeLesson->id,
+                'date' => $welcomeLesson->lessonDateTime->format('d.m.Y'),
+                'status' => $welcomeLesson->status,
+                'denyReason' => $welcomeLesson->deny_reason,
+            ],
+        ]);
+    }
+
     /**
      * @param $id
-     * @return \yii\web\Response
+     * @return mixed
      * @throws yii\web\NotFoundHttpException
      */
     public function actionChangeStatus($id)
     {
-        $jsonData = [];
-        if (Yii::$app->request->isAjax) {
-            $welcomeLesson = $this->findModel($id);
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-            $newStatus = intval(Yii::$app->request->post('status'));
-            if ($welcomeLesson->status != WelcomeLesson::STATUS_UNKNOWN
-                && ($welcomeLesson->status != WelcomeLesson::STATUS_PASSED
-                    || !in_array($newStatus, [WelcomeLesson::STATUS_MISSED, WelcomeLesson::STATUS_DENIED]))) {
-                $jsonData = self::getJsonErrorResult(
-                    'Статус "' . WelcomeLesson::STATUS_LABELS[$newStatus] . '" не может быть установлен занятию со статусом "' . WelcomeLesson::STATUS_LABELS[$welcomeLesson->status] . '"'
-                );
-            } else {
-                $welcomeLesson->status = $newStatus;
-                $welcomeLesson->bitrix_sync_status = WelcomeLesson::STATUS_INACTIVE;
-                if ($welcomeLesson->save()) {
-                    $jsonData = self::getJsonOkResult([
-                        'id' => $welcomeLesson->id,
-                        'state' => $welcomeLesson->status,
-                        'denyReason' => $welcomeLesson->deny_reason,
-                    ]);
-                } else $jsonData = self::getJsonErrorResult($welcomeLesson->getErrorsAsString('status'));
-            }
+        $welcomeLesson = $this->findModel($id);
+
+        $newStatus = intval(Yii::$app->request->post('status'));
+        if ($welcomeLesson->status !== WelcomeLesson::STATUS_UNKNOWN
+            && ($welcomeLesson->status !== WelcomeLesson::STATUS_PASSED
+                || !in_array($newStatus, [WelcomeLesson::STATUS_MISSED, WelcomeLesson::STATUS_DENIED]))) {
+            return self::getJsonErrorResult(
+                'Статус "' . WelcomeLesson::STATUS_LABELS[$newStatus] . '" не может быть установлен занятию со статусом "' . WelcomeLesson::STATUS_LABELS[$welcomeLesson->status] . '"'
+            );
         }
-        return $this->asJson($jsonData);
+        $welcomeLesson->status = $newStatus;
+        $welcomeLesson->bitrix_sync_status = WelcomeLesson::STATUS_INACTIVE;
+
+        if (!$welcomeLesson->save()) {
+            return self::getJsonErrorResult($welcomeLesson->getErrorsAsString('status'));
+        }
+
+        return $this->getAjaxInfoResult($welcomeLesson);
     }
     
     public function actionSetDenyDetails($id)
     {
-        $jsonData = [];
-        if (Yii::$app->request->isAjax) {
-            $welcomeLesson = $this->findModel($id);
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-            $denyReason = intval(Yii::$app->request->post('deny_reason'));
-            if ($welcomeLesson->status !== WelcomeLesson::STATUS_DENIED) {
-                $jsonData = self::getJsonErrorResult(
-                    'Причина может быть установлена только в статусе "' . WelcomeLesson::STATUS_LABELS[WelcomeLesson::STATUS_DENIED] . '"'
-                );
-            } else {
-                $welcomeLesson->deny_reason = $denyReason;
-                $welcomeLesson->comment = Yii::$app->request->post('comment') ?: null;
-                if ($welcomeLesson->save()) {
-                    $jsonData = self::getJsonOkResult([
-                        'id' => $welcomeLesson->id,
-                        'state' => $welcomeLesson->status,
-                        'denyReason' => $welcomeLesson->deny_reason,
-                    ]);
-                } else $jsonData = self::getJsonErrorResult($welcomeLesson->getErrorsAsString());
-            }
+        $welcomeLesson = $this->findModel($id);
+
+        if ($welcomeLesson->status !== WelcomeLesson::STATUS_DENIED) {
+            return self::getJsonErrorResult(
+                'Причина может быть установлена только в статусе "' . WelcomeLesson::STATUS_LABELS[WelcomeLesson::STATUS_DENIED] . '"'
+            );
         }
-        return $this->asJson($jsonData);
+
+        $denyReason = intval(Yii::$app->request->post('deny_reason'));
+        $welcomeLesson->deny_reason = $denyReason;
+        $welcomeLesson->comment = Yii::$app->request->post('comment') ?: null;
+        if (!$welcomeLesson->save()) {
+            return self::getJsonErrorResult($welcomeLesson->getErrorsAsString());
+        }
+
+        return $this->getAjaxInfoResult($welcomeLesson);
     }
 
     public function actionProposeGroup()
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
-        if (!Yii::$app->user->can('welcomeLessons')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
         $lessonId = Yii::$app->request->post('id');
-        if (!$lessonId) $jsonData = self::getJsonErrorResult('Wrong request');
-        else {
-            $welcomeLesson = WelcomeLesson::findOne($lessonId);
-            if (!$welcomeLesson) $jsonData = self::getJsonErrorResult('Welcome lesson is not found');
-            else {
-                $resultGroups = [];
-                if ($welcomeLesson->group_id) {
-                    $resultGroups[] = ['id' => $welcomeLesson->group_id, 'name' => $welcomeLesson->group->name, 'teacherName' => $welcomeLesson->group->teacher->name];
-                }
-
-                if (empty($resultGroups)) {
-                    /** @var Group[] $groups */
-                    $groups = Group::find()
-                        ->andWhere([
-                            'active' => Group::STATUS_ACTIVE,
-                            'subject_id' => $welcomeLesson->subject_id,
-                            'teacher_id' => $welcomeLesson->teacher_id,
-                        ])
-                        ->limit(self::PROPOSE_GROUP_LIMIT)
-                        ->all();
-                    foreach ($groups as $group) {
-                        $resultGroups[] = ['id' => $group->id, 'name' => $group->name, 'teacherName' => $welcomeLesson->teacher->name];
-                    }
-                }
-                
-                if (empty($resultGroups)) {
-                    /** @var Group[] $groups */
-                    $groups = Group::find()
-                        ->andWhere([
-                            'active' => Group::STATUS_ACTIVE,
-                            'subject_id' => $welcomeLesson->subject_id,
-                        ])
-                        ->limit(self::PROPOSE_GROUP_LIMIT)
-                        ->with('teacher')
-                        ->all();
-                    foreach ($groups as $group) {
-                        $resultGroups[] = ['id' => $group->id, 'name' => $group->name, 'teacherName' => $group->teacher->name];
-                    }
-                }
-                
-                $jsonData = self::getJsonOkResult([
-                    'id' => $welcomeLesson->id,
-                    'groups' => $resultGroups,
-                    'pupilName' => $welcomeLesson->user->name,
-                    'lessonDate' => $welcomeLesson->lessonDateTime->format('d.m.Y'),
-                ]);
+        if (!$lessonId) return self::getJsonErrorResult('Wrong request');
+        
+        $welcomeLesson = WelcomeLesson::findOne($lessonId);
+        if (!$welcomeLesson) return self::getJsonErrorResult('Welcome lesson is not found');
+        
+        $resultGroupIds = $excludeGroupIds = [];
+        if ($welcomeLesson->group_id) {
+            $resultGroupIds[] = $welcomeLesson->group_id;
+        } else {
+            /** @var Group[] $groups */
+            $groups = Group::find()
+                ->andWhere([
+                    'active' => Group::STATUS_ACTIVE,
+                    'subject_id' => $welcomeLesson->subject_id,
+                    'teacher_id' => $welcomeLesson->teacher_id,
+                ])
+                ->limit(self::PROPOSE_GROUP_LIMIT)
+                ->all();
+            foreach ($groups as $group) {
+                $resultGroupIds[] = $group->id;
             }
         }
+        
+        if (empty($resultGroupIds)) {
+            /** @var Group[] $groups */
+            $groups = Group::find()
+                ->andWhere([
+                    'active' => Group::STATUS_ACTIVE,
+                    'subject_id' => $welcomeLesson->subject_id,
+                ])
+                ->limit(self::PROPOSE_GROUP_LIMIT)
+                ->with('teacher')
+                ->all();
+            foreach ($groups as $group) {
+                $resultGroupIds[] = $group->id;
+            }
+        }
+        
+        foreach ($welcomeLesson->user->activeGroupPupils as $groupPupil) {
+            $excludeGroupIds[] = $groupPupil->group_id;
+        }
+        
+        return self::getJsonOkResult([
+            'id' => $welcomeLesson->id,
+            'groupIds' => $resultGroupIds,
+            'excludeGroupIds' => $excludeGroupIds,
+            'pupilName' => $welcomeLesson->user->name,
+            'lessonDate' => $welcomeLesson->lessonDateTime->format('d.m.Y'),
+        ]);
+    }
 
-        return $this->asJson($jsonData);
+    public function actionReschedule()
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $welcomeLessonData = Yii::$app->request->post('welcome_lesson', []);
+        if (!isset($welcomeLessonData['id'], $welcomeLessonData['date'])) {
+            return self::getJsonErrorResult('Wrong request');
+        }
+
+        if (!$welcomeLesson = WelcomeLesson::findOne($welcomeLessonData['id'])) {
+            return self::getJsonErrorResult('Welcome lesson is not found');
+        }
+
+        $startDate = new \DateTime($welcomeLessonData['date']);
+        if (!$startDate) {
+            return self::getJsonErrorResult('Wrong lesson date');
+        }
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $welcomeLesson->status = WelcomeLesson::STATUS_RESCHEDULED;
+            $welcomeLesson->save();
+
+            $newWelcomeLesson = new WelcomeLesson();
+            $newWelcomeLesson->group_id = $welcomeLesson->group_id;
+            $newWelcomeLesson->subject_id = $welcomeLesson->subject_id;
+            $newWelcomeLesson->teacher_id = $welcomeLesson->teacher_id;
+            $newWelcomeLesson->user_id = $welcomeLesson->user_id;
+            $newWelcomeLesson->lessonDateTime = $startDate;
+
+            if (!$newWelcomeLesson->save()) {
+                throw new \Exception('Server error: ' . $newWelcomeLesson->getErrorsAsString());
+            }
+
+            $transaction->commit();
+            return $this->getAjaxInfoResult($welcomeLesson);
+        } catch (\Throwable $exception) {
+            $transaction->rollBack();
+            ComponentContainer::getErrorLogger()->logError('welcome-lesson/move', $exception->getMessage(), true);
+            return self::getJsonErrorResult('Server error');
+        }
     }
 
     public function actionMove()
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Request is not AJAX');
-        if (!Yii::$app->user->can('welcomeLessons')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $lessonId = Yii::$app->request->post('id');
-        if (!$lessonId) $jsonData = self::getJsonErrorResult('Wrong request');
-        else {
-            $welcomeLesson = WelcomeLesson::findOne($lessonId);
-            if (!$welcomeLesson) $jsonData = self::getJsonErrorResult('Welcome lesson is not found');
-            else {
-                $groupProposal = Yii::$app->request->post('group_proposal');
-                if ($groupProposal) {
-                    $group = Group::findOne($groupProposal);
-                } else {
-                    $group = Group::findOne(Yii::$app->request->post('group_id'));
-                }
-                if (!$group || $group->active != Group::STATUS_ACTIVE) $jsonData = self::getJsonErrorResult('Group not found');
-                else {
-                    $transaction = Yii::$app->db->beginTransaction();
-                    try {
-                        GroupComponent::addPupilToGroup($welcomeLesson->user, $group, $welcomeLesson->lessonDateTime);
-                        $welcomeLesson->status = WelcomeLesson::STATUS_SUCCESS;
-                        $welcomeLesson->save();
-                        $transaction->commit();
-                        $jsonData = self::getJsonOkResult(['id' => $welcomeLesson->id]);
-                } catch (\Throwable $exception) {
-                        $transaction->rollBack();
-                        ComponentContainer::getErrorLogger()->logError('welcome-lesson/move', $exception->getMessage(), true);
-                        $jsonData = self::getJsonErrorResult('Server error');
-                    }
-                }
-            }
+        $welcomeLessonData = Yii::$app->request->post('welcome_lesson', []);
+        if (!isset($welcomeLessonData['id'])) {
+            return self::getJsonErrorResult('Wrong request');
         }
 
-        return $this->asJson($jsonData);
+        if (!$welcomeLesson = WelcomeLesson::findOne($welcomeLessonData['id'])) {
+            return self::getJsonErrorResult('Welcome lesson is not found');
+        }
+        
+        if (!empty($welcomeLessonData['group_proposal'])) {
+            $group = Group::findOne($welcomeLessonData['group_proposal']);
+        } else {
+            $group = Group::findOne($welcomeLessonData['group_id']);
+        }
+
+        if (!$group || $group->active != Group::STATUS_ACTIVE) {
+            return self::getJsonErrorResult('Group not found');
+        }
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            GroupComponent::addPupilToGroup($welcomeLesson->user, $group, $welcomeLesson->lessonDateTime);
+            MoneyComponent::setUserChargeDates($welcomeLesson->user, $group);
+            $welcomeLesson->status = WelcomeLesson::STATUS_SUCCESS;
+            $welcomeLesson->save();
+            $transaction->commit();
+            return $this->getAjaxInfoResult($welcomeLesson);
+        } catch (\Throwable $exception) {
+            $transaction->rollBack();
+            ComponentContainer::getErrorLogger()->logError('welcome-lesson/move', $exception->getMessage(), true);
+            return self::getJsonErrorResult('Server error');
+        }
     }
 
     /**

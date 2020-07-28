@@ -9,7 +9,7 @@ var HighSchool = {
                         var photoElem = $("#highschool_photo");
                         $(photoElem).find("img").remove();
                         $(photoElem).find("a").remove();
-                        $(photoElem).append('<div class="text-success"><span class="glyphicon glyphicon-ok"></span> Удалено</div>');
+                        $(photoElem).append('<div class="text-success"><span class="fas fa-check"></span> Удалено</div>');
                     } else {
                         Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
                     }

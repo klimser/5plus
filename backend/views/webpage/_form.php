@@ -2,7 +2,7 @@
 
 /* @var $this yii\web\View */
 /* @var $webpage common\models\Webpage */
-/* @var $form yii\bootstrap\ActiveForm */
+/* @var $form yii\bootstrap4\ActiveForm */
 /* @var $module \common\models\Module */
 
 if ($webpage === null) $webpage = new \common\models\Webpage();
@@ -20,22 +20,22 @@ if (isset($module) && $module && ($module->field_for_url || $module->field_for_t
 }
 ?>
 
-<script>
-
-</script>
-
-<div class="well well-sm">
-    <div class="row">
-        <?= $form->field($webpage, 'url', ['enableAjaxValidation' => false, 'enableClientValidation' => false, 'options' => ['class' => 'form-group col-xs-12']])
-            ->textInput(['value' => $webpage->shortUrl, 'required' => true, 'maxlength' => true, 'onfocus' => 'Webpage.suggestUrl(this);']) ?>
-
-        <?= $form->field($webpage, 'title', ['enableAjaxValidation' => false, 'enableClientValidation' => false, 'options' => ['class' => 'form-group col-xs-12']])
-            ->textInput(['required' => true, 'maxlength' => true, 'onfocus' => 'Webpage.fillTitle(this);']) ?>
-
-        <?= $form->field($webpage, 'description', ['enableAjaxValidation' => false, 'enableClientValidation' => false, 'options' => ['class' => 'form-group col-xs-12 col-sm-6']])
-            ->textarea(['rows' => 4]) ?>
-
-        <?= $form->field($webpage, 'keywords', ['enableAjaxValidation' => false, 'enableClientValidation' => false, 'options' => ['class' => 'form-group col-xs-12 col-sm-6']])
-            ->textarea(['rows' => 4]) ?>
+<div class="card mb-3">
+    <div class="card-body p-3">
+        <div class="row">
+            <?= $form->field($webpage, 'url', ['enableAjaxValidation' => false, 'enableClientValidation' => false, 'options' => ['class' => 'form-group col-12']])
+                ->textInput(['value' => $webpage->shortUrl, 'required' => true, 'maxlength' => true, 'onfocus' => 'Webpage.suggestUrl(this);']) ?>
+        </div>
+        <div class="row">
+            <?= $form->field($webpage, 'title', ['enableAjaxValidation' => false, 'enableClientValidation' => false, 'options' => ['class' => 'form-group col-12']])
+                ->textInput(['required' => true, 'maxlength' => true, 'onfocus' => 'Webpage.fillTitle(this);']) ?>
+        </div>
+        <div class="row">
+            <?= $form->field($webpage, 'description', ['enableAjaxValidation' => false, 'enableClientValidation' => false, 'options' => ['class' => 'form-group col-12 col-sm-6']])
+                ->textarea(['rows' => 4]) ?>
+    
+            <?= $form->field($webpage, 'keywords', ['enableAjaxValidation' => false, 'enableClientValidation' => false, 'options' => ['class' => 'form-group col-12 col-sm-6']])
+                ->textarea(['rows' => 4]) ?>
+        </div>
     </div>
 </div>

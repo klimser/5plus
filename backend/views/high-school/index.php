@@ -1,7 +1,11 @@
 <?php
 
-use yii\helpers\Html;
+use common\models\HighSchool;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
+use yii\grid\ActionColumn;
 use yii\grid\GridView;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -11,7 +15,7 @@ $this->title = isset($title) ? $title : 'ВУЗы';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="teacher-index">
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['page']); ?>">Настройки страницы</a></div>
+    <div class="float-right"><a href="<?= Url::to(['page']); ?>">Настройки страницы</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
@@ -19,6 +23,10 @@ $this->params['breadcrumbs'][] = $this->title;
     </p>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
+        'rowOptions' => function ($model, $key, $index, $grid) {
+            return $model->active == HighSchool::STATUS_INACTIVE ? ['class' => 'table-secondary'] : [];
+        },
         'columns' => [
             [
                 'attribute' => 'name',
@@ -38,11 +46,19 @@ $this->params['breadcrumbs'][] = $this->title;
                 ],
             ],
             [
-                'class' => \yii\grid\ActionColumn::class,
+                'class' => ActionColumn::class,
                 'template' => '{delete}',
-                'buttonOptions' => ['class' => 'btn btn-default'],
+                'buttons' => [
+                    'delete' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-trash-alt"></span>', $url, [
+                            'title' => Yii::t('yii', 'Delete'),
+                            'class' => 'btn btn-outline-dark',
+                            'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+                            'data-method' => 'post',
+                        ]);
+                    },
+                ],
             ],
         ],
-        'rowOptions' => function ($model, $key, $index, $grid) {if ($model->active == \common\models\HighSchool::STATUS_INACTIVE) return ['class' => 'inactive']; else return [];},
     ]); ?>
 </div>

@@ -1,7 +1,7 @@
 <?php
 
-use yii\helpers\Html;
-use yii\bootstrap\ActiveForm;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
 /* @var $highSchools \common\models\HighSchool[] */
@@ -17,25 +17,22 @@ $this->params['breadcrumbs'][] = 'Настройки страницы';
 
 <?php $form = ActiveForm::begin(['options' => ['onSubmit' => 'return Main.submitSortableForm(this);']]); ?>
 
-    <div class="row">
-        <div class="col-xs-12">
-            <?php
-            $sortableItems = [];
-            foreach ($highSchools as $highSchool) {
-                $sortableItems[] = [
-                    'content' => '<span class="glyphicon glyphicon-sort"></span> '. $highSchool->name,
-                    'options' => ['id' => $prefix . $highSchool->id],
-                ];
-            }
-            ?>
-            <?= \yii\jui\Sortable::widget([
-                'items' => $sortableItems,
-                'options' => ['tag' => 'ol'],
-                'itemOptions' => ['tag' => 'li'],
-                'clientOptions' => ['cursor' => 'move'],
-            ]); ?>
-        </div>
-    </div>
+    <?php
+    $sortableItems = [];
+    foreach ($highSchools as $highSchool) {
+        $sortableItems[] = [
+            'content' => '<span class="fas fa-arrows-alt"></span> '. $highSchool->name,
+            'options' => ['id' => $prefix . $highSchool->id],
+        ];
+    }
+    ?>
+    <?= \yii\jui\Sortable::widget([
+        'items' => $sortableItems,
+        'options' => ['tag' => 'ol'],
+        'itemOptions' => ['tag' => 'li'],
+        'clientOptions' => ['cursor' => 'move'],
+    ]); ?>
+
     <hr>
 
     <?= $this->render('/webpage/_form', [

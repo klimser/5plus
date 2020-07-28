@@ -5,6 +5,7 @@ options:
       - "@babel/preset-env"
       -
         useBuiltIns: "entry"
+        corejs: 2
 main_front:
   files:
     -

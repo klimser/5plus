@@ -1,32 +1,42 @@
 <?php
 
-use yii\helpers\Html;
+use common\components\DefaultValuesComponent;
+use common\models\Contract;
+use common\models\Payment;
+use common\models\User;
+use kartik\field\FieldRange;
+use yii\bootstrap4\Html;
+use yii\bootstrap4\LinkPager;
 use yii\grid\GridView;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
+use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $searchModel \common\models\PaymentSearch */
-/* @var $studentMap \common\models\User[] */
-/* @var $adminMap \common\models\User[] */
-/* @var $groupMap \common\models\User[] */
+/* @var $adminMap User[] */
+/* @var $groupMap User[] */
 
 $this->title = 'Платежи';
 $this->params['breadcrumbs'][] = $this->title;
+$this->registerJs('Main.initAutocompleteUser("#search-student");');
 ?>
 <div class="payment-index">
-    <div class="pull-right"><a href="<?= \yii\helpers\Url::to(['money/income']); ?>" class="btn btn-info">Внести оплату</a></div>
+    <div class="float-right"><a href="<?= Url::to(['money/income']); ?>" class="btn btn-info">Внести оплату</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             $return = [];
             if ($model->amount > 0) {
-                $return['class'] = $model->discount ? 'info' : 'success';
+                $return['class'] = $model->discount ? 'table-info' : 'table-success';
             } elseif ($model->amount < 0) {
-                $return['class'] = $model->discount ? 'warning' : 'danger';
+                $return['class'] = $model->discount ? 'table-warning' : 'table-danger';
             }
             return $return;
         },
@@ -34,14 +44,14 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'admin_id',
                 'content' => function ($model, $key, $index, $column) {
-                    /** @var \common\models\Payment $model */
+                    /** @var Payment $model */
                     return
-                    ($model->contract_id && $model->contract->payment_type != \common\models\Contract::PAYMENT_TYPE_MANUAL
-                        ? '<span class="label label-info">online</span> '
+                    ($model->contract_id && $model->contract->payment_type != Contract::PAYMENT_TYPE_MANUAL
+                        ? '<span class="badge badge-info">online</span> '
                         : ''
                     )
-                    . ($model->cash_received == \common\models\Payment::STATUS_INACTIVE
-                        ? '<span class="label label-danger">деньги не получены</span> '
+                    . ($model->cash_received == Payment::STATUS_INACTIVE
+                        ? '<span class="badge badge-danger">деньги не получены</span> '
                         : ''
                     )
                     . ($model->admin_id ? $model->admin->name : '');
@@ -58,18 +68,15 @@ $this->params['breadcrumbs'][] = $this->title;
                 'content' => function ($model, $key, $index, $column) {
                     return $model->user->name;
                 },
-                'filter' => Html::activeDropDownList(
-                    $searchModel,
-                    'user_id',
-                    $studentMap,
-                    ['class' => 'form-control']
-                )
+                'filter' => '<div><input type="hidden" class="autocomplete-user-id" name="PaymentSearch[user_id]" value="' . $searchModel->user_id . '">
+                            <input id="search-student" class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" data-role="' . User::ROLE_PUPIL . '"
+                            value="' . ($searchModel->user_id ? $searchModel->user->name : '') . '"></div>',
             ],
             [
                 'attribute' => 'group_id',
                 'label' => 'Группа',
                 'content' => function ($model, $key, $index, $column) {
-                    return Html::a($model->group->name, \yii\helpers\Url::to(['group/update', 'id' => $model->group_id]));
+                    return Html::a($model->group->name, Url::to(['group/update', 'id' => $model->group_id]));
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -80,7 +87,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'attribute' => 'amount',
-                'filter' => \kartik\field\FieldRange::widget([
+                'filter' => FieldRange::widget([
                     'model' => $searchModel,
                     'attribute1' => 'amountFrom',
                     'attribute2' => 'amountTo',
@@ -88,13 +95,13 @@ $this->params['breadcrumbs'][] = $this->title;
 //                    'name2'=>'amountTo',
                     'separator' => '-',
                     'template' => '{widget}',
-                    'type' => \kartik\field\FieldRange::INPUT_TEXT,
+                    'type' => FieldRange::INPUT_TEXT,
                 ]),
                 'contentOptions' => ['class' => 'text-right'],
                 'content' => function ($model, $key, $index, $column) {
                     return $model->amount
                         . ($model->amount < 0 && $model->used_payment_id === null
-                            ? ' <span class="label label-warning">no</span>'
+                            ? ' <span class="badge badge-warning">no</span>'
                             : ''
                         );
                 },
@@ -104,16 +111,16 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'created_at',
                 'format' => 'datetime',
                 'label' => 'Дата операции',
-                'filter' => \dosamigos\datepicker\DatePicker::widget([
-                    'model' => $searchModel,
-                    'attribute' => 'createDateString',
-                    'template' => '{addon}{input}',
-                    'clientOptions' => [
-                        'weekStart' => 1,
-                        'autoclose' => true,
-                        'format' => 'yyyy-mm-dd',
-                    ],
-                ]),
+                'filter' => DatePicker::widget(ArrayHelper::merge(
+                    DefaultValuesComponent::getDatePickerSettings(),
+                    [
+                        'model' => $searchModel,
+                        'attribute' => 'createDateString',
+                        'dateFormat' => 'y-M-dd',
+                        'options' => [
+                            'pattern' => '\d{4}-\d{2}-\d{2}',
+                        ],
+                    ])),
             ],
         ],
     ]); ?>

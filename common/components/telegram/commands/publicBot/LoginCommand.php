@@ -3,9 +3,10 @@
 namespace Longman\TelegramBot\Commands\UserCommands;
 
 use common\components\ComponentContainer;
+use common\components\helpers\TelegramHelper;
 use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
-use common\components\telegram\Request;
+use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use common\models\BotPush;
 use common\models\User;
@@ -74,7 +75,7 @@ class LoginCommand extends UserCommand
             case 1:
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_1_TEXT),
+                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_1_TEXT),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
                 break;
@@ -87,7 +88,7 @@ class LoginCommand extends UserCommand
                         $conversation->update();
                         return [
                             'parse_mode' => 'MarkdownV2',
-                            'text' => Request::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
+                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
                         ];
                     }
                     if (strlen($phoneDigits) < 9 || (preg_match('#^\+998#', $phone) && strlen($phoneDigits) < 12)) {
@@ -95,7 +96,7 @@ class LoginCommand extends UserCommand
                         $conversation->update();
                         return [
                             'parse_mode' => 'MarkdownV2',
-                            'text' => Request::escapeMarkdownV2(PublicMain::ERROR_PHONE_LENGTH),
+                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ERROR_PHONE_LENGTH),
                         ];
                     }
                     $this->addNote($conversation, 'phone', '+998' . substr($phoneDigits, -9));
@@ -123,7 +124,7 @@ class LoginCommand extends UserCommand
                     $this->addNote($conversation, 'role', User::ROLE_PARENTS);
                     $data = [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
+                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
                         'reply_markup' => Keyboard::remove(),
                     ];
                     if ($trusted) {
@@ -157,7 +158,7 @@ class LoginCommand extends UserCommand
                     
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_FAILED),
+                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_FAILED),
                         'reply_markup' => PublicMain::getPhoneKeyboard(),
                     ];
                 }
@@ -165,7 +166,7 @@ class LoginCommand extends UserCommand
                 $this->addNote($conversation, 'role', User::ROLE_PUPIL);
                 $data = [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
+                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
                     'reply_markup' => Keyboard::remove(),
                 ];
                 if ($trusted) {
@@ -214,9 +215,9 @@ class LoginCommand extends UserCommand
                 $conversation->notes['step']--;
                 $conversation->update();
                 if (count($users) <= 0) {
-                    $data['text'] = Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_FAILED);
+                    $data['text'] = TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_FAILED);
                 } else {
-                    $data['text'] = Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_MULTIPLE);
+                    $data['text'] = TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_MULTIPLE);
                 }
                 
                 return $data;
@@ -244,7 +245,7 @@ class LoginCommand extends UserCommand
                 $conversation->update();
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED),
+                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
             }
@@ -259,7 +260,7 @@ class LoginCommand extends UserCommand
                 $conversation->update();
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Request::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED_UNTRUSTED),
+                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED_UNTRUSTED),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
             }
@@ -283,7 +284,7 @@ class LoginCommand extends UserCommand
             $data = [
                 'parse_mode' => 'MarkdownV2',
                 'reply_markup' => $keyboard,
-                'text' => Request::escapeMarkdownV2('Произошла ошибка, не удалось привязать аккаунт, мы уже знаем о случившемся и как можно скорее исправим это.'),
+                'text' => TelegramHelper::escapeMarkdownV2('Произошла ошибка, не удалось привязать аккаунт, мы уже знаем о случившемся и как можно скорее исправим это.'),
             ];
         }
         

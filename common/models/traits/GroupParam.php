@@ -2,7 +2,7 @@
 
 namespace common\models\traits;
 
-use common\components\helpers\Money;
+use common\components\helpers\MoneyHelper;
 
 /**
  * Trait GroupParam
@@ -49,7 +49,7 @@ trait GroupParam
      */
     public function getPriceMonth(): int
     {
-        return Money::roundThousand($this->lesson_price * $this->getClassesPerMonth());
+        return MoneyHelper::roundThousand($this->lesson_price * $this->getClassesPerMonth());
     }
 
     /**
@@ -57,7 +57,7 @@ trait GroupParam
      */
     public function getPrice3Month(): int
     {
-        return Money::roundThousand(($this->lesson_price_discount ?: $this->lesson_price) * $this->getClassesPerMonth() * 3);
+        return MoneyHelper::roundThousand(($this->lesson_price_discount ?: $this->lesson_price) * $this->getClassesPerMonth() * 3);
     }
 
     /**

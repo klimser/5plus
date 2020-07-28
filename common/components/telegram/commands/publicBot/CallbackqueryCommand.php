@@ -11,7 +11,7 @@
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use common\components\telegram\commands\publicBot\TeacherCallbackCommand;
-use common\components\telegram\Request;
+use Longman\TelegramBot\Request;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\Telegram;

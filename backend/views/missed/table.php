@@ -1,23 +1,21 @@
 <?php
 
 use backend\models\EventMember;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use \common\components\helpers\Calendar;
 use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $dataMap array */
-/* @var $date \DateTime */
+/* @var $date \DateTimeImmutable */
 /* @var $daysCount int */
 /* @var $group \common\models\Group|null */
 /* @var $groups \common\models\Group[] */
 
 $this->title = 'Посещаемость';
 $this->params['breadcrumbs'][] = $this->title;
-$prevMonth = clone $date;
-$prevMonth->modify('-1 month');
-$nextMonth = clone $date;
-$nextMonth->modify('+1 month');
+$prevMonth = $date->modify('-1 month');
+$nextMonth = $date->modify('+1 month');
 ?>
 <div class="missed-table-index">
     <h1>
@@ -26,7 +24,7 @@ $nextMonth->modify('+1 month');
         <?= Html::encode($this->title) ?> <?= Calendar::$monthNames[$date->format('n')]; ?> <?= $date->format('Y'); ?>
         <a href="<?= Url::to(['table', 'year' => $nextMonth->format('Y'), 'month' => $nextMonth->format('n'), 'groupId' => $group ? $group->id : 0]); ?>"
         ><span class="fas fa-arrow-right"></span></a>
-        <div class="pull-right">
+        <div class="float-right">
             <form id="group-selector">
                 <input type="hidden" name="year" value="<?= $date->format('Y'); ?>">
                 <input type="hidden" name="month" value="<?= $date->format('n'); ?>">
@@ -43,21 +41,21 @@ $nextMonth->modify('+1 month');
     </h1>
 
     <?php if ($dataMap): ?>
-        <table class="table table-bordered table-condensed">
+        <table class="table table-bordered table-sm table-responsive-lg text-center">
             <tr>
-                <th>Студент</th>
-                <?php for ($i = 1; $i <= $daysCount; $i++): ?><th><?= $i; ?></th><?php endfor; ?>
+                <th class="text-left">Студент</th>
+                <?php for ($i = 1; $i <= $daysCount; $i++): ?><th class="p-1"><?= $i; ?></th><?php endfor; ?>
             </tr>
         <?php foreach ($dataMap as $pupilData): ?>
             <tr>
-                <td><?= $pupilData[0]; ?></td>
-                <?php for ($i = 1; $i <= $daysCount; $i++): ?><td<?php
+                <td class="text-left"><?= $pupilData[0]; ?></td>
+                <?php for ($i = 1; $i <= $daysCount; $i++): ?><td class="p-1 <?php
                  if (array_key_exists($i, $pupilData)) {
                      switch ($pupilData[$i]['status']) {
-                         case EventMember::STATUS_MISS: echo ' class="danger"'; break;
-                         case EventMember::STATUS_ATTEND: echo ' class="success"'; break;
+                         case EventMember::STATUS_MISS: echo ' table-danger '; break;
+                         case EventMember::STATUS_ATTEND: echo ' table-success '; break;
                      }
-                 } ?>>
+                 } ?>">
                     <?= array_key_exists($i, $pupilData) ? $pupilData[$i]['mark'] : ''; ?>
                 </td><?php endfor; ?>
             </tr>

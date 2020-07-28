@@ -4,6 +4,8 @@ namespace backend\controllers;
 
 use common\components\extended\Controller;
 use yii;
+use yii\web\ForbiddenHttpException;
+use yii\web\BadRequestHttpException;
 
 abstract class AdminController extends Controller
 {
@@ -21,10 +23,35 @@ abstract class AdminController extends Controller
             return false;
         }
 
-        if ($this->accessRule && !Yii::$app->user->can($this->accessRule)) {
-            throw new yii\web\ForbiddenHttpException('Access denied!');
+        if ($this->accessRule) {
+            $this->checkAccess($this->accessRule);
         }
 
         return true;
+    }
+    
+    protected function checkRequestIsAjax(): void
+    {
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
+    }
+    
+    protected function checkAccess(string $permissionName, array $params = []): void
+    {
+        if (!Yii::$app->user->can($permissionName, $params)) throw new ForbiddenHttpException('Access denied!');
+    }
+    
+    protected static function remapRequestData(array $data): array
+    {
+        $result = [];
+        foreach ($data as $field => $records) {
+            foreach ($records as $id => $value) {
+                if (!array_key_exists($id, $result)) {
+                    $result[$id] = [];
+                }
+                $result[$id][$field] = $value;
+            }
+        }
+        
+        return $result;
     }
 }

@@ -41,7 +41,7 @@ class FeedbackController extends AdminController
 
             $newStatus = Yii::$app->request->post('status');
             if ($feedback->status != Feedback::STATUS_NEW && $newStatus == Feedback::STATUS_NEW) {
-                $jsonData = self::getJsonErrorResult('Статус "Новый" не может быть установлен сообщению со статусом "' . Feedback::$statusLabels[$feedback->status] . '"');
+                $jsonData = self::getJsonErrorResult('Статус "Новый" не может быть установлен сообщению со статусом "' . Feedback::STATUS_LABELS[$feedback->status] . '"');
             } else {
                 $feedback->status = $newStatus;
                 $isError = false;

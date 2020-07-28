@@ -131,7 +131,6 @@ class TeacherController extends AdminController
         return $this->render('update', [
             'teacher' => $teacher,
             'module' => Module::getModuleByControllerAndAction('teacher', 'view'),
-            'subjects' => Subject::find()->orderBy('name')->all(),
         ]);
     }
 
@@ -190,34 +189,6 @@ class TeacherController extends AdminController
             'teachers' => Teacher::find()->where(['page_visibility' => Teacher::STATUS_ACTIVE])->orderBy('page_order')->all(),
             'prefix' => $prefix,
         ]);
-    }
-
-    /**
-     * @param int|null $subject
-     * @return Response
-     * @throws yii\web\ForbiddenHttpException
-     */
-    public function actionListJson($subject = null) {
-        if (!Yii::$app->user->can('manageTeachers') && !Yii::$app->user->can('welcomeLessons')) {
-            throw new yii\web\ForbiddenHttpException('Access denied!');
-        }
-        
-        $jsonData = [];
-        if (Yii::$app->request->isAjax) {
-            $query = Teacher::find()->andWhere(['active' => Teacher::STATUS_ACTIVE]);
-            if ($subject) {
-                $jsonData['subjectId'] = $subject;
-                $jsonData['teachers'] = $query
-                    ->innerJoinWith('teacherSubjects')
-                    ->andWhere(['subject_id' => $subject])
-                    ->orderBy(Teacher::tableName() . '.name')
-                    ->select(Teacher::tableName() . '.id')
-                    ->column();
-            } else {
-                $jsonData = $query->select(['id', 'name'])->asArray()->all();
-            }
-        }
-        return $this->asJson($jsonData);
     }
 
     /**

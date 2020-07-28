@@ -3,8 +3,9 @@
 use backend\components\UserComponent;
 use common\models\User;
 use common\models\UserSearch;
+use yii\bootstrap4\LinkPager;
 use yii\grid\ActionColumn;
-use yii\helpers\Html;
+use yii\bootstrap4\Html;
 use yii\grid\GridView;
 use yii\helpers\Url;
 use yii\data\ActiveDataProvider;
@@ -26,51 +27,46 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a('Добавить студента', ['create-pupil'], ['class' => 'btn btn-success']) ?>
-        <?= Html::a('Добавить учителя', ['create-teacher'], ['class' => 'btn btn-success pull-right']) ?>
+        <?= Html::a('Добавить учителя', ['create-teacher'], ['class' => 'btn btn-success float-right']) ?>
         <?php if ($canManageEmployees): ?>
-            <?= Html::a('Добавить сотрудника', ['create-employee'], ['class' => 'btn btn-success pull-right margin-right-10']) ?>
+            <?= Html::a('Добавить сотрудника', ['create-employee'], ['class' => 'btn btn-success float-right mr-2']) ?>
         <?php endif; ?>
     </p>
-    <nav aria-label="User by letter" class="text-center">
-        <ul class="pagination">
-            <li<?php if ($selectedYear < 0): ?> class="active"<?php endif; ?>>
+    <nav aria-label="User by year">
+        <ul class="pagination justify-content-center">
+            <li class="page-item <?php if ($selectedYear < 0): ?> active <?php endif; ?>">
                 <?php if ($selectedYear < 0): ?>
-                    <span>Все</span>
+                    <span class="page-link">Все</span>
                 <?php else: ?>
-                    <a href="<?= Url::to(['user/index', 'letter' => $firstLetter, 'year' => -1, 'page' => 1]); ?>">Все</a>
+                    <a class="page-link" href="<?= Url::to(['user/index', 'letter' => $firstLetter, 'year' => -1, 'page' => 1]); ?>">Все</a>
                 <?php endif; ?>
             </li>
             <?php foreach (UserComponent::getStartYears() as $year): ?>
-                <li<?php if ($year == $selectedYear): ?> class="active"<?php endif; ?>>
+                <li class="page-item <?php if ($year == $selectedYear): ?> active <?php endif; ?>">
                     <?php if ($year == $selectedYear): ?>
-                        <span><?= $year; ?></span>
+                        <span class="page-link"><?= $year; ?></span>
                     <?php else: ?>
-                        <a href="<?= Url::to(['user/index', 'letter' => $firstLetter, 'year' => $year, 'page' => 1]); ?>"><?= $year; ?></a>
+                        <a class="page-link" href="<?= Url::to(['user/index', 'letter' => $firstLetter, 'year' => $year, 'page' => 1]); ?>"><?= $year; ?></a>
                     <?php endif; ?>
                 </li>
             <?php endforeach; ?>
         </ul>
     </nav>
-    <nav aria-label="User by letter" class="text-center">
-        <ul class="pagination">
-            <li<?php if ($firstLetter == 'ALL'): ?> class="active"<?php endif; ?>>
-                <?php if ($firstLetter == 'ALL'): ?>
-                    <span>Все</span>
-                <?php else: ?>
-                    <a href="<?= Url::to(['user/index', 'letter' => 'ALL', 'year' => $selectedYear, 'page' => 1]); ?>">Все</a>
-                <?php endif; ?>
-            </li>
-            <?php foreach (UserComponent::getFirstLetters() as $letter): ?>
-                <li<?php if ($letter == $firstLetter): ?> class="active"<?php endif; ?>>
-                    <?php if ($letter == $firstLetter): ?>
-                        <span><?= $letter; ?></span>
-                    <?php else: ?>
-                        <a href="<?= Url::to(['user/index', 'letter' => $letter, 'year' => $selectedYear, 'page' => 1]); ?>"><?= $letter; ?></a>
-                    <?php endif; ?>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    </nav>
+    <div class="row justify-content-start no-gutters">
+        <?php if ($firstLetter == 'ALL'): ?>
+            <span class="col-auto btn btn-primary rounded-0 px-2 mb-1">Все</span>
+        <?php else: ?>
+            <a class="col-auto btn btn-outline-primary rounded-0 px-2 mb-1" href="<?= Url::to(['user/index', 'letter' => 'ALL', 'year' => $selectedYear, 'page' => 1]); ?>">Все</a>
+        <?php endif; ?>
+
+        <?php foreach (UserComponent::getFirstLetters() as $letter): ?>
+            <?php if ($letter == $firstLetter): ?>
+                <span class="col-auto btn btn-primary rounded-0 px-3 py-2 border-left-0 mb-1"><?= $letter; ?></span>
+            <?php else: ?>
+                <a class="col-auto btn btn-outline-primary rounded-0 px-3 py-2 border-left-0 mb-1" href="<?= Url::to(['user/index', 'letter' => $letter, 'year' => $selectedYear, 'page' => 1]); ?>"><?= $letter; ?></a>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </div>
     <?php
         $roles = [null => 'Все'];
         foreach (UserComponent::ROLE_LABELS as $key => $val) $roles[$key] = $val;
@@ -78,8 +74,9 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+        'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'options' => ['class' => 'grid-view table-responsive'],
-        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->status == User::STATUS_LOCKED) ? ['class' => 'inactive'] : [];},
+        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->status == User::STATUS_LOCKED) ? ['class' => 'table-secondary'] : [];},
         'columns' => [
 //            'username',
             [
@@ -96,7 +93,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'money',
                 'contentOptions' => function ($model, $key, $index, $column) {
-                    return ($model->role == User::ROLE_PUPIL && $model->money < 0) ? ['class' => 'danger'] : [];
+                    return ($model->role == User::ROLE_PUPIL && $model->money < 0) ? ['class' => 'table-danger'] : [];
                 },
                 'content' => function ($model, $key, $index, $column) {
                     if ($model->role != User::ROLE_PUPIL) return '';
@@ -118,21 +115,26 @@ $this->params['breadcrumbs'][] = $this->title;
                 'class' => ActionColumn::class,
                 'template' => '<span class="text-nowrap">{update}{lock}{money_income}{payment_history}</span>',
                 'buttons' => [
+                    'update' =>  function($url,$model) {
+                        return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
+                            'title' => Yii::t('yii', 'Update'),
+                            'class' => 'btn btn-outline-dark',
+                        ]);
+                    },
                     'lock' => function ($url, $model, $key) {
                         return $model->status == User::STATUS_ACTIVE
-                            ? Html::button(Html::tag('span', '', ['class' => 'fas fa-lock']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 0);', 'class' => 'btn btn-default margin-right-10', 'type' => 'button', 'title' => 'Заблокировать'])
-                            : Html::button(Html::tag('span', '', ['class' => 'fas fa-lock-open']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 1);', 'class' => 'btn btn-default margin-right-10', 'type' => 'button', 'title' => 'Разблокировать']);
+                            ? Html::button(Html::tag('span', '', ['class' => 'fas fa-lock']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 0);', 'class' => 'btn btn-outline-dark ml-2', 'type' => 'button', 'title' => 'Заблокировать'])
+                            : Html::button(Html::tag('span', '', ['class' => 'fas fa-lock-open']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 1);', 'class' => 'btn btn-outline-dark ml-2', 'type' => 'button', 'title' => 'Разблокировать']);
                     },
                     'money_income' => function ($url, $model, $key) {
                         if ($model->role != User::ROLE_PUPIL) return '';
-                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-usd']), Url::to(['money/income', 'user' => $model->id]), ['class' => 'btn btn-default margin-right-10', 'title' => 'Внести деньги']);
+                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), Url::to(['money/income', 'user' => $model->id]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'Внести деньги']);
                     },
                     'payment_history' => function ($url, $model, $key) {
                         if ($model->role != User::ROLE_PUPIL) return '';
-                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-list-alt']), Url::to(['money/payment', 'PaymentSearch' => ['user_id' => $model->id]]), ['class' => 'btn btn-default margin-right-10', 'title' => 'История платежей']);
+                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-list-alt']), Url::to(['money/payment', 'PaymentSearch' => ['user_id' => $model->id]]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'История платежей']);
                     },
                 ],
-                'buttonOptions' => ['class' => 'btn btn-default margin-right-10'],
             ],
         ],
     ]); ?>

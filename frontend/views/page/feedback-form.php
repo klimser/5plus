@@ -1,12 +1,14 @@
 <?php
 
-use yii\helpers\Html;
+use himiklab\yii2\recaptcha\ReCaptcha2;
+use yii\bootstrap4\Html;
+use yii\helpers\Url;
 
 /* @var $this \yii\web\View */
 ?>
 
-<?= Html::beginForm(\yii\helpers\Url::to(['feedback/create']), 'post', ['id' => 'feedback_form', 'onsubmit' => 'return Feedback.complete(this);']); ?>
-<div id="feedback_form_body">    
+<?= Html::beginForm(Url::to(['feedback/create']), 'post', ['id' => 'feedback_form', 'onsubmit' => 'return Feedback.complete(this);']); ?>
+<div id="feedback_form_body">
     <div class="form-row">
         <div class="form-group col-md-6">
             <input name="feedback[name]" class="form-control form-control-lg" placeholder="Ваше имя" required maxlength="50">
@@ -19,7 +21,7 @@ use yii\helpers\Html;
         <textarea class="form-control form-control-lg" name="feedback[message]" rows="3" placeholder="Сообщение" required></textarea>
     </div>
     <div class="row justify-content-center">
-        <?= \himiklab\yii2\recaptcha\ReCaptcha::widget(['name' => 'feedback[reCaptcha]']) ?>
+        <?= ReCaptcha2::widget(['name' => 'feedback[reCaptcha]']) ?>
         <button type="submit" class="btn btn-default">Отправить <span class="fas fa-angle-double-right"></span></button>
     </div>
 
