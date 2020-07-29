@@ -1,5 +1,8 @@
 <?php
 
+use common\components\DefaultValuesComponent;
+use yii\widgets\LinkPager;
+
 /* @var $this \yii\web\View */
 /* @var $webpage common\models\Webpage */
 /* @var $teachers \common\models\Teacher[] */
@@ -14,10 +17,10 @@ $this->params['breadcrumbs'][] = 'Команда';
         <?php endforeach; ?>
     </div>
     <nav class="pagination-box">
-        <?= \yii\widgets\LinkPager::widget(
+        <?= LinkPager::widget(
             array_merge(
-                \common\components\DefaultValuesComponent::getPagerSettings(),
-                ['pagination' => $pager, 'maxButtonCount' => 4,]
+                DefaultValuesComponent::getPagerSettings(),
+                ['pagination' => $pager, 'maxButtonCount' => 4]
             )
         ); ?>
     </nav>
