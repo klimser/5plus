@@ -10,5 +10,9 @@
 				max-width: $length !important;
 			}
 		}
+
+		@if $breakpoint != "xs" {
+			.text#{$infix}-justify { text-align: justify !important; }
+		}
 	}
 }

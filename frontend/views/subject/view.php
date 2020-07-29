@@ -14,7 +14,7 @@ $this->params['breadcrumbs'][] = $subject->name;
 ?>
 
 <div class="container">
-    <div class="content-box subject-page">
+    <div class="content-box subject-page text-md-justify">
         <?php if ($quizCount): ?>
             <a class="btn btn-info btn-lg float-right w-100 w-md-25 w-lg-auto mw-lg-25 ml-md-1 ml-lg-3 mb-3" href="<?= Url::to(['webpage', 'id' => $quizWebpage->id, 'subjectId' => $subject->id]); ?>">
                 Узнайте свой уровень.

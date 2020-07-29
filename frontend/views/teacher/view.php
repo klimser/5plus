@@ -7,12 +7,13 @@
 
 $this->params['breadcrumbs'][] = ['url' => Yii::$app->homeUrl . $teachersWebpage->url, 'label' => 'Команда'];
 $this->params['breadcrumbs'][] = $teacher->officialName;
-?>
+
+use frontend\components\widgets\TeacherSubjectWidget; ?>
 
 <div class="container">
-    <div class="content-box">
+    <div class="content-box teacher-page">
         <?php if ($teacher->photo): ?>
-            <img src="<?= $teacher->imageUrl; ?>" class="float-left mw-50 top-left">
+            <img src="<?= $teacher->imageUrl; ?>" class="float-left mw-50 mr-3 mb-3">
         <?php endif; ?>
         
         <h2><?= $teacher->title; ?></h2>
@@ -26,7 +27,7 @@ $this->params['breadcrumbs'][] = $teacher->officialName;
             </dl>
         <?php endif; ?>
         <p><?= $teacher->description; ?></p>
-        
+
+        <?= TeacherSubjectWidget::widget(['teacher' => $teacher]); ?>
     </div>
 </div>
-<?php // \frontend\components\widgets\TeacherSubjectWidget::widget(['teacher' => $teacher]); ?>

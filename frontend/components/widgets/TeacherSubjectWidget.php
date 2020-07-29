@@ -2,7 +2,6 @@
 
 namespace frontend\components\widgets;
 
-
 use common\models\Subject;
 use common\models\Teacher;
 use yii\base\Widget;
@@ -17,16 +16,17 @@ class TeacherSubjectWidget extends Widget
     public function init()
     {
         parent::init();
-        if (!$this->teacherCount) $this->teacherCount = 4;
+        if (!$this->teacherCount) $this->teacherCount = 3;
     }
 
     public function run()
     {
         $teachers = Teacher::find()
+            ->distinct()
             ->andWhere(['page_visibility' => Subject::STATUS_ACTIVE])
-            ->andWhere(['!=', '{{%teacher}}.id', $this->teacher->id])
+            ->andWhere(['!=', Teacher::tableName() . '.id', $this->teacher->id])
             ->joinWith('subjects')
-            ->andWhere(['in', '{{%module_subject}}.id', ArrayHelper::getColumn($this->teacher->subjects, 'id')])
+            ->andWhere(['in', Subject::tableName() . '.id', ArrayHelper::getColumn($this->teacher->subjects, 'id')])
             ->orderBy('rand()')->limit($this->teacherCount)->all();
         if (empty($teachers)) return '';
 
