@@ -18,7 +18,7 @@ $this->registerMetaTag(['name' => 'og:image', 'content' => $post->imageUrl]);
 <div class="container">
     <div class="content-box">
         <?php if ($post->image): ?>
-            <img src="<?= $post->imageUrl; ?>" class="float-left" alt="<?= $post->name; ?>">
+            <img src="<?= $post->imageUrl; ?>" class="img-fluid float-left mw-sm-50 mr-3 mb-3" alt="<?= $post->name; ?>">
         <?php endif; ?>
         <?= $post->content; ?>
     </div>
