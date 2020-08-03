@@ -82,7 +82,7 @@ class News extends ActiveRecord
         return [
             'id' => 'ID новости',
             'name' => 'Заголовок',
-            'imageFile' => 'Картинка (350x225)',
+            'imageFile' => 'Картинка (350x350)',
             'content' => 'Контент',
             'webpage_id' => 'ID страницы',
             'active' => 'Активен',

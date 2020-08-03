@@ -82,7 +82,7 @@ class Blog extends ActiveRecord
         return [
             'id' => 'ID статьи',
             'name' => 'Заголовок',
-            'imageFile' => 'Картинка (350x225)',
+            'imageFile' => 'Картинка (350x350)',
             'content' => 'Контент',
             'webpage_id' => 'ID страницы',
             'active' => 'Активен',
