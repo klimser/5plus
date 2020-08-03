@@ -9,9 +9,9 @@ use yii\db\ActiveQuery;
 use yii\web\UploadedFile;
 
 /**
- * This is the model class for table "{{%module_blog}}".
+ * This is the model class for table "{{%module_news}}".
  *
- * @property int $id ID статьи
+ * @property int $id ID новости
  * @property string $name Заголовок
  * @property string $image Картинка
  * @property string $content Контент
@@ -23,7 +23,7 @@ use yii\web\UploadedFile;
  *
  * @property Webpage $webpage
  */
-class Blog extends ActiveRecord
+class News extends ActiveRecord
 {
     use Inserted, UploadImage;
 
@@ -37,7 +37,7 @@ class Blog extends ActiveRecord
         return [
             'neededImageWidth' => 350,
             'neededImageHeight' => 0,
-            'imageFolder' => 'blog',
+            'imageFolder' => 'news',
             'imageDBField' => 'image',
             'imageFilenameBase' => 'name',
             'imageFilenameAppendix' => 'id',
@@ -52,7 +52,7 @@ class Blog extends ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%module_blog}}';
+        return '{{%module_news}}';
     }
 
     /**
@@ -80,7 +80,7 @@ class Blog extends ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID статьи',
+            'id' => 'ID новости',
             'name' => 'Заголовок',
             'imageFile' => 'Картинка (350x225)',
             'content' => 'Контент',
@@ -149,4 +149,5 @@ class Blog extends ActiveRecord
         }
         return true;
     }
+    
 }

@@ -127,6 +127,7 @@ return [
             'manageQuiz',
             'managePromotions',
             'manageBlog',
+            'manageNews',
         ],
     ],
     'manageEmployees' => [
@@ -303,6 +304,10 @@ return [
     'manageBlog' => [
         'type' => 2,
         'description' => 'Manage blog',
+    ],
+    'manageNews' => [
+        'type' => 2,
+        'description' => 'Manage news',
     ],
 
     'viewMySchedule' => [

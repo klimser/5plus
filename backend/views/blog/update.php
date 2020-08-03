@@ -6,7 +6,7 @@ use yii\bootstrap4\Html;
 use yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $blog common\models\Promotion */
+/* @var $blog common\models\Blog */
 
 $this->title = $blog->isNewRecord ? 'Новый пост' : $blog->name;
 $this->params['breadcrumbs'][] = ['label' => 'Блог', 'url' => ['index']];
