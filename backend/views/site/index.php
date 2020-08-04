@@ -272,7 +272,7 @@ $this->title = 'Панель управления';
                         <a class="dropdown-item" href="<?= Url::to(['blog/index']); ?>">
                             <span class="far fa-newspaper"></span> Блог
                         </a>
-                        <a class="dropdown-item" href="<?= Url::to(['blog/news']); ?>">
+                        <a class="dropdown-item" href="<?= Url::to(['news/index']); ?>">
                             <span class="far fa-newspaper"></span> Новости
                         </a>
                     </div>
