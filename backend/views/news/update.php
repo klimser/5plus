@@ -22,14 +22,16 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?= $form->field($news, 'name')->textInput(['required' => true, 'maxlength' => true]) ?>
 
-        <?=
-        $form->field($news, 'imageFile', ['options' => ['class' => 'form-group col-10']])
-            ->fileInput(['required' => $news->isNewRecord, 'accept' => 'image/jpeg,image/png', 'data' => ['id' => $news->id]]);
-        ?>
-        <div class="col-2">
-            <?php if ($news->image): ?>
-                <img class="img-fluid" src="<?= $news->imageUrl; ?>">
-            <?php endif; ?>
+        <div class="row">
+            <?=
+            $form->field($news, 'imageFile', ['options' => ['class' => 'form-group col-10']])
+                ->fileInput(['required' => $news->isNewRecord, 'accept' => 'image/jpeg,image/png', 'data' => ['id' => $news->id]]);
+            ?>
+            <div class="col-2">
+                <?php if ($news->image): ?>
+                    <img class="img-fluid" src="<?= $news->imageUrl; ?>">
+                <?php endif; ?>
+            </div>
         </div>
 
         <?=

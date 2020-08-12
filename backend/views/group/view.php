@@ -70,7 +70,7 @@ $this->params['breadcrumbs'][] = $group->name;
                             <?= $groupPupil->user->name; ?>
                             <?php if ($groupPupil->user->parent_id): ?>
                                 <span class="fas fa-user-friends point" data-toggle="tooltip" data-placement="top" data-trigger="click hover focus" data-html="true"
-                                      title="<?= $groupPupil->user->parent->name; ?><br>
+                                      title="<?= htmlentities($groupPupil->user->parent->name, ENT_QUOTES); ?><br>
                                       <?= $groupPupil->user->parent->phone . ($groupPupil->user->parent->phone2 ? ', ' . $groupPupil->user->parent->phone2 : ''); ?>"></span>
                             <?php endif; ?>
                             <?php if ($groupPupil->user->note): ?>

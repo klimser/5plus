@@ -103,12 +103,14 @@ class Blog extends ActiveRecord
      */
     public function getTeaser(): string
     {
-        $teaser = preg_replace('#<\/p>[\r\n ]*<p>#', '<br> ', $this->content);
-        $teaser = strip_tags($teaser, '<br>');
+        $teaser = preg_replace('#<\/p>[\r\n ]*<p>#', '<br><br> ', $this->content);
+        $teaser = preg_replace('#<\/li>[\r\n ]*<li>#', '<br> ', $teaser);
+        $teaser = preg_replace('#<[uo]l>#', '<br> ', $teaser);
+        $teaser = strip_tags($teaser, '<br><hr>');
         if (mb_strlen($teaser) > self::TEASER_LENGTH) {
             $teaser = mb_substr($teaser, 0, self::TEASER_LENGTH);
-            if (mb_strpos($teaser, '.') !== false) {
-                $teaser = mb_substr($teaser, 0, mb_strrpos($teaser, '.'));
+            if (preg_match('#[.!?]#iu', $teaser)) {
+                $teaser = preg_replace('#[.!?][^.!?]*$#', '', $teaser);
             } else {
                 $teaser = mb_substr($teaser, 0, mb_strrpos($teaser, ' '));
             }

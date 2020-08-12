@@ -12,7 +12,7 @@ $postUrl = Yii::$app->homeUrl . $post->webpage->url;
         <div class="left">
             <div class="box">
                 <a href="<?= $postUrl; ?>" class="img">
-                    <img src="<?= $post->imageUrl; ?>" alt="<?= $post->name; ?>">
+                    <img src="<?= $post->imageUrl; ?>" alt="<?= htmlentities($post->name, ENT_QUOTES); ?>">
                 </a>
             </div>
         </div>

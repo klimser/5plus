@@ -55,6 +55,10 @@ class DefaultValuesComponent extends Component
                 ],
                 'block_formats' => 'Paragraph=p;Heading 2=h2;Heading 3=h3;Heading 4=h4;Heading 5=h5;Heading 6=h6;Preformatted=pre',
                 'style_formats_autohide' => true,
+                'formats' => [
+                    'bold' => ['inline' => 'b'],
+                    'italic' => ['inline' => 'i'],
+                ],
                 'style_formats' => [
                     [
                         'title' => 'Картинка слева вверху',
@@ -69,7 +73,7 @@ class DefaultValuesComponent extends Component
                         'classes' => 'img-fluid mx-auto',
                     ],
                 ],
-                'extended_valid_elements' => 'img[class=img-fluid|src|border=0|alt|title|hspace|vspace|align|onmouseover|onmouseout|name|style|width|height]',
+                'extended_valid_elements' => 'img[class=img-fluid|src|border=0|alt|title|hspace|vspace|align|onmouseover|onmouseout|name|style|width|height],b/strong[class|id|style],i/em[class|id|style]',
                 'toolbar' => 'undo redo | styleselect | bold italic | subscript superscript | fontsizeselect | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | responsivefilemanager link image',
                 'imagetools_toolbar' => 'rotateleft rotateright | flipv fliph | editimage imageoptions',
                 'external_filemanager_path' => Yii::$app->getHomeUrl() . 'filemanager/filemanager/',

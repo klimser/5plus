@@ -48,16 +48,17 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $form->field($teacher, 'descriptionForEdit', ['options' => ['class' => 'form-group col-12']])->hint('Чтобы выделить часть текста цветом, заключите текст в {{текст}}')->textarea(['rows' => 6]) ?>
 
-    <?=
-    $form->field($teacher, 'photoFile', ['options' => ['class' => 'form-group col-10']])
-        ->fileInput(['accept' => 'image/jpeg,image/png', 'data' => ['id' => $teacher->id]]);
-    ?>
-    <div class="col-2">
-        <?php if ($teacher->photo): ?>
-            <img class="img-fluid" src="<?= $teacher->imageUrl; ?>">
-        <?php endif; ?>
+    <div class="row">
+        <?=
+        $form->field($teacher, 'photoFile', ['options' => ['class' => 'form-group col-10']])
+            ->fileInput(['accept' => 'image/jpeg,image/png', 'data' => ['id' => $teacher->id]]);
+        ?>
+        <div class="col-2">
+            <?php if ($teacher->photo): ?>
+                <img class="img-fluid" src="<?= $teacher->imageUrl; ?>">
+            <?php endif; ?>
+        </div>
     </div>
-    <div class="clearfix"></div>
 
     <div class="col-12">
         <b>Предметы:</b><br>

@@ -27,7 +27,7 @@ class News extends ActiveRecord
 {
     use Inserted, UploadImage;
 
-    const TEASER_LENGTH = 400;
+    const TEASER_LENGTH = 1000;
 
     /**
      * @return array
@@ -35,7 +35,7 @@ class News extends ActiveRecord
     public function getUploadImageConfig(): array
     {
         return [
-            'neededImageWidth' => 350,
+            'neededImageWidth' => 614,
             'neededImageHeight' => 0,
             'imageFolder' => 'news',
             'imageDBField' => 'image',
@@ -82,7 +82,7 @@ class News extends ActiveRecord
         return [
             'id' => 'ID новости',
             'name' => 'Заголовок',
-            'imageFile' => 'Картинка (350x350)',
+            'imageFile' => 'Картинка (614x409)',
             'content' => 'Контент',
             'webpage_id' => 'ID страницы',
             'active' => 'Активен',
@@ -103,12 +103,14 @@ class News extends ActiveRecord
      */
     public function getTeaser(): string
     {
-        $teaser = preg_replace('#<\/p>[\r\n ]*<p>#', '<br> ', $this->content);
-        $teaser = strip_tags($teaser, '<br>');
+        $teaser = preg_replace('#<\/p>[\r\n ]*<p>#', '<br><br> ', $this->content);
+        $teaser = preg_replace('#<\/li>[\r\n ]*<li>#', '<br> ', $teaser);
+        $teaser = preg_replace('#<[uo]l>#', '<br> ', $teaser);
+        $teaser = strip_tags($teaser, '<br><hr>');
         if (mb_strlen($teaser) > self::TEASER_LENGTH) {
             $teaser = mb_substr($teaser, 0, self::TEASER_LENGTH);
-            if (mb_strpos($teaser, '.') !== false) {
-                $teaser = mb_substr($teaser, 0, mb_strrpos($teaser, '.'));
+            if (preg_match('#[.!?]#iu', $teaser)) {
+                $teaser = preg_replace('#[.!?][^.!?]*$#', '', $teaser);
             } else {
                 $teaser = mb_substr($teaser, 0, mb_strrpos($teaser, ' '));
             }

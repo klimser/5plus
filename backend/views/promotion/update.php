@@ -22,17 +22,18 @@ $this->params['breadcrumbs'][] = $promotion->name;
 
         <?= $form->field($promotion, 'name')->textInput(['required' => true, 'maxlength' => true]) ?>
 
-        <?=
-        $form->field($promotion, 'imageFile', ['options' => ['class' => 'form-group col-10']])
-            ->fileInput(['required' => $promotion->isNewRecord, 'accept' => 'image/jpeg,image/png', 'data' => ['id' => $promotion->id]]);
-        ?>
-
-        <div class="col-2">
-            <?php if ($promotion->image): ?>
-                <img class="img-fluid" src="<?= $promotion->imageUrl; ?>">
-            <?php endif; ?>
+        <div class="row">
+            <?=
+            $form->field($promotion, 'imageFile', ['options' => ['class' => 'form-group col-10']])
+                ->fileInput(['required' => $promotion->isNewRecord, 'accept' => 'image/jpeg,image/png', 'data' => ['id' => $promotion->id]]);
+            ?>
+    
+            <div class="col-2">
+                <?php if ($promotion->image): ?>
+                    <img class="img-fluid" src="<?= $promotion->imageUrl; ?>">
+                <?php endif; ?>
+            </div>
         </div>
-        <div class="clearfix"></div>
 
         <?=
         $form->field($promotion, 'content')->widget(TinyMce::class, DefaultValuesComponent::getTinyMceSettings());

@@ -223,9 +223,10 @@
   .ielts-box .left
     padding-left: 15px
     padding-right: 15px
-  .blog-list .item .left
-    width: 260px
-    min-width: 260px
+  .blog-list, .news-list
+    .item .left
+      width: 260px
+      min-width: 260px
   .price-box .left .womans
     margin-left: -30px
   .price-box .price-block .block-title
@@ -491,23 +492,22 @@
     left: 75px
   .ielts-box .right .swiper-button-prev
     left: 20px
-  .blog-list .item .left
-    width: 240px
-    min-width: 240px
-    margin-right: 15px
-  .blog-list .item .right
-    padding: 20px 15px
-  .blog-list .item .title
-    margin-bottom: 10px
-  .blog-list .item .desc
-    margin-bottom: 15px
-  .blog-list .item .desc
-    font-size: 15px
-    line-height: inherit
-  .blog-list .item
-    margin-bottom: 30px
   .blog-list
     padding-bottom: 15px
+    .item
+      margin-bottom: 30px
+      .left
+        width: 240px
+        min-width: 240px
+        margin-right: 15px
+      .right
+        padding: 20px 15px
+      .title
+        margin-bottom: 10px
+      .desc
+        margin-bottom: 15px
+        font-size: 15px
+        line-height: inherit
   .price-box
     padding-bottom: 0
   .price-box .price-block .block-title
@@ -540,7 +540,7 @@
     margin-bottom: 5px
   .price-box .price-block .contacts .phone .text .desc
     font-size: 21px
-@media (max-width : 768px)
+@include media-breakpoint-down(md)
   .main-slider-box .swiper-main-slider .swiper-slide .text .title::after
     left: 50%
     margin-left: -15px
@@ -729,20 +729,6 @@
   .received-box .left .block-name,
   .ielts-box .left .block-name
     min-height: 50px
-  .blog-list .item
-    flex-direction: column
-    align-items: center
-  .blog-list .item .left
-    margin-right: 0
-    margin-bottom: 30px
-    width: 100%
-    max-width: 304px
-    min-width: 1px
-  .blog-list .item .right
-    align-items: center
-  .blog-list .item .title
-    width: 100%
-    text-align: center
   .price-box .left
     display: none
   .price-box .right
@@ -767,7 +753,7 @@
     text-align: center
   .content-box
     padding: 20px 15px
-@media (max-width : 576px)
+@include media-breakpoint-down(sm)
   .header .logo-block .name
     font-size: 0.9rem
     .name-small
@@ -862,6 +848,21 @@
     line-height: inherit
   .team-list .item
     width: calc(100% - 30px)
+  .blog-list
+    .item
+      flex-direction: column
+      align-items: center
+      .left
+        margin-right: 0
+        margin-bottom: 30px
+        width: 100%
+        max-width: 304px
+        min-width: 1px
+      .right
+        align-items: center
+      .title
+        width: 100%
+        text-align: center
   .news-list .item .left .item-title
     font-size: 20px
   .reviews-list .item .left

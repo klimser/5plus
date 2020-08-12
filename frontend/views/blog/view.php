@@ -1,7 +1,7 @@
 <?php
 
 /* @var $this \yii\web\View */
-/* @var $post common\models\Promotion */
+/* @var $post common\models\Blog */
 /* @var $webpage common\models\Webpage */
 /* @var $blogWebpage common\models\Webpage */
 
@@ -18,7 +18,7 @@ $this->registerMetaTag(['name' => 'og:image', 'content' => $post->imageUrl]);
 <div class="container">
     <div class="content-box">
         <?php if ($post->image): ?>
-            <img src="<?= $post->imageUrl; ?>" class="img-fluid float-left mw-sm-50 mr-3 mb-3" alt="<?= $post->name; ?>">
+            <img src="<?= $post->imageUrl; ?>" class="img-fluid float-left mw-sm-50 mr-3 mb-3" alt="<?= htmlentities($post->name, ENT_QUOTES); ?>">
         <?php endif; ?>
         <?= $post->content; ?>
     </div>

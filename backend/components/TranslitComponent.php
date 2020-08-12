@@ -53,6 +53,6 @@ class TranslitComponent
     {
         $str = self::text($str);
         $str = str_replace(' ', '-', $str);
-        return str_replace(['\'', '"', '\\', '\/'], '', $str);
+        return str_replace(['\'', '"', '\\', '\/', '?'], '', $str);
     }
 }
