@@ -62,7 +62,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'customer_phone',
                 'content' => function ($model, $key, $index, $column) {
-                    return Html::phoneLink($model->phone, $model->phoneFormatted);
+                    return Html::phoneLink($model->customer_phone, $model->phoneFormatted);
                 },
             ],
             [
