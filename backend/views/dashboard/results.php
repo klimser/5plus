@@ -24,6 +24,16 @@ if ($giftCard):
     <?= $this->render('_result_gift_card', ['giftCard' => $giftCard, 'existingPupil' => $existingPupil]); ?>
 <?php endif;
 
+$pupilIdSet = [];
+if ($pupils):
+    $noResults = false;
+    foreach ($pupils as $pupil):
+        $pupilIdSet[$pupil->id] = true;
+        ?>
+        <?= $this->render('_result_pupil', ['pupil' => $pupil]); ?>
+    <?php endforeach;
+endif;
+
 if ($parents):
     $noResults = false;
     foreach ($parents as $parent): ?>
@@ -38,18 +48,13 @@ if ($parents):
             </button>
         </div>
         <div class="card-body collapse children-list accordion px-0 py-3">
-            <?php foreach ($parent->children as $child): ?>
-                <?= $this->render('_result_pupil', ['pupil' => $child]); ?>
-            <?php endforeach; ?>
+            <?php foreach ($parent->notLockedChildren as $child):
+                if (!isset($pupilIdSet[$child->id])): ?>
+                    <?= $this->render('_result_pupil', ['pupil' => $child]); ?>
+                <?php endif;
+            endforeach; ?>
         </div>
     </div>
-<?php endforeach;
-endif;
-
-if ($pupils):
-    $noResults = false;
-    foreach ($pupils as $pupil): ?>
-        <?= $this->render('_result_pupil', ['pupil' => $pupil]); ?>
 <?php endforeach;
 endif;
 

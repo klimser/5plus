@@ -62,23 +62,28 @@ class DashboardController extends AdminController
             $query->andWhere(array_merge(['or'], $searchCondition));
 
             $pupilIdSet = [];
-            $parentQuery = clone $query;
-            /** @var User[] $parents */
-            $parents = $parentQuery->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY]])
-                ->with('notLockedChildren')
-                ->all();
-            foreach ($parents as $parent) {
-                foreach ($parent->notLockedChildren as $child) {
-                    $pupilIdSet[$child->id] = true;
-                }
-            }
             
             /** @var User[] $users */
             $users = $query->andWhere(['role' => User::ROLE_PUPIL])->all();
             foreach ($users as $user) {
-                if (!array_key_exists($user->id, $pupilIdSet)) {
-                    $pupils[] = $user;
-                    $pupilIdSet[$user->id] = true;
+                $pupils[] = $user;
+                $pupilIdSet[$user->id] = true;
+            }
+            
+            $parentQuery = clone $query;
+            /** @var User[] $parents */
+            $users = $parentQuery->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY]])
+                ->with('notLockedChildren')
+                ->all();
+            foreach ($users as $user) {
+                $add = false;
+                foreach ($user->notLockedChildren as $child) {
+                    if (!array_key_exists($child->id, $pupilIdSet)) {
+                        $add = true;
+                    }
+                }
+                if ($add) {
+                    $parents[] = $user;
                 }
             }
         }
