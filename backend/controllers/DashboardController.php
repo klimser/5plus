@@ -52,8 +52,7 @@ class DashboardController extends AdminController
 
             $digitsOnly = preg_replace('#\D#', '', $searchValue);
             $query = User::find()
-                ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
-                ->addOrderBy(['role' => SORT_DESC, 'name' => SORT_ASC]);
+                ->andWhere(['not', ['status' => User::STATUS_LOCKED]]);
             $searchCondition = [['like', 'name', $searchValue]];
             if (strlen($digitsOnly) >= 7) {
                 $searchCondition[] = ['like', 'phone', "%$digitsOnly", false];
@@ -62,16 +61,16 @@ class DashboardController extends AdminController
             $query->andWhere(array_merge(['or'], $searchCondition));
 
             $pupilIdSet = [];
-            
+            $pupilQuery = clone $query;
             /** @var User[] $users */
-            $users = $query->andWhere(['role' => User::ROLE_PUPIL])->all();
+            $users = $pupilQuery->andWhere(['role' => User::ROLE_PUPIL])->all();
             foreach ($users as $user) {
                 $pupils[] = $user;
                 $pupilIdSet[$user->id] = true;
             }
             
             $parentQuery = clone $query;
-            /** @var User[] $parents */
+            /** @var User[] $users */
             $users = $parentQuery->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY]])
                 ->with('notLockedChildren')
                 ->all();
