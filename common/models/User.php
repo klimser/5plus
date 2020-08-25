@@ -315,7 +315,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getWelcomeLessons()
     {
-        return $this->hasMany(WelcomeLesson::class, ['user_id' => 'id'])->with(['subject', 'teacher', 'group'])->addOrderBy(['lesson_date' => SORT_DESC]);
+        return $this->hasMany(WelcomeLesson::class, ['user_id' => 'id'])->with(['group'])->addOrderBy(['lesson_date' => SORT_DESC]);
     }
 
     /**

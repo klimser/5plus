@@ -3,7 +3,6 @@
 namespace backend\controllers;
 
 use backend\models\Consultation;
-use backend\models\TeacherSubjectLink;
 use backend\models\WelcomeLesson;
 use common\components\GroupComponent;
 use common\components\MoneyComponent;
@@ -12,6 +11,7 @@ use common\models\Company;
 use common\models\Contract;
 use backend\models\EventMember;
 use common\models\Group;
+use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\Payment;
 use common\models\Subject;
@@ -83,7 +83,7 @@ class UserController extends AdminController
                 $welcomeLesson = $this->addPupilToWelcomeLesson($pupil, $welcomeLessonInfo);
                 $ids[] = $welcomeLesson->id;
             } catch (Throwable $exception) {
-                $errors = array_merge($errors, $exception->getMessage());
+                $errors = array_merge($errors, [$exception->getMessage()]);
             }
         }
         $infoFlashArray = [];
@@ -294,34 +294,21 @@ class UserController extends AdminController
     {
         $welcomeLesson = new WelcomeLesson();
 
-        if (!empty($welcomeLessonData['groupId'])) {
-            /** @var Group $group */
-            $group = Group::find()->andWhere(['id' => $welcomeLessonData['groupId'], 'active' => Subject::STATUS_ACTIVE])->one();
-            if (!$group) throw new Exception('Группа не найдена');
-            $welcomeLesson->group_id = $group->id;
-            $welcomeLesson->subject_id = $group->subject_id;
-            $welcomeLesson->teacher_id = $group->teacher_id;
-        } elseif (!empty($welcomeLessonData['subjectId'])) {
-            /** @var Subject $subject */
-            $subject = Subject::find()->andWhere(['id' => $welcomeLessonData['subjectId'], 'active' => Subject::STATUS_ACTIVE])->one();
-            if (!$subject) throw new Exception('Предмет не найден');
-            $welcomeLesson->subject_id = $subject->id;
-
-            if ($welcomeLessonData['teacherId']) {
-                /** @var Teacher $teacher */
-                $teacher = Teacher::find()->andWhere(['id' => $welcomeLessonData['teacherId'], 'active' => Teacher::STATUS_ACTIVE])->one();
-                if (!$teacher) throw new Exception('Учитель не найден');
-                $teacherSubject = TeacherSubjectLink::find()->andWhere(['teacher_id' => $teacher->id, 'subject_id' => $subject->id])->one();
-                if (!$teacherSubject) throw new Exception('Учитель не найден');
-                $welcomeLesson->teacher_id = $teacher->id;
-            }
-        }
+        /** @var Group $group */
+        $group = Group::find()->andWhere(['id' => $welcomeLessonData['groupId'], 'active' => Subject::STATUS_ACTIVE])->one();
+        if (!$group) throw new Exception('Группа не найдена');
+        $welcomeLesson->group_id = $group->id;
         
         $startDate = new \DateTime($welcomeLessonData['date']);
-        if (!$startDate) throw new Exception('Неверная дата начала занятий');
+        if (!$startDate) throw new Exception('Неверная дата пробного урока');
+        $groupParam = GroupParam::findByDate($group, $startDate);
+        if (!$groupParam) {
+            $groupParam = $group;
+        }
+        if (!$groupParam->hasLesson($startDate)) throw new Exception('Неверная дата пробного урока');
 
         $welcomeLesson->user_id = $pupil->id;
-        $welcomeLesson->lessonDateTime = $startDate;
+        $welcomeLesson->lesson_date = $groupParam->getLessonDateTime($startDate);
 
         if (!$welcomeLesson->save()) {
             throw new Exception('Server error: ' . $welcomeLesson->getErrorsAsString());

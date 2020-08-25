@@ -38,17 +38,28 @@ let User = {
             .fail(Main.logAndFlashAjaxError);
     },
     
-    getGroupOptions: function(selectedValue, addEmpty) {
+    getGroupOptions: function(selectedValue, addEmpty, filter) {
         if (typeof addEmpty !== 'boolean') {
             addEmpty = false;
         }
+        if (filter === undefined) {
+            filter = {};
+        }
         let optionsHtml = '';
         if (addEmpty) {
-            optionsHtml += '<option value="0" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестна</option>';
+            optionsHtml += '<option value="" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестна</option>';
         }
         Main.groupActiveList.forEach(function(groupId) {
-            optionsHtml += '<option value="' + groupId + '" ' + (selectedValue === groupId ? 'selected' : '') + '>'
-                + Main.groupMap[groupId].name + '</option>';
+            let allowed = true;
+            Object.keys(filter).forEach(function(filterKey) {
+                if (Main.groupMap[groupId][filterKey] !== filter[filterKey]) {
+                    allowed = false;
+                }
+            });
+            if (allowed) {
+                optionsHtml += '<option value="' + groupId + '" ' + (selectedValue === groupId ? 'selected' : '') + '>'
+                    + Main.groupMap[groupId].name + '</option>';
+            }
         });
         return optionsHtml;
     },
@@ -121,7 +132,7 @@ let User = {
         blockHtml += '</div></div>';
         $(container).append(blockHtml);
     },
-    addWelcomeLesson: function addWelcomeLesson(data, parentContainer) {
+    addWelcomeLesson: function (data, parentContainer) {
         this.setPupilPhoneRequired(true);
         if (data === undefined) {
             data = {groupId: 0, subjectId: 0, teacherId: 0, date: ''};
@@ -131,30 +142,36 @@ let User = {
         }
 
         let blockHtml = '<div class="welcome-lesson-item card mb-3"><div class="card-body p-3">';
-        blockHtml += '<div class="row">' +
-            '<div class="col-10 col-md-11 col-lg-4"><div class="form-group">' +
-            '<label>Группа</label>' +
-            '<select class="form-control group-select" name="welcome_lesson[groupId][' + this.iterator + ']" autocomplete="off" onchange="User.setWelcomeLessonGroup(this);">' +
-            this.getGroupOptions(parseInt(data.groupId), true) +
-            '</select>' +
-            '</div>' +
-            '</div>';
-        blockHtml += '<div class="col-2 col-md-1 order-lg-last"><button type="button" class="close" aria-label="Close" onclick="User.removeWelcomeLesson(this);"><span aria-hidden="true">&times;</span></button></div>';
-        blockHtml += '<div class="col-12 col-lg-4"><div class="form-group">' +
+        blockHtml += '<div class="row">';
+        blockHtml += '<div class="col-10 col-md-11 col-lg-6"><div class="form-group">' +
             '<label>Предмет</label>' +
             '<select class="form-control subject-select" name="welcome_lesson[subjectId][' + this.iterator + ']" autocomplete="off" onchange="User.setWelcomeLessonSubject(this);"' +
             (data.groupId > 0 ? ' disabled ' : '') + '>' + this.getSubjectOptions(data.subjectId) + '</select>' +
             '</div></div>';
-        blockHtml += '<div class="col-12 col-lg-3"><div class="form-group">' +
+        blockHtml += '<div class="col-2 col-md-1 order-lg-last"><button type="button" class="close" aria-label="Close" onclick="User.removeWelcomeLesson(this);"><span aria-hidden="true">&times;</span></button></div>';
+        blockHtml += '<div class="col-12 col-lg-5"><div class="form-group">' +
             '<label>Учитель</label>' +
-            '<select class="form-control teacher-select" name="welcome_lesson[teacherId][' + this.iterator + ']" autocomplete="off"' + (data.groupId > 0 ? ' disabled ' : '') + '>' +
+            '<select class="form-control teacher-select" name="welcome_lesson[teacherId][' + this.iterator + ']" autocomplete="off" onchange="User.setWelcomeLessonTeacher(this);"' +
+            (data.groupId > 0 ? ' disabled ' : '') + '>' +
             this.getTeacherOptions(data.subjectId, data.teacherId) + '</select>' +
             '</div></div>';
         blockHtml += '</div>';
-        blockHtml += '<div class="form-group">' +
+        blockHtml += '<div class="row">';
+        blockHtml +=
+            '<div class="col-12"><div class="form-group">' +
+            '<label>Группа</label>' +
+            '<select class="form-control group-select" name="welcome_lesson[groupId][' + this.iterator + ']" autocomplete="off" required onchange="User.setWelcomeLessonGroup(this);">' +
+            this.getGroupOptions(parseInt(data.groupId), true) +
+            '</select>' +
+            '</div>' +
+            '</div>';
+        blockHtml += '</div>';
+        blockHtml += '<div class="row">';
+        blockHtml += '<div class="col-12"><div class="form-group">' +
             '<label>Дата</label>' +
             '<input type="text" class="form-control date-select datepicker" name="welcome_lesson[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
-            '</div>';
+            '</div></div>';
+        blockHtml += '</div>';
         blockHtml += '</div></div>';
         let container = $(parentContainer).find(".welcome_lessons");
         $(container).append(blockHtml);
@@ -289,9 +306,14 @@ let User = {
             let group = Main.groupMap[$(e).val()];
             $(container).find(".subject-select").prop("disabled", true)
                 .find('option[value=' + group.subjectId + ']').prop('selected', true);
-            this.setWelcomeLessonSubject($(container).find(".subject-select"));
             $(container).find(".teacher-select").prop("disabled", true)
                 .find('option[value=' + group.teacherId + ']').prop('selected', true);
+            let dateSelect = $(container).find(".date-select");
+            $(dateSelect).datepicker("option", "minDate", new Date(group.dateStart));
+            $(dateSelect).datepicker("option", "beforeShowDay", function(date) {
+                return [group.weekDays.indexOf(date.getDay()) >= 0, ""];
+            });
+            $(dateSelect).val('');
         } else {
             $(container).find(".subject-select").prop("disabled", false);
             $(container).find(".teacher-select").prop("disabled", false);
@@ -300,6 +322,21 @@ let User = {
     setWelcomeLessonSubject: function(e) {
         $(e).closest('.welcome-lesson-item').find(".teacher-select")
             .html(this.getTeacherOptions($(e).val()));
+        this.filterGroupSelect($(e).closest('.welcome-lesson-item'));
+    },
+    setWelcomeLessonTeacher: function(e) {
+        this.filterGroupSelect($(e).closest('.welcome-lesson-item'));
+    },
+    filterGroupSelect: function(welcomeLessonItem) {
+        let filter = {};
+        if ($(welcomeLessonItem).find(".subject-select").val() > 0) {
+            filter.subjectId = parseInt($(welcomeLessonItem).find(".subject-select").val());
+        }
+        if ($(welcomeLessonItem).find(".teacher-select").val() > 0) {
+            filter.teacherId = parseInt($(welcomeLessonItem).find(".teacher-select").val());
+        }
+        let groupSelect = $(welcomeLessonItem).find(".group-select");
+        $(groupSelect).html(this.getGroupOptions($(groupSelect).val(), true, filter));
     },
     setGroup: function(e, flushAmount) {
         let group = Main.groupMap[$(e).val()];

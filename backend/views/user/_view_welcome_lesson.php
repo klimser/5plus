@@ -20,9 +20,10 @@ use backend\models\WelcomeLesson;
                     <td>
                         <?php if ($welcomeLesson->group_id): ?>
                             <?= $welcomeLesson->group->name; ?><br>
+                            <?= $welcomeLesson->group->subject->name; ?><br>
+                            <?= $welcomeLesson->group->teacher->name; ?>
                         <?php endif; ?>
-                        <?= $welcomeLesson->subject->name; ?><br>
-                        <?= $welcomeLesson->teacher->name; ?>
+                        
                     </td>
                     <td><?= $welcomeLesson->lessonDateTime->format('d.m.Y'); ?></td>
                     <td><?= WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]; ?></td>

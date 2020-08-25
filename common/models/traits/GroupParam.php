@@ -86,7 +86,7 @@ trait GroupParam
      */
     public function getLessonTime(\DateTime $day): string
     {
-        if (!$this->isHasLesson($day)) return '';
+        if (!$this->hasLesson($day)) return '';
         return $this->scheduleData[(7 + intval($day->format('w')) - 1) % 7] . ':00';
     }
 
@@ -96,7 +96,7 @@ trait GroupParam
      */
     public function getLessonDateTime(\DateTime $day): string
     {
-        if (!$this->isHasLesson($day)) return '';
+        if (!$this->hasLesson($day)) return '';
         return $day->format('Y-m-d') . ' ' . $this->getLessonTime($day);
     }
 
@@ -104,7 +104,7 @@ trait GroupParam
      * @param \DateTime $day
      * @return bool
      */
-    public function isHasLesson(\DateTime $day): bool
+    public function hasLesson(\DateTime $day): bool
     {
         return !empty($this->scheduleData[(7 + intval($day->format('w')) - 1) % 7]);
     }

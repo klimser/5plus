@@ -1,5 +1,6 @@
 <?php
 
+use backend\models\WelcomeLesson;
 use common\components\helpers\WordForm;
 use yii\bootstrap4\Html;
 use common\components\helpers\Calendar;
@@ -128,6 +129,23 @@ Event.init(' . time() . ');
 
                         <ul class="list-group list-group-flush pupils_block collapse <?= $event->status == Event::STATUS_UNKNOWN ? '' : ' show '; ?>" data-button-state="0">
                             <li class="list-group-item list-group-item-secondary text-center">Студенты</li>
+                            <?php foreach ($event->welcomeMembers as $welcomeMember): ?>
+                                <li class="list-group-item list-group-item-warning p-2">
+                                    <div id="messages_place_event_welcome_member_<?= $welcomeMember->id; ?>"></div>
+                                    <div id="event_welcome_member_<?= $welcomeMember->id; ?>" class="event_welcome_member row no-gutters align-items-center <?php
+                                    if ($welcomeMember->status == WelcomeLesson::STATUS_PASSED) echo ' text-success ';
+                                    if ($welcomeMember->status == WelcomeLesson::STATUS_MISSED) echo ' text-danger ';
+                                    ?>" data-id="<?= $welcomeMember->id; ?>" data-status="<?= $welcomeMember->status; ?>">
+                                        <div class="col-8">
+                                            <?= $welcomeMember->user->name; ?>
+                                            <?php if ($welcomeMember->user->note): ?>
+                                                <span class="fas fa-info-circle text-danger" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= implode('<br>', $welcomeMember->user->note); ?>"></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="col-4 buttons-column text-right"></div>
+                                    </div>
+                                </li>
+                            <?php endforeach; ?>
                             <?php foreach ($event->members as $member): ?>
                                 <li class="list-group-item p-2">
                                     <div id="messages_place_event_member_<?= $member->id; ?>"></div>

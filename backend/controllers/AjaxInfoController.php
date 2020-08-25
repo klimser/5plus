@@ -103,6 +103,7 @@ class AjaxInfoController extends AdminController
                 'price3' => $group->price3Month,
                 'dateStart' => $group->date_start,
                 'dateEnd' => $group->date_end,
+                'weekDays' => array_map(function($val) { return ($val + 1) % 7; }, array_keys(array_filter($group->scheduleData))),
             ];
         }
 

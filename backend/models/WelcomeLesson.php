@@ -16,18 +16,14 @@ use yii\db\ActiveQuery;
  *
  * @property int $id
  * @property int $user_id
- * @property int $subject_id
- * @property int $teacher_id
  * @property int $group_id
- * @property-read string $lesson_date
+ * @property string $lesson_date
  * @property int $status
  * @property int $deny_reason
  * @property string $comment
  * @property int $bitrix_sync_status
  * @property int $created_by
  * @property-read User $user
- * @property-read Subject $subject
- * @property-read Teacher $teacher
  * @property-read Group $group
  * @property DateTime $lessonDateTime
  * @property-read string $lessonDateString
@@ -105,12 +101,11 @@ class WelcomeLesson extends ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'subject_id', 'teacher_id', 'group_id', 'status', 'deny_reason', 'bitrix_sync_status', 'created_by'], 'integer'],
+            [['user_id', 'group_id', 'status', 'deny_reason', 'bitrix_sync_status', 'created_by'], 'integer'],
             [['user_id', 'lesson_date'], 'required'],
             [['comment'], 'string'],
-            [['subject_id', 'teacher_id', 'group_id', 'deny_reason'], 'default', 'value' => null],
-            [['subject_id', 'teacher_id'], 'required', 'when' => function(self $model) { return $model->group_id === null; }],
-            [['group_id'], 'required', 'when' => function(self $model) { return $model->teacher_id === null || $model->subject_id === null; }],
+            [['deny_reason'], 'default', 'value' => null],
+            [['group_id'], 'required'],
             ['lesson_date', 'date', 'format' => 'yyyy-MM-dd HH:mm:ss'],
             ['status', 'in', 'range' => self::STATUS_LIST],
             ['status', 'default', 'value' => self::STATUS_UNKNOWN],
@@ -118,8 +113,7 @@ class WelcomeLesson extends ActiveRecord
             [['bitrix_sync_status'], 'default', 'value' => self::STATUS_INACTIVE],
             ['deny_reason', 'in', 'range' => self::DENY_REASON_LIST],
             ['user_id', 'exist', 'targetRelation' => 'user'],
-            ['subject_id', 'exist', 'targetRelation' => 'subject'],
-            ['teacher_id', 'exist', 'targetRelation' => 'teacher'],
+            ['group_id', 'exist', 'targetRelation' => 'group'],
             ['created_by', 'exist', 'targetRelation' => 'createdAdmin'],
         ];
     }
@@ -133,29 +127,11 @@ class WelcomeLesson extends ActiveRecord
             'id' => 'ID',
             'user_id' => 'Студент',
             'lesson_date' => 'Дата',
-            'subject_id' => 'Предмет',
-            'teacher_id' => 'Учитель',
             'group_id' => 'Группа',
             'deny_reason' => 'Причина отказа',
             'comment' => 'Комментарий',
             'status' => 'Статус занятия',
         ];
-    }
-
-    /**
-     * @return ActiveQuery
-     */
-    public function getSubject()
-    {
-        return $this->hasOne(Subject::class, ['id' => 'subject_id']);
-    }
-
-    /**
-     * @return ActiveQuery
-     */
-    public function getTeacher()
-    {
-        return $this->hasOne(Teacher::class, ['id' => 'teacher_id']);
     }
 
     /**

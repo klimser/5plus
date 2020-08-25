@@ -24,6 +24,7 @@ use common\models\Teacher;
  *
  * @property Group $group
  * @property EventMember[] $members
+ * @property WelcomeLesson[] $welcomeMembers
  */
 class Event extends ActiveRecord
 {
@@ -180,5 +181,15 @@ class Event extends ActiveRecord
             ->andWhere(['between', 'event_date', $date->format('Y-m-d') . ' 00:00:00', $date->format('Y-m-d') . ' 23:59:59'])
             ->one();
         return $event;
+    }
+
+    /**
+     * @return WelcomeLesson[]|array
+     */
+    public function getWelcomeMembers(): array
+    {
+        return WelcomeLesson::find()
+            ->andWhere(['group_id' => $this->group_id, 'lesson_date' => $this->event_date])
+            ->all();
     }
 }

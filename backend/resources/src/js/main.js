@@ -155,6 +155,7 @@ let Main = {
         return $.Deferred(function (defer) {
             $.getJSON('/ajax-info/groups', {filter: {active: 1}})
                 .done(function (data) {
+                    Main.groupActiveList = [];
                     data.forEach(function (group) {
                         Main.groupActiveList.push(group.id);
                         Main.groupMap[group.id] = group;
@@ -177,6 +178,7 @@ let Main = {
         return $.Deferred(function (defer) {
             $.getJSON('/ajax-info/teachers', {filter: {active: 1}})
                 .done(function (data) {
+                    Main.teacherActiveList = [];
                     data.forEach(function (teacher) {
                         Main.teacherMap[teacher.id] = teacher;
                         teacher.subjectIds.forEach(function (subjectId) {
@@ -205,6 +207,7 @@ let Main = {
         return $.Deferred(function (defer) {
             $.getJSON('/ajax-info/subjects', {filter: {active: 1}})
                 .done(function (data) {
+                    Main.subjectActiveList = [];
                     data.forEach(function (subject) {
                         Main.subjectMap[subject.id] = subject;
                         if (typeof Main.subjectCategoryMap[subject.categoryId] === 'undefined') {

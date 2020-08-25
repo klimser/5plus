@@ -47,9 +47,6 @@ let WelcomeLesson = {
         switch (data.status) {
             case this.statusUnknown:
                 contents =
-                    '<button type="button" title="Проведено" class="btn btn-primary" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusPassed + ')">' +
-                        '<span class="fas fa-check"></span>' +
-                    '</buttona>' +
                     '<button type="button" title="Отменено" class="btn btn-danger ml-2" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusCanceled + ');">' +
                         '<span class="fas fa-times"></span>' +
                     '</button>' +
@@ -62,9 +59,6 @@ let WelcomeLesson = {
                     '<button class="btn btn-primary" type="button" title="В группу!" onclick="WelcomeLesson.showMovingForm(this, ' + data.id + ')">' +
                         '<span class="fas fa-user-check"></span>' +
                     '</button>' +
-                    '<button type="button" title="Не пришёл" class="btn btn-warning ml-2" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusMissed + ')">' +
-                        '<span class="fas fa-user-slash"></span>' +
-                    '</buttona>' +
                     '<button type="button" title="Не будет ходить" class="btn btn-danger ml-2" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusDenied + ')">' +
                         '<span class="fas fa-running"></span>' +
                     '</buttona>';

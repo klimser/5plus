@@ -25,7 +25,7 @@ class EventComponent extends Component
     public static function addEvent(Group $group, DateTime $date): ?Event
     {
         $groupParam = GroupComponent::getGroupParam($group, $date);
-        if ($groupParam->isHasLesson($date)) {
+        if ($groupParam->hasLesson($date)) {
             $event = $group->hasEvent($date);
             if (!$event) {
                 $event = new Event();

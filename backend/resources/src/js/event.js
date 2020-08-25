@@ -21,6 +21,9 @@ let Event = {
                 $(pupilsBlock).find(".event_member").each(function () {
                     Event.fillMemberButtons($(this).data("id"));
                 });
+                $(pupilsBlock).find(".event_welcome_member").each(function () {
+                    Event.fillWelcomeMemberButtons($(this).data("id"));
+                });
                 $(pupilsBlock).data("buttonState", 1);
             }
         }
@@ -40,6 +43,21 @@ let Event = {
                 break;
         }
         $(memberRow).find(".buttons-column").html(this.getButtonsColumn(memberId, $(memberRow).data('status'), $(memberRow).data('mark')));
+    },
+    fillWelcomeMemberButtons: function(memberId) {
+        let memberRow = $("#event_welcome_member_" + memberId);
+        switch ($(memberRow).data("status")) {
+            case WelcomeLesson.statusUnknown:
+                $(memberRow).removeClass("text-success text-danger");
+                break;
+            case WelcomeLesson.statusPassed:
+                $(memberRow).addClass("text-success").removeClass("text-danger");
+                break;
+            case WelcomeLesson.statusMissed:
+                $(memberRow).addClass("text-danger").removeClass("text-success");
+                break;
+        }
+        $(memberRow).find(".buttons-column").html(this.getWelcomeButtonsColumn(memberId, $(memberRow).data('status')));
     },
     lockStatusButtons: function(eventId) {
         $('#event_details_' + eventId).find(".status_block button").prop("disabled", true);
@@ -121,6 +139,17 @@ let Event = {
         }
         return '';
     },
+    getWelcomeButtonsColumn: function(memberId, memberStatus) {
+        if (memberStatus === WelcomeLesson.statusUnknown) {
+            return '<button class="btn btn-success" onclick="Event.setPupilAttendStatus(' + memberId + ', ' + WelcomeLesson.statusPassed + ', \'welcomeMemberId\');" title="Присутствовал(а)">' +
+                '<span class="fas fa-check"></span>' +
+                '</button>' +
+                '<button class="btn btn-danger" onclick="Event.setPupilAttendStatus(' + memberId + ', ' + WelcomeLesson.statusMissed + ', \'welcomeMemberId\');" title="Отсутствовал(а)">' +
+                '<span class="fas fa-times"></span>' +
+                '</button>';
+        }
+        return '';
+    },
     lockMemberButtons: function(memberId) {
         $(".pupils_block").find("button").prop("disabled", true);
         this.processingEventMemberId = memberId;
@@ -134,10 +163,13 @@ let Event = {
         $(memberRow).find(".buttons-column")
             .html(this.getButtonsColumn(memberId, this.isAttendEditAllowed(memberId) ? this.memberStatusUnknown : this.memberStatusMiss, $(memberRow).data('mark')));
     },
-    setPupilAttendStatus: function(memberId, status) {
+    setPupilAttendStatus: function(memberId, status, key) {
+        if (key === undefined) {
+            key = 'memberId';
+        }
         this.lockMemberButtons(memberId);
         $.ajax({
-                url: '/event/set-pupil-status?memberId=' + memberId,
+                url: '/event/set-pupil-status?' + key + '=' + memberId,
                 type: 'post',
                 dataType: 'json',
                 data: {
@@ -146,9 +178,15 @@ let Event = {
             })
         .done(function(data) {
             if (data.status === 'ok') {
-                let memberBlock = $("#event_member_" + data.memberId);
-                $(memberBlock).data("status", data.memberStatus);
-                Event.fillMemberButtons(data.memberId);
+                if (data.memberId) {
+                    let memberBlock = $("#event_member_" + data.memberId);
+                    $(memberBlock).data("status", data.memberStatus);
+                    Event.fillMemberButtons(data.memberId);
+                } else {
+                    let memberBlock = $("#event_welcome_member_" + data.welcomeMemberId);
+                    $(memberBlock).data("status", data.memberStatus);
+                    Event.fillWelcomeMemberButtons(data.welcomeMemberId);
+                }
             } else {
                 Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
             }
