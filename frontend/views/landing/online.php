@@ -139,12 +139,42 @@ use yii\helpers\Url;
                 <h2 class="col text-center my-3 my-lg-5">Результаты</h2>
             </div>
             <div class="row">
+                <div class="col">
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide item">
+                                <div class="box">
+                                    <video width="100%" controls>
+                                        <source src="<?= Yii::$app->homeUrl; ?>video/result.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                            </div>
+                            <?php for ($i = 1; $i <= 33; $i++): ?>
+                                <div class="swiper-slide item">
+                                    <div class="box">
+                                        <a class="img" href="<?= Yii::$app->homeUrl; ?>images/results/results_<?= $i; ?>.jpg" data-fancybox="">
+                                            <img class="img-fluid" src="<?= Yii::$app->homeUrl; ?>images/results/results_<?= $i; ?>.jpg">
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col text-center my-4">
+                    <button type="button" class="results-prev btn btn-secondary rounded-circle mr-3"><span class="fas fa-chevron-left"></span></button>
+                    <button type="button" class="results-next btn btn-secondary rounded-circle ml-3"><span class="fas fa-chevron-right"></span></button>
+                </div>
+            </div>
+            <?php /*<div class="row">
                 <div class="col-12 col-lg-4 offset-lg-4 text-center">
                     <video width="100%" controls>
                         <source src="<?= Yii::$app->homeUrl; ?>video/result.mp4" type="video/mp4">
                     </video>
                 </div>
-            </div>
+            </div>*/ ?>
         </div>
     </section>
     <section id="slide-7" class="section pp-section overflow-hidden">
@@ -306,6 +336,37 @@ use yii\helpers\Url;
 </div>
 
 <?php
+
+    $this->registerJs(<<<SCRIPT
+var mySwiper = new Swiper('.swiper-container', {
+  speed: 500,
+  loop: true,
+  spaceBetween: 25,
+  slidesPerView: 1,
+  watchSlidesVisibility: true,
+  disableOnInteraction: true,
+  watchOverflow: true,
+  autoplay: {
+    delay: 6000,
+  },
+  navigation: {
+    nextEl: '.results-next',
+    prevEl: '.results-prev',
+  },
+  breakpoints: {
+    576: {
+      slidesPerView: 2,
+    },
+    768: {
+      slidesPerView: 3,
+    },
+    992: {
+      slidesPerView: 4,
+    },
+  }
+});
+SCRIPT
+);
 
 //    $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/pagePiling.js/1.5.6/jquery.pagepiling.min.js', ['integrity' => 'sha512-FcXc9c211aHVJEHxoj2fNFeT8+wUESf/4mUDIR7c31ccLF3Y6m+n+Wsoq4dp2sCnEEDVmjhuXX6TfYNJO6AG6A==', 'crossorigin' => 'anonymous', 'depends' => [\yii\web\JqueryAsset::class]]);
 

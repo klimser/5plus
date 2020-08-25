@@ -27,6 +27,10 @@ body:after {
     color: #0E0E0E;
     border-radius: 9px;
 }
+.results-prev, .results-next {
+    width: 38px;
+    height: 38px;
+}
 
 header {
     background: url("../images/slide-1-bg.jpg") no-repeat center;
@@ -356,5 +360,8 @@ footer .design-figure-1 {
     }
     #slide-9 .container {
         min-height: 50vh;
+    }
+    footer .yellow, footer .yellow a {
+        font-size: 18px;
     }
 }
