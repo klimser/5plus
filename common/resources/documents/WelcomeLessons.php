@@ -74,14 +74,14 @@ class WelcomeLessons
             $this->_doc->Write(6, Yii::$app->formatter->asDatetime($welcomeLesson->lessonDateTime, 'php:j F Y'));
 
             $this->_doc->SetFont($fontRegular, '', $fontSize);
-            $subjectStrings = $this->splitText($welcomeLesson->subject->name, 50);
+            $subjectStrings = $this->splitText($welcomeLesson->group->subject->name, 50);
             foreach ($subjectStrings as $i => $subjectString) {
                 $this->_doc->SetXY($xLeft + 45, 5 * $i + $yTop + 25);
                 $this->_doc->Write(6, $subjectString);
             }
             
             $y = max(5 * count($subjectStrings) + $yTop + 25, $yTop + 40);
-            $teacherStrings = $this->splitText('Преподаватель - ' . $welcomeLesson->teacher->name, 90);
+            $teacherStrings = $this->splitText('Преподаватель - ' . $welcomeLesson->group->teacher->officialName, 90);
             foreach ($teacherStrings as $i => $teacherString) {
                 $this->_doc->SetXY($xLeft + 5, 5 * $i + $y);
                 $this->_doc->Write(6, $teacherString);
