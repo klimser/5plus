@@ -57,9 +57,9 @@ class Group extends ActiveRecord
     public function scenarios()
     {
         return [
-            self::SCENARIO_EMPTY => ['name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'date_start', 'room_number',
+            self::SCENARIO_EMPTY => ['name', 'legal_name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'date_start', 'room_number',
                 'lesson_price_discount', 'lesson_duration', 'teacher_rate', 'date_end'],
-            self::SCENARIO_DEFAULT => ['name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'room_number',
+            self::SCENARIO_DEFAULT => ['name', 'legal_name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'room_number',
                 'lesson_price_discount', 'lesson_duration', 'teacher_rate', 'date_end'],
         ];
     }
@@ -74,7 +74,7 @@ class Group extends ActiveRecord
             [['name', 'legal_name', 'subject_id', 'type_id', 'teacher_id', 'lesson_price', 'date_start'], 'required'],
             [['subject_id', 'teacher_id', 'type_id', 'lesson_price', 'lesson_price_discount', 'lesson_duration', 'active'], 'integer'],
             [['teacher_rate'], 'number', 'min'=> 0, 'max' => 100],
-            [['name', 'legal_name'], 'string', 'max' => 50],
+            [['name', 'legal_name'], 'string', 'min' => 3, 'max' => 50],
             [['schedule'], 'string', 'max' => 255],
             [['room_number'], 'string', 'max' => 25],
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
