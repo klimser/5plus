@@ -20,7 +20,7 @@ $this->registerJs($initialJs);
 <div id="messages_place"></div>
 <form id="search-form" onsubmit="Dashboard.find(this); return false;">
     <div class="form-group input-group input-group-lg">
-        <input class="form-control autofocus search" placeholder="Телефон, ФИО и т п" minlength="3" autocomplete="off" required>
+        <input class="form-control search" placeholder="Телефон, ФИО и т п" minlength="3" autocomplete="off" required autofocus>
         <div class="input-group-append">
             <button class="btn btn-outline-secondary" type="button" onclick="Dashboard.clearInput(this);"><span class="fas fa-times"></span></button>
             <button class="btn btn-success"><span class="fas fa-search"></span></button>

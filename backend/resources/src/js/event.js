@@ -53,6 +53,7 @@ let Event = {
             case WelcomeLesson.statusPassed:
                 $(memberRow).addClass("text-success").removeClass("text-danger");
                 break;
+            case WelcomeLesson.statusCanceled:
             case WelcomeLesson.statusMissed:
                 $(memberRow).addClass("text-danger").removeClass("text-success");
                 break;
@@ -89,6 +90,12 @@ let Event = {
                         $(this).data("status", Event.memberStatusMiss);
                     }
                     Event.fillMemberButtons($(this).data("id"));
+                });
+                $(pupilsBlock).find(".event_welcome_member").each(function () {
+                    if (data.eventStatus === Event.eventStatusCancelled) {
+                        $(this).data("status", WelcomeLesson.statusCanceled);
+                    }
+                    Event.fillWelcomeMemberButtons($(this).data("id"));
                 });
                 
                 $(pupilsBlock).collapse('show');

@@ -78,29 +78,29 @@ class EventComponent extends Component
     public static function fillSchedule(Group $group)
     {
         $limitDate = new DateTime('+1 day midnight');
-        if ($group->groupPupils) {
-            $startDate = clone $group->startDateObject;
-            $startDate->modify('midnight');
-            $endDate = $group->endDateObject ? clone $group->endDateObject : null;
-            if (!$endDate || $endDate > $limitDate) $endDate = $limitDate;
-            $endDate->modify('midnight');
-            $intervalDay = new DateInterval('P1D');
-            while ($startDate <= $endDate) {
+        $startDate = clone $group->startDateObject;
+        $startDate->modify('midnight');
+        $endDate = $group->endDateObject ? clone $group->endDateObject : null;
+        if (!$endDate || $endDate > $limitDate) $endDate = $limitDate;
+        $endDate->modify('midnight');
+        $intervalDay = new DateInterval('P1D');
+        while ($startDate <= $endDate) {
+            if ($group->groupPupils || $group->hasWelcomeLessons($startDate)) {
                 $event = self::addEvent($group, $startDate);
                 if ($event) MoneyComponent::chargeByEvent($event);
-                $startDate->add($intervalDay);
             }
-            /** @var Event[] $overEvents */
-            $overEvents = Event::find()
-                ->andWhere(['group_id' => $group->id])
-                ->andWhere(['>', 'event_date', $endDate->format('Y-m-d H:i:s')])
-                ->with('members.payments')
-                ->all();
-            foreach ($overEvents as $event) {
-                $event->status = Event::STATUS_CANCELED;
-                MoneyComponent::chargeByEvent($event);
-                if (!self::deleteEvent($event)) throw new Exception('Unable to delete event');
-            }
+            $startDate->add($intervalDay);
+        }
+        /** @var Event[] $overEvents */
+        $overEvents = Event::find()
+            ->andWhere(['group_id' => $group->id])
+            ->andWhere(['>', 'event_date', $endDate->format('Y-m-d H:i:s')])
+            ->with('members.payments')
+            ->all();
+        foreach ($overEvents as $event) {
+            $event->status = Event::STATUS_CANCELED;
+            MoneyComponent::chargeByEvent($event);
+            if (!self::deleteEvent($event)) throw new Exception('Unable to delete event');
         }
     }
 

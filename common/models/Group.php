@@ -3,6 +3,7 @@
 namespace common\models;
 
 use backend\models\Event;
+use backend\models\WelcomeLesson;
 use common\components\extended\ActiveRecord;
 use common\models\traits\GroupParam as GroupParamTrait;
 use DateTime;
@@ -243,20 +244,23 @@ class Group extends ActiveRecord
     {
         $this->date_end = $endDate ? $endDate->format('Y-m-d') : null;
     }
-    
-    /**
-     * @return DateTime|null
-     */
+
     public function getEndDateObject(): ?DateTime
     {
         return empty($this->date_end) ? null : new DateTime($this->date_end . ' midnight');
     }
 
-    /**
-     * @return bool
-     */
     public function isKids(): bool
     {
         return preg_match('#kids#i', $this->name) || preg_match('#кидс#iu', $this->name);
+    }
+
+    public function hasWelcomeLessons(\DateTimeInterface $date): bool
+    {
+        $lessonsCount = WelcomeLesson::find()
+            ->andWhere(['group_id' => $this->id])
+            ->andWhere(['between', 'lesson_date', $date->format('Y-m-d') . ' 00:00:00', $date->format('Y-m-d') . ' 23:59:59'])
+            ->count();
+        return $lessonsCount > 0;
     }
 }

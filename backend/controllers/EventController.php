@@ -130,6 +130,10 @@ class EventController extends AdminController
                                     $member->save();
                                     MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
                                 }
+                                foreach ($event->welcomeMembers as $welcomeMember) {
+                                    $welcomeMember->status = WelcomeLesson::STATUS_CANCELED;
+                                    $welcomeMember->save();
+                                }
                                 break;
                         }
 
