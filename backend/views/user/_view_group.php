@@ -8,6 +8,7 @@ use common\models\GroupPupil;
 /* @var $pupil \common\models\User */
 /* @var $contractAllowed bool */
 /* @var $incomeAllowed bool */
+/* @var $debtAllowed bool */
 /* @var $groupManagementAllowed bool */
 /* @var $moveMoneyAllowed bool */
 /** @var GroupPupil[] $groupPupils */
@@ -56,6 +57,13 @@ foreach ($groupPupils as $groupPupil) {
                             <button type="button" title="принять оплату" class="btn btn-primary mb-2" onclick="Dashboard.showMoneyIncomeForm(this);"
                                     data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
                                 <span class="fas fa-dollar-sign"></span>
+                            </button>
+                        <?php endif; ?>
+                    
+                        <?php if ($debtAllowed): ?>
+                            <button type="button" title="добавить долг" class="btn btn-outline-danger mb-2" onclick="Dashboard.showMoneyDebtForm(this);"
+                                    data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
+                                <span class="fas fa-cash-register"></span>
                             </button>
                         <?php endif; ?>
     

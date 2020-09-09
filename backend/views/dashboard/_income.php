@@ -43,7 +43,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>
-                    <button class="btn btn-primary" id="group-move-button">принять</button>
+                    <button class="btn btn-primary" id="income-button">принять</button>
                 </div>
             </form>
         </div>

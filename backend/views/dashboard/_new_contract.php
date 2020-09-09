@@ -37,7 +37,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>
-                    <button class="btn btn-primary" id="group-move-button">выдать</button>
+                    <button class="btn btn-primary" id="new-contract-button">выдать</button>
                 </div>
             </form>
         </div>

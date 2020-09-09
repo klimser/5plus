@@ -254,6 +254,52 @@ let Dashboard = {
     unlockIncomeButton: function() {
         $("#income-button").prop('disabled', false);
     },
+    showMoneyDebtForm: function(e) {
+        let groupId = $(e).data('group');
+        let group = Main.groupMap[groupId];
+
+        $('#debt-messages-place').html('');
+        let form = $("#debt-form");
+        $(form).find("#debt-user-id").val($(e).data("user"));
+        $(form).find("#debt-group-id").val(groupId);
+        $(form).find("#debt-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#debt-amount").val(0);
+        $(form).find("#debt_comment").val('');
+        $(form).find("#debt-group-name").val(group.name);
+        $("#modal-debt").modal("show");
+    },
+    completeDebt: function(form) {
+        this.lockDebtButton();
+        return $.ajax({
+            url: '/money/process-debt',
+            type: 'post',
+            dataType: 'json',
+            data: $(form).serialize()
+        })
+            .done(function(data) {
+                if (data.status === 'ok') {
+                    $("#modal-debt").modal("hide");
+                    let container = $('#user-view-' + data.userId).closest(".pupil-info");
+                    Dashboard.togglePupilInfo(container, true, 'group')
+                        .done(function() {
+                            let messagesPlace = $(container).find('.user-view-messages-place');
+                            Main.throwFlashMessage(messagesPlace, 'Долг добавлен', 'alert-success');
+                        });
+                } else {
+                    Main.throwFlashMessage('#debt-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
+                }
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#debt-messages-place');
+            })
+            .always(Dashboard.unlockDebtButton);
+    },
+    lockDebtButton: function() {
+        $("#debt-button").prop('disabled', true);
+    },
+    unlockDebtButton: function() {
+        $("#debt-button").prop('disabled', false);
+    },
     showNewContractForm: function(e) {
         let groupId = $(e).data('group');
         let group = Main.groupMap[groupId];

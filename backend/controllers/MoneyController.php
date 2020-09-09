@@ -423,4 +423,44 @@ class MoneyController extends AdminController
             'debt' => Debt::findOne(['user_id' => $pupil->id, 'group_id' => $group->id]),
         ]);
     }
+
+    /**
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws yii\web\BadRequestHttpException
+     */
+    public function actionProcessDebt()
+    {
+        $this->checkRequestIsAjax();
+        $this->checkAccess('root');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $formData = Yii::$app->request->post('debt', []);
+        if (!isset($formData['userId'], $formData['groupId'], $formData['amount'], $formData['comment'])) {
+            return self::getJsonErrorResult('Wrong request');
+        }
+
+        $user = User::findOne($formData['userId']);
+        $group = Group::findOne(['id' => $formData['groupId'], 'active' => Group::STATUS_ACTIVE]);
+        $amount = (int)$formData['amount'];
+
+        if (!$user) return self::getJsonErrorResult('Студент не найден');
+        if ($amount <= 0) return self::getJsonErrorResult('Сумма не может быть <= 0');
+        if (!$group) return self::getJsonErrorResult('Группа не найдена');
+
+        try {
+            $payment = new Payment();
+            $payment->user_id = $user->id;
+            $payment->group_id = $group->id;
+            $payment->admin_id = Yii::$app->user->getId();
+            $payment->amount = 0 - $amount;
+            $payment->created_at = date('Y-m-d H:i:s');
+            $payment->comment = 'Задолженность добавлена вручную: ' . $formData['comment'];
+
+            MoneyComponent::registerIncome($payment);
+            return self::getJsonOkResult(['userId' => $user->id]);
+        } catch (\Throwable $ex) {
+            return self::getJsonErrorResult($ex->getMessage());
+        }
+    }
 }

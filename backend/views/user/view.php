@@ -9,6 +9,7 @@ use yii\bootstrap4\ActiveForm;
 /* @var $pupil User */
 /* @var $activeTab string */
 /* @var $incomeAllowed bool */
+/* @var $debtAllowed bool */
 /* @var $contractAllowed bool */
 /* @var $groupManagementAllowed bool */
 /* @var $moveMoneyAllowed bool */
@@ -160,6 +161,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         'pupil' => $pupil,
                         'contractAllowed' => $contractAllowed,
                         'incomeAllowed' => $incomeAllowed,
+                        'debtAllowed' => $debtAllowed,
                         'groupManagementAllowed' => $groupManagementAllowed,
                         'moveMoneyAllowed' => $moveMoneyAllowed,
                     ]); ?>
