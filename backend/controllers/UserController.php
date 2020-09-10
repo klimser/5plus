@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use backend\components\EventComponent;
 use backend\models\Consultation;
 use backend\models\WelcomeLesson;
 use common\components\GroupComponent;
@@ -313,6 +314,8 @@ class UserController extends AdminController
         if (!$welcomeLesson->save()) {
             throw new Exception('Server error: ' . $welcomeLesson->getErrorsAsString());
         }
+        
+        EventComponent::fillSchedule($group);
 
         return $welcomeLesson;
     }
