@@ -151,26 +151,31 @@ $this->render('/grunt-assets');
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-5 my-3 float-md-right contacts-block">
+            <div class="col-12 col-md-6 col-lg-5 mt-3 float-md-right contacts-block">
                 <h2 class="block-title">Контактная информация</h2>
-                <div class="item">
+                <div class="item mb-4">
                     <span class="ico icon-map"></span>
                     <div class="text">
                         <?= WidgetHtml::getByName('address'); ?>
                     </div>
                 </div>
-                <div class="item landmark">
+                <div class="item landmark mb-4">
                     <span class="ico icon-map"></span>
                     <div class="text">
                         <?= WidgetHtml::getByName('landmark'); ?>
                     </div>
                 </div>
-                <div class="item phone">
+                <div class="item phone mb-4">
                     <span class="ico icon-phone"></span>
                     <div class="text">
                         <?= WidgetHtml::getByName('phones'); ?>
                     </div>
                 </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-7 float-md-left mb-3 mt-md-3">
+                <div id="map" class="map"></div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-5 mb-3 float-md-right contacts-block">
                 <div class="social text-center">
                     <div class="title">Мы в соц сетях:</div>
                     <div class="row justify-content-center mt-2">
@@ -186,8 +191,19 @@ $this->render('/grunt-assets');
                 </ul> */ ?>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-7 float-md-left mb-3 mt-md-3">
-                <div id="map" class="map"></div>
+            <div class="clearfix"></div>
+        </div>
+        <div class="row border-top">
+            <div class="col">
+                <ul class="docs_menu my-3 text-center">
+                    <li>Все права защищены &copy; Exclusive Education</li>
+                    <?php
+                        $menuItems = Menu::getMenuItemsCached(Menu::DOCS_MENU_ID, $webpage);
+                        foreach ($menuItems as $menuItem):
+                    ?>
+                            <li><a href="<?= $menuItem['url']; ?>"><?= $menuItem['label']; ?></a></li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
         </div>
     </div>

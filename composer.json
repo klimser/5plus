@@ -14,10 +14,11 @@
   },
   "minimum-stability": "stable",
   "require": {
-    "php": ">=7.2",
+    "php": ">=7.4",
     "ext-mbstring": "*",
     "ext-curl": "*",
     "ext-json": "*",
+    "ext-bcmath": "*",
     "yiisoft/yii2": ">=2.0.6",
     "yiisoft/yii2-swiftmailer": "*",
     "yiisoft/yii2-jui": "^2.0",

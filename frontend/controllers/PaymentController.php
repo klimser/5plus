@@ -57,11 +57,12 @@ class PaymentController extends Controller
     public function actionFind()
     {
         $validator = new ReCaptchaValidator2();
-        $reCaptcha = Yii::$app->request->post('reCaptcha');
-        if (!$reCaptcha || !$validator->validate($reCaptcha)) {
-            Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
-            return $this->render('index-pupil', $this->getPageParams('pupil'));
-        } else {
+//        $reCaptcha = Yii::$app->request->post('reCaptcha');
+//        if (!$reCaptcha || !$validator->validate($reCaptcha)) {
+//            Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
+//            return $this->render('index-pupil', $this->getPageParams('pupil'));
+//        } else
+            {
             $phoneFull = '+998' . substr(preg_replace('#\D#', '', Yii::$app->request->post('phoneFormatted')), -9);
             /** @var User[] $users */
             $users = User::find()
@@ -114,6 +115,7 @@ class PaymentController extends Controller
         $pupilId = Yii::$app->request->post('pupil');
         $groupId = Yii::$app->request->post('group');
         $amount = intval(Yii::$app->request->post('amount'));
+        $paymentMethodId = intval(Yii::$app->request->post('method', 0));
 
         if (!$pupilId) return self::getJsonErrorResult('No pupil ID');
         if (!$groupId) return self::getJsonErrorResult('No pupil ID');
@@ -138,25 +140,37 @@ class PaymentController extends Controller
                 $group
             );
 
-            $paymoId = ComponentContainer::getPaymoApi()->payCreate($contract->amount * 100, $contract->number, [
-                'студент' => $pupil->name,
-                'группа' => $group->legal_name,
-                'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price))),
-            ]);
-            $contract->payment_type = Contract::PAYMENT_TYPE_PAYMO;
-            $contract->external_id = $paymoId;
-            $contract->status = Contract::STATUS_PROCESS;
+            $redirectUrl = null;
+            $returnUrl = urlencode(Url::to(['payment/complete', 'payment' => $contract->id], true));
+            switch ($paymentMethodId) {
+                case Contract::PAYMENT_TYPE_PAYMO:
+                    $paymoApi = ComponentContainer::getPaymoApi();
+                    $paymoId = $paymoApi->payCreate($contract->amount, $contract->number, [
+                        'студент' => $pupil->name,
+                        'группа' => $group->legal_name,
+                        'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price))),
+                    ]);
+                    $contract->payment_type = Contract::PAYMENT_TYPE_PAYMO;
+                    $contract->external_id = $paymoId;
+                    $contract->status = Contract::STATUS_PROCESS;
+                    $redirectUrl = "$paymoApi->paymentUrl/invoice/get?storeId=$paymoApi->storeId&transactionId=$paymoId&redirectLink=$returnUrl";
+                    break;
+                case Contract::PAYMENT_TYPE_CLICK:
+                    $redirectUrl = ComponentContainer::getClickApi()->payCreate($contract->amount, $contract->number);
+                    $redirectUrl .= "&return_url=$returnUrl";
+                    $contract->payment_type = Contract::PAYMENT_TYPE_CLICK;
+                    $contract->status = Contract::STATUS_PROCESS;
+                    break;
+                default:
+                    return self::getJsonErrorResult('Wrong payment method');
+            }
+            
             if (!$contract->save()) {
                 ComponentContainer::getErrorLogger()
                     ->logError('payment/create', print_r($contract->getErrors(), true), true);
                 return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
             }
-            return self::getJsonOkResult([
-                'payment_url' => ComponentContainer::getPaymoApi()->paymentUrl,
-                'payment_id' => $contract->external_id,
-                'store_id' => ComponentContainer::getPaymoApi()->storeId,
-                'redirect_link' => urlencode(Url::to(['payment/complete', 'payment' => $contract->id], true)),
-            ]);
+            return self::getJsonOkResult(['redirectUrl' => $redirectUrl]);
         } catch (PaymoApiException $exception) {
             ComponentContainer::getErrorLogger()
                 ->logError('payment/create', 'Paymo: ' . $exception->getMessage(), true);
@@ -174,6 +188,7 @@ class PaymentController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $giftCardData = Yii::$app->request->post('giftcard', []);
+        $paymentMethodId = intval(Yii::$app->request->post('method', 0));
 
         if (!isset($giftCardData['pupil_name'])) return self::getJsonErrorResult('No pupil name');
         if (!isset($giftCardData['pupil_phone'])) return self::getJsonErrorResult('No pupil phone');
@@ -205,18 +220,27 @@ class PaymentController extends Controller
                 return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
             }
 
-            $paymoId = ComponentContainer::getPaymoApi()->payCreate($giftCard->amount * 100, "gc-{$giftCard->id}", [
-                'студент' => $giftCard->customer_name,
-                'предмет' => $giftCard->name,
-            ]);
-
+            $redirectUrl = null;
+            $returnUrl = urlencode(Url::to(['payment/complete', 'gc' => $giftCard->code], true));
+            switch ($paymentMethodId) {
+                case Contract::PAYMENT_TYPE_PAYMO:
+                    $paymoApi = ComponentContainer::getPaymoApi();
+                    $paymoId = $paymoApi->payCreate($giftCard->amount, "gc-$giftCard->id", [
+                        'студент' => $giftCard->customer_name,
+                        'предмет' => $giftCard->name,
+                    ]);
+                    $redirectUrl = "$paymoApi->paymentUrl/invoice/get?storeId=$paymoApi->storeId&transactionId=$paymoId&redirectLink=$returnUrl";
+                    break;
+                case Contract::PAYMENT_TYPE_CLICK:
+                    $redirectUrl = ComponentContainer::getClickApi()->payCreate($giftCard->amount,"gc-$giftCard->id");
+                    $redirectUrl .= "&return_url=$returnUrl";
+                    break;
+                default:
+                    return self::getJsonErrorResult('Wrong payment method');
+            }
+            
             $transaction->commit();
-            return self::getJsonOkResult([
-                'payment_url' => ComponentContainer::getPaymoApi()->paymentUrl,
-                'payment_id' => $paymoId,
-                'store_id' => ComponentContainer::getPaymoApi()->storeId,
-                'redirect_link' => urlencode(Url::to(['payment/complete', 'gc' => $giftCard->code], true)),
-            ]);
+            return self::getJsonOkResult(['redirectUrl' => $redirectUrl]);
         } catch (PaymoApiException $exception) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()

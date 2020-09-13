@@ -70,7 +70,8 @@ let Payment = {
     unlockPayButton: function() {
         $(".pay_button").prop("disabled", false);
     },
-    completePayment: function(form) {
+    completePayment: function(button) {
+        let form = $(button).closest("form");
         if (!$("#pupil").data("val") || !$("#group").data("val") || $("#amount").val() < 1000) return false;
 
         this.lockPayButton();
@@ -81,44 +82,54 @@ let Payment = {
             data: {
                 pupil: $("#pupil").data("val"),
                 group: $("#group").data("val"),
-                amount: $("#amount").val()
+                amount: $("#amount").val(),
+                method: $(button).data("payment")
             },
-            success: function(data) {
+        }
+            .done(function(data) {
                 if (data.status === 'error') {
                     Main.throwFlashMessage('#message_board', "Ошибка: " + data.message, 'alert-danger');
-                    Payment.unlockPayButton();
                 } else {
-                    location.assign(data.payment_url + '/invoice/get?storeId=' + data.store_id + '&transactionId=' + data.payment_id + '&redirectLink=' + data.redirect_link);
+                    location.assign(data.redirectUrl);
                 }
-            },
-            error: function(xhr, textStatus, errorThrown) {
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
                 Main.throwFlashMessage('#message_board', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Payment.unlockPayButton();
-            }
-        });
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+            })
+            .always(Payment.unlockPayButton)
+        );
 
         return false;
     },
-    completeNewPayment: function(form) {
+    completeNewPayment: function(button) {
+        let form = $(button).closest("form");
+        let formData = $(form).serialize();
+        formData.method = $(button).data("payment");
         this.lockPayButton();
         $.ajax({
-            url: $(form).attr('action'),
-            type: 'post',
-            dataType: 'json',
-            data: $(form).serialize(),
-            success: function(data) {
+                url: $(form).attr('action'),
+                type: 'post',
+                dataType: 'json',
+                data: formData,
+            })
+            .done(function(data) {
                 if (data.status === 'error') {
                     Main.throwFlashMessage('#message_board', "Ошибка: " + data.message, 'alert-danger');
-                    Payment.unlockPayButton();
                 } else {
+                    location.assign(data.redirectUrl);
                     location.assign(data.payment_url + '/invoice/get?storeId=' + data.store_id + '&transactionId=' + data.payment_id + '&redirectLink=' + data.redirect_link);
                 }
-            },
-            error: function(xhr, textStatus, errorThrown) {
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
                 Main.throwFlashMessage('#message_board', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                Payment.unlockPayButton();
-            }
-        });
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+            })
+            .always(Payment.unlockPayButton);
 
         return false;
     }

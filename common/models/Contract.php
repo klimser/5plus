@@ -51,6 +51,7 @@ class Contract extends ActiveRecord
     const PAYMENT_TYPE_MANUAL = 1;
     const PAYMENT_TYPE_PAYME = 2;
     const PAYMENT_TYPE_PAYMO = 3;
+    const PAYMENT_TYPE_CLICK = 4;
     
     const STATUS_LABELS = [
         self::STATUS_NEW => 'не оплачен',

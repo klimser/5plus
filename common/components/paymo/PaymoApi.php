@@ -163,16 +163,16 @@ class PaymoApi extends BaseObject
     }
 
     /**
-     * @param int $amount
+     * @param float $amount
      * @param string $paymentId
      * @param array $details
      * @return string
      * @throws PaymoApiException
      */
-    public function payCreate(int $amount, string $paymentId, array $details = []): string
+    public function payCreate(float $amount, string $paymentId, array $details = []): string
     {
         $response = $this->execute('/merchant/pay/create', true, [
-            'amount' => $amount,
+            'amount' => (int) round($amount * 100),
             'account' => $paymentId,
             'store_id' => $this->storeId,
             'details' => json_encode($details),

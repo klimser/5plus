@@ -175,6 +175,106 @@ class ApiController extends Controller
         return $jsonData;
     }
 
+    /**
+     * @return array
+     */
+    public function actionClickPrepare()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $jsonData = ['error' => -8];
+        if (!Yii::$app->request->isPost) {
+            $jsonData['error_note'] = 'Request should be POST';
+            return $jsonData;
+        }
+
+        $params = json_decode(Yii::$app->request->rawBody, true);
+        if ($params === false
+            || !array_key_exists('click_trans_id', $params)
+            || !array_key_exists('service_id', $params)
+            || !array_key_exists('merchant_trans_id', $params)
+            || !array_key_exists('amount', $params)
+            || !array_key_exists('action', $params)
+            || !array_key_exists('sign_time', $params)
+            || !array_key_exists('sign_string', $params)) {
+            $jsonData['error_note'] = 'Invalid JSON-body';
+            return $jsonData;
+        }
+
+        $hash = $params['click_trans_id'] . $params['service_id'] . ComponentContainer::getClickApi()->secretKey
+            . $params['merchant_trans_id'] . $params['amount'] . $params['action'] . $params['sign_time'];
+        $sign = md5($hash);
+
+        if ($sign !== $params['sign_string']) {
+            $jsonData['error'] = -1;
+            $jsonData['error_note'] = 'Invalid signature';
+            return $jsonData;
+        }
+
+        if (preg_match('#^gc-(\d+)$#', $params['merchant_trans_id'], $matches)) {
+            /** @var GiftCard $giftCard */
+            $giftCard = GiftCard::findOne(intval($matches[1]));
+
+            if (!$giftCard) {
+                $jsonData['error'] = -5;
+                $jsonData['error_note'] = 'Invoice not found';
+                return $jsonData;
+            }
+            if ($giftCard->status != GiftCard::STATUS_NEW) {
+                $jsonData['error'] = -4;
+                $jsonData['error_note'] = 'Инвойс уже оплачен, повторная оплата невозможна';
+                return $jsonData;
+            }
+            if (bccomp($giftCard->amount, $params['amount'], 2) !== 0) {
+                $jsonData['error'] = -2;
+                $jsonData['error_note'] = 'Wrong amount';
+                return $jsonData;
+            }
+            
+            return [
+                'click_trans_id' => $params['click_trans_id'],
+                'merchant_trans_id' => $params['merchant_trans_id'],
+                'merchant_prepare_id' => $giftCard->id,
+                'error' => 0,
+            ];
+        } else {
+            /** @var Contract $contract */
+            $contract = Contract::findOne(['number' => $params['invoice']]);
+
+            if (!$contract) {
+                $jsonData['message'] = 'Invoice not found';
+                return $jsonData;
+            }
+            if ($contract->amount * 100 != $params['amount']) {
+                $jsonData['message'] = 'Wrong amount';
+                return $jsonData;
+            }
+
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                MoneyComponent::payContract(
+                    $contract,
+                    new \DateTime(array_key_exists('transaction_time', $params) ? $params['transaction_time'] : 'now'),
+                    Contract::PAYMENT_TYPE_PAYMO,
+                    $params['transaction_id']
+                );
+                $transaction->commit();
+            } catch (\Throwable $exception) {
+                $transaction->rollBack();
+                $jsonData['message'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
+                ComponentContainer::getErrorLogger()->logError('api/paymo', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
+                return $jsonData;
+            }
+
+            return [
+                'click_trans_id' => $params['click_trans_id'],
+                'merchant_trans_id' => $params['merchant_trans_id'],
+                'merchant_prepare_id' => $contract->id,
+                'error' => 0,
+            ];
+        }
+    }
+
 //    public function actionPaymoCompleteTest()
 //    {
 //        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;

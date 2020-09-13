@@ -116,6 +116,14 @@ return [
         'botPush' => [
             'class' => \common\components\BotPush::class,
         ],
+        'clickApi' => [
+            'class' => \common\components\click\ClickApi::class,
+            'paymentUrl' => $params['click-url'],
+            'merchantId' => $params['click-merchantId'],
+            'serviceId' => $params['click-serviceId'],
+            'merchantUserId' => $params['click-merchantUserId'],
+            'secretKey' => $params['click-secretKey'],
+        ],
     ],
     'aliases' => [
         '@uploads' => '@frontend/web/uploads',
