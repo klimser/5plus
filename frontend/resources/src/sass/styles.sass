@@ -1448,8 +1448,7 @@ body.front-page
       display: -ms-flex
       display: flex
       align-items: flex-start
-      margin-bottom: 34px
-
+      
       .ico
         width: 18px
         min-width: 18px
@@ -1474,15 +1473,10 @@ body.front-page
             color: #fff
             text-decoration: none
 
-    .item.landmark
-      margin-bottom: 68px
-
-      .ico
+    .item.landmark .ico
         opacity: 0.3
 
     .item.phone
-      margin-bottom: 26px
-
       .title
         margin-bottom: 1px
 
@@ -1523,6 +1517,23 @@ body.front-page
             text-decoration: none
             border-radius: 34px
             font-size: 21px
+  ul.docs_menu
+    margin: 0
+    padding: 0
+    li
+      color: #FFF
+      display: inline-block
+      &::before
+        content: "●"
+        margin: 0 15px
+      &:first-child
+        &::before
+          content: ""
+          margin: 0
+      a
+        color: #FFF
+        text-decoration: none
+      
 /* content-contacts */
 .content-contacts
   display: -webkit-flex

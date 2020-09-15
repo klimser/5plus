@@ -142,9 +142,8 @@ class WelcomeLessonController extends AdminController
             );
         }
 
-        $denyReason = intval(Yii::$app->request->post('deny_reason'));
-        $welcomeLesson->deny_reason = $denyReason;
-        $welcomeLesson->comment = Yii::$app->request->post('comment') ?: null;
+        $welcomeLesson->deny_reason = intval(Yii::$app->request->post('deny_reason'));
+        $welcomeLesson->comment = Yii::$app->request->post('comment');
         if (!$welcomeLesson->save()) {
             return self::getJsonErrorResult($welcomeLesson->getErrorsAsString());
         }
@@ -288,7 +287,7 @@ class WelcomeLessonController extends AdminController
         } catch (\Throwable $exception) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()->logError('welcome-lesson/move', $exception->getMessage(), true);
-            return self::getJsonErrorResult('Server error');
+            return self::getJsonErrorResult($exception->getMessage());
         }
     }
 

@@ -94,25 +94,25 @@ SCRIPT
                 )
             ],
             [
-                'attribute' => 'subject_id',
+                'attribute' => 'subjectId',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->group_id ? $model->group->subject->name : $model->subject->name;
+                    return $model->group_id ? $model->group->subject->name : '';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
-                    'subject_id',
+                    'subjectId',
                     $subjectMap,
                     ['class' => 'form-control']
                 )
             ],
             [
-                'attribute' => 'teacher_id',
+                'attribute' => 'teacherId',
                 'content' => function ($model, $key, $index, $column) {
-                    return $model->group_id ? $model->group->teacher->name : $model->teacher->name;
+                    return $model->group_id ? $model->group->teacher->name : '';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
-                    'teacher_id',
+                    'teacherId',
                     $teacherMap,
                     ['class' => 'form-control']
                 )

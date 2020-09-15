@@ -80,6 +80,7 @@ class ContractController extends AdminController
      */
     public function actionIndex()
     {
+        $this->checkAccess('accountant');
         $searchModel = new ContractSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -150,6 +151,7 @@ class ContractController extends AdminController
      */
     public function actionCreate()
     {
+        $this->checkAccess('accountant');
         if (\Yii::$app->request->isPost) {
             $userId = Yii::$app->request->post('user_id');
             $groupId = Yii::$app->request->post('group_id');

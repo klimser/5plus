@@ -101,10 +101,11 @@ class WelcomeLesson extends ActiveRecord
     public function rules()
     {
         return [
+            [['comment'], 'trim'],
             [['user_id', 'group_id', 'status', 'deny_reason', 'bitrix_sync_status', 'created_by'], 'integer'],
             [['user_id', 'lesson_date'], 'required'],
             [['comment'], 'string'],
-            [['deny_reason'], 'default', 'value' => null],
+            [['deny_reason', 'comment'], 'default', 'value' => null],
             [['group_id'], 'required'],
             ['lesson_date', 'date', 'format' => 'yyyy-MM-dd HH:mm:ss'],
             ['status', 'in', 'range' => self::STATUS_LIST],

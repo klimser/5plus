@@ -10,7 +10,7 @@ use \yii\helpers\Url;
 
 $this->title = 'Панель управления';
 ?>
-<?php if ($admin->can('moneyManagement')): ?>
+<?php if ($admin->can('manager')): ?>
     <div class="row">
         <div class="col-12">
             <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('dashboard/index'); ?>">
@@ -22,7 +22,7 @@ $this->title = 'Панель управления';
     <hr>
 <?php endif; ?>
 <div class="row">
-    <?php if ($admin->can('moneyManagement')): ?>
+    <?php if ($admin->can('accountant')): ?>
         <div class="col-6 col-md mb-3">
             <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('money/income'); ?>">
                 <span class="fas fa-hand-holding-usd fa-3x"></span><hr>
@@ -30,7 +30,7 @@ $this->title = 'Панель управления';
             </a>
         </div>
     <?php endif; ?>
-    <?php if ($admin->can('contractManagement')): ?>
+    <?php if ($admin->can('accountant')): ?>
         <div class="col-6 col-md mb-3">
             <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('contract/create'); ?>">
                 <span class="fas fa-file-invoice-dollar fa-3x"></span><hr>

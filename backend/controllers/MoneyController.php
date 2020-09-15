@@ -35,7 +35,7 @@ class MoneyController extends AdminController
      */
     public function actionIncome()
     {
-        $this->checkAccess('moneyManagement');
+        $this->checkAccess('accountant');
 
         $params = [
             'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
