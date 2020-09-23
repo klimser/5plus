@@ -46,6 +46,7 @@ use yii\web\IdentityInterface;
  * @property User[] $children
  * @property User[] $notLockedChildren
  * @property GroupPupil[] $groupPupils
+ * @property GroupPupil[] $groupPupilsAggregated
  * @property Group[] $groups
  * @property GroupPupil[] $activeGroupPupils
  * @property Group[] $activeGroups
@@ -374,6 +375,20 @@ class User extends ActiveRecord implements IdentityInterface
             $userName .= ' ' . MaskString::generate($nameParts[1], 1, 0, 4);
         }
         return $userName;
+    }
+
+    public function getGroupPupilsAggregated(): array
+    {
+        $result = [];
+        /** @var GroupPupil $groupPupil */
+        foreach ($this->getGroupPupils()->orderBy(['date_start' => SORT_DESC])->with('group')->all() as $groupPupil) {
+            if (!array_key_exists($groupPupil->group_id, $result)) {
+                $result[$groupPupil->group_id] = [];
+            }
+            $result[$groupPupil->group_id][] = $groupPupil;
+        }
+
+        return $result;
     }
 
     public function beforeValidate() {
