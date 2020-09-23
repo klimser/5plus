@@ -28,7 +28,7 @@ use backend\models\WelcomeLesson;
                     <td><?= $welcomeLesson->lessonDateTime->format('d.m.Y'); ?></td>
                     <td>
                         <?= WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]; ?>
-                        <?php if ($welcomeLesson->status === WelcomeLesson::STATUS_DENIED): ?>
+                        <?php if ($welcomeLesson->status === WelcomeLesson::STATUS_DENIED && $welcomeLesson->deny_reason): ?>
                             <br><b>Причина</b> <?= $welcomeLesson::DENY_REASON_LABELS[$welcomeLesson->deny_reason]; ?>
                             <?php if ($welcomeLesson->comment): ?>
                                 <br><i><?= $welcomeLesson->comment; ?></i>

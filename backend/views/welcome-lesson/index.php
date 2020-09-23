@@ -44,7 +44,7 @@ SCRIPT
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'options' => ['class' => 'grid-view table-responsive'],
+        'options' => ['class' => 'grid-view table-responsive-lg'],
         'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
         'rowOptions' => function ($model, $index, $widget, $grid) {
             /** @var WelcomeLesson $model */

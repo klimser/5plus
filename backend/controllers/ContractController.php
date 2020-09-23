@@ -34,13 +34,8 @@ class ContractController extends AdminController
     public function actionPrint($id)
     {
         $contract = $this->findModel($id);
-        $pupilType = 'individual';
-        if ($contract->user->parent_id && $contract->user->parent->role == User::ROLE_COMPANY) {
-            $pupilType = 'company';
-        }
-
         $this->layout = 'print';
-        return $this->render("/contract/print/$pupilType", ['contract' => $contract]);
+        return $this->render("/contract/print/" . ($contract->user->individual ? 'spec' : 'company'), ['contract' => $contract]);
     }
 
     /**
