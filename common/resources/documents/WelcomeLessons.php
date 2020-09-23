@@ -111,7 +111,7 @@ class WelcomeLessons
                 $this->_doc->Write(6, 'Цена - ' . $welcomeLesson->group->priceMonth);
                 $y += 6;
                 $this->_doc->SetXY($xLeft + 5, $y);
-                $this->_doc->Write(6, 'При оплате за 3 месяца - ' . (int)round($welcomeLesson->group->price3Month / 3));
+                $this->_doc->Write(6, 'При оплате за 4 месяца - ' . (int)round($welcomeLesson->group->price4Month / 4));
             }
 
             $y += 12;

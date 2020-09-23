@@ -176,7 +176,7 @@ class ContractController extends AdminController
                     $groupParam = GroupParam::findByDate($group, new \DateTime());
 
                     if ($contract->discount == Contract::STATUS_ACTIVE
-                        && (($groupParam && $amount < $groupParam->price3Month) || (!$groupParam && $amount < $group->price3Month))) {
+                        && (($groupParam && $amount < $groupParam->price4Month) || (!$groupParam && $amount < $group->price4Month))) {
                         \Yii::$app->session->addFlash('error', 'Wrong payment amount');
                     } else {
                         if (!$contract->save()) \Yii::$app->session->addFlash('error', 'Не удалось создать договор: ' . $contract->getErrorsAsString());

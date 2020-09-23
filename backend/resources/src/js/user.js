@@ -232,7 +232,7 @@ let User = {
                 (data.hasOwnProperty('contract') ? '' : ' disabled ') + ' value="' + data.amount + '">' +
                 '<div class="amount-helper-buttons">' +
                 '<button type="button" class="btn btn-outline-secondary btn-sm price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>' +
-                '<button type="button" class="btn btn-outline-secondary btn-sm price3" onclick="Dashboard.setAmount(this);">за 3 месяца</button>' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm price4" onclick="Dashboard.setAmount(this);">за 4 месяца</button>' +
                 '</div>' +
                 '</div>';
 
@@ -345,7 +345,7 @@ let User = {
         if (contractBlock.length > 0) {
             let helperButtonsBlock = $(contractBlock).find(".amount-helper-buttons");
             $(helperButtonsBlock).find("button.price").data({price: group.price});
-            $(helperButtonsBlock).find("button.price3").data({price: group.price3});
+            $(helperButtonsBlock).find("button.price4").data({price: group.price4});
             if (flushAmount) {
                 $(contractBlock).find("input.amount").val('');
             }

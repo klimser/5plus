@@ -60,8 +60,8 @@ if ($paymentLink) {
                     </div>
             
                     <div class="col-12 col-md-auto mb-2">
-                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->group->price3Month; ?>" onclick="Payment.selectSum(this);">
-                            за 3 месяца <?= $paymentLink->group->price3Month; ?> сум
+                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->group->price4Month; ?>" onclick="Payment.selectSum(this);">
+                            за 4 месяца <?= $paymentLink->group->price4Month; ?> сум
                         </button>
                     </div>
 

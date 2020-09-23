@@ -215,7 +215,7 @@ let Dashboard = {
         $(form).find("#income-group-name").val(group.name);
         let amountHelpersBlock = $(form).find(".amount-helper-buttons");
         $(amountHelpersBlock).find(".price").data('price', group.price);
-        $(amountHelpersBlock).find(".price3").data('price', group.price3);
+        $(amountHelpersBlock).find(".price4").data('price', group.price4);
         $("#modal-income").modal("show");
     },
     setAmount: function(e) {
@@ -313,7 +313,7 @@ let Dashboard = {
         $(form).find("#new-contract-group-name").val(group.name);
         let amountHelpersBlock = $(form).find(".amount-helper-buttons");
         $(amountHelpersBlock).find(".price").data('price', group.price);
-        $(amountHelpersBlock).find(".price3").data('price', group.price3);
+        $(amountHelpersBlock).find(".price4").data('price', group.price4);
         $("#modal-new-contract").modal("show");
     },
     issueNewContract: function(form) {

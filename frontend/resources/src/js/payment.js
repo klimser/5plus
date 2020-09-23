@@ -33,7 +33,7 @@ let Payment = {
                     '</button></div>' +
 
                     '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceDiscount + '" onclick="Payment.selectSum(this);">' +
-                    'за 3 месяца ' + group.priceDiscount + ' сум' +
+                    'за 4 месяца ' + group.priceDiscount + ' сум' +
                     '</button></div>' +
 
                     '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="none" onclick="Payment.selectSum(this);">другая сумма</button></div>' +
