@@ -8,11 +8,7 @@
         max-width: 20cm;
     }
     .page {
-        page-break-after: always;
         margin: 0.5cm;
-    }
-    .page:last-child {
-        page-break-after: auto;
     }
     table td {
         text-align: justify;

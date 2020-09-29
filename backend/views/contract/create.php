@@ -69,7 +69,7 @@ $this->params['breadcrumbs'][] = $this->title;
                             <button class="btn btn-outline-secondary btn-lg btn-block mb-2" type="button" id="payment-0" onclick="Contract.setPayment(0);">Без скидки<br><small><span class="price"></span> в месяц</small></button>
                         </div>
                         <div class="col-12 col-md-6">
-                            <button class="btn btn-outline-secondary btn-lg btn-block mb-2" type="button" id="payment-1" onclick="Contract.setPayment(1);">Со скидкой<br><small><span class="price"></span> за 3 месяца</small></button>
+                            <button class="btn btn-outline-secondary btn-lg btn-block mb-2" type="button" id="payment-1" onclick="Contract.setPayment(1);">Со скидкой<br><small><span class="price"></span> за 4 месяца</small></button>
                         </div>
                     </div>
                     <div class="row collapse" id="group_dates">

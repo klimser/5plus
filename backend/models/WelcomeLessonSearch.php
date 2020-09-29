@@ -2,6 +2,7 @@
 
 namespace backend\models;
 
+use common\models\Group;
 use DateTime;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -11,12 +12,15 @@ use yii\data\ActiveDataProvider;
  */
 class WelcomeLessonSearch extends WelcomeLesson
 {
+    public $subjectId;
+    public $teacherId;
+    
     public function rules()
     {
         return [
             [['group_id', 'user_id', 'status', 'deny_reason'], 'integer'],
             [['lesson_date'], 'string'],
-            [['lessonDateTime'], 'safe'],
+            [['lessonDateTime', 'subjectId', 'teacherId'], 'safe'],
         ];
     }
 
@@ -24,6 +28,14 @@ class WelcomeLessonSearch extends WelcomeLesson
     {
         // bypass scenarios() implementation in the parent class
         return Model::scenarios();
+    }
+
+    public function attributeLabels()
+    {
+        return array_merge(parent::attributeLabels(), [
+            'subjectId' => 'Предмет',
+            'teacherId' => 'Учитель',
+        ]);
     }
 
     /**
@@ -60,7 +72,7 @@ class WelcomeLessonSearch extends WelcomeLesson
                 if ($params['WelcomeLessonSearch']['lessonDateString']) {
                     $params['WelcomeLessonSearch']['lesson_date'] = $params['WelcomeLessonSearch']['lessonDateString'] . ' 00:00:00';
                 }
-                unset($params['WelcomeLessonSearch']['lessonDateTimeString']);
+                unset($params['WelcomeLessonSearch']['lessonDateString']);
             }
         }
 
@@ -89,6 +101,16 @@ class WelcomeLessonSearch extends WelcomeLesson
             $filterDate = new DateTime($this->lesson_date);
             $filterDate->modify('+1 day');
             $query->andFilterWhere(['between', 'lesson_date', $this->lesson_date, $filterDate->format('Y-m-d H:i:s')]);
+        }
+
+        if ($this->subjectId) {
+            $groupIds = Group::find()->andWhere(['subject_id' => $this->subjectId])->select('id')->asArray()->column();
+            $query->andWhere(['group_id' => $groupIds]);
+        }
+
+        if (isset($params['WelcomeLessonSearch'], $params['WelcomeLessonSearch']['teacherId']) && !empty($params['WelcomeLessonSearch']['teacherId'])) {
+            $groupIds = Group::find()->andWhere(['teacher_id' => $params['WelcomeLessonSearch']['teacherId']])->select('id')->asArray()->column();
+            $query->andWhere(['group_id' => $groupIds]);
         }
 
         return $dataProvider;

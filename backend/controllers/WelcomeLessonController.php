@@ -2,12 +2,15 @@
 
 namespace backend\controllers;
 
+use backend\components\EventComponent;
 use backend\models\WelcomeLesson;
 use backend\models\WelcomeLessonSearch;
+use common\components\Action;
 use common\components\ComponentContainer;
 use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use common\models\Group;
+use common\models\GroupPupil;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
@@ -142,9 +145,8 @@ class WelcomeLessonController extends AdminController
             );
         }
 
-        $denyReason = intval(Yii::$app->request->post('deny_reason'));
-        $welcomeLesson->deny_reason = $denyReason;
-        $welcomeLesson->comment = Yii::$app->request->post('comment') ?: null;
+        $welcomeLesson->deny_reason = intval(Yii::$app->request->post('deny_reason'));
+        $welcomeLesson->comment = Yii::$app->request->post('comment');
         if (!$welcomeLesson->save()) {
             return self::getJsonErrorResult($welcomeLesson->getErrorsAsString());
         }
@@ -279,7 +281,32 @@ class WelcomeLessonController extends AdminController
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            GroupComponent::addPupilToGroup($welcomeLesson->user, $group, $welcomeLesson->lessonDateTime);
+            /** @var GroupPupil $groupPupil */
+            $groupPupil = GroupPupil::find()
+                ->andWhere(['user_id' => $welcomeLesson->user_id, 'group_id' => $group->id])
+                ->andWhere(['>=', 'date_start', $welcomeLesson->lessonDateTime->format('Y-m-d')])
+                ->addOrderBy(['date_start' => SORT_ASC])
+                ->one();
+            if ($groupPupil) {
+                $groupPupil->date_start = max($welcomeLesson->lessonDateTime, $group->startDateObject)->format('Y-m-d');
+                $dataForLog = $groupPupil->getDiffMap();
+                if (!$groupPupil->save()) {
+                    ComponentContainer::getErrorLogger()
+                        ->logError('welcome-lesson/pupil-to-group', $groupPupil->getErrorsAsString(), true);
+                    throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
+                }
+                EventComponent::fillSchedule($group);
+                GroupComponent::calculateTeacherSalary($group);
+                ComponentContainer::getActionLogger()->log(
+                    Action::TYPE_GROUP_PUPIL_UPDATED,
+                    $groupPupil->user,
+                    null,
+                    $group,
+                    json_encode($dataForLog, JSON_UNESCAPED_UNICODE)
+                );
+            } else {
+                GroupComponent::addPupilToGroup($welcomeLesson->user, $group, $welcomeLesson->lessonDateTime);
+            }
             MoneyComponent::setUserChargeDates($welcomeLesson->user, $group);
             $welcomeLesson->status = WelcomeLesson::STATUS_SUCCESS;
             $welcomeLesson->save();
@@ -288,7 +315,7 @@ class WelcomeLessonController extends AdminController
         } catch (\Throwable $exception) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()->logError('welcome-lesson/move', $exception->getMessage(), true);
-            return self::getJsonErrorResult('Server error');
+            return self::getJsonErrorResult($exception->getMessage());
         }
     }
 

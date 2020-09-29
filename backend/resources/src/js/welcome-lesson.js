@@ -66,24 +66,24 @@ let WelcomeLesson = {
             case this.statusDenied:
                 if (!data.denyReason) {
                     contents =
-                        '<form method="post" class="deny-details-form" onsubmit="return WelcomeLesson.setDenyDetails(' + data.id + ', this);">' +
+                        '<div class="deny-details-form">' +
                             '<div class="form-check"><label class="form-check-label">' +
-                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonTeacher + '"> не понравился учитель</label></div>' +
+                            '<input class="form-check-input" type="radio" name="deny_reason_' + data.id + '" value="' + this.denyReasonTeacher + '"> не понравился учитель</label></div>' +
                             '<div class="form-check"><label class="form-check-label">' +
-                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonLevelTooLow + '"> нужен уровень выше</label></div>' +
+                            '<input class="form-check-input" type="radio" name="deny_reason_' + data.id + '" value="' + this.denyReasonLevelTooLow + '"> нужен уровень выше</label></div>' +
                             '<div class="form-check"><label class="form-check-label">' +
-                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonLevelTooHigh + '"> нужен уровень ниже</label></div>' +
+                            '<input class="form-check-input" type="radio" name="deny_reason_' + data.id + '" value="' + this.denyReasonLevelTooHigh + '"> нужен уровень ниже</label></div>' +
                             '<div class="form-check"><label class="form-check-label">' +
-                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonOtherGroup + '"> придет в другую группу</label></div>' +
+                            '<input class="form-check-input" type="radio" name="deny_reason_' + data.id + '" value="' + this.denyReasonOtherGroup + '"> придет в другую группу</label></div>' +
                             '<div class="form-check"><label class="form-check-label">' +
-                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonTooCrowded + '"> слишком большая группа</label></div>' +
+                            '<input class="form-check-input" type="radio" name="deny_reason_' + data.id + '" value="' + this.denyReasonTooCrowded + '"> слишком большая группа</label></div>' +
                             '<div class="form-check"><label class="form-check-label">' +
-                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonSubject + '"> не нужен предмет для поступления</label></div>' +
+                            '<input class="form-check-input" type="radio" name="deny_reason_' + data.id + '" value="' + this.denyReasonSubject + '"> не нужен предмет для поступления</label></div>' +
                             '<div class="form-check"><label class="form-check-label">' +
-                            '<input class="form-check-input" type="radio" name="deny_reason" value="' + this.denyReasonOther + '"> другое</label></div>' +
-                            '<textarea name="comment" class="form-control my-2" rows="3" placeholder="Комментарий"></textarea>' +
-                            '<button name="set_deny_reason" class="btn btn-primary">сохранить</button> ' +
-                        '</form>';
+                            '<input class="form-check-input" type="radio" name="deny_reason_' + data.id + '" value="' + this.denyReasonOther + '"> другое</label></div>' +
+                            '<textarea name="comment_' + data.id + '" class="form-control my-2" rows="3" placeholder="Комментарий"></textarea>' +
+                            '<button type="button" class="btn btn-primary" onclick=" WelcomeLesson.setDenyDetails(' + data.id + ', this);">сохранить</button> ' +
+                        '</div>';
                 }
                 break;
         }
@@ -203,26 +203,28 @@ let WelcomeLesson = {
             })
             .always(WelcomeLesson.unlockMovingFormButtons);
     },
-    setDenyDetails: function(id, form) {
+    setDenyDetails: function(id, e) {
         this.lockDenyDetailsFormButtons();
+        let parentBlock = $(e).closest('.deny-details-form');
         $.ajax({
             url: '/welcome-lesson/set-deny-details?id=' + id,
             type: 'post',
             dataType: 'json',
-            data: $(form).serialize(),
-            success: function(data) {
-                WelcomeLesson.unlockDenyDetailsFormButtons();
+            data: {
+                deny_reason: $(parentBlock).find("input[name=deny_reason_" + id + "]:checked").val(),
+                comment: $(parentBlock).find("textarea[name=comment_" + id + "]").val()
+            },
+        })
+            .done(function(data) {
                 if (data.status === 'ok') {
                     WelcomeLesson.setButtons($('tr[data-key="' + data.result.id + '"] td:last-child'), data.result);
                 } else {
                     Main.throwFlashMessage('#messages_place', "Ошибка: " + data.message, 'alert-danger');
                 }
-            },
-            error: function (xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place', "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-                WelcomeLesson.unlockDenyDetailsFormButtons();
-            }
-        });
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(WelcomeLesson.unlockDenyDetailsFormButtons)
+        ;
         return false;
     }
 };

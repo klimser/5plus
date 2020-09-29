@@ -34,13 +34,8 @@ class ContractController extends AdminController
     public function actionPrint($id)
     {
         $contract = $this->findModel($id);
-        $pupilType = 'individual';
-        if ($contract->user->parent_id && $contract->user->parent->role == User::ROLE_COMPANY) {
-            $pupilType = 'company';
-        }
-
         $this->layout = 'print';
-        return $this->render("/contract/print/$pupilType", ['contract' => $contract]);
+        return $this->render("/contract/print/" . ($contract->user->individual ? 'spec' : 'company'), ['contract' => $contract]);
     }
 
     /**
@@ -80,6 +75,7 @@ class ContractController extends AdminController
      */
     public function actionIndex()
     {
+        $this->checkAccess('accountant');
         $searchModel = new ContractSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -150,6 +146,7 @@ class ContractController extends AdminController
      */
     public function actionCreate()
     {
+        $this->checkAccess('accountant');
         if (\Yii::$app->request->isPost) {
             $userId = Yii::$app->request->post('user_id');
             $groupId = Yii::$app->request->post('group_id');
@@ -179,7 +176,7 @@ class ContractController extends AdminController
                     $groupParam = GroupParam::findByDate($group, new \DateTime());
 
                     if ($contract->discount == Contract::STATUS_ACTIVE
-                        && (($groupParam && $amount < $groupParam->price3Month) || (!$groupParam && $amount < $group->price3Month))) {
+                        && (($groupParam && $amount < $groupParam->price4Month) || (!$groupParam && $amount < $group->price4Month))) {
                         \Yii::$app->session->addFlash('error', 'Wrong payment amount');
                     } else {
                         if (!$contract->save()) \Yii::$app->session->addFlash('error', 'Не удалось создать договор: ' . $contract->getErrorsAsString());

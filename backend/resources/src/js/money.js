@@ -164,7 +164,7 @@ let Money = {
 
         let group = Main.groupMap[this.groupId];
         $("#payment-0").find(".price").text(group.price);
-        $("#payment-1").find(".price").text(group.price3);
+        $("#payment-1").find(".price").text(group.price4);
         if (dateStart !== undefined) {
             $("#date_start").text(dateStart);
         }
@@ -180,7 +180,7 @@ let Money = {
 
         let amountInput = $("#amount");
         if (this.paymentType === 1) {
-            $(amountInput).val(Main.groupMap[this.groupId].price3);
+            $(amountInput).val(Main.groupMap[this.groupId].price4);
         } else {
             $(amountInput).val(Main.groupMap[this.groupId].price);
         }

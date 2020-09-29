@@ -29,7 +29,7 @@ $addGroup = array_key_exists('add', $groupData) && $groupData['add'];
         <select class="form-control" id="group" name="group[groupId]">
             <?php foreach ($groups as $group): ?>
                 <option value="<?= $group->id; ?>" <?= array_key_exists('id', $groupData) && intval($groupData['groupId']) == $group->id ? 'selected' : ''; ?>>
-                    <?= $group->name; ?> (с <?= $group->startDateObject->format('d.m.Y') . ($group->endDateObject ? "по {$group->endDateObject->format('d.m.Y')}" : ''); ?>) <?=$group->price3Month; ?> за 3 месяца
+                    <?= $group->name; ?> (с <?= $group->startDateObject->format('d.m.Y') . ($group->endDateObject ? "по {$group->endDateObject->format('d.m.Y')}" : ''); ?>) <?=$group->price4Month; ?> за 4 месяца
                 </option>
             <?php endforeach; ?>
         </select>

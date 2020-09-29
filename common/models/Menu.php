@@ -18,6 +18,7 @@ class Menu extends ActiveRecord
 {
     const MAIN_MENU_ID = 1;
     const BOTTOM_MENU_ID = 3;
+    const DOCS_MENU_ID = 4;
 
 
     public static function tableName()

@@ -76,7 +76,7 @@ class MoneyComponent extends Component
         $contract->amount = $amount;
         $contract->created_at = date('Y-m-d H:i:s');
 
-        $contract->discount = $group->lesson_price_discount && $amount >= $group->price3Month
+        $contract->discount = $group->lesson_price_discount && $amount >= $group->price4Month
             ? Contract::STATUS_ACTIVE
             : Contract::STATUS_INACTIVE;
         /** @var GroupPupil $groupPupil */
@@ -89,10 +89,10 @@ class MoneyComponent extends Component
             } elseif ($groupPupil->startDateObject->format('Y-m') < date('Y-m')) {
                 $groupParam1 = GroupComponent::getGroupParam($groupPupil->group, new \DateTime('-1 month'));
                 $groupParam2 = GroupComponent::getGroupParam($groupPupil->group, new \DateTime());
-                $groupParam = $groupParam1->price3Month < $groupParam2->price3Month ? $groupParam1 : $groupParam2;
+                $groupParam = $groupParam1->price4Month < $groupParam2->price4Month ? $groupParam1 : $groupParam2;
             }
             if (isset($groupParam)) {
-                $contract->discount = $groupParam->lesson_price_discount && $amount >= $groupParam->price3Month
+                $contract->discount = $groupParam->lesson_price_discount && $amount >= $groupParam->price4Month
                     ? Contract::STATUS_ACTIVE
                     : Contract::STATUS_INACTIVE;
             }
