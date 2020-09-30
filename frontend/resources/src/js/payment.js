@@ -85,7 +85,7 @@ let Payment = {
                 amount: $("#amount").val(),
                 method: $(button).data("payment")
             },
-        }
+        })
             .done(function(data) {
                 if (data.status === 'error') {
                     Main.throwFlashMessage('#message_board', "Ошибка: " + data.message, 'alert-danger');
@@ -99,8 +99,7 @@ let Payment = {
                 console.log(textStatus);
                 console.log(errorThrown);
             })
-            .always(Payment.unlockPayButton)
-        );
+            .always(Payment.unlockPayButton);
 
         return false;
     },

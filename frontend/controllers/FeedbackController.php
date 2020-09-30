@@ -15,12 +15,13 @@ class FeedbackController extends Controller
 {
     /**
      * Creates a new Feedback model.
-     * @return Response
+     * @return mixed
      * @throws yii\web\BadRequestHttpException
      */
     public function actionCreate()
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Wrong request');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
         $feedback = new Feedback(['scenario' => Feedback::SCENARIO_USER]);
         $feedback->setAttributes(Yii::$app->request->post('feedback'));
@@ -29,17 +30,15 @@ class FeedbackController extends Controller
         $feedback->status = Feedback::STATUS_NEW;
         $feedback->ip = Yii::$app->request->userIP;
 
-        if ($feedback->save(true)) {
-            $feedback->notifyAdmin();
-
-            $jsonData = self::getJsonOkResult();
-        } else {
+        if (!$feedback->save(true)) {
             ComponentContainer::getErrorLogger()
                 ->logError('Feedback.create', $feedback->getErrorsAsString(), true);
             $jsonData = self::getJsonErrorResult('Server error');
             $jsonData['errors'] = $feedback->getErrorsAsString();
+            return $jsonData;
         }
 
-        return $this->asJson($jsonData);
+        $feedback->notifyAdmin();
+        return self::getJsonOkResult();
     }
 }

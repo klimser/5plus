@@ -30,11 +30,6 @@ abstract class AdminController extends Controller
         return true;
     }
     
-    protected function checkRequestIsAjax(): void
-    {
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
-    }
-    
     protected function checkAccess(string $permissionName, array $params = []): void
     {
         if (!Yii::$app->user->can($permissionName, $params)) throw new ForbiddenHttpException('Access denied!');

@@ -1,4 +1,6 @@
 <?php
+
+use common\models\Contract;
 use yii\bootstrap4\Html;
 use yii\helpers\Url;
 ?>
@@ -6,7 +8,7 @@ use yii\helpers\Url;
 <div id="payment_form" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <?= Html::beginForm(Url::to(['payment/create']), 'post', ['onsubmit' => 'return Payment.completePayment(this);']); ?>
+            <?= Html::beginForm(Url::to(['payment/create']), 'post', ['onsubmit' => 'return false;']); ?>
             <div class="modal-header">
                 <h4 class="modal-title">Оплатить</h4>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -36,7 +38,14 @@ use yii\helpers\Url;
                     </div>
                     <div class="form-group">
                         <div class="col-12 text-center">
-                            <button class="btn btn-primary pay_button">Подтвердить и перейти к оплате</button>
+                            <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_PAYMO; ?>" class="btn paymo_logo pay_button m-2">
+                                Оплатить через <span class="sr-only">Paymo</span> <i class="ml-2"></i>
+                            </button>
+                            <?php if (Yii::$app->request->get('pay-click') == '396'): ?>
+                                <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_CLICK; ?>" class="btn click_logo pay_button m-2">
+                                    Оплатить через <span class="sr-only">CLICK</span> <i class="ml-2"></i>
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

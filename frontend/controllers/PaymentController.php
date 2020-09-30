@@ -19,7 +19,6 @@ use common\models\Webpage;
 use himiklab\yii2\recaptcha\ReCaptchaValidator2;
 use Yii;
 use yii\helpers\Url;
-use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -57,12 +56,11 @@ class PaymentController extends Controller
     public function actionFind()
     {
         $validator = new ReCaptchaValidator2();
-//        $reCaptcha = Yii::$app->request->post('reCaptcha');
-//        if (!$reCaptcha || !$validator->validate($reCaptcha)) {
-//            Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
-//            return $this->render('index-pupil', $this->getPageParams('pupil'));
-//        } else
-            {
+        $reCaptcha = Yii::$app->request->post('reCaptcha');
+        if (!$reCaptcha || !$validator->validate($reCaptcha)) {
+            Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
+            return $this->render('index-pupil', $this->getPageParams('pupil'));
+        } else {
             $phoneFull = '+998' . substr(preg_replace('#\D#', '', Yii::$app->request->post('phoneFormatted')), -9);
             /** @var User[] $users */
             $users = User::find()
@@ -109,7 +107,7 @@ class PaymentController extends Controller
 
     public function actionCreate()
     {
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
+        $this->checkRequestIsAjax();
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $pupilId = Yii::$app->request->post('pupil');
@@ -184,7 +182,7 @@ class PaymentController extends Controller
 
     public function actionCreateNew()
     {
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
+        $this->checkRequestIsAjax();
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $giftCardData = Yii::$app->request->post('giftcard', []);

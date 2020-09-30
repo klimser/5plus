@@ -1,5 +1,6 @@
 <?php
 
+use common\models\Contract;
 use yii\bootstrap4\Html;
 use yii\helpers\Url;
 
@@ -10,7 +11,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
 
 <div class="container">
     <div class="content-box payment-panel">
-        <?= Html::beginForm(Url::to(['payment/create-new']), 'post', ['onsubmit' => 'return Payment.completeNewPayment(this);']); ?>
+        <?= Html::beginForm(Url::to(['payment/create-new']), 'post', ['onsubmit' => 'return false;']); ?>
             <div class="alert alert-info">
                 <b>Внимание!</b><br>
                 Указывайте свои данные корректно и полностью, они будут указаны в договоре между Вами и учебным центром.
@@ -67,7 +68,14 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
             </div>
             <div id="message_board"></div>
             <div class="text-right mw-100">
-                <button class="btn btn-primary btn-lg pay_button">оплатить</button>
+                <button type="submit" onclick="return Payment.completeNewPayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_PAYMO; ?>" class="btn paymo_logo pay_button m-2">
+                    Оплатить через <span class="sr-only">Paymo</span> <i class="ml-2"></i>
+                </button>
+                <?php if (Yii::$app->request->get('pay-click') == '396'): ?>
+                    <button type="submit" onclick="return Payment.completeNewPayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_CLICK; ?>" class="btn click_logo pay_button m-2">
+                        Оплатить через <span class="sr-only">CLICK</span> <i class="ml-2"></i>
+                    </button>
+                <?php endif; ?>
             </div>
         <?= Html::endForm(); ?>
     </div>

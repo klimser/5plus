@@ -41,12 +41,13 @@ class ReviewController extends Controller
 
     /**
      * Creates a new Review model.
-     * @return Response
+     * @return mixed
      * @throws yii\web\BadRequestHttpException
      */
     public function actionCreate()
     {
-        if (!Yii::$app->request->isAjax) throw new yii\web\BadRequestHttpException('Wrong request');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
         $review = new Review(['scenario' => Review::SCENARIO_USER]);
         $review->setAttributes(Yii::$app->request->post('review'));
@@ -55,16 +56,15 @@ class ReviewController extends Controller
         $review->status = Review::STATUS_NEW;
         $review->ip = Yii::$app->request->userIP;
 
-        if ($review->save(true)) {
-            $review->notifyAdmin();
-            $jsonData = self::getJsonOkResult();
-        } else {
+        if (!$review->save(true)) {
             ComponentContainer::getErrorLogger()
                 ->logError('Order.create', $review->getErrorsAsString(), true);
             $jsonData = self::getJsonErrorResult('Server error');
             $jsonData['errors'] = $review->getErrorsAsString();
+            return $jsonData;
         }
 
-        return $this->asJson($jsonData);
+        $review->notifyAdmin();
+        return self::getJsonOkResult();
     }
 }

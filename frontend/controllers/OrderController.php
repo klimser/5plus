@@ -17,43 +17,43 @@ class OrderController extends Controller
 {
     /**
      * Creates a new Order model.
-     * @return Response
+     * @return mixed
      * @throws BadRequestHttpException
      */
     public function actionCreate()
     {
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
         $orderData = Yii::$app->request->post('order');
         $order = new Order(['scenario' => Order::SCENARIO_FRONTEND]);
         $order->load($orderData, '');
         if (Yii::$app->request->post('g-recaptcha-response')) $order->reCaptcha = Yii::$app->request->post('g-recaptcha-response');
         $subject = Subject::findOne($order->subject);
-        if (!$subject) $jsonData = self::getJsonErrorResult('Неверный запрос');
-        else {
-            $order->subject = $subject->name;
-            if ($order->save(true)) {
-                $order->notifyAdmin();
-                $jsonData = self::getJsonOkResult();
-            } else {
-                ComponentContainer::getErrorLogger()
-                    ->logError('Order.create', $order->getErrorsAsString());
-                $jsonData = self::getJsonErrorResult('Server error');
-                $jsonData['errors'] = $order->getErrorsAsString();
-            }
+        if (!$subject) return self::getJsonErrorResult('Неверный запрос');
+        
+        $order->subject = $subject->name;
+        if (!$order->save(true)) {
+            ComponentContainer::getErrorLogger()
+                ->logError('Order.create', $order->getErrorsAsString());
+            $jsonData = self::getJsonErrorResult('Server error');
+            $jsonData['errors'] = $order->getErrorsAsString();
+            return $jsonData;
         }
 
-        return $this->asJson($jsonData);
+        $order->notifyAdmin();
+        return self::getJsonOkResult();
     }
 
     /**
      * Creates a new Order model.
-     * @return Response
+     * @return mixed
      * @throws BadRequestHttpException
      */
     public function actionCreateOnline()
     {
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Wrong request');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
         $orderData = Yii::$app->request->post('order');
         $order = new Order(['scenario' => Order::SCENARIO_FRONTEND]);
@@ -61,16 +61,15 @@ class OrderController extends Controller
         if (Yii::$app->request->post('g-recaptcha-response')) $order->reCaptcha = Yii::$app->request->post('g-recaptcha-response');
 
         $order->subject = 'Онлайн-школа: ' . $order->subject;
-        if ($order->save(true)) {
-            $order->notifyAdmin();
-            $jsonData = self::getJsonOkResult();
-        } else {
+        if (!$order->save(true)) {
             ComponentContainer::getErrorLogger()
                 ->logError('Order.create', $order->getErrorsAsString());
             $jsonData = self::getJsonErrorResult('Server error');
             $jsonData['errors'] = $order->getErrorsAsString();
+            return $jsonData;
         }
 
-        return $this->asJson($jsonData);
+        $order->notifyAdmin();
+        return self::getJsonOkResult();
     }
 }

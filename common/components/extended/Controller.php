@@ -4,7 +4,9 @@ namespace common\components\extended;
 
 
 use common\models\Webpage;
+use Yii;
 use yii\base\InvalidArgumentException;
+use yii\web\BadRequestHttpException;
 
 abstract class Controller extends \yii\web\Controller
 {
@@ -17,9 +19,9 @@ abstract class Controller extends \yii\web\Controller
      * @param string $message
      * @return array
      */
-    protected static function getJsonErrorResult(string $message = ''): array
+    protected static function getJsonErrorResult(string $message = 'Server error'): array
     {
-        return ['status' => 'error', 'message' => $message ?: 'Server error'];
+        return ['status' => 'error', 'message' => $message];
     }
 
     /**
@@ -30,6 +32,11 @@ abstract class Controller extends \yii\web\Controller
     {
         $resultDataArray['status'] = 'ok';
         return $resultDataArray;
+    }
+
+    protected function checkRequestIsAjax(): void
+    {
+        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
     }
 
     /**

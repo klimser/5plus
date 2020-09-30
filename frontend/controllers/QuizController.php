@@ -9,6 +9,7 @@ use common\models\QuizResult;
 use common\models\Subject;
 use common\models\Webpage;
 use yii;
+use yii\web\Response;
 
 /**
  * QuizController implements the CRUD actions for Quiz model.
@@ -99,57 +100,54 @@ class QuizController extends Controller
 
     /**
      * @param string $quizHash
-     * @return yii\web\Response
+     * @return mixed
+     * @throws yii\web\BadRequestHttpException
      */
     public function actionSaveResult($quizHash)
     {
-        $jsonData = [];
-        if (Yii::$app->request->isAjax) {
-            $quizResult = QuizResult::findOne(['hash' => $quizHash]);
-            if (!$quizResult) $jsonData = ['status' => 'error', 'message' => 'Wrong request'];
-            else {
-                if ($quizResult->finished_at) $jsonData = ['status' => 'error', 'message' => 'Тест уже был завершен'];
-                elseif ($quizResult->timeLeft <= 0) $jsonData = ['status' => 'error', 'message' => 'Время для прохождения теста истекло.'];
-                else {
-                    $answersData = Yii::$app->request->post('answers', json_decode($quizResult->answers_data));
-                    $quizResult->answers_data = json_encode($answersData);
-                    if ($quizResult->save(true, ['answers_data'])) $jsonData = ['status' => 'ok', 'timeLeft' => $quizResult->timeLeft];
-                    else {
-                        $jsonData = ['status' => 'error', 'message' => 'Произошла ошибка сервера'];
-                        Error::logError('quiz:saveResult', $quizResult->getErrorsAsString());
-                    }
-                }
-            }
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        $quizResult = QuizResult::findOne(['hash' => $quizHash]);
+        if (!$quizResult) return self::getJsonErrorResult('Wrong request');
+        
+        if ($quizResult->finished_at) return self::getJsonErrorResult('Тест уже был завершен');
+        if ($quizResult->timeLeft <= 0) return self::getJsonErrorResult('Время для прохождения теста истекло.');
+        
+        $answersData = Yii::$app->request->post('answers', json_decode($quizResult->answers_data));
+        $quizResult->answers_data = json_encode($answersData);
+        if (!$quizResult->save(true, ['answers_data'])) {
+            Error::logError('quiz:saveResult', $quizResult->getErrorsAsString());
+            return self::getJsonErrorResult('Произошла ошибка сервера');
         }
-        return $this->asJson($jsonData);
+        
+        return self::getJsonOkResult(['timeLeft' => $quizResult->timeLeft]);
     }
 
     /**
      * @param string $quizHash
-     * @return yii\web\Response
+     * @return mixed
      * @throws \Exception
      */
     public function actionComplete($quizHash)
     {
-        $jsonData = [];
-        if (Yii::$app->request->isAjax) {
-            $quizResult = QuizResult::findOne(['hash' => $quizHash]);
-            if (!$quizResult) $jsonData = ['status' => 'error', 'message' => 'Wrong request'];
-            else {
-                if ($this->completeQuiz($quizResult)) {
-                    $jsonData = [
-                        'status' => 'ok',
-                        'right_answers' => $quizResult->rightAnswerCount,
-                        'total_answers' => count($quizResult->answersArray),
-                        'student_name' => $quizResult->student_name,
-                    ];
-                } else {
-                    $jsonData = ['status' => 'error', 'message' => 'Произошла ошибка сервера'];
-                    Error::logError('quiz:complete', $quizResult->getErrorsAsString());
-                }
-            }
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        $quizResult = QuizResult::findOne(['hash' => $quizHash]);
+        if (!$quizResult) return self::getJsonErrorResult('Wrong request');
+        
+        if (!$this->completeQuiz($quizResult)) {
+            Error::logError('quiz:complete', $quizResult->getErrorsAsString());
+            return self::getJsonErrorResult('Произошла ошибка сервера');
         }
-        return $this->asJson($jsonData);
+
+        return self::getJsonOkResult([
+            'status' => 'ok',
+            'right_answers' => $quizResult->rightAnswerCount,
+            'total_answers' => count($quizResult->answersArray),
+            'student_name' => $quizResult->student_name,
+        ]);
     }
 
     /**

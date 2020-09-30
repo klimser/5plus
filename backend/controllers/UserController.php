@@ -563,7 +563,7 @@ class UserController extends AdminController
                         $usersData = Yii::$app->request->post('User', []);
                         $parent->load($usersData, 'parent');
                         $parentType = Yii::$app->request->post('parent_type', 'new');
-                        $existParentId = $usersData['parent']['id'] ?? 0;
+                        $existParentId = !empty($usersData['parent']['id']) ? (int)$usersData['parent']['id'] : 0;
                         $parent = $this->processParent($parent, $parentType, $user->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY, $existParentId);
                         if ($parent->id) {
                             $user->link('parent', $parent);
