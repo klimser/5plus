@@ -339,12 +339,9 @@ class AccountCommand extends UserCommand
         $rows = $groupSet = [];
         foreach ($userResult->groupPupils as $groupPupil) {
             if (!array_key_exists($groupPupil->group_id, $groupSet)) {
-                $groupSet[$groupPupil->group_id] = true;
-                $balance = Payment::find()
-                    ->andWhere(['user_id' => $userResult->id, 'group_id' => $groupPupil->group_id])
-                    ->select('SUM(amount)')
-                    ->scalar();
+                $balance = $groupPupil->moneyLeft;
                 if ($groupPupil->active || $balance < 0) {
+                    $groupSet[$groupPupil->group_id] = true;
                     $rows[] = TelegramHelper::escapeMarkdownV2($groupPupil->group->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
                         . '\\(*' . abs($groupPupil->paid_lessons) . '* ' . WordForm::getLessonsForm(abs($groupPupil->paid_lessons)) . '\\) '
                         . '[' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($groupPupil->user_id, $groupPupil->group_id)->url . ')';
