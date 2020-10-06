@@ -88,7 +88,7 @@ class UserController extends AdminController
             }
         }
         $infoFlashArray = [];
-        if (empty($errors)) {
+        if (!empty($ids) && empty($errors)) {
             $infoFlashArray[] = '<a target="_blank" href="' . Url::to(['welcome-lesson/print', 'id' => $ids]) . '">Распечатать информацию о пробных уроках</a>';
         }
 
@@ -487,6 +487,7 @@ class UserController extends AdminController
                 case 'new':
                     $parent = new User(['scenario' => User::SCENARIO_USER]);
                     $parent->role = $parentRole;
+                    $parent->load($parentData, '');
 
                     if (UserComponent::isPhoneUsed($parentRole, $parent->phone, $parent->phone2)) {
                         $errors[] = 'Родитель/компания с таким номером телефона уже существует!';

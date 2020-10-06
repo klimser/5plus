@@ -22,11 +22,6 @@ return [
                     'class' => \yii\log\FileTarget::class,
                     'levels' => ['error', 'warning'],
                 ],
-                [
-                    'class' => \yii\log\FileTarget::class,
-                    'levels' => ['info'],
-                    'logFile' => '@frontend/runtime/logs/info.log',
-                ],
             ],
         ],
         'errorHandler' => [

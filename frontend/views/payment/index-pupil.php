@@ -10,7 +10,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для учащих�
 
 <div class="container">
     <div class="content-box payment-panel">
-        <?= Html::beginForm(Url::to(['payment/find', 'pay-click' => (Yii::$app->request->get('pay-click') == '396' ? 396 : null)]), 'post', ['onsubmit' => 'var gToken = grecaptcha.getResponse(); if (gToken.length === 0) return false;']); ?>
+        <?= Html::beginForm(Url::to(['payment/find']), 'post', ['onsubmit' => 'var gToken = grecaptcha.getResponse(); if (gToken.length === 0) return false;']); ?>
             <div class="form-group">
                 <label for="pupil-phone">Введите номер телефона студента или его(её) родителей</label>
                 <div class="input-group">

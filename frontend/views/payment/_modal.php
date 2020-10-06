@@ -41,11 +41,9 @@ use yii\helpers\Url;
                             <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_PAYMO; ?>" class="btn paymo_logo pay_button m-2">
                                 Оплатить через <span class="sr-only">Paymo</span> <i class="ml-2"></i>
                             </button>
-                            <?php if (Yii::$app->request->get('pay-click') == '396'): ?>
-                                <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_CLICK; ?>" class="btn click_logo pay_button m-2">
-                                    Оплатить через <span class="sr-only">CLICK</span> <i class="ml-2"></i>
-                                </button>
-                            <?php endif; ?>
+                            <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_CLICK; ?>" class="btn click_logo pay_button m-2">
+                                Оплатить через <span class="sr-only">CLICK</span> <i class="ml-2"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
