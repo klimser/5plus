@@ -251,6 +251,9 @@ class ApiController extends Controller
                 $jsonData['error_note'] = 'Wrong amount';
                 return $jsonData;
             }
+            
+            $contract->external_id = $params['click_trans_id'];
+            $contract->save();
 
             return [
                 'click_trans_id' => $params['click_trans_id'],
@@ -387,6 +390,10 @@ class ApiController extends Controller
                     Contract::PAYMENT_TYPE_CLICK,
                     $params['click_paydoc_id']
                 );
+
+                $contract->external_id = $params['click_trans_id'];
+                $contract->save();
+
                 $transaction->commit();
             } catch (\Throwable $exception) {
                 $transaction->rollBack();
