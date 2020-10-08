@@ -6,6 +6,7 @@ use common\components\extended\ActiveRecord;
 use common\models\Group;
 use common\models\Subject;
 use common\models\Teacher;
+use common\models\traits\Inserted;
 use common\models\User;
 use DateTime;
 use Yii;
@@ -31,6 +32,8 @@ use yii\db\ActiveQuery;
  */
 class WelcomeLesson extends ActiveRecord
 {
+    use Inserted;
+
     public const STATUS_UNKNOWN = 1;
     public const STATUS_PASSED = 2;
     public const STATUS_MISSED = 3;

@@ -10,7 +10,6 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class ManagerSalaryReport
@@ -81,8 +80,7 @@ class ManagerSalaryReport
             $managerMap[$consultation->createdAdmin->id]['consultation']++;
             $row++;
         }
-        $incomeSheet->getStyle("D2:D$row")->getNumberFormat()
-            ->setFormatCode(NumberFormat::FORMAT_DATE_DMYMINUS);
+        $consultationSheet->getStyle("D2:D$row")->getNumberFormat()->setFormatCode('dd mmmm yy');
         $consultationSheet->getColumnDimension('A')->setAutoSize(true);
         $consultationSheet->getColumnDimension('B')->setAutoSize(true);
         $consultationSheet->getColumnDimension('C')->setAutoSize(true);
@@ -103,8 +101,8 @@ class ManagerSalaryReport
             ->alias('wl')
             ->joinWith('createdAdmin u')
             ->with(['group', 'user'])
-            ->andWhere(['between', 'wl.lesson_date', $date->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
-            ->orderBy(['u.name' => SORT_ASC, 'wl.lesson_date' => SORT_ASC])
+            ->andWhere(['between', 'wl.created_at', $date->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
+            ->orderBy(['u.name' => SORT_ASC, 'wl.created_at' => SORT_ASC])
             ->all();
 
         $row = 2;
@@ -122,12 +120,11 @@ class ManagerSalaryReport
             $welcomeLessonSheet->setCellValue("A$row", $welcomeLesson->createdAdmin->name);
             $welcomeLessonSheet->setCellValue("B$row", $welcomeLesson->user->name);
             $welcomeLessonSheet->setCellValue("C$row", $welcomeLesson->group->name);
-            $welcomeLessonSheet->setCellValue("D$row", Date::PHPToExcel($welcomeLesson->lessonDateTime));
+            $welcomeLessonSheet->setCellValue("D$row", Date::PHPToExcel($welcomeLesson->createDate));
             $managerMap[$welcomeLesson->createdAdmin->id]['welcome_lesson']++;
             $row++;
         }
-        $incomeSheet->getStyle("D2:D$row")->getNumberFormat()
-            ->setFormatCode(NumberFormat::FORMAT_DATE_DMYMINUS);
+        $welcomeLessonSheet->getStyle("D2:D$row")->getNumberFormat()->setFormatCode('dd mmmm yy');
         $welcomeLessonSheet->getColumnDimension('A')->setAutoSize(true);
         $welcomeLessonSheet->getColumnDimension('B')->setAutoSize(true);
         $welcomeLessonSheet->getColumnDimension('C')->setAutoSize(true);
@@ -191,8 +188,7 @@ class ManagerSalaryReport
                 $row++;
             }
         }
-        $incomeSheet->getStyle("D2:D$row")->getNumberFormat()
-            ->setFormatCode(NumberFormat::FORMAT_DATE_DMYMINUS);
+        $groupsSheet->getStyle("D2:D$row")->getNumberFormat()->setFormatCode('dd mmmm yy');
         $groupsSheet->getColumnDimension('A')->setAutoSize(true);
         $groupsSheet->getColumnDimension('B')->setAutoSize(true);
         $groupsSheet->getColumnDimension('C')->setAutoSize(true);
@@ -241,9 +237,8 @@ class ManagerSalaryReport
             $managerMap[$payment->admin_id]['money'] += $payment->amount;
             $row++;
         }
-        $incomeSheet->getStyle("D2:D$row")->getNumberFormat()
-            ->setFormatCode(NumberFormat::FORMAT_DATE_DMYMINUS);
-        $incomeSheet->getStyle("E2:E$row")->getNumberFormat()->setFormatCode('# ##0');
+        $incomeSheet->getStyle("D2:D$row")->getNumberFormat()->setFormatCode('dd mmmm yy');
+        $incomeSheet->getStyle("E2:E$row")->getNumberFormat()->setFormatCode('#,##0');
         $incomeSheet->getColumnDimension('A')->setAutoSize(true);
         $incomeSheet->getColumnDimension('B')->setAutoSize(true);
         $incomeSheet->getColumnDimension('C')->setAutoSize(true);
@@ -271,7 +266,7 @@ class ManagerSalaryReport
             $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $data['money'], DataType::TYPE_NUMERIC);
             $row++;
         }
-        $spreadsheet->getActiveSheet()->getStyle("E2:E$row")->getNumberFormat()->setFormatCode('# ##0');
+        $spreadsheet->getActiveSheet()->getStyle("E2:E$row")->getNumberFormat()->setFormatCode('#,##0');
         $spreadsheet->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
         $spreadsheet->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
         $spreadsheet->getActiveSheet()->getColumnDimension('C')->setAutoSize(true);
