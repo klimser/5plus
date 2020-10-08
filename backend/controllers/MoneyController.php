@@ -341,7 +341,7 @@ class MoneyController extends AdminController
             try {
                 $spreadsheet = SalaryComponent::getGroupSalarySpreadsheet($group, $date);
             } catch (\Throwable $exception) {
-                throw new yii\web\NotFoundHttpException($exception->getMessage(), $exception->getCode());
+                throw new yii\web\NotFoundHttpException($exception->getMessage(), $exception->getCode(), $exception);
             }
         } else {
             try {

@@ -7,12 +7,12 @@ use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
 
-$this->title = 'Кассовый отчёт';
+$this->title = 'Зарплата менеджеров';
 $this->params['breadcrumbs'][] = $this->title;
 
 
 ?>
-<?= Html::beginForm('', 'post'); ?>
+<?= Html::beginForm(); ?>
     <div class="form-group">
         <label for="report-month">День</label>
         <?= DatePicker::widget(ArrayHelper::merge(
@@ -25,15 +25,15 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
     <div class="form-group">
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="kids" id="non-kids" value="0" checked>
-            <label class="form-check-label" for="non-kids">
-                не KIDS
+            <label>
+                <input class="form-check-input" type="radio" name="month" value="0">
+                за день
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="kids" id="kids" value="1" checked>
-            <label class="form-check-label" for="kids">
-                KIDS
+            <label>
+                <input class="form-check-input" type="radio" name="month" value="1" checked>
+                за месяц
             </label>
         </div>
     </div>

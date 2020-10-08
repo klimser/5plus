@@ -238,6 +238,9 @@ $this->title = 'Панель управления';
                             <a class="dropdown-item" href="<?= Url::to(['report/rest-money']); ?>">
                                 <span class="fas fa-funnel-dollar"></span> Остатки
                             </a>
+                            <a class="dropdown-item" href="<?= Url::to(['report/manager-salary']); ?>">
+                                <span class="fas fa-battery-half"></span> Эффективность менеджеров
+                            </a>
                         <?php endif; ?>
                     </div>
                 </li>

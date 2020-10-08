@@ -109,6 +109,8 @@ class PupilReport
             ->setFormatCode(NumberFormat::FORMAT_DATE_DMYMINUS);
         $spreadsheet->getActiveSheet()->getStyle("F6:G$row")->getNumberFormat()
             ->setFormatCode(NumberFormat::FORMAT_DATE_DMYMINUS);
+        $spreadsheet->getActiveSheet()->getStyle("E6:E$row")->getNumberFormat()->setFormatCode('# ##0');
+        $spreadsheet->getActiveSheet()->getStyle("H6:H$row")->getNumberFormat()->setFormatCode('# ##0');
 
         return $spreadsheet;
     }
