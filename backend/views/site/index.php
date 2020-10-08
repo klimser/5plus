@@ -230,6 +230,9 @@ $this->title = 'Панель управления';
                             <a class="dropdown-item" href="<?= Url::to(['report/money']); ?>">
                                 <span class="fas fa-dollar-sign"></span> Финансовый отчёт
                             </a>
+                            <a class="dropdown-item" href="<?= Url::to(['report/manager-salary']); ?>">
+                                <span class="fas fa-battery-half"></span> Эффективность менеджеров
+                            </a>
                         <?php endif; ?>
                         <?php if ($admin->can('reportCash')): ?>
                             <a class="dropdown-item" href="<?= Url::to(['report/cash']); ?>">
@@ -237,9 +240,6 @@ $this->title = 'Панель управления';
                             </a>
                             <a class="dropdown-item" href="<?= Url::to(['report/rest-money']); ?>">
                                 <span class="fas fa-funnel-dollar"></span> Остатки
-                            </a>
-                            <a class="dropdown-item" href="<?= Url::to(['report/manager-salary']); ?>">
-                                <span class="fas fa-battery-half"></span> Эффективность менеджеров
                             </a>
                         <?php endif; ?>
                     </div>

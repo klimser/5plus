@@ -148,7 +148,7 @@ class ReportController extends AdminController
     
     public function actionManagerSalary()
     {
-        if (!Yii::$app->user->can('reportCash')) throw new ForbiddenHttpException('Access denied!');
+        if (!Yii::$app->user->can('reportMoney')) throw new ForbiddenHttpException('Access denied!');
 
         if (Yii::$app->request->isPost) {
             $date = new \DateTimeImmutable(Yii::$app->request->post('date', 'now'));
