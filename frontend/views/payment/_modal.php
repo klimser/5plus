@@ -33,7 +33,7 @@ use yii\helpers\Url;
                     <div class="form-group">
                         <label for="amount" class="col-4 col-md-3 col-xl-2 control-label">Сумма</label>
                         <div class="col-8 col-md-9 col-xl-10">
-                            <input type="number" class="form-control" id="amount" min="1000" step="1000" required disabled>
+                            <input type="number" class="form-control" id="amount" min="1000" step="1000" inputmode="numeric" autocomplete="transaction-amount" required disabled>
                         </div>
                     </div>
                     <div class="form-group">

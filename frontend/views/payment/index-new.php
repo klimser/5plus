@@ -20,7 +20,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                 <div class="col-12 col-lg-6">
                     <div class="form-group required">
                         <label for="giftcard-pupil-name">Фамилия, имя, отчество студента</label>
-                        <input name="giftcard[pupil_name]" id="giftcard-pupil-name" class="form-control" maxlength="127" required>
+                        <input name="giftcard[pupil_name]" id="giftcard-pupil-name" class="form-control" maxlength="127" autocomplete="name" required>
                     </div>
                     <div class="form-group required">
                         <label for="giftcard-pupil-phone">Телефон студента</label>
@@ -28,14 +28,14 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                             <div class="input-group-prepend">
                                 <span class="input-group-text">+998</span>
                             </div>
-                            <input type="tel" name="giftcard[pupil_phone]" id="giftcard-pupil-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" required>
+                            <input type="tel" name="giftcard[pupil_phone]" id="giftcard-pupil-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" inputmode="numeric" autocomplete="tel-national" required>
                         </div>
                     </div>
                 </div>
                 <div class="col-12 col-lg-6">
                     <div class="form-group">
                         <label for="giftcard-parents-name">Фамилия, имя, отчество родителей</label>
-                        <input name="giftcard[parents_name]" id="giftcard-parents-name" class="form-control" maxlength="127">
+                        <input name="giftcard[parents_name]" id="giftcard-parents-name" class="form-control" maxlength="127" autocomplete="name">
                     </div>
                     <div class="form-group">
                         <label for="giftcard-parents-phone">Телефон родителей</label>
@@ -43,7 +43,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                             <div class="input-group-prepend">
                                 <span class="input-group-text">+998</span>
                             </div>
-                            <input type="tel" name="giftcard[parents_phone]" id="giftcard-parents-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}">
+                            <input type="tel" name="giftcard[parents_phone]" id="giftcard-parents-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" inputmode="numeric" autocomplete="tel-national">
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
             </div>
             <div class="form-group required">
                 <label for="giftcard-email">E-mail для отправки квитанции об оплате</label>
-                <input type="email" name="giftcard[email]" id="giftcard-email" class="form-control" maxlength="255" required>
+                <input type="email" name="giftcard[email]" id="giftcard-email" class="form-control" maxlength="255" inputmode="email" autocomplete="email" required>
             </div>
             <div class="alert alert-info">
                 Квитанция об оплате со штрих-кодом будет выслана на указанный вами e-mail. Вам необходимо будет показать квитанцию на телефоне или в распечатанном виде Вашим заботливым менеджерам в администрации «Пять с Плюсом» для допуска к занятиям.<br>

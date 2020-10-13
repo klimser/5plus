@@ -106,20 +106,18 @@ let Payment = {
     completeNewPayment: function(button) {
         let form = $(button).closest("form");
         let formData = $(form).serialize();
-        formData.method = $(button).data("payment");
         this.lockPayButton();
         $.ajax({
                 url: $(form).attr('action'),
                 type: 'post',
                 dataType: 'json',
-                data: formData,
+                data: formData + "&method=" + $(button).data("payment"),
             })
             .done(function(data) {
                 if (data.status === 'error') {
                     Main.throwFlashMessage('#message_board', "Ошибка: " + data.message, 'alert-danger');
                 } else {
                     location.assign(data.redirectUrl);
-                    location.assign(data.payment_url + '/invoice/get?storeId=' + data.store_id + '&transactionId=' + data.payment_id + '&redirectLink=' + data.redirect_link);
                 }
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
