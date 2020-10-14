@@ -196,12 +196,13 @@ if ($group->teacher_id) {
                             ?><?= $groupPupil->user->phone2 ? ', ' . Html::phoneLink($groupPupil->user->phone2, $groupPupil->user->phone2Formatted) : ''; ?>)
                         <?php endif; ?>
                     </div>
+                    <?php /*
                     <div class="col-3 col-sm-2 col-md-auto">
                         <a href="<?= Url::to(['group/move-pupil', 'groupPupilId' => $groupPupil->id]); ?>" class="btn btn-sm btn-outline-dark">
                             <span class="d-none d-md-inline">Перевести</span>
                             <span class="fas fa-arrow-right"></span>
                         </a>
-                    </div>
+                    </div> */ ?>
                 </div>
                 <div class="row group-pupil-block mb-3 border-bottom">
                     <?= $form->field(

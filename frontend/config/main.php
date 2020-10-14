@@ -15,6 +15,14 @@ return [
         'view' => [
             'class' => \frontend\components\extended\View::class,
         ],
+        'request' => [
+            'csrfParam' => '_csrf_fe',
+            'csrfCookie' => [
+                'httpOnly' => true,
+                'secure' => !YII_ENV_DEV,
+                'sameSite' => (PHP_VERSION_ID >= 70300 ? \yii\web\Cookie::SAME_SITE_LAX : null),
+            ],
+        ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [

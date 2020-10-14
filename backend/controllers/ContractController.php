@@ -75,7 +75,6 @@ class ContractController extends AdminController
      */
     public function actionIndex()
     {
-        $this->checkAccess('accountant');
         $searchModel = new ContractSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 

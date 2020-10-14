@@ -4,8 +4,6 @@ namespace backend\models;
 
 use common\components\extended\ActiveRecord;
 use common\models\Group;
-use common\models\Subject;
-use common\models\Teacher;
 use common\models\traits\Inserted;
 use common\models\User;
 use DateTime;
