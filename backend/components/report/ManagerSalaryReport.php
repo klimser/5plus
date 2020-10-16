@@ -213,7 +213,7 @@ class ManagerSalaryReport
             ->andWhere(['between', 'p.created_at', $date->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
             ->andWhere(['not', ['p.admin_id' => null]])
             ->andWhere(['>', 'p.amount', 0])
-            ->andWhere(['not', ['like', 'p.comment', 'Перевод оставшихся средств%', false]])
+//            ->andWhere(['not', ['like', 'p.comment', 'Перевод оставшихся средств%', false]])
             ->orderBy(['ad.name' => SORT_ASC, 'p.created_at' => SORT_ASC])
             ->all();
 

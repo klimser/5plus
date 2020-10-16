@@ -76,7 +76,7 @@ class UserComponent extends Component
         Yii::$app->cache->delete('user.years');
     }
 
-    public static function isPhoneUsed(int $role, ?string $phone, ?string $phone2 = null): bool
+    public static function isPhoneUsed(int $role, ?string $phone, ?string $phone2 = null, ?User $currentUser = null): bool
     {
         if (empty($phone)) throw new \Exception('Phone is mandatory');
         $phones = [$phone];
@@ -87,6 +87,9 @@ class UserComponent extends Component
             ->alias('u')
             ->andWhere(['u.role' => $role])
             ->andWhere('u.phone IN (:phones) OR u.phone2 IN (:phones)', [':phones' => implode(', ', $phones)]);
+        if ($currentUser && $currentUser->id) {
+            $qB->andWhere(['not', ['u.id' => $currentUser->id]]);
+        }
         return null !== $qB->one();
     }
 }

@@ -361,9 +361,8 @@ let Dashboard = {
         });
         $(form).find("#group-move-new-group").html(optionsHtml);
         $(form).find("#group-move-date").val('');
-        let datepickerOptions = Main.datepickerDefaultSettings;
-        datepickerOptions.minDate = $(e).data('date');
-        $(form).find(".datepicker").datepicker(datepickerOptions);
+        $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
+        $(form).find(".datepicker").datepicker("option", "minDate", $(e).data('date'));
         $("#modal-group-move").modal("show");
     },
     moveGroupPupil: function(form) {
@@ -459,9 +458,8 @@ let Dashboard = {
 
         let groupLimitDate = $(e).data("date");
         let limitDate = this.pupilLimitDate !== null && this.pupilLimitDate > groupLimitDate ? this.pupilLimitDate : groupLimitDate;
-        let datepickerOptions = Main.datepickerDefaultSettings;
-        datepickerOptions.minDate = new Date(limitDate);
-        $(form).find(".datepicker").datepicker(datepickerOptions);
+        $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
+        $(form).find(".datepicker").datepicker("option", "minDate", new Date(limitDate));
 
         $("#modal-end-pupil").modal("show");
     },

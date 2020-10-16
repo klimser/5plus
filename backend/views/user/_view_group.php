@@ -89,18 +89,15 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                                 </button>
                             <?php endif; ?>
         
-                            <?php if ($groupManagementAllowed):
-                                $limitDate = clone $groupPupil->startDateObject;
-                                $limitDate->modify('+1 day');
-                                ?>
+                            <?php if ($groupManagementAllowed): ?>
                                 <button type="button" title="перевести в другую группу" class="btn btn-outline-dark mb-2" onclick="Dashboard.showMovePupilForm(this);"
                                     data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>"
-                                    data-date="<?= $limitDate->format('d.m.Y'); ?>">
+                                    data-date="<?= $groupPupil->startDateObject->format('d.m.Y'); ?>">
                                     <span class="fas fa-running"></span> <span class="fas fa-arrow-right"></span>
                                 </button>
                                 <button type="button" title="завершает ходить" class="btn btn-outline-dark mb-2" onclick="Dashboard.showEndPupilForm(this);"
                                         data-id="<?= $groupPupil->id; ?>" data-group="<?= $groupPupil->group_id; ?>"
-                                        data-date="<?= $limitDate->format('Y-m-d'); ?>">
+                                        data-date="<?= $groupPupil->startDateObject->format('Y-m-d'); ?>">
                                     <span class="fas fa-skull-crossbones"></span>
                                 </button>
                             <?php endif; ?>

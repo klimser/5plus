@@ -453,6 +453,11 @@ class UserController extends AdminController
         }
         $pupil->setScenario(User::SCENARIO_USER);
         $pupil->load($pupilData, '');
+
+        if (UserComponent::isPhoneUsed(User::ROLE_PUPIL, $pupil->phone, $pupil->phone2, $pupil)) {
+            return self::getJsonErrorResult('Студент с таким номером телефона уже существует!');
+        }
+        
         $errors = [];
         $transaction = User::getDb()->beginTransaction();
 
@@ -556,6 +561,11 @@ class UserController extends AdminController
                 } else {
                     $user->bitrix_sync_status = 0;
                 }
+
+                if ($user->role == User::ROLE_PUPIL && UserComponent::isPhoneUsed(User::ROLE_PUPIL, $user->phone, $user->phone2, $user)) {
+                    throw new Exception('Студент с таким номером телефона уже существует!');
+                }
+                
                 if (!$user->save(true, $fields)) {
                     $transaction->rollBack();
                     $user->moveErrorsToFlash();
