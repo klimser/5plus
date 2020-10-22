@@ -19,7 +19,7 @@ return [
             'password' => $params['db-password'],
             'tablePrefix' => $params['db-tablePrefix'],
             'enableSchemaCache' => true,
-            'schemaCacheDuration' => 0,
+            'schemaCacheDuration' => 86400,
         ],
         'assetManager' => [
             'bundles' => [
@@ -123,6 +123,13 @@ return [
             'serviceId' => $params['click-serviceId'],
             'merchantUserId' => $params['click-merchantUserId'],
             'secretKey' => $params['click-secretKey'],
+        ],
+        'paymeApi' => [
+            'class' => \common\components\payme\PaymeApi::class,
+            'paymentUrl' => $params['payme-url'],
+            'merchantId' => $params['payme-merchantId'],
+            'login' => $params['payme-login'],
+            'password' => $params['payme-password'],
         ],
     ],
     'aliases' => [

@@ -105,7 +105,7 @@ class GiftCard extends ActiveRecord
      */
     public function setAdditionalData(array $value)
     {
-        $this->setAttribute('additional', json_encode($value));
+        $this->setAttribute('additional', json_encode($value, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
     }
 
     /**

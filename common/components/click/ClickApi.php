@@ -106,7 +106,6 @@ class ClickApi extends BaseObject
     /**
      * Выполнить запрос
      * @param string $urlAddon
-     * @param bool $json
      * @param array $params
      * @param array $headers
      * @return mixed
@@ -155,11 +154,13 @@ class ClickApi extends BaseObject
     /**
      * @param float $amount
      * @param string $paymentId
+     * @param string|null $returnUrl
      * @return string
      */
-    public function payCreate(float $amount, string $paymentId): string
+    public function payCreate(float $amount, string $paymentId, ?string $returnUrl = null): string
     {
         return "$this->paymentUrl/services/pay?service_id=$this->serviceId&merchant_id=$this->merchantId&amount="
-            . number_format(round($amount, 2), 2, '.', '') . "&transaction_param=$paymentId";
+            . number_format(round($amount, 2), 2, '.', '') . "&transaction_param=$paymentId"
+            . ($returnUrl ? "&return_url=$returnUrl" : '');
     }
 }

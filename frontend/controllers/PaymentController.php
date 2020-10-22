@@ -154,9 +154,12 @@ class PaymentController extends Controller
                     $redirectUrl = "$paymoApi->paymentUrl/invoice/get?storeId=$paymoApi->storeId&transactionId=$paymoId&redirectLink=$returnUrl";
                     break;
                 case Contract::PAYMENT_TYPE_CLICK:
-                    $redirectUrl = ComponentContainer::getClickApi()->payCreate($contract->amount, $contract->number);
-                    $redirectUrl .= "&return_url=$returnUrl";
+                    $redirectUrl = ComponentContainer::getClickApi()->payCreate($contract->amount, $contract->number, $returnUrl);
                     $contract->payment_type = Contract::PAYMENT_TYPE_CLICK;
+                    break;
+                case Contract::PAYMENT_TYPE_PAYME:
+                    $redirectUrl = ComponentContainer::getPaymeApi()->payCreate($contract->amount, $contract->number, $returnUrl);
+                    $contract->payment_type = Contract::PAYMENT_TYPE_PAYME;
                     $contract->status = Contract::STATUS_PROCESS;
                     break;
                 default:
@@ -204,12 +207,12 @@ class PaymentController extends Controller
             $giftCard->customer_name = $giftCardData['pupil_name'];
             $giftCard->phoneFormatted = $giftCardData['pupil_phone'];
             $giftCard->customer_email = $giftCardData['email'];
+            $additionalData = ['payment_method' => (int)$paymentMethodId];
             if ($giftCardData['parents_name'] && $giftCardData['parents_phone']) {
-                $giftCard->additionalData = [
-                    'parents_name' => $giftCardData['parents_name'],
-                    'parents_phone' => $giftCardData['parents_phone'],
-                ];
+                $additionalData['parents_name'] = $giftCardData['parents_name'];
+                $additionalData['parents_phone'] = $giftCardData['parents_phone'];
             }
+            $giftCard->additionalData = $additionalData;
 
             if (!$giftCard->save()) {
                 $transaction->rollBack();
@@ -230,8 +233,10 @@ class PaymentController extends Controller
                     $redirectUrl = "$paymoApi->paymentUrl/invoice/get?storeId=$paymoApi->storeId&transactionId=$paymoId&redirectLink=$returnUrl";
                     break;
                 case Contract::PAYMENT_TYPE_CLICK:
-                    $redirectUrl = ComponentContainer::getClickApi()->payCreate($giftCard->amount,"gc-$giftCard->id");
-                    $redirectUrl .= "&return_url=$returnUrl";
+                    $redirectUrl = ComponentContainer::getClickApi()->payCreate($giftCard->amount, "gc-$giftCard->id", $returnUrl);
+                    break;
+                case Contract::PAYMENT_TYPE_PAYME:
+                    $redirectUrl = ComponentContainer::getPaymeApi()->payCreate($giftCard->amount, "gc-$giftCard->id", $returnUrl);
                     break;
                 default:
                     return self::getJsonErrorResult('Wrong payment method');

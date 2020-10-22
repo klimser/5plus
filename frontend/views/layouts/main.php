@@ -173,7 +173,9 @@ $this->render('/grunt-assets');
                 </div>
             </div>
             <div class="col-12 col-md-6 col-lg-7 float-md-left mb-3 mt-md-3">
-                <div id="map" class="map"></div>
+                <div id="map" class="map">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1812.0439450559677!2d69.27450349091579!3d41.29657315438762!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ae8b288a28d0f1%3A0xad929af041a2d7f5!2z0KPRh9C10LHQvdGL0Lkg0YbQtdC90YLRgCDCqyA1KyDQn9GP0YLRjCDRgSDQv9C70Y7RgdC-0LzCuw!5e0!3m2!1sru!2sde!4v1602842656556!5m2!1sru!2sde" width="100%" height="303" frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false" tabindex="0"></iframe>
+                </div>
             </div>
             <div class="col-12 col-md-6 col-lg-5 mb-3 float-md-right contacts-block">
                 <div class="social text-center">
@@ -210,7 +212,6 @@ $this->render('/grunt-assets');
 </footer>
 
 <?php $this->endBody() ?>
-<?= YII_ENV == 'prod' ? WidgetHtml::getByName('google_maps_init') : ''; ?>
 </body>
 </html>
 <?php $this->endPage() ?>

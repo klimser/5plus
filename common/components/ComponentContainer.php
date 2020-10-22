@@ -5,6 +5,7 @@ namespace common\components;
 use common\components\bitrix\Bitrix;
 use common\components\click\ClickApi;
 use common\components\paygram\PaygramApi;
+use common\components\payme\PaymeApi;
 use common\components\paymo\PaymoApi;
 
 class ComponentContainer
@@ -56,5 +57,9 @@ class ComponentContainer
     public static function getClickApi(): ClickApi
     {
         return \Yii::$app->clickApi;
+    }
+    public static function getPaymeApi(): PaymeApi
+    {
+        return \Yii::$app->paymeApi;
     }
 }

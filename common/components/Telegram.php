@@ -6,6 +6,7 @@ use Longman\TelegramBot\Commands\SystemCommands\CallbackqueryCommand;
 use Longman\TelegramBot\TelegramLog;
 use yii\base\BaseObject;
 use Longman\TelegramBot\Telegram as TelegramBot;
+use yii\web\Request;
 
 /**
  * @property TelegramBot $telegram
@@ -87,7 +88,7 @@ class Telegram extends BaseObject
         return $this->bot;
     }
 
-    public function checkAccess(\yii\web\Request $request): bool
+    public function checkAccess(Request $request): bool
     {
         if ($this->webhookKey) {
             return $request->getQueryParam('key') == $this->webhookKey;

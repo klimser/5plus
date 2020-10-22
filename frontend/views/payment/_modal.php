@@ -44,6 +44,9 @@ use yii\helpers\Url;
                             <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_CLICK; ?>" class="btn click_logo pay_button m-2">
                                 Оплатить через <span class="sr-only">CLICK</span> <i class="ml-2"></i>
                             </button>
+                            <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_PAYME; ?>" class="btn payme_logo pay_button m-2">
+                                Оплатить через <span class="sr-only">Payme</span> <i class="ml-2"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
