@@ -47,7 +47,7 @@ $this->registerJs('Main.initAutocompleteUser("#search-student");');
                     /** @var Payment $model */
                     return
                     ($model->contract_id && $model->contract->payment_type != Contract::PAYMENT_TYPE_MANUAL
-                        ? '<span class="badge badge-info">online</span> '
+                        ? '<span class="badge badge-info">online (' . Contract::PAYMENT_TYPE_LABELS[$model->contract->payment_type] . ')</span> '
                         : ''
                     )
                     . ($model->cash_received == Payment::STATUS_INACTIVE
