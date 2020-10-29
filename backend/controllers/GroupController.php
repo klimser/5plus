@@ -574,6 +574,15 @@ class GroupController extends AdminController
         $groupPupil->active = GroupPupil::STATUS_INACTIVE;
         $groupPupil->end_reason = $formData['reasonId'];
         $groupPupil->comment = $formData['reasonComment'];
+
+        ComponentContainer::getActionLogger()->log(
+            Action::TYPE_GROUP_PUPIL_UPDATED,
+            $groupPupil->user,
+            null,
+            $groupPupil->group,
+            json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
+        );
+        
         if (!$groupPupil->save()) {
             return self::getJsonErrorResult($groupPupil->getErrorsAsString());
         }

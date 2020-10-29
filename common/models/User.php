@@ -129,6 +129,7 @@ class User extends ActiveRecord implements IdentityInterface
             [['status', 'money', 'role', 'parent_id', 'teacher_id', 'bitrix_id', 'tg_chat_id'], 'integer'],
             [['username', 'note', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
             [['name'], 'string', 'max' => 127],
+            [['name'], 'match', 'pattern' => '#^[a-zа-яё -]+$#iu'],
             [['auth_key'], 'string', 'max' => 32],
             [['phone', 'phone2'], 'string', 'min' => 13, 'max' => 13],
             [['phone', 'phone2'], 'match', 'pattern' => '#^\+998\d{9}$#'],
@@ -404,6 +405,7 @@ class User extends ActiveRecord implements IdentityInterface
         if ($this->password_hash === null) {
             $this->password_hash = '';
         }
+        $this->name = preg_replace('#[ ]+#', ' ', $this->name);
         
         if (!parent::beforeValidate()) {
             return false;

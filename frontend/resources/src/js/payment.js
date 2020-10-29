@@ -72,7 +72,7 @@ let Payment = {
     },
     completePayment: function(button) {
         let form = $(button).closest("form");
-        if (!$("#pupil").data("val") || !$("#group").data("val") || $("#amount").val() < 1000) return false;
+        if (!$("#pupil").data("val") || !$("#group").data("val") || $("#amount").val() < 1000 || !$("#agreement").is(":checked")) return false;
 
         this.lockPayButton();
         $.ajax({
@@ -105,6 +105,9 @@ let Payment = {
     },
     completeNewPayment: function(button) {
         let form = $(button).closest("form");
+        if (!form.get(0).reportValidity()) {
+            return false;
+        }
         let formData = $(form).serialize();
         this.lockPayButton();
         $.ajax({

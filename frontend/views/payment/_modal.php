@@ -6,7 +6,7 @@ use yii\helpers\Url;
 ?>
 
 <div id="payment_form" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <?= Html::beginForm(Url::to(['payment/create']), 'post', ['onsubmit' => 'return false;']); ?>
             <div class="modal-header">
@@ -34,6 +34,14 @@ use yii\helpers\Url;
                         <label for="amount" class="col-4 col-md-3 col-xl-2 control-label">Сумма</label>
                         <div class="col-8 col-md-9 col-xl-10">
                             <input type="number" class="form-control" id="amount" min="1000" step="1000" inputmode="numeric" autocomplete="transaction-amount" required disabled>
+                        </div>
+                    </div>
+                    <div class="form-group col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="1" id="agreement" required>
+                            <label class="form-check-label" for="agreement">
+                                С <a href="<?= Yii::$app->homeUrl; ?>uploads/images/legal_documents/public_offer.pdf" target="_blank">публичной офертой</a> ознакомлен(а) и согласен(на)
+                            </label>
                         </div>
                     </div>
                     <div class="form-group">

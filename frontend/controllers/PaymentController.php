@@ -57,37 +57,41 @@ class PaymentController extends Controller
     {
         $validator = new ReCaptchaValidator2();
         $reCaptcha = Yii::$app->request->post('reCaptcha');
-        if (!$reCaptcha || !$validator->validate($reCaptcha)) {
+        try {
+            if (!$reCaptcha || !$validator->validate($reCaptcha)) {
+                throw new \Exception('Recaptcha failed');
+            }
+        } catch (\Exception $ex) {
             Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
             return $this->render('index-pupil', $this->getPageParams('pupil'));
-        } else {
-            $phoneFull = '+998' . substr(preg_replace('#\D#', '', Yii::$app->request->post('phoneFormatted')), -9);
-            /** @var User[] $users */
-            $users = User::find()
-                ->andWhere(['or', ['phone' => $phoneFull], ['phone2' => $phoneFull]])
-                ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY, User::ROLE_PUPIL]])
-                ->all();
-            if (count($users) == 0) {
-                Yii::$app->session->addFlash('error', 'По данному номеру студенты не найдены');
-                return $this->render('index-pupil', $this->getPageParams('pupil'));
-            } else {
-                $params = $this->getPageParams('pupil');
-                $params['user'] = null;
-                $params['users'] = [];
-                if (count($users) == 1) {
-                    $user = reset($users);
-                    if ($user->role == User::ROLE_PUPIL) {
-                        $params['user'] = $user;
-                    } elseif (count($user->children) == 1) {
-                        $children = $user->children;
-                        $params['user'] = reset($children);
-                    } else {
-                        $params['users'] = $user->children;
-                    }
-                } else $params['users'] = $users;
+        }
 
-                return $this->render('find', $params);
-            }
+        $phoneFull = '+998' . substr(preg_replace('#\D#', '', Yii::$app->request->post('phoneFormatted')), -9);
+        /** @var User[] $users */
+        $users = User::find()
+            ->andWhere(['or', ['phone' => $phoneFull], ['phone2' => $phoneFull]])
+            ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY, User::ROLE_PUPIL]])
+            ->all();
+        if (count($users) == 0) {
+            Yii::$app->session->addFlash('error', 'По данному номеру студенты не найдены');
+            return $this->render('index-pupil', $this->getPageParams('pupil'));
+        } else {
+            $params = $this->getPageParams('pupil');
+            $params['user'] = null;
+            $params['users'] = [];
+            if (count($users) == 1) {
+                $user = reset($users);
+                if ($user->role == User::ROLE_PUPIL) {
+                    $params['user'] = $user;
+                } elseif (count($user->children) == 1) {
+                    $children = $user->children;
+                    $params['user'] = reset($children);
+                } else {
+                    $params['users'] = $user->children;
+                }
+            } else $params['users'] = $users;
+
+            return $this->render('find', $params);
         }
     }
 

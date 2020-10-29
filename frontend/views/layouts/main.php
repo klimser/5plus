@@ -4,6 +4,7 @@
 /* @var $content string */
 
 use common\models\Menu;
+use common\widgets\Alert;
 use yii\bootstrap4\Html;
 use yii\bootstrap4\Nav;
 use common\components\WidgetHtml;
@@ -132,6 +133,7 @@ $this->render('/grunt-assets');
 </header>
 
 <main class="content">
+    <?= Alert::widget() ?>
     <?= $content ?>
 </main>
 

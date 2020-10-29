@@ -66,6 +66,12 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                 Квитанция об оплате со штрих-кодом будет выслана на указанный вами e-mail. Вам необходимо будет показать квитанцию на телефоне или в распечатанном виде Вашим заботливым менеджерам в администрации «Пять с Плюсом» для допуска к занятиям.<br>
                 Желаем вам хорошего настроения и шикарной учебы!
             </div>
+            <div class="form-group form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="agreement" required>
+                <label class="form-check-label" for="agreement">
+                    С <a href="<?= Yii::$app->homeUrl; ?>uploads/images/legal_documents/public_offer.pdf" target="_blank">публичной офертой</a> ознакомлен(а) и согласен(на)
+                </label>
+            </div>
             <div id="message_board"></div>
             <div class="text-right mw-100">
                 <button type="submit" onclick="return Payment.completeNewPayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_PAYMO; ?>" class="btn paymo_logo pay_button m-2">

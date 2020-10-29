@@ -38,7 +38,7 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                     $isActive = true;
                 }
             ?>
-                <div class="row justify-content-between align-items-start border-bottom pb-3 mb-3 collapse group-item <?= $groupPupil->active === GroupPupil::STATUS_INACTIVE ? ' inactive ' : ' show '; ?>">
+                <div class="row justify-content-between align-items-start border-bottom pb-3 mb-3 collapse group-item <?= $groupPupil->active === GroupPupil::STATUS_INACTIVE ? ' inactive table-secondary ' : ' show '; ?>">
                     <div class="col-8 col-md-9">
                         <div class="row">
                             <div class="col-12 col-md-4 col-lg-6">

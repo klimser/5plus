@@ -51,6 +51,7 @@ use yii\helpers\Url; ?>
         * При запросе возврата внесенных за обучение остатков денежных средств по любой причине, не зависящей от ООО "Exclusive Education", последняя внесенная за обучение оплата пересчитывается по стоимости, равной 50 000 сум за 1 урок при условии, что было проведено менее 12 занятий.
     </p>
     <br>
+    <p>С публичной офертой ознакомлен(а) и согласен(на)</p>
     <p>Студент: <b><?= $contract->user->name; ?></b></p>
     <br>
     <p><b>Юридический и почтовый адрес и банковские реквизиты:</b></p>
@@ -64,7 +65,8 @@ use yii\helpers\Url; ?>
     ОКЭД 85.59.0.<br>
     E-mail: 5plus.center@gmail.com</i></p>
     <p></p>
-    <p>Директор ООО «EXCLUSIVE EDUCATION», Климов Александр Сергеевич <img src="<?= require_once "sign.php"; ?>" style="width: 6cm;" alt="signature">
+    <p>
+        Директор ООО «EXCLUSIVE EDUCATION», Климов Александр Сергеевич <img src="<?= require_once "sign.php"; ?>" style="width: 6cm;" alt="signature">
     </p>
     <p></p>
     <p></p>
