@@ -10,11 +10,13 @@ use common\components\ComponentContainer;
 use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use common\models\Group;
+use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
 use common\resources\documents\WelcomeLessons;
+use Exception;
 use yii;
 use yii\web\Response;
 
@@ -227,7 +229,15 @@ class WelcomeLessonController extends AdminController
 
         $startDate = new \DateTime($welcomeLessonData['date']);
         if (!$startDate) {
-            return self::getJsonErrorResult('Wrong lesson date');
+            return self::getJsonErrorResult('Empty lesson date');
+        }
+
+        $groupParam = GroupParam::findByDate($welcomeLesson->group, $startDate);
+        if (!$groupParam) {
+            $groupParam = $welcomeLesson->group;
+        }
+        if (!$groupParam->hasLesson($startDate)) {
+            return self::getJsonErrorResult('Неверная дата пробного урока');
         }
 
         $transaction = Yii::$app->db->beginTransaction();
@@ -237,10 +247,8 @@ class WelcomeLessonController extends AdminController
 
             $newWelcomeLesson = new WelcomeLesson();
             $newWelcomeLesson->group_id = $welcomeLesson->group_id;
-            $newWelcomeLesson->subject_id = $welcomeLesson->subject_id;
-            $newWelcomeLesson->teacher_id = $welcomeLesson->teacher_id;
             $newWelcomeLesson->user_id = $welcomeLesson->user_id;
-            $newWelcomeLesson->lessonDateTime = $startDate;
+            $newWelcomeLesson->lessonDateTime = $groupParam->getLessonDateTime($startDate);
 
             if (!$newWelcomeLesson->save()) {
                 throw new \Exception('Server error: ' . $newWelcomeLesson->getErrorsAsString());
