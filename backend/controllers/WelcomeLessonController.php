@@ -248,7 +248,7 @@ class WelcomeLessonController extends AdminController
             $newWelcomeLesson = new WelcomeLesson();
             $newWelcomeLesson->group_id = $welcomeLesson->group_id;
             $newWelcomeLesson->user_id = $welcomeLesson->user_id;
-            $newWelcomeLesson->lessonDateTime = $groupParam->getLessonDateTime($startDate);
+            $newWelcomeLesson->lesson_date = $groupParam->getLessonDateTime($startDate);
 
             if (!$newWelcomeLesson->save()) {
                 throw new \Exception('Server error: ' . $newWelcomeLesson->getErrorsAsString());
