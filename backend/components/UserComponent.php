@@ -86,6 +86,7 @@ class UserComponent extends Component
         $qB = User::find()
             ->alias('u')
             ->andWhere(['u.role' => $role])
+            ->andWhere(['!=', 'u.status', User::STATUS_LOCKED])
             ->andWhere('u.phone IN (:phones) OR u.phone2 IN (:phones)', [':phones' => implode(', ', $phones)]);
         if ($currentUser && $currentUser->id) {
             $qB->andWhere(['not', ['u.id' => $currentUser->id]]);

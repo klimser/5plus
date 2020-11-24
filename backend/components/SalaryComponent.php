@@ -110,7 +110,7 @@ class SalaryComponent
                 $column = intval($event->eventDateTime->format('j')) + 1;
 
                 if ($event->status == Event::STATUS_CANCELED) {
-                    $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, 7)
+                    $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, 7, $column, $row)
                         ->getFill()->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()->setRGB($redColor);
                 } else {

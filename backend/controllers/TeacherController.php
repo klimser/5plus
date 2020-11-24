@@ -88,6 +88,11 @@ class TeacherController extends AdminController
                             $teacher->birthday = $birthdayDate->format('Y-m-d');
                         }
                     }
+                    $formData = Yii::$app->request->post('Teacher');
+                    $teacher->contractDate =
+                        (!empty($formData['contractDate']) && $contractDate = new \DateTimeImmutable($formData['contractDate']))
+                        ? $contractDate
+                        : null;
                     $teacher->photoFile = yii\web\UploadedFile::getInstance($teacher, 'photoFile');
                     if (!$teacher->save()) {
                         $teacher->moveErrorsToFlash();

@@ -152,7 +152,7 @@ class Payment extends ActiveRecord
      */
     public function getPaymentsSum()
     {
-        return Payment::find()->andWhere(['used_payment_id' => $this->id])->select('SUM(amount)')->scalar() * (-1);
+        return (int)(Payment::find()->andWhere(['used_payment_id' => $this->id])->select('SUM(amount)')->scalar() * (-1));
     }
 
     /**
@@ -160,7 +160,7 @@ class Payment extends ActiveRecord
      */
     public function getMoneyLeft()
     {
-        return $this->amount - $this->paymentsSum;
+        return (int)($this->amount - $this->paymentsSum);
     }
 
     /**

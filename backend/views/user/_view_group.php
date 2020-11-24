@@ -110,7 +110,10 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                         <?php endif; ?>
                     </div>
                 </div>
-            <?php $groupNameRendered = true;
+            <?php
+                if ($groupPupil->active === GroupPupil::STATUS_ACTIVE) {
+                    $groupNameRendered = true;
+                }
             endforeach;
         endforeach; ?>
     </div>

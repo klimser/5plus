@@ -19,6 +19,7 @@ use yii\db\ActiveQuery;
  * @property string $phone
  * @property string $birthday
  * @property DateTime $birthdayDate
+ * @property string|null $contract_data
  * @property string $title
  * @property string $description
  * @property string|null $photo
@@ -31,6 +32,9 @@ use yii\db\ActiveQuery;
  * @property int $page_order
  * @property string $noPhotoUrl
  * @property-read bool $deleteAllowed
+ * @property array $contractDetails
+ * @property string $contractNumber
+ * @property \DateTimeImmutable|null $contractDate
  *
  * @property Event[] $events
  * @property TeacherSubjectLink[] $teacherSubjects
@@ -90,6 +94,7 @@ class Teacher extends ActiveRecord
             [['photoFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg', 'checkExtensionByMimeType' => true],
             [['active', 'page_visibility', 'page_order'], 'integer'],
             [['active', 'page_visibility'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
+            [['contractNumber'], 'safe']
             
         ];
     }
@@ -105,6 +110,8 @@ class Teacher extends ActiveRecord
             'photoFile' => 'Фото учителя (376x376)',
             'phone' => 'Телефон',
             'birthday' => 'День рождения',
+            'contractNumber' => 'Номер договора',
+            'contractDate' => 'Дата договора',
             'descriptionForEdit' => 'Текст об учителе',
             'page_visibility' => 'Отображать на странице учителей',
             'active' => 'Работает ли учитель',
@@ -348,6 +355,40 @@ class Teacher extends ActiveRecord
     {
         $groupParams = GroupParam::find()->andWhere(['teacher_id' => $this->id])->all();
         return empty($groupParams);
+    }
+
+    public function getContractDetails(): array
+    {
+        return json_decode($this->getAttribute('contract_data'), true) ?: [];
+    }
+
+    public function setContractDetails(array $value)
+    {
+        $this->setAttribute('contract_data', json_encode($value));
+    }
+    
+    public function getContractNumber(): string
+    {
+        return $this->contractDetails['number'] ?? '';
+    }
+    
+    public function setContractNumber(string $number)
+    {
+        $details = $this->contractDetails;
+        $details['number'] = $number;
+        $this->contractDetails = $details;
+    }
+    
+    public function getContractDate(): ?\DateTimeImmutable
+    {
+        return !empty($this->contractDetails['date']) ? new \DateTimeImmutable($this->contractDetails['date']) : null;
+    }
+
+    public function setContractDate(\DateTimeImmutable $date)
+    {
+        $details = $this->contractDetails;
+        $details['date'] = $date->format('Y-m-d');
+        $this->contractDetails = $details;
     }
 
     public function beforeValidate()

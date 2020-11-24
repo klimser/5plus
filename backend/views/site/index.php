@@ -242,6 +242,11 @@ $this->title = 'Панель управления';
                                 <span class="fas fa-funnel-dollar"></span> Остатки
                             </a>
                         <?php endif; ?>
+                        <?php if ($admin->can('manageTeachers')): ?>
+                            <a class="dropdown-item" href="<?= Url::to(['report/teacher-time']); ?>">
+                                <span class="fas fa-business-time"></span> Отработанное время
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </li>
             <?php endif; ?>

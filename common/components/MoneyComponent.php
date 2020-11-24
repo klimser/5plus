@@ -228,7 +228,7 @@ class MoneyComponent extends Component
                             if ($parentPayment) {
                                 $isDiscount = $groupParam->lesson_price_discount && $parentPayment->discount;
                                 $lessonPrice = $isDiscount ? $groupParam->lesson_price_discount : $groupParam->lesson_price;
-                                $toPay = round($rate * $lessonPrice);
+                                $toPay = (int)round($rate * $lessonPrice);
 
                                 if ($parentPayment->moneyLeft >= $toPay) {
                                     $payment->amount = $toPay * (-1);

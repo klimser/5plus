@@ -43,6 +43,16 @@ $this->params['breadcrumbs'][] = $this->title;
                 ],
             ]));?>
 
+    <?= $form->field($teacher, 'contractNumber', ['options' => ['class' => 'form-group col-12 col-lg-6']]); ?>
+    
+    <?= $form->field($teacher, 'contractDate', ['options' => ['class' => 'form-group col-12 col-lg-6']])->widget(DatePicker::class,
+        ArrayHelper::merge(
+            DefaultValuesComponent::getDatePickerSettings(),
+            [
+                'value' => $teacher->contractDate ? $teacher->contractDate->format('d.m.Y') : null,
+            ]));
+    ?>
+    
     <?= $form->field($teacher, 'title', ['options' => ['class' => 'form-group col-12 col-lg-6']])->textInput(['maxlength' => true, 'placeholder' => 'Например: Ваш учитель химии']) ?>
     <?= $form->field($teacher, 'page_visibility', ['options' => ['class' => 'form-group col-12 col-lg-6']])->checkbox() ?>
 
