@@ -59,6 +59,7 @@ class ContractController extends AdminController
         $options = new QROptions([
             'outputType' => QRCode::OUTPUT_MARKUP_SVG,
             'addQuietzone' => false,
+            'imageBase64' => false,
         ]);
         $generator = new QRCode($options);
 

@@ -384,10 +384,10 @@ class Teacher extends ActiveRecord
         return !empty($this->contractDetails['date']) ? new \DateTimeImmutable($this->contractDetails['date']) : null;
     }
 
-    public function setContractDate(\DateTimeImmutable $date)
+    public function setContractDate(?\DateTimeImmutable $date)
     {
         $details = $this->contractDetails;
-        $details['date'] = $date->format('Y-m-d');
+        $details['date'] = $date ? $date->format('Y-m-d') : null;
         $this->contractDetails = $details;
     }
 
