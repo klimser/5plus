@@ -14,7 +14,7 @@ use Yii;
 
 class TeacherTimeReport
 {
-    public static function create(TeacherSubjectLink $teacherSubject, \DateTimeImmutable $reportDate, int $totalHours, int $totalAmount, ?PhpWord $document = null): PhpWord
+    public static function create(TeacherSubjectLink $teacherSubject, \DateTimeImmutable $reportDate, int $totalHours, ?PhpWord $document = null): PhpWord
     {
         if (null === $document) {
             $document = new PhpWord();
@@ -95,9 +95,9 @@ class TeacherTimeReport
         
         $textrun = $section->addTextRun($pStyleJustify);
         $textrun->addText('Стоимость оказанных услуг составляет ', $fontBold);
-        $textrun->addText(number_format($totalAmount, 0, '.', ' '), $fontBold);
+        $textrun->addText(number_format($totalHours * 30000, 0, '.', ' '), $fontBold);
         $textrun->addText(' (', $fontBold);
-        $textrun->addText(MoneyHelper::numberToStringRus($totalAmount, true), $fontBold);
+        $textrun->addText(MoneyHelper::numberToStringRus($totalHours * 30000, true), $fontBold);
         $textrun->addText(') сум без НДС, поскольку Исполнитель не является плательщиком НДС.', $fontBold);
         
         $section->addTextBreak();

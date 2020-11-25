@@ -192,7 +192,7 @@ class ReportController extends AdminController
                 $endDate = $startDate->modify('last day of this month')->modify('+1 day midnight');
                 
                 $generatePage = function(TeacherSubjectLink $subjectTeacher, ?PhpWord $doc = null) use ($startDate, $endDate): PhpWord {
-                    $groupParams = GroupParam::find()
+                    $groupIds = GroupParam::find()
                         ->alias('gp')
                         ->joinWith('group g')
                         ->andWhere([
@@ -201,8 +201,9 @@ class ReportController extends AdminController
                             'gp.teacher_id' => $subjectTeacher->teacher_id,
                             'g.subject_id' => $subjectTeacher->subject_id,
                         ])
-                        ->all();
-                    $groupIds = ArrayHelper::getColumn($groupParams, 'group_id');
+                        ->select('gp.group_id')
+                        ->asArray()
+                        ->column();
 
                     $eventData = Event::find()
                         ->andWhere(['between', 'event_date', $startDate->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
@@ -216,12 +217,10 @@ class ReportController extends AdminController
                     $totalHours = 0;
                     foreach ($eventData as $data) {
                         $group = Group::findOne($data['group_id']);
-                        $totalHours += floor($group->lesson_duration * $data['cnt'] / 45);
+                        $totalHours += floor($group->lesson_duration * $data['cnt'] / 40);
                     }
 
-                    $totalAmount = array_sum(ArrayHelper::getColumn($groupParams, 'teacher_salary'));
-
-                    return TeacherTimeReport::create($subjectTeacher, $startDate, $totalHours, $totalAmount, $doc);
+                    return TeacherTimeReport::create($subjectTeacher, $startDate, $totalHours, $doc);
                 };
                 
                 switch (true) {
