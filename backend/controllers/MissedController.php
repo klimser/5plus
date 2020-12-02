@@ -140,6 +140,7 @@ class MissedController extends AdminController
         $dateStart = new \DateTimeImmutable("$year-$month-01 midnight");
         $dateEnd = $dateStart->modify('+1 month -1 second');
 
+        $eventMap = [];
         $dataMap = [];
         $group = null;
         if ($groupId) {
@@ -159,6 +160,7 @@ class MissedController extends AdminController
                 ->with('members.groupPupil.user')
                 ->all();
             foreach ($events as $event) {
+                $eventMap[(int)$event->eventDateTime->format('j')] = $event;
                 foreach ($event->members as $eventMember) {
                     if (!array_key_exists($eventMember->group_pupil_id, $dataMap)) {
                         $dataMap[$eventMember->group_pupil_id] = [0 => $eventMember->groupPupil->user->name];
@@ -179,6 +181,7 @@ class MissedController extends AdminController
             'date' => $dateStart,
             'daysCount' => intval($dateEnd->format('d')),
             'dataMap' => $dataMap,
+            'eventMap' => $eventMap,
             'groups' => $groupQuery->all(),
             'group' => $group,
         ]);

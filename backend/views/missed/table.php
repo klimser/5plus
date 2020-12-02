@@ -1,5 +1,6 @@
 <?php
 
+use backend\models\Event;
 use backend\models\EventMember;
 use yii\bootstrap4\Html;
 use \common\components\helpers\Calendar;
@@ -7,6 +8,7 @@ use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $dataMap array */
+/* @var $eventMap Event[] */
 /* @var $date \DateTimeImmutable */
 /* @var $daysCount int */
 /* @var $group \common\models\Group|null */
@@ -44,7 +46,14 @@ $nextMonth = $date->modify('+1 month');
         <table class="table table-bordered table-sm table-responsive-lg text-center">
             <tr>
                 <th class="text-left">Студент</th>
-                <?php for ($i = 1; $i <= $daysCount; $i++): ?><th class="p-1"><?= $i; ?></th><?php endfor; ?>
+                <?php for ($i = 1; $i <= $daysCount; $i++): ?><th class="p-1 <?php
+                if (array_key_exists($i, $eventMap)) {
+                    switch ($eventMap[$i]->status) {
+                        case Event::STATUS_CANCELED: echo ' table-danger '; break;
+                        case Event::STATUS_PASSED: echo ' table-success '; break;
+                    }
+                }
+                ?>"><?= $i; ?></th><?php endfor; ?>
             </tr>
         <?php foreach ($dataMap as $pupilData): ?>
             <tr>
