@@ -30,7 +30,7 @@ class DashboardController extends AdminController
      */
     public function actionFind()
     {
-        $searchValue = Yii::$app->request->get('value');
+        $searchValue = trim(Yii::$app->request->get('value', ''));
 
         $contract = $giftCard = $existingPupil = null;
         $pupils = $parents = [];
