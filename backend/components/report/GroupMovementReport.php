@@ -138,6 +138,14 @@ class GroupMovementReport
                 ->andWhere(['user_id' => $inUsers])
                 ->count('DISTINCT user_id');
             $totalIn = count($inUsers) - $excludeUsersCount;
+            
+            $totalNewGroupPupil = GroupPupil::find()
+                ->alias('gp1')
+                ->leftJoin(['gp2' => GroupPupil::tableName()], "gp1.id != gp2.id AND gp2.user_id = gp1.user_id AND gp2.group_id = gp1.group_id AND gp2.date_start < '$startDateString'")
+                ->andWhere(['BETWEEN', 'gp1.date_start', $startDateString, $endDateString])
+                ->andWhere(['gp1.group_id' => $groupIds])
+                ->andWhere(['gp2.id' => null])
+                ->count('DISTINCT gp1.id');
 
             $outUsers = GroupPupil::find()
                 ->andWhere(['BETWEEN', 'date_end', $startDateString, $endDateString])
@@ -196,6 +204,12 @@ class GroupMovementReport
                 ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
                 ->setCellValueByColumnAndRow($offset + 1, $row, "Итого новых студентов: $totalIn");
             $row++;
+            
+            $spreadsheet->getActiveSheet()
+                ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
+                ->setCellValueByColumnAndRow($offset + 1, $row, "Начали заниматься в группах (для бонуса): $totalNewGroupPupil");
+            $row++;
+            
             $spreadsheet->getActiveSheet()
                 ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
                 ->setCellValueByColumnAndRow($offset + 1, $row, "Итого ушли из учебного центра: $totalOut");

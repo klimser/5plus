@@ -56,7 +56,12 @@ foreach ($payments as $payment) {
                         echo $payment->discount ? 'warning' : 'danger', ' expense ';
                     }
                     ?>">
-                    <td><?= $payment->group->name; ?></td>
+                    <td>
+                        <?= $payment->group->name; ?>
+                        <?php if ($payment->comment): ?>
+                            <span class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= $payment->comment; ?>"></span>
+                        <?php endif; ?>
+                    </td>
                     <td><?= $payment->createDate->format('d.m.Y'); ?></td>
                     <td class="text-right"><?= MoneyHelper::formatThousands($payment->amount); ?></td>
                 </tr>

@@ -9,6 +9,8 @@
 
 @import "../../../../frontend/resources/src/sass/sizing";
 
+@import "../../../../frontend/resources/src/sass/multistep";
+
 $half-gutter-width: floor(($grid-gutter-width / 2));
 
 main {

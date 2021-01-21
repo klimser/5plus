@@ -220,6 +220,9 @@ $this->title = 'Панель управления';
                             <a class="dropdown-item" href="<?= Url::to(['report/group-movement']); ?>">
                                 <span class="fas fa-walking"></span> Отчет движения
                             </a>
+                            <a class="dropdown-item" href="<?= Url::to(['report/welcome-lesson']); ?>">
+                                <span class="fas fa-list"></span> Отчет пробных уроков
+                            </a>
                         <?php endif; ?>
                         <?php if ($admin->can('reportDebt')): ?>
                             <a class="dropdown-item" href="<?= Url::to(['report/debt']); ?>">

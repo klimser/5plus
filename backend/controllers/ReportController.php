@@ -9,6 +9,7 @@ use backend\components\report\ManagerSalaryReport;
 use backend\components\report\MoneyReport;
 use backend\components\report\RestMoneyReport;
 use backend\components\report\TeacherTimeReport;
+use backend\components\report\WelcomeLessonReport;
 use backend\models\Event;
 use backend\models\TeacherSubjectLink;
 use common\models\Group;
@@ -277,5 +278,29 @@ class ReportController extends AdminController
             'teachers' => Teacher::find()->orderBy(['name' => SORT_ASC])->all(),
             'subjects' => Subject::find()->orderBy(['name' => SORT_ASC])->all(),
         ]);
+    }
+
+    public function actionWelcomeLesson()
+    {
+        $this->checkAccess('reportGroupMovement');
+
+        if (Yii::$app->request->isPost) {
+            [$month, $year] = explode('.', Yii::$app->request->post('date', ''));
+            if ($month && $year) {
+                $startDate = new \DateTimeImmutable("$year-$month-01");
+                $endDate = $startDate->modify('last day of this month');
+
+                ob_start();
+                $objWriter = IOFactory::createWriter(WelcomeLessonReport::create($startDate, $endDate), 'Xlsx');
+                $objWriter->save('php://output');
+                return Yii::$app->response->sendContentAsFile(
+                    ob_get_clean(),
+                    "welcome-lessons-$year-$month.xlsx",
+                    ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+                );
+            }
+        }
+
+        return $this->render('welcome-lesson');
     }
 }

@@ -18,7 +18,7 @@ class DebtReport
         $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
         $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
 
-        $spreadsheet->getActiveSheet()->mergeCells('A1:D1');
+        $spreadsheet->getActiveSheet()->mergeCells('A1:E1');
         $spreadsheet->getActiveSheet()->setCellValue('A1', "Задолженности");
         $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $spreadsheet->getActiveSheet()->getStyle('A1')->getFont()->setBold(true)->setSize(16);
@@ -27,6 +27,7 @@ class DebtReport
         $spreadsheet->getActiveSheet()->getColumnDimension('B')->setWidth(40);
         $spreadsheet->getActiveSheet()->getColumnDimension('C')->setWidth(5);
         $spreadsheet->getActiveSheet()->getColumnDimension('D')->setWidth(15);
+        $spreadsheet->getActiveSheet()->getColumnDimension('E')->setWidth(50);
 
         $row = 3;
         /** @var Group[] $groups */
@@ -51,6 +52,7 @@ class DebtReport
                     );
                     $spreadsheet->getActiveSheet()->setCellValue("C$row", $groupPupil->paid_lessons * (-1));
                     $spreadsheet->getActiveSheet()->setCellValue("D$row", $groupPupil->chargeDateObject->format('d.m.Y'));
+                    $spreadsheet->getActiveSheet()->setCellValue("E$row", $groupPupil->user->note);
 
                     $row++;
                 }

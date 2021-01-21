@@ -26,6 +26,12 @@ if ($webpage->url === \common\models\Feedback::PAGE_URL): ?>
             <div class="clearfix"></div>
         </div>
     </div> */ ?>
+<?php elseif ($webpage->url === \common\models\Order::PAGE_URL): ?>
+    <div class="container">
+        <div class="content-box">
+            <?= $this->render('order-form'); ?>
+        </div>
+    </div>
 <?php else: ?>
     <div class="container">
         <?php if ($webpage->url !== 'price'): ?>

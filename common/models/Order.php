@@ -29,6 +29,8 @@ class Order extends ActiveRecord
     const STATUS_READ = 'read';
     const STATUS_DONE = 'done';
     const STATUS_PROBLEM = 'problem';
+    
+    const PAGE_URL = 'order';
 
     public static $statusList = [
         self::STATUS_UNREAD,

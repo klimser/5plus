@@ -23,7 +23,7 @@ $this->params['breadcrumbs'][] = $this->title;
 $this->registerJs('Main.initAutocompleteUser("#search-student");');
 ?>
 <div class="payment-index">
-    <div class="float-right"><a href="<?= Url::to(['money/income']); ?>" class="btn btn-info">Внести оплату</a></div>
+    <div class="float-right"><a href="<?= Url::to(['dashboard/index']); ?>" class="btn btn-info">Внести оплату</a></div>
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?= GridView::widget([

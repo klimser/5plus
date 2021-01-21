@@ -95,6 +95,7 @@ class AjaxInfoController extends AdminController
             $resultArray[] = [
                 'id' => $group->id,
                 'name' => $group->name,
+                'active' => $group->active === Group::STATUS_ACTIVE,
                 'subjectId' => $group->subject_id,
                 'subject' => $group->subject->name,
                 'teacherId' => $group->teacher_id,

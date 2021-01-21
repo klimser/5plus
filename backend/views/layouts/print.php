@@ -49,7 +49,7 @@ $this->beginPage();
             text-transform: uppercase;
         }
     </style>
-    <title>Договор</title>
+    <title></title>
     <?php $this->head() ?>
 </head>
 <body onload="window.print();">

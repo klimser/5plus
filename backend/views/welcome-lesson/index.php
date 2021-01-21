@@ -148,10 +148,16 @@ SCRIPT
             [
                 'attribute' => 'deny_reason',
                 'content' => function ($model, $key, $index, $column) {
-                    if (!$model->deny_reason) return '';
-                    $content = WelcomeLesson::DENY_REASON_LABELS[$model->deny_reason];
+                    /** @var WelcomeLesson $model */
+                    $content = '';
+                    if ($model->deny_reason) {
+                        $content .= WelcomeLesson::DENY_REASON_LABELS[$model->deny_reason] . '<br>';
+                    }
                     if ($model->comment) {
-                        $content .= '<br><div class="label label-info"><small>' . nl2br($model->comment) . '</small></div>';
+                        $content .= '<div class="label label-info"><small>' . nl2br($model->comment) . '</small></div>';
+                    }
+                    if ($model->user->note) {
+                        $content .= '<div class="label label-info"><small>' . nl2br($model->user->note) . '</small></div>';
                     }
                     return $content;
                 },
