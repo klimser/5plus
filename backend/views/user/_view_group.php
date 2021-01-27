@@ -108,6 +108,13 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                                 <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>
                             </button>
                         <?php endif; ?>
+                        
+                        <?php if ($debtAllowed && $groupPupil->moneyLeft > 0): ?>
+                            <button type="button" title="возврат" class="btn btn-outline-danger mb-2" onclick="Dashboard.showMoneyDebtForm(this, true);"
+                                    data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>" data-amount="<?= MoneyHelper::formatThousands($groupPupil->moneyLeft); ?>">
+                                <span class="fas fa-search-dollar"></span>
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php

@@ -455,10 +455,10 @@ class MoneyController extends AdminController
             $payment->admin_id = Yii::$app->user->getId();
             $payment->amount = 0 - $amount;
             $payment->created_at = date('Y-m-d H:i:s');
-            $payment->comment = 'Задолженность добавлена вручную: ' . $formData['comment'];
+            $payment->comment = ($formData['refund'] ? 'Возврат средств: ' : 'Задолженность добавлена вручную: ') . $formData['comment'];
 
             MoneyComponent::registerIncome($payment);
-            return self::getJsonOkResult(['userId' => $user->id]);
+            return self::getJsonOkResult(['userId' => $user->id, 'refund' => $formData['refund']]);
         } catch (\Throwable $ex) {
             return self::getJsonErrorResult($ex->getMessage());
         }

@@ -12,6 +12,7 @@
                     <div id="debt-messages-place"></div>
                     <input type="hidden" name="debt[userId]" id="debt-user-id" required>
                     <input type="hidden" name="debt[groupId]" id="debt-group-id" required>
+                    <input type="hidden" name="debt[refund]" id="debt-refund" value="0" required>
                     <div class="form-group row">
                         <label class="col-12 col-sm-3 control-label" for="debt-pupil-name">Студент</label>
                         <div class="col-12 col-sm-9">
@@ -25,9 +26,9 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label" for="debt-amount">Сумма долга</label>
+                        <label class="col-12 col-sm-3 control-label" for="debt-amount">Сумма</label>
                         <div class="col-12 col-sm-9">
-                            <input class="form-control" id="debt-amount" name="debt[amount]" type="number" min="1" placeholder="Сумма оплаты" autocomplete="off" required>
+                            <input class="form-control" id="debt-amount" name="debt[amount]" type="number" min="1" placeholder="Сумма" autocomplete="off" required>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -39,7 +40,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">отмена</button>
-                    <button class="btn btn-primary" id="debt-button">добавить</button>
+                    <button class="btn btn-primary" id="debt-button">OK</button>
                 </div>
             </form>
         </div>
