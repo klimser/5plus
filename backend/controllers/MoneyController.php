@@ -441,17 +441,17 @@ class MoneyController extends AdminController
         }
 
         $user = User::findOne($formData['userId']);
-        $group = Group::findOne(['id' => $formData['groupId'], 'active' => Group::STATUS_ACTIVE]);
+        $groupPupil = GroupPupil::findOne(['group_id' => $formData['groupId'], 'active' => $formData['refund'] ? GroupPupil::STATUS_INACTIVE : GroupPupil::STATUS_ACTIVE]);
         $amount = (int)$formData['amount'];
 
         if (!$user) return self::getJsonErrorResult('Студент не найден');
         if ($amount <= 0) return self::getJsonErrorResult('Сумма не может быть <= 0');
-        if (!$group) return self::getJsonErrorResult('Группа не найдена');
+        if (!$groupPupil) return self::getJsonErrorResult('Группа не найдена');
 
         try {
             $payment = new Payment();
             $payment->user_id = $user->id;
-            $payment->group_id = $group->id;
+            $payment->group_id = $groupPupil->group_id;
             $payment->admin_id = Yii::$app->user->getId();
             $payment->amount = 0 - $amount;
             $payment->created_at = date('Y-m-d H:i:s');

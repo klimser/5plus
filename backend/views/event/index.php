@@ -139,7 +139,7 @@ Event.init(' . time() . ');
                                         <div class="col-8">
                                             <?= $welcomeMember->user->name; ?>
                                             <?php if ($welcomeMember->user->note): ?>
-                                                <span class="fas fa-info-circle text-danger" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= $welcomeMember->user->note; ?>"></span>
+                                                <span class="fas fa-info-circle text-danger" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= htmlentities($welcomeMember->user->note); ?>"></span>
                                             <?php endif; ?>
                                         </div>
                                         <div class="col-4 buttons-column text-right"></div>
@@ -158,7 +158,7 @@ Event.init(' . time() . ');
                                             <?php
                                                 $noteRows = [];
                                                 if ($member->groupPupil->user->note) {
-                                                    $noteRows[] = $member->groupPupil->user->note;
+                                                    $noteRows[] = htmlentities($member->groupPupil->user->note);
                                                 }
                                                 if ($member->groupPupil->paid_lessons < 0) {
                                                     $noteRows[] = 'долг ' . (0 - $member->groupPupil->paid_lessons)

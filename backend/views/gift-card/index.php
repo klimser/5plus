@@ -2,6 +2,7 @@
 
 use common\components\DefaultValuesComponent;
 use common\components\helpers\Html;
+use common\models\Contract;
 use common\models\GiftCard;
 use common\models\GiftCardSearch;
 use yii\bootstrap4\LinkPager;
@@ -92,6 +93,12 @@ $this->params['breadcrumbs'][] = $this->title;
                             'pattern' => '\d{4}-\d{2}-\d{2}',
                         ],
                     ])),
+                'content' => function($model, $key, $index, $column) {
+                    return (!empty($model->additionalData['payment_method'])
+                            ? '<span class="badge badge-info">' . Contract::PAYMENT_TYPE_LABELS[$model->additionalData['payment_method']] . '</span><br>'
+                            : '')
+                        . Yii::$app->formatter->asDate($model->paid_at, 'long');
+                },
             ],
             [
                 'attribute' => 'used_at',
