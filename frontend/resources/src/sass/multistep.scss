@@ -17,6 +17,9 @@
   z-index: 1;
   text-decoration: none;
 }
+.step-line .step-tab.active .step-label {
+  box-shadow: #9DC 0 0 15px;
+}
 .step-line .step-tab:first-child {
   text-align: left;
 }

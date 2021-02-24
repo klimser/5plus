@@ -1,10 +1,19 @@
 let MainPage = {
     subjectList: [],
     launchModal: function () {
+        this.fillOrderSubjects();
+        let formBlock = $("#order_form");
+        if (!$(formBlock).find(".order_form_body").hasClass("show")) grecaptcha.reset();
+        $(formBlock).find(".order_form_body").collapse("show");
+        $(formBlock).find(".order_form_extra").html('').collapse("hide");
+        $(formBlock).find(".modal-footer").collapse("show");
+        $(formBlock).modal();
+    },
+    fillOrderSubjects: function() {
         let targetSelect = $("select#order-subject");
         if (targetSelect) {
             targetSelect.html('');
-            this.subjectList.forEach(function (subjectCategory) {
+            MainPage.subjectList.forEach(function (subjectCategory) {
                 let options = '';
                 subjectCategory.subjects.forEach(function (subject) {
                     options += '<option value="' + subject.id + '">' + subject.name + '</option>';
@@ -12,12 +21,6 @@ let MainPage = {
                 targetSelect.append('<optgroup label="' + subjectCategory.name + '">' + options + '</optgroup>');
             });
         }
-        let formBlock = $("#order_form");
-        if (!$(formBlock).find(".order_form_body").hasClass("show")) grecaptcha.reset();
-        $(formBlock).find(".order_form_body").collapse("show");
-        $(formBlock).find(".order_form_extra").html('').collapse("hide");
-        $(formBlock).find(".modal-footer").collapse("show");
-        $(formBlock).modal();
     },
     completeOrder: function(form, checkCaptcha) {
         if (checkCaptcha === undefined || checkCaptcha) {
@@ -61,13 +64,11 @@ let MainPage = {
     init: function() {
         $('[data-toggle="popover"]').popover();
         
-        $.ajax({
-            url: '/subject/list',
-            success: function(data) {
+        return $.ajax({url: '/subject/list'})
+            .done(function(data) {
                 if (data.length > 0) {
                     MainPage.subjectList = data;
                 }
-            }
-        });
+            });
     }
 };

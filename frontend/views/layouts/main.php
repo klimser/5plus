@@ -40,6 +40,11 @@ $this->render('/grunt-assets');
     <link rel="mask-icon" href="<?= Yii::$app->homeUrl; ?>safari-pinned-tab.svg?v=fjhbdf9b40" color="#65a2d9">
     <link rel="shortcut icon" href="<?= Yii::$app->homeUrl; ?>favicon.ico?v=fjhbdf9b40">
 
+    <?= $this->render('/preload'); ?>
+    <?php if (YII_ENV == 'prod'): ?>
+        <?= $this->render('/preconnect'); ?>
+    <?php endif; ?>
+    
     <?= Html::csrfMetaTags() ?>
     <title><?= Html::encode($this->title); ?></title>
     <?php $this->head() ?>
@@ -115,7 +120,13 @@ $this->render('/grunt-assets');
                                     <?php /* <a href="#" class="btn btn-outline-info btn-ico btn-lg">Мы вам перезвоним <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/phone-ico.png" alt="ico" class="ico"></a> */ ?>
                                 </div>
                             </div>
-                            <div class="img"><img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img.jpg" alt="image"></div>
+                            <div class="img">
+                                <picture>
+                                    <source srcset="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img.webp" type="image/webp">
+                                    <source srcset="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img.jpg" type="image/jpeg">
+                                    <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img.jpg" alt="image">
+                                </picture>
+                            </div>
                         </div>
                     </div>
                 </div>
