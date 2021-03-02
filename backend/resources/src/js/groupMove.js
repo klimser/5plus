@@ -1,7 +1,7 @@
 let GroupMove = {
     init: function() {
         Main.initAutocompleteUser($("#pupil-to-move"));
-        Main.loadActiveGroups()
+        Main.loadGroups()
             .done(function(groupIds) {
                 let elem = $("#group_to");
                 $(elem).html('');

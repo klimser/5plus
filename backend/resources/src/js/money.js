@@ -6,7 +6,7 @@ let Money = {
     groupId: null,
     paymentType: null,
     init: function() {
-        Main.loadActiveGroups();
+        Main.loadGroups();
     },
     findContract: function () {
         $('#messages_place').html('');

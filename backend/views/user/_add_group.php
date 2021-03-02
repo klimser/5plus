@@ -39,8 +39,7 @@ $this->registerJs($initialJs);
 
 <div class="tab-content">
     <div role="tabpanel" class="tab-pane fade active show" id="consultation-tab">
-        <div class="consultation-mandatory"></div>
-        <div class="consultation-optional mt-2"></div>
+        <div class="consultations mt-2"></div>
         <button type="button" class="btn btn-success" onclick="User.addConsultation();"><span class="fas fa-plus"></span> добавить</button>
     </div>
     <div role="tabpanel" class="tab-pane fade" id="welcome_lesson-tab">

@@ -27,3 +27,4 @@ main_back:
   files:
     "backend/web/assets/grunt/js/main.js":
       - "backend/resources/dst/js/*.js"
+      - "frontend/resources/dst/js/multistep_form.js"

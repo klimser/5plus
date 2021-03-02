@@ -110,21 +110,17 @@ class UserController extends AdminController
                     $this->addPupilToGroup($pupil, $groupInfo);
                     MoneyComponent::setUserChargeDates($pupil, $group);
                 }
-                if (Yii::$app->user->can('contractManagement') && !empty($groupInfo['contract'])) {
+                if (Yii::$app->user->can('moneyManagement') && !empty($groupInfo['payment'])) {
                     $contract = MoneyComponent::addPupilContract(
                         Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
                         $pupil,
                         $groupInfo['amount'],
                         $group
                     );
-                    $infoFlashArray[] = 'Договор ' . $contract->number . ' зарегистрирован '
-                        . '<a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>';
+                    MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $groupInfo['paymentComment']);
 
-                    if (Yii::$app->user->can('moneyManagement') && !empty($groupInfo['payment'])) {
-                        MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $groupInfo['paymentComment']);
-                    }
+                    $infoFlashArray[] = 'Оплата внесена. <a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать спецификацию</a>';
                 }
-
             } catch (Throwable $exception) {
                 $errors = array_merge($errors, [$exception->getMessage()]);
             }
@@ -157,7 +153,7 @@ class UserController extends AdminController
         $parentId = $companyId = 0;
 
         if (Yii::$app->request->isPost) {
-            User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post());
+            User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post(), Yii::$app->request->isAjax ? '' : null);
             $pupil->role = User::ROLE_PUPIL;
 
             $transaction = User::getDb()->beginTransaction();
@@ -186,8 +182,13 @@ class UserController extends AdminController
                 }
 
                 if (!$pupil->save()) {
-                    $pupil->moveErrorsToFlash();
                     $transaction->rollBack();
+
+                    if (Yii::$app->request->isAjax) {
+                        return $this->asJson(self::getJsonErrorResult($pupil->getErrorsAsString()));
+                    }
+
+                    $pupil->moveErrorsToFlash();
                 } else {
                     $errors = $infoFlashArray = [];
                     $errors = array_merge($errors, $this->saveConsultations($pupil));
@@ -200,15 +201,25 @@ class UserController extends AdminController
 
                     if (empty($errors)) {
                         $transaction->commit();
+                        UserComponent::clearSearchCache();
+
+                        if (Yii::$app->request->isAjax) {
+                            return $this->asJson(self::getJsonOkResult(['name' => $pupil->name]));
+                        }
+
                         Yii::$app->session->addFlash('success', 'Добавлено');
                         foreach ($infoFlashArray as $message) {
                             Yii::$app->session->addFlash('info', $message);
                         }
-                        UserComponent::clearSearchCache();
 
                         return $this->redirect(['index']);
                     } else {
                         $transaction->rollBack();
+
+                        if (Yii::$app->request->isAjax) {
+                            return $this->asJson(self::getJsonErrorResult(implode(', ', $errors)));
+                        }
+
                         foreach ($errors as $error) {
                             Yii::$app->session->addFlash('error', $error);
                         }
@@ -216,6 +227,11 @@ class UserController extends AdminController
                 }
             } catch (Throwable $e) {
                 $transaction->rollBack();
+
+                if (Yii::$app->request->isAjax) {
+                    return $this->asJson(self::getJsonErrorResult($e->getMessage()));
+                }
+
                 Yii::$app->session->addFlash('error', $e->getMessage());
             }
         }

@@ -14,7 +14,7 @@ let WelcomeLesson = {
     denyReasonOther: 7,
 
     init: function() {
-        return Main.loadActiveGroups()
+        return Main.loadGroups()
             .done(function() {
                 WelcomeLesson.fillTableButtons("table tr.welcome-row");
             })

@@ -8,7 +8,7 @@ let User = {
     groupList: [],
 
     init: function(noAdd) {
-        return $.when(Main.loadActiveSubjects(), Main.loadActiveGroups(), Main.loadActiveTeachers())
+        return $.when(Main.loadActiveSubjects(), Main.loadGroups(), Main.loadActiveTeachers())
             .done(function() {
                 let autocompleteInputs = $("input.autocomplete-user");
                 if (autocompleteInputs.length > 0) {
@@ -121,15 +121,12 @@ let User = {
             parentContainer = document;
         }
 
-        let container = $(parentContainer).find(".consultation-mandatory");
-        let blockHtml = '<div class="consultation-item card mb-3"><div class="card-body p-3">';
-        if ($(container).html().length > 0) {
-            container = $(parentContainer).find(".consultation-optional");
-            blockHtml += '<button type="button" class="close" aria-label="Close" onclick="User.removeConsultation(this);"><span aria-hidden="true">&times;</span></button>';
-        }
-        blockHtml += '<label>Предмет</label>' +
-            '<select class="form-control subject-select" name="consultation[]" autocomplete="off">' + this.getSubjectOptions(subjectId) + '</select>';
-        blockHtml += '</div></div>';
+        let container = $(parentContainer).find(".consultations");
+        let blockHtml = '<div class="consultation-item card mb-3"><div class="card-body p-3">' +
+            '<button type="button" class="close" aria-label="Close" onclick="User.removeConsultation(this);"><span aria-hidden="true">&times;</span></button>' +
+            '<label>Предмет</label>' +
+            '<select class="form-control subject-select" name="consultation[]" autocomplete="off">' + this.getSubjectOptions(subjectId) + '</select>' +
+            '</div></div>';
         $(container).append(blockHtml);
     },
     addWelcomeLesson: function (data, parentContainer) {
@@ -211,7 +208,7 @@ let User = {
             '<input class="form-check-input" type="radio" name="group[dateDefined][' + this.iterator + ']" id="group-date-defined-1-' + this.iterator + '"' +
             ' value="1"' + (data.date.length > 0 ? ' checked ' : '') + ' onchange="User.setGroupDateType(this);" required>' +
             '<label class="form-check-label d-flex" for="group-date-defined-1-' + this.iterator + '">' +
-            '<div class="row w-100"><div class="col-3 col-lg-1"> дата</div><div class="col-9 col-lg-4">' +
+            '<div class="row w-100"><div class="col-3 col-lg-auto"> дата</div><div class="col-9 col-lg-auto">' +
             '<input type="text" class="form-control date-select datepicker" name="group[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
             '</div></div>' +
             '</label>' +
@@ -219,38 +216,29 @@ let User = {
             '</div>';
         if (this.contractAllowed || this.incomeAllowed) {
             blockHtml += '<div class="form-check">' +
-                '<input class="form-check-input" type="checkbox" name="group[contract][' + this.iterator + ']" autocomplete="off"' +
-                ' value="1" id="group-contract-' + this.iterator + '" ' + (data.hasOwnProperty('contract') ? ' checked ' : '') + ' onchange="User.checkAddContract(this);">' +
-                '<label class="form-check-label" for="group-contract-' + this.iterator + '">' +
-                'выдать договор' +
+                '<input class="form-check-input" type="checkbox" name="group[payment][' + this.iterator + ']" autocomplete="off"' +
+                ' value="1" id="group-payment-' + this.iterator + '" ' + (data.hasOwnProperty('payment') ? ' checked ' : '') + ' onchange="User.checkAddPayment(this);">' +
+                '<label class="form-check-label" for="group-payment-' + this.iterator + '">' +
+                'принять оплату' +
                 '</label>' +
                 '</div>' +
-                '<div class="contract-block collapse ' + (data.hasOwnProperty('contract') ? ' show ' : '') + '">' +
+                '<div class="payment-block collapse ' + (data.hasOwnProperty('payment') ? ' show ' : '') + '">' +
                 '<div class="form-group">' +
                 '<label>Сумма</label>' +
                 '<input class="form-control income-amount" name="group[amount][' + this.iterator + ']" autocomplete="off" type="number" step="1000" min="1000" required ' +
-                (data.hasOwnProperty('contract') ? '' : ' disabled ') + ' value="' + data.amount + '">' +
+                (data.hasOwnProperty('payment') ? '' : ' disabled ') + ' value="' + data.amount + '">' +
                 '<div class="amount-helper-buttons">' +
                 '<button type="button" class="btn btn-outline-secondary btn-sm price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>' +
                 '<button type="button" class="btn btn-outline-secondary btn-sm price4" onclick="Dashboard.setAmount(this);">за 4 месяца</button>' +
                 '</div>' +
+                '</div>' +
+                '<div class="form-group payment-comment-block">' +
+                '<label>Комментарий к платежу</label>' +
+                '<input class="form-control" name="group[paymentComment][' + this.iterator + ']" autocomplete="off" value="' + data.paymentComment + '">' +
+                '</div>' +
                 '</div>';
-
-            if (this.incomeAllowed) {
-                blockHtml += '<div class="form-check">' +
-                    '<input class="form-check-input" type="checkbox" name="group[payment][' + this.iterator + ']" autocomplete="off"' +
-                    ' value="1" id="group-payment-' + this.iterator + '" ' + (data.hasOwnProperty('payment') ? ' checked ' : '') + ' onchange="User.checkAddPayment(this);">' +
-                    '<label class="form-check-label" for="group-payment-' + this.iterator + '">' +
-                    'принять оплату' +
-                    '</label>' +
-                    '</div>' +
-                    '<div class="form-group payment-comment-block collapse ' + (data.hasOwnProperty('payment') ? ' show ' : '') + '">' +
-                    '<label>Комментарий к платежу</label>' +
-                    '<input class="form-control" name="group[paymentComment][' + this.iterator + ']" autocomplete="off" value="' + data.paymentComment + '">' +
-                    '</div>';
-            }
         }
-        blockHtml += '</div></div></div>';
+        blockHtml += '</div></div>';
         let container = $(parentContainer).find(".groups");
         $(container).append(blockHtml);
 
@@ -278,16 +266,35 @@ let User = {
         });
     },
     changePersonType: function() {
+        let parentsBlock = $("#parents_block");
+        let companyBlock = $("#company_block");
+        let checkedVal, activeBlock;
         switch ($('input.person_type:checked').val()) {
             case '2':
-                $("#parents_block").collapse("show");
-                $("#company_block").collapse("hide");
-                $("#company_block .parent-edit-option input").prop("disabled", true);
+                $(parentsBlock).collapse("show");
+                $(companyBlock).collapse("hide");
+
+                $(parentsBlock).find(".parent-edit-option input").prop("disabled", true);
+                checkedVal = $(parentsBlock).find('input[name="parent_type"]:checked').val();
+                activeBlock = $(parentsBlock).find(".parent-edit-" + checkedVal);
+                if (activeBlock.length > 0) {
+                    $(activeBlock).find("input").prop("disabled", false);
+                }
+
+                $(companyBlock).find(".parent-edit-option input").prop("disabled", true);
                 break;
             case '4':
-                $("#company_block").collapse("show");
-                $("#parents_block").collapse("hide");
-                $("#parents_block .parent-edit-option input").prop("disabled", true);
+                $(parentsBlock).collapse("hide");
+                $(companyBlock).collapse("show");
+
+                $(companyBlock).find(".parent-edit-option input").prop("disabled", true);
+                checkedVal = $(companyBlock).find('input[name="company_type"]:checked').val();
+                activeBlock = $(companyBlock).find(".parent-edit-" + checkedVal);
+                if (activeBlock.length > 0) {
+                    $(activeBlock).find("input").prop("disabled", false);
+                }
+
+                $(parentsBlock).find(".parent-edit-option input").prop("disabled", true);
                 break;
         }
     },
@@ -298,7 +305,10 @@ let User = {
         }
     },
     setPupilPhoneRequired: function(isRequired) {
-        $("#user-pupil-phoneformatted").prop('required', isRequired);
+        let phoneInput = $("#user-pupil-phoneformatted");
+        if (phoneInput.length > 0) {
+            $(phoneInput).prop('required', isRequired);
+        }
     },
     setWelcomeLessonGroup: function(e) {
         let container = $(e).closest('.welcome-lesson-item');
@@ -341,13 +351,13 @@ let User = {
     setGroup: function(e, flushAmount) {
         let group = Main.groupMap[$(e).val()];
         let container = $(e).closest(".group-item");
-        let contractBlock = $(container).find(".contract-block");
-        if (contractBlock.length > 0) {
-            let helperButtonsBlock = $(contractBlock).find(".amount-helper-buttons");
+        let paymentBlock = $(container).find(".payment-block");
+        if (paymentBlock.length > 0) {
+            let helperButtonsBlock = $(paymentBlock).find(".amount-helper-buttons");
             $(helperButtonsBlock).find("button.price").data({price: group.price});
             $(helperButtonsBlock).find("button.price4").data({price: group.price4});
             if (flushAmount) {
-                $(contractBlock).find("input.amount").val('');
+                $(paymentBlock).find("input.amount").val('');
             }
         }
         let limitDate = group.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
@@ -357,13 +367,10 @@ let User = {
         $(e).closest(".group-item").find(".date-select").prop("disabled", $(e).val() <= 0);
     },
     checkAddPayment: function(e) {
-        $(e).closest(".group-item").find(".payment-comment-block").collapse(e.checked ? 'show' : 'hide');
-    },
-    checkAddContract: function(e) {
         let contatiner = $(e).closest(".group-item");
         $(contatiner).find(".income-amount").prop("disabled", !e.checked);
         $(contatiner).find(".company-input").prop("disabled", !e.checked);
-        $(contatiner).find(".contract-block").collapse(e.checked ? 'show' : 'hide');
+        $(contatiner).find(".payment-block").collapse(e.checked ? 'show' : 'hide');
     },
     checkPhone(e) {
         this.phoneCheckInput = e;

@@ -24,6 +24,7 @@ use common\models\Teacher;
  *
  * @property Group $group
  * @property EventMember[] $members
+ * @property EventMember[] $membersWithPayments
  * @property WelcomeLesson[] $welcomeMembers
  */
 class Event extends ActiveRecord
@@ -81,6 +82,14 @@ class Event extends ActiveRecord
     public function getMembers()
     {
         return $this->hasMany(EventMember::class, ['event_id' => 'id'])->inverseOf('event');
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getMembersWithPayments()
+    {
+        return $this->hasMany(EventMember::class, ['event_id' => 'id'])->with('payments')->inverseOf('event');
     }
 
     /**

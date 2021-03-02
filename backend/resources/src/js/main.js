@@ -73,8 +73,8 @@ let Main = {
         }
         return true;
     },
-    initTooltip: function() {
-        $('[data-toggle="tooltip"]').tooltip();
+    initTooltip: function(selector = '[data-toggle="tooltip"]') {
+        $(selector).tooltip();
     },
     initPhoneFormatted: function(selector) {
         if (selector === undefined) selector = ".phone-formatted";
@@ -132,6 +132,21 @@ let Main = {
             }
         });
     },
+    executeFunctionByName: function(functionName, context /*, args */) {
+        let args = Array.prototype.slice.call(arguments, 2);
+        let namespaces = functionName.split(".");
+        let func = namespaces.pop();
+        for(let i = 0; i < namespaces.length; i++) {
+            if (typeof context[namespaces[i]] === 'undefined') {
+                return false;
+            }
+            context = context[namespaces[i]];
+        }
+        if (typeof context[func] === 'function') {
+            return context[func].apply(context, args);
+        }
+        return false;
+    },
     
     logAndFlashAjaxError: function(jqXHR, textStatus, errorThrown, messagePlaceSelector) {
         console.log(jqXHR);
@@ -143,30 +158,48 @@ let Main = {
         Main.throwFlashMessage(messagePlaceSelector, 'Server error, details in console log', 'alert-danger');
     },
 
+    groupList: [],
     groupActiveList: [],
     groupMap: {},
-    loadActiveGroups: function() {
-        if (Object.keys(Main.groupActiveList).length > 0) {
+    loadGroups: function(onlyActive = true) {
+        let list = onlyActive ? this.groupActiveList : this.groupList;
+        if (Object.keys(list).length > 0) {
             let defer = $.Deferred();
-            defer.resolve(Main.groupActiveList);
+            defer.resolve(list);
             return defer;
         }
         
+        let data = {};
+        if (onlyActive) {
+            data.filter = {active: 1};
+        }
         return $.Deferred(function (defer) {
-            $.getJSON('/ajax-info/groups', {filter: {active: 1}})
+            $.getJSON('/ajax-info/groups', data)
                 .done(function (data) {
+                    let listFlushed = false;
+                    if (data.find(function(group) {
+                        return !group.active;
+                    })) {
+                        Main.groupList = [];
+                        listFlushed = true;
+                    }
                     Main.groupActiveList = [];
                     data.forEach(function (group) {
-                        Main.groupActiveList.push(group.id);
+                        if (group.active) {
+                            Main.groupActiveList.push(group.id);
+                        }
+                        if (listFlushed) {
+                            Main.groupList.push(group.id);
+                        }
                         Main.groupMap[group.id] = group;
                     });
-                    defer.resolve(Main.groupActiveList);
+                    defer.resolve(listFlushed ? Main.groupList : Main.groupActiveList);
                 })
                 .fail(defer.reject);
         });
     },
 
-    teacherActiveList: {},
+    teacherActiveList: [],
     teacherMap: {},
     loadActiveTeachers: function () {
         if (Object.keys(Main.teacherActiveList).length > 0) {
@@ -194,7 +227,7 @@ let Main = {
         });
     },
     
-    subjectActiveList: {},
+    subjectActiveList: [],
     subjectCategoryMap: {},
     subjectMap: {},
     loadActiveSubjects: function() {

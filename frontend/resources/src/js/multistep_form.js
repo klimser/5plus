@@ -33,6 +33,7 @@ let MultiStepForm = {
             let link = $('.step-tab[data-step-order=' + i + ']');
             if (!this.isStepValid($(link).attr('href'))) {
                 $(link).removeClass('step-success').addClass('step-invalid');
+                this.jump(link);
                 return false;
             }
             $(link).removeClass('step-invalid').addClass('step-success');
@@ -52,16 +53,31 @@ let MultiStepForm = {
 
         let additionalValid = true;
         $(container).find("[data-multistep-validate]").each((index, block) => {
-            switch ($(block).data('multistepValidate')) {
-                case 'checkbox-list-required':
-                    if ($(block).find("input[type=checkbox]:checked").length === 0) {
-                        $(block).addClass('border-danger');
-                        additionalValid = false;
-                    } else {
-                        $(block).removeClass('border-danger');
-                    }
-                    break;
-            }
+            $(block).data('multistepValidate').split(' ').forEach(validator => {
+                switch (validator) {
+                    case 'checkbox-list-required':
+                        if ($(block).find("input[type=checkbox]:checked").length === 0) {
+                            $(block).addClass('border-danger');
+                            additionalValid = false;
+                        } else {
+                            $(block).removeClass('border-danger');
+                        }
+                        break;
+                    case 'item-list-required':
+                        let selector = $(block).data('multistepItemListSelector');
+                        if (selector && $(block).find(selector).length === 0) {
+                            additionalValid = false;
+                        }
+                        break;
+                    default:
+                        if (!Main.executeFunctionByName(validator, window, block)) {
+                            $(block).addClass('border-danger');
+                            additionalValid = false;
+                        } else {
+                            $(block).removeClass('border-danger');
+                        }
+                }
+            });
         });
         return additionalValid;
     },

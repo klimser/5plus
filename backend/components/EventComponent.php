@@ -48,7 +48,7 @@ class EventComponent extends Component
             }
             return $event;
         } elseif ($event = $group->hasEvent($date)) {
-            foreach ($event->members as $member) {
+            foreach ($event->membersWithPayments as $member) {
                 if ($member->payments) {
                     foreach ($member->payments as $payment) MoneyComponent::cancelPayment($payment);
                 }

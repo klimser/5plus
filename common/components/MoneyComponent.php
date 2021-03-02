@@ -203,7 +203,7 @@ class MoneyComponent extends Component
                 $paymentStub->group_id = $event->group_id;
                 $paymentStub->created_at = $event->event_date;
 
-                foreach ($event->members as $eventMember) {
+                foreach ($event->membersWithPayments as $eventMember) {
                     if (!$eventMember->payments) {
                         $rate = 1;
                         $groupParam = GroupComponent::getGroupParam($event->group, $event->eventDateTime);

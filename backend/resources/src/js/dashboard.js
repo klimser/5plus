@@ -56,7 +56,7 @@ let Dashboard = {
         Main.initPhoneFormatted();
         $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
         let groupSelect = $(form).find("#new-group");
-        Main.loadActiveGroups()
+        Main.loadGroups()
             .done(function(groupIds) {
                 let groupBlackList = [];
                 $(form).find(".gift-card-existing-group").each(function(){
@@ -126,6 +126,7 @@ let Dashboard = {
                     let htmlAddon = '<button type="button" class="btn btn-outline-secondary float-right" onclick="Dashboard.refreshPupilInfo(this);"><span class="fas fa-sync"></span></button>';
                     $(childrenInfoBlock).html(htmlAddon + data);
                     Main.initPhoneFormatted();
+                    Main.initTooltip($(childrenInfoBlock).find('[data-toggle="tooltip"]'));
                     User.init(true)
                         .fail(Main.jumpToTop);
                     WelcomeLesson.init()
@@ -254,7 +255,7 @@ let Dashboard = {
     unlockIncomeButton: function() {
         $("#income-button").prop('disabled', false);
     },
-    showMoneyDebtForm: function(e) {
+    showMoneyDebtForm: function(e, isRefund = false) {
         let groupId = $(e).data('group');
         let group = Main.groupMap[groupId];
 
@@ -263,9 +264,18 @@ let Dashboard = {
         $(form).find("#debt-user-id").val($(e).data("user"));
         $(form).find("#debt-group-id").val(groupId);
         $(form).find("#debt-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
-        $(form).find("#debt-amount").val(0);
         $(form).find("#debt_comment").val('');
+        if (isRefund) {
+            $(form).find("#debt-amount").val(parseInt($(e).data('amount').replace(/ /, '')));
+            $(form).find("#debt-amount").prop("readonly", true);
+            $(form).find("#debt-refund").val(1);
+        } else {
+            $(form).find("#debt-amount").val(0);
+            $(form).find("#debt-amount").prop("readonly", false);
+            $(form).find("#debt-refund").val(0);
+        }
         $(form).find("#debt-group-name").val(group.name);
+        $("#modal-debt .modal-title").text(isRefund ? 'Возврат средств' : 'Добавить долг');
         $("#modal-debt").modal("show");
     },
     completeDebt: function(form) {
@@ -283,7 +293,7 @@ let Dashboard = {
                     Dashboard.togglePupilInfo(container, true, 'group')
                         .done(function() {
                             let messagesPlace = $(container).find('.user-view-messages-place');
-                            Main.throwFlashMessage(messagesPlace, 'Долг добавлен', 'alert-success');
+                            Main.throwFlashMessage(messagesPlace, data.refund ? 'Возврат зарегистрирован' : 'Долг добавлен', 'alert-success');
                         });
                 } else {
                     Main.throwFlashMessage('#debt-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
@@ -509,5 +519,62 @@ let Dashboard = {
     filterGroups: function(e) {
         $(e).closest(".groups").find(".groups-table .group-item.inactive")
             .collapse($(e).is(':checked') ? 'show' : 'hide');
+    },
+    showCreatePupilForm: function() {
+        $("#user-pupil-name").val($("input.search").val());
+        User.init(true)
+            .fail(Main.jumpToTop);
+        $("#create_pupil_messages_place").html('');
+        $('#modal-create-pupil').modal('show');
+        if (1 !== MultiStepForm.currentStep) {
+            MultiStepForm.jumpTo(1);
+        }
+    },
+    clearCreatePupilForm: function() {
+        let form = $("#create-pupil-form");
+        $(form).find("input, select, textarea").each((index, elem) => {
+            $(elem).val('');
+        });
+        $(form).find(".step-tab").removeClass(['step-success', 'step-invalid', 'active'])
+        $(form).find('.consultation-item').remove();
+        $(form).find('.welcome-lesson-item').remove();
+        $(form).find('.group-item').remove();
+        User.checkPupilPhoneRequired();
+    },
+    lockCreatePupilButton: function() {
+        let button = $("#create-pupil-form").find('button[type=submit]');
+        $(button).find('.button-loading-spinner').removeClass('d-none');
+        $(button).prop('disabled', true);
+    },
+    unlockCreatePupilButton: function() {
+        let button = $("#create-pupil-form").find('button[type=submit]');
+        $(button).prop('disabled', false);
+        $(button).find('.button-loading-spinner').addClass('d-none');
+    },
+    createPupil: function(form) {
+        if (MultiStepForm.validate(form)) {
+            this.lockCreatePupilButton(form);
+            $.ajax({
+                url: '/user/create-pupil',
+                type: 'post',
+                dataType: 'json',
+                data: $(form).serialize()
+            })
+                .done(function(data) {
+                    if ('ok' === data.status) {
+                        Dashboard.clearCreatePupilForm();
+                        $('#modal-create-pupil').modal('hide');
+                        let searchForm = $("#search-form");
+                        $(searchForm).find('input.search').val(data.name);
+                        Dashboard.find(searchForm);
+                    } else {
+                        Main.throwFlashMessage('#create_pupil_messages_place', data.message, 'alert-danger');
+                    }
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#create_pupil_messages_place');
+                })
+                .always(Dashboard.unlockCreatePupilButton);
+        }
     }
 };

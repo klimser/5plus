@@ -21,12 +21,14 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
 }
 ?>
 <div class="groups">
-    <div class="text-right form-check mb-2">
-        <input class="form-check-input filter-type" type="checkbox" value="1" onchange="Dashboard.filterGroups(this);" id="filter-type-<?= $pupil->id; ?>">
-        <label class="form-check-label" for="filter-type-<?= $pupil->id; ?>">
-            показать завершенные
-        </label>
-    </div>
+    <?php if ($pupil->id): ?>
+        <div class="text-right form-check mb-2">
+            <input class="form-check-input filter-type" type="checkbox" value="1" onchange="Dashboard.filterGroups(this);" id="filter-type-<?= $pupil->id; ?>">
+            <label class="form-check-label" for="filter-type-<?= $pupil->id; ?>">
+                показать завершенные
+            </label>
+        </div>
+    <?php endif; ?>
     <div class="groups-table">
         <?php
         /** @var GroupPupil[] $groupPupils */
@@ -108,8 +110,8 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                                 <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>
                             </button>
                         <?php endif; ?>
-                        
-                        <?php if ($debtAllowed && $groupPupil->moneyLeft > 0): ?>
+
+                        <?php if (!$isActive && $debtAllowed && $groupPupil->moneyLeft > 0): ?>
                             <button type="button" title="возврат" class="btn btn-outline-danger mb-2" onclick="Dashboard.showMoneyDebtForm(this, true);"
                                     data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>" data-amount="<?= MoneyHelper::formatThousands($groupPupil->moneyLeft); ?>">
                                 <span class="fas fa-search-dollar"></span>

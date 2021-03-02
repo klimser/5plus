@@ -34,8 +34,7 @@ class UserComponent extends Component
      */
     public static function getFirstLetters(): array
     {
-        $letters = Yii::$app->cache->get('user.letters');
-        if (!$letters) {
+        return Yii::$app->cache->getOrSet('user.letters', function() {
             $letters = User::find()
                 ->select(['SUBSTR(name, 1, 1)'])
                 ->andWhere('name != ""')
@@ -43,11 +42,13 @@ class UserComponent extends Component
                 ->distinct(true)
                 ->asArray(true)
                 ->column();
-            array_walk($letters, function(&$value){$value = mb_strtoupper($value, 'UTF-8');});
+            array_walk($letters, function (&$value) {
+                $value = mb_strtoupper($value, 'UTF-8');
+            });
             sort($letters);
-            Yii::$app->cache->set('user.letters', $letters);
-        }
-        return $letters;
+            
+            return $letters;
+        });
     }
 
     /**
@@ -78,11 +79,17 @@ class UserComponent extends Component
 
     public static function isPhoneUsed(int $role, ?string $phone, ?string $phone2 = null, ?User $currentUser = null): bool
     {
-        if (empty($phone)) throw new \Exception('Phone is mandatory');
-        $phones = [$phone];
+        $phones = [];
+        if ($phone) {
+            $phones[] = $phone;
+        }
         if ($phone2) {
             $phones[] = $phone2;
         }
+        if (empty($phones)) {
+            return false;
+        }
+
         $qB = User::find()
             ->alias('u')
             ->andWhere(['u.role' => $role])

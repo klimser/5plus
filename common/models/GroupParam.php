@@ -4,6 +4,7 @@ namespace common\models;
 
 use common\components\extended\ActiveRecord;
 use common\models\traits\GroupParam as GroupParamTrait;
+use Yii;
 
 /**
  * This is the model class for table "{{%group_param}}".
@@ -83,8 +84,18 @@ class GroupParam extends ActiveRecord
      * @param \DateTimeInterface $date
      * @return null|GroupParam|\yii\db\ActiveRecord
      */
-    public static function findByDate(Group $group, \DateTimeInterface $date)
+    public static function findByDate(Group $group, \DateTimeInterface $date): ?GroupParam
     {
-        return self::find()->where(['group_id' => $group->id, 'year' => $date->format('Y'), 'month' => $date->format('n')])->one();
+        return Yii::$app->cache->getOrSet(
+            'groupparam.' . $group->id . '.' . $date->format('Y-n'),
+            fn() => GroupParam::find()->where(['group_id' => $group->id, 'year' => $date->format('Y'), 'month' => $date->format('n')])->one(),
+            3600
+        );
+    }
+    
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        Yii::$app->cache->delete('groupparam.' . $this->group_id . '.' . $this->year . '-' . $this->month);
     }
 }

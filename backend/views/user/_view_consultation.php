@@ -2,7 +2,7 @@
 /* @var $this yii\web\View */
 /* @var $pupil \common\models\User */
 ?>
-<div class="consultation-mandatory mt-2">
+<div class="consultations mt-2" data-multistep-item-list-selector=".consultation-item">
     <?php if (count($pupil->consultations) > 0): ?>
         <table class="table table-bordered table-sm">
             <tr>
@@ -20,5 +20,4 @@
         </table>
     <?php endif; ?>
 </div>
-<div class="consultation-optional mt-2"></div>
 <button type="button" class="btn btn-success" onclick="User.addConsultation(0, $(this).closest('.user-view'));"><span class="fas fa-plus"></span> добавить</button>

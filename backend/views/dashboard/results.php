@@ -63,7 +63,7 @@ if ($noResults): ?>
     Ничего не найдено
     <br><br>
     <?php if ($showAddPupil): ?>
-        <a href="<?= Url::to(['user/create-pupil']); ?>" target="_blank" class="btn btn-info">Добавить студента</a>
+        <a href="#" target="_blank" class="btn btn-info" onclick="Dashboard.showCreatePupilForm(); return false;">Добавить студента</a>
     <?php else: ?>
         <b>Попробуйте поискать по фамилии или имени</b>
     <?php endif; ?>

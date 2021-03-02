@@ -10,6 +10,7 @@ $this->title = 'Панель управления';
 $initialJs = "
     User.contractAllowed = " . ($contractAllowed ? 'true' : 'false') . ";
     User.incomeAllowed = " . ($incomeAllowed ? 'true' : 'false') . ";
+    Main.loadGroups(false);
 "; 
 if ($pupilLimitDate !== null) {
     $initialJs .= "Dashboard.pupilLimitDate = '{$pupilLimitDate->format('Y-m-d')}';";
@@ -37,3 +38,4 @@ $this->registerJs($initialJs);
 <?= $this->render('_money_move'); ?>
 <?= $this->render('_new_contract'); ?>
 <?= $this->render('_end_pupil'); ?>
+<?= $this->render('_create_pupil'); ?>
