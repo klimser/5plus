@@ -150,10 +150,9 @@ class UserController extends AdminController
         $contractAllowed = Yii::$app->user->can('contractManagement');
         $personType = User::ROLE_PARENTS;
         $parentType = $companyType = 'new';
-        $parentId = $companyId = 0;
 
         if (Yii::$app->request->isPost) {
-            User::loadMultiple(['parent' => $parent, 'parentCompany' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post(), Yii::$app->request->isAjax ? '' : null);
+            User::loadMultiple(['parent' => $parent, 'company' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post(), Yii::$app->request->isAjax ? '' : null);
             $pupil->role = User::ROLE_PUPIL;
 
             $transaction = User::getDb()->beginTransaction();
@@ -164,9 +163,9 @@ class UserController extends AdminController
 
                 $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
                 $parentType = Yii::$app->request->post('parent_type', 'new');
-                $parentId = Yii::$app->request->post('parent_exists', 0);
+                $parentId = Yii::$app->request->post('parent', [])['id'] ?? null;
                 $companyType = Yii::$app->request->post('company_type', 'new');
-                $companyId = Yii::$app->request->post('company_exists', 0);
+                $companyId = Yii::$app->request->post('company', [])['id'] ?? null;
                 
                 switch ($personType) {
                     case User::ROLE_PARENTS:

@@ -103,7 +103,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     </label>
                 </div>
                 <div class="parent-edit-option parent-edit-exist collapse <?= $companyData['type'] === 'exist' ? ' show ' : ''; ?>">
-                    <input type="hidden" class="autocomplete-user-id" name="User[parentCompany][id]">
+                    <input type="hidden" class="autocomplete-user-id" name="User[company][id]">
                     <input class="autocomplete-user form-control" placeholder="начните печатать название" required disabled data-role="<?= User::ROLE_COMPANY; ?>">
                 </div>
                 <div class="form-check">
@@ -114,13 +114,13 @@ $this->params['breadcrumbs'][] = $this->title;
                 </div>
 
                 <div class="parent-edit-option parent-edit-new collapse <?= $companyData['type'] === 'new' ? ' show ' : ''; ?>">
-                    <?= $form->field($parentCompany, '[parentCompany]name', ['labelOptions' => ['label' => 'Название']])
+                    <?= $form->field($parentCompany, '[company]name', ['labelOptions' => ['label' => 'Название']])
                         ->textInput(['maxlength' => true, 'disabled' => $personType !== User::ROLE_COMPANY]); ?>
 
-                    <?= $form->field($parentCompany, '[parentCompany]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
+                    <?= $form->field($parentCompany, '[company]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                         ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'required' => true, 'disabled' => $personType !== User::ROLE_COMPANY]); ?>
 
-                    <?= $form->field($parentCompany, '[parentCompany]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
+                    <?= $form->field($parentCompany, '[company]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                         ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'disabled' => $personType !== User::ROLE_COMPANY]); ?>
                 </div>
             </div>

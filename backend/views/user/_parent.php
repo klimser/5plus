@@ -68,7 +68,7 @@ use yii\bootstrap4\Html;
         </label>
     </div>
     <div class="parent-edit-option parent-edit-exist collapse">
-        <input type="hidden" class="autocomplete-user-id" name="User[parentCompany][id]">
+        <input type="hidden" class="autocomplete-user-id" name="company[id]">
         <input class="autocomplete-user form-control" placeholder="начните печатать название" required disabled data-role="<?= User::ROLE_COMPANY; ?>">
     </div>
     <div class="form-check">
