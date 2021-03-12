@@ -129,7 +129,7 @@ let Dashboard = {
                     Main.initTooltip($(childrenInfoBlock).find('[data-toggle="tooltip"]'));
                     User.init(true)
                         .fail(Main.jumpToTop);
-                    WelcomeLesson.init()
+                    WelcomeLesson.init($(childrenInfoBlock).find('.welcome-table'))
                         .fail(Main.jumpToTop);
                 })
                 .fail(Main.logAndFlashAjaxError)
@@ -201,6 +201,22 @@ let Dashboard = {
     unlockPupilInfoButtons: function(container)
     {
         $(container).find("button").prop("disabled", false);
+    },
+    printWelcomeLessonInfo: function(button) {
+        let welcomeTable = $(button).closest('.pupil-info').find('.welcome-table');
+        let ids = [];
+        $(welcomeTable).find('tr.welcome-row').each(function() {
+            if ($(this).data("status") === WelcomeLesson.statusUnknown) {
+                ids.push($(this).data("key"));
+            }
+        });
+        let href = '/welcome-lesson/print';
+        let first = true;
+        ids.forEach(function(id) {
+            href += (first ? '?' : '&') + 'id[]=' + id;
+            first = false;
+        });
+        window.open(href);
     },
     showMoneyIncomeForm: function(e) {
         let groupId = $(e).data('group');

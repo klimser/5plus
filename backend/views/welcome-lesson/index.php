@@ -31,7 +31,7 @@ $this->title = 'Пробные уроки';
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerJs(<<<SCRIPT
-WelcomeLesson.init();
+WelcomeLesson.init('.welcome-lesson-index');
 SCRIPT
 );
 

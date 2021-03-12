@@ -240,8 +240,8 @@ class UserController extends AdminController
             'parentCompany' => $parentCompany,
             'pupil' => $pupil,
             'personType' => $personType,
-            'parentData' => ['type' => $parentType, 'id' => $parentId],
-            'companyData' => ['type' => $companyType, 'id' => $companyId],
+            'parentData' => ['type' => $parentType, 'id' => $parentId ?? null],
+            'companyData' => ['type' => $companyType, 'id' => $companyId ?? null],
             'consultationData' => $consultationData,
             'welcomeLessonData' => $welcomeLessonData,
             'groupData' => $groupData,
@@ -255,11 +255,11 @@ class UserController extends AdminController
      * @param User $parent
      * @param string $parentType
      * @param int $personType
-     * @param int $existParentId
+     * @param null|int $existParentId
      * @return User
      * @throws NotFoundHttpException
      */
-    private function processParent(User $parent, string $parentType, int $personType, int $existParentId = 0): User
+    private function processParent(User $parent, string $parentType, int $personType, ?int $existParentId = null): User
     {
         switch ($parentType) {
             case 'exist':

@@ -13,10 +13,10 @@ let WelcomeLesson = {
     denyReasonSubject: 6,
     denyReasonOther: 7,
 
-    init: function() {
+    init: function(tableSelector = 'table') {
         return Main.loadGroups()
             .done(function() {
-                WelcomeLesson.fillTableButtons("table tr.welcome-row");
+                WelcomeLesson.fillTableButtons($(tableSelector).find("tr.welcome-row"));
             })
             .fail(Main.logAndFlashAjaxError);
     },
@@ -52,7 +52,10 @@ let WelcomeLesson = {
                     '</button>' +
                     '<button type="button" title="Перенести" class="btn btn-outline-dark ml-2" onclick="WelcomeLesson.showRescheduleForm(this, ' + data.id + ', \'' + data.date + '\');">' +
                         '<span class="fas fa-history"></span>' +
-                    '</button>';
+                    '</button>' +
+                    '<a type="button" title="Распечатать памятку" class="btn btn-outline-dark ml-2" target="_blank" href="/welcome-lesson/print?id=' + data.id + '">' +
+                        '<span class="fas fa-print"></span>' +
+                    '</a>';
                 break;
             case this.statusPassed:
                 contents =

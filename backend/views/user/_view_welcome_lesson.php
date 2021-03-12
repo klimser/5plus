@@ -8,7 +8,7 @@ use backend\models\WelcomeLesson;
 ?>
 <div class="welcome_lessons mt-2">
     <?php if (count($pupil->welcomeLessons) > 0): ?>
-        <table class="table table-bordered table-sm">
+        <table class="table table-bordered table-sm welcome-table">
             <tr>
                 <th>Группа, предмет</th>
                 <th>Дата</th>
@@ -41,4 +41,11 @@ use backend\models\WelcomeLesson;
         </table>
     <?php endif; ?>
 </div>
-<button type="button" class="btn btn-success" onclick="User.addWelcomeLesson(undefined, $(this).closest('.user-view'));"><span class="fas fa-plus"></span> добавить</button>
+<div class="row">
+    <div class="col">
+        <button type="button" class="btn btn-success" onclick="User.addWelcomeLesson(undefined, $(this).closest('.user-view'));"><span class="fas fa-plus"></span> добавить</button>
+    </div>
+    <div class="col text-right">
+        <button type="button" class="btn btn-info" onclick="Dashboard.printWelcomeLessonInfo(this);">Распечатать памятку</button>
+    </div>
+</div>

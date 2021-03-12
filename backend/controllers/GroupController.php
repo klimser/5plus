@@ -39,27 +39,7 @@ class GroupController extends AdminController
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
         if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
-            /** @var GroupParam[] $groupParams */
-            $groupParams = GroupParam::find()
-                ->alias('gp')
-                ->joinWith('group g')
-                ->andWhere(['gp.year' => 2021, 'gp.month' => 2,])
-                ->andWhere('g.lesson_price != gp.lesson_price')
-                ->all();
             
-            foreach ($groupParams as $groupParam) {
-                $groupParam->lesson_price = $groupParam->group->lesson_price;
-                $groupParam->lesson_price_discount = $groupParam->group->lesson_price_discount;
-                $groupParam->save();
-
-                EventComponent::fillSchedule($groupParam->group);
-                foreach ($groupParam->group->groupPupils as $groupPupil) {
-                    MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
-                    MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
-                    MoneyComponent::recalculateDebt($groupPupil->user, $groupPupil->group);
-                }
-                GroupComponent::calculateTeacherSalary($groupParam->group);
-            }
             
 //        $user = User::findOne(7227);
 //        foreach ($user->groupPupils as $groupPupil) {
