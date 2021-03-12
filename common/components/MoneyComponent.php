@@ -332,11 +332,11 @@ class MoneyComponent extends Component
         /*    Собираем информацию обо всех внесенных средствах    */
         $money = Payment::find()
             ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_INACTIVE])
-            ->andWhere(['>', 'amount', 0])
+            ->andWhere(['event_member_id' => null])
             ->select('SUM(amount)')->scalar();
         $moneyDiscount = Payment::find()
             ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_ACTIVE])
-            ->andWhere(['>', 'amount', 0])
+            ->andWhere(['event_member_id' => null])
             ->select('SUM(amount)')->scalar();
         $groupPupilMap = [];
         foreach ($groupPupils as $groupPupil) {
