@@ -3,6 +3,7 @@
 namespace common\models;
 
 use backend\models\Event;
+use backend\models\GroupNote;
 use backend\models\WelcomeLesson;
 use common\components\extended\ActiveRecord;
 use common\models\traits\GroupParam as GroupParamTrait;
@@ -40,6 +41,8 @@ use yii\db\ActiveQuery;
  * @property GroupType $type
  * @property Event[] $events
  * @property Event[] $eventsByDateMap
+ * @property GroupNote[] $notes
+ * @property GroupNote $note
  */
 class Group extends ActiveRecord
 {
@@ -225,6 +228,20 @@ class Group extends ActiveRecord
     {
         return $this->hasMany(User::class, ['id' => 'user_id'])
             ->via('groupPupils');
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getNotes()
+    {
+        return $this->hasMany(GroupNote::class, ['group_id' => 'id'])->orderBy([GroupNote::tableName() . '.created_at' => SORT_DESC])->inverseOf('group');
+    }
+
+    public function getNote(): ?GroupNote
+    {
+        $notes = $this->notes;
+        return empty($notes) ? null : reset($notes);
     }
     
     public function setStartDateObject(?DateTime $startDate): void

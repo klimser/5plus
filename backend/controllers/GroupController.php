@@ -3,6 +3,7 @@
 namespace backend\controllers;
 
 use backend\components\EventComponent;
+use backend\models\GroupNote;
 use common\components\Action;
 use common\components\ComponentContainer;
 use common\components\MoneyComponent;
@@ -77,8 +78,14 @@ class GroupController extends AdminController
 
     private function renderList(array $filter)
     {
+        /** @var User $currentUser */
+        $currentUser = Yii::$app->user->identity;
+        
         $searchModel = new GroupSearch();
         $searchParams = array_key_exists('GroupSearch', Yii::$app->request->queryParams) ? Yii::$app->request->queryParams['GroupSearch'] : [];
+        if ($currentUser->isTeacher()) {
+            $filter['teacher_id'] = $currentUser->teacher_id;
+        }
         $dataProvider = $searchModel->search(['GroupSearch' => array_merge($searchParams, $filter)]);
 
         return $this->render('index', [
@@ -98,6 +105,7 @@ class GroupController extends AdminController
                 'name'
             ),
             'canEdit' => Yii::$app->user->can('manageGroups'),
+            'isTeacher' => $currentUser->isTeacher(),
         ]);
     }
 
@@ -635,6 +643,70 @@ class GroupController extends AdminController
         }
 
         return $this->asJson($jsonData);
+    }
+
+    public function actionNoteAdd()
+    {
+        $this->checkRequestIsAjax();
+        $this->checkAccess('teacher');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        /** @var User $currentUser */
+        $currentUser = Yii::$app->user->identity;
+        $jsonData = [];
+        $groupId = Yii::$app->request->post('group_id');
+        if (!$groupId || !($group = Group::findOne($groupId)) || $group->teacher_id !== $currentUser->teacher_id) {
+            return self::getJsonErrorResult('Invalid group');
+        }
+        if (!$note = Yii::$app->request->post('note')) {
+            return self::getJsonErrorResult('Empty note isnot allowed');
+        }
+        
+        $groupNote = new GroupNote();
+        $groupNote->group_id = $groupId;
+        $groupNote->teacher_id = $currentUser->teacher_id;
+        $groupNote->topic = $note;
+        if (!$groupNote->save()) {
+            return self::getJsonErrorResult($groupNote->getErrorsAsString());
+        }
+
+        return self::getJsonOkResult();
+    }
+    
+    public function actionNotes()
+    {
+        $this->checkAccess('viewNotes');
+
+        $searchModel = new GroupSearch();
+        $searchParams = array_key_exists('GroupSearch', Yii::$app->request->queryParams) ? Yii::$app->request->queryParams['GroupSearch'] : [];
+        $dataProvider = $searchModel->search(['GroupSearch' => array_merge($searchParams, ['active' => Group::STATUS_ACTIVE])]);
+
+        return $this->render('notes', [
+            'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
+            'subjectMap' => ArrayHelper::map(
+                Subject::find()->orderBy('name')->select(['id', 'name'])->asArray()->all(),
+                'id',
+                'name'
+            ),
+            'teacherMap' => ArrayHelper::map(
+                Teacher::find()
+                    ->andWhere(['active' => Teacher::STATUS_ACTIVE])
+                    ->orderBy('name')
+                    ->select(['id', 'name'])->asArray()->all(),
+                'id',
+                'name'
+            ),
+        ]);
+    }
+    
+    public function actionNote(int $id)
+    {
+        $group = $this->findModel($id);
+        
+        return $this->render('note_history', [
+            'group' => $group
+        ]);
     }
 
     /**

@@ -595,9 +595,9 @@ class UserController extends AdminController
                             $user->link('parent', $parent);
                         }
                     }
-                    if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT)) {
+                    if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT || $user->role == User::ROLE_TEACHER)) {
                         $newRules = Yii::$app->request->post('acl', []);
-                        foreach (UserComponent::ACL_RULES as $key => $devNull) {
+                        foreach (($user->role == User::ROLE_TEACHER ? UserComponent::ACL_TEACHER_RULES : UserComponent::ACL_RULES) as $key => $devNull) {
                             $role = $auth->getRole($key) ?? $auth->getPermission($key);
                             if (array_key_exists($key, $newRules)) {
                                 if (!$auth->getAssignment($role->name, $user->id)) $auth->assign($role, $user->id);

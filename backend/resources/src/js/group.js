@@ -189,5 +189,36 @@ let Group = {
            $(endReasonForm).find("textarea[name=reason_comment]").val(commentText);
            $("#end-reason-modal").modal('show');
        }
+    },
+    toggleNoteUpdate: function(e) {
+        $(e).parent().append('<form onsubmit="return Group.updateNote(this);">' +
+            '<input type="hidden" name="group_id" value="' + $(e).data('groupId') + '">' +
+            '<div class="input-group">' +
+            '<input name="note" class="form-control" placeholder="Тема" title="Тема" required>' +
+            '<div class="input-group-append">' +
+            '<button class="btn btn-primary">OK</button>' +
+            '</div></div></form>');
+        $(e).collapse('hide');
+    },
+    updateNote: function(form) {
+        $(form).find('button').prop('disabled', true);
+        $.ajax({
+            'url': '/group/note-add',
+            'type': 'post',
+            'dataType': 'json',
+            data: $(form).serialize()
+        })
+            .done(function(data) {
+                if (data.status === 'ok') {
+                    window.location.reload(true);
+                } else {
+                    Main.throwFlashMessage('#messages_place', data.message, 'alert-danger');
+                }
+            })
+            .fail(Main.logAndFlashAjaxError)
+            .always(function () {
+                $(form).find('button').prop('disabled', false);
+            });
+        return false;
     }
 };

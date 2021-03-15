@@ -535,4 +535,9 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->password_reset_token = null;
     }
+    
+    public function isTeacher(): bool
+    {
+        return self::ROLE_TEACHER === $this->role;
+    }
 }

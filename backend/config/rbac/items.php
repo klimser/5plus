@@ -49,6 +49,7 @@ return [
             'viewIndex',
             'manageSchedule',
             'viewMissed',
+            'viewGroups',
         ],
     ],
     'registrator' => [
@@ -102,6 +103,7 @@ return [
             'manageSubjects',
             'viewGroups',
             'manageGroups',
+            'viewNotes',
             'reportGroupMovement',
             'manageGiftCardTypes',
             'viewMissed',
@@ -321,5 +323,9 @@ return [
     'viewSchedule' => [
         'type' => 2,
         'description' => 'View schedule',
+    ],
+    'viewNotes' => [
+        'type' => 2,
+        'description' => 'View group notes history',
     ],
 ];

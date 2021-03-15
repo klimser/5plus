@@ -50,11 +50,11 @@ $this->registerJs('User.init(true);');
                 <?= $form->field($user, 'phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
 
-                <?php if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT)): ?>
+                <?php if ($editACL && ($user->role == User::ROLE_MANAGER || $user->role == User::ROLE_ROOT || $user->role == User::ROLE_TEACHER)): ?>
                     <div class="card form-group">
                         <div class="card-header">Права</div>
                         <div class="card-body">
-                            <?php foreach (UserComponent::ACL_RULES as $ruleKey => $ruleLabel): ?>
+                            <?php foreach (($user->role == User::ROLE_TEACHER ? UserComponent::ACL_TEACHER_RULES : UserComponent::ACL_RULES) as $ruleKey => $ruleLabel): ?>
                                 <div class="form-check">
                                     <label class="form-check-label">
                                         <input class="form-check-input" type="checkbox" name="acl[<?= $ruleKey; ?>]" value="1" <?= $authManager->checkAccess($user->id, $ruleKey) ? 'checked' : ''; ?>>

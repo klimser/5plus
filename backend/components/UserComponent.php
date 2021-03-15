@@ -27,6 +27,11 @@ class UserComponent extends Component
         'support' => 'Техподдержка (заявки и т п)',
         'content' => 'Контент-менеджер',
         'sendPush' => 'Отправлять сообщения подписчикам в Telegram',
+        'viewNotes' => 'Смотреть темы групп',
+    ];
+    
+    public const ACL_TEACHER_RULES =[
+        'viewNotes' => 'Смотреть темы групп',
     ];
 
     /**

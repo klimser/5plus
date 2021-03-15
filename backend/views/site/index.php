@@ -58,13 +58,21 @@ $this->title = 'Панель управления';
 
 <div class="row border-top pt-3">
     <div class="col-lg-9">
-        <?php if ($admin->can('viewGroups') || $admin->can('content')): ?>
+        <?php if ($admin->can('viewGroups') || $admin->can('content') || $admin->can('viewNotes')): ?>
             <div class="row">
                 <?php if ($admin->can('viewGroups')): ?>
                     <div class="col-6 col-md mb-3">
                         <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('group/index'); ?>">
                             <span class="fas fa-users fa-2x"></span><br>
                             Группы
+                        </a>
+                    </div>
+                <?php endif; ?>
+                <?php if ($admin->can('viewNotes')): ?>
+                    <div class="col-6 col-md mb-3">
+                        <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('group/notes'); ?>">
+                            <span class="fas fa-users fa-2x"></span><br>
+                            Темы в группах
                         </a>
                     </div>
                 <?php endif; ?>
