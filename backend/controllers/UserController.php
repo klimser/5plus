@@ -52,6 +52,7 @@ class UserController extends AdminController
             'firstLetter' => mb_strtoupper(Yii::$app->request->get('letter', 'all'), 'UTF-8'),
             'selectedYear' => Yii::$app->request->get('year', -1),
             'canManageEmployees' => Yii::$app->user->can('manageEmployees'),
+            'isRoot' => Yii::$app->user->can('root'),
         ]);
     }
 
@@ -234,6 +235,8 @@ class UserController extends AdminController
                 Yii::$app->session->addFlash('error', $e->getMessage());
             }
         }
+
+        $this->checkAccess('root');
 
         return $this->render('create-pupil', [
             'parent' => $parent,

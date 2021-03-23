@@ -17,6 +17,7 @@ use yii\web\View;
 /* @var $firstLetter string */
 /* @var $selectedYear int */
 /* @var $canManageEmployees bool */
+/* @var $isRoot bool */
 
 $this->title = 'Пользователи';
 $this->params['breadcrumbs'][] = $this->title;
@@ -26,7 +27,9 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Добавить студента', ['create-pupil'], ['class' => 'btn btn-success']) ?>
+        <?php if ($isRoot): ?>
+            <?= Html::a('Добавить студента', ['create-pupil'], ['class' => 'btn btn-success']) ?>
+        <?php endif; ?>
         <?= Html::a('Добавить учителя', ['create-teacher'], ['class' => 'btn btn-success float-right']) ?>
         <?php if ($canManageEmployees): ?>
             <?= Html::a('Добавить сотрудника', ['create-employee'], ['class' => 'btn btn-success float-right mr-2']) ?>

@@ -458,6 +458,7 @@ class MoneyController extends AdminController
             $payment->comment = ($formData['refund'] ? 'Возврат средств: ' : 'Задолженность добавлена вручную: ') . $formData['comment'];
 
             MoneyComponent::registerIncome($payment);
+            MoneyComponent::setUserChargeDates($user, $groupPupil->group);
             return self::getJsonOkResult(['userId' => $user->id, 'refund' => $formData['refund']]);
         } catch (\Throwable $ex) {
             return self::getJsonErrorResult($ex->getMessage());
