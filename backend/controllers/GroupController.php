@@ -565,8 +565,8 @@ class GroupController extends AdminController
         }
         
         $endDate =  new \DateTimeImmutable($formData['date'] . ' +1 day midnight');
-        if (!$endDate || $endDate <= $groupPupil->startDateObject) {
-            self::getJsonErrorResult('Неверная дата');
+        if (!$endDate || $endDate < $groupPupil->startDateObject) {
+            return self::getJsonErrorResult('Неверная дата');
         }
 
         $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $endDate);
