@@ -246,7 +246,7 @@ $this->title = 'Панель управления';
                             </a>
                             <a class="dropdown-item" href="<?= Url::to(['contract/report']); ?>">
                                 <span class="fas fa-hand-holding-usd"></span> Денежные поступления
-                            </a>
+                            </a> 
                         <?php endif; ?>
                         <?php if ($admin->can('reportCash')): ?>
                             <a class="dropdown-item" href="<?= Url::to(['report/cash']); ?>">
