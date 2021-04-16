@@ -4,7 +4,7 @@ use backend\models\WelcomeLesson;
 
 /* @var $this yii\web\View */
 /* @var $pupil \common\models\User */
-
+$printable = false;
 ?>
 <div class="welcome_lessons mt-2">
     <?php if (count($pupil->welcomeLessons) > 0): ?>
@@ -15,7 +15,11 @@ use backend\models\WelcomeLesson;
                 <th>Статус</th>
                 <th></th>
             </tr>
-            <?php foreach ($pupil->welcomeLessons as $welcomeLesson): ?>
+            <?php foreach ($pupil->welcomeLessons as $welcomeLesson):
+                if (WelcomeLesson::STATUS_UNKNOWN == $welcomeLesson->status) {
+                    $printable = true;
+                }
+            ?>
                 <tr class="welcome-row" data-key="<?= $welcomeLesson->id; ?>" data-status="<?= $welcomeLesson->status; ?>" data-deny-reason="<?= $welcomeLesson->deny_reason; ?>" data-date="<?= $welcomeLesson->lessonDateTime->format('d.m.Y'); ?>">
                     <td>
                         <?php if ($welcomeLesson->group_id): ?>
@@ -46,6 +50,8 @@ use backend\models\WelcomeLesson;
         <button type="button" class="btn btn-success" onclick="User.addWelcomeLesson(undefined, $(this).closest('.user-view'));"><span class="fas fa-plus"></span> добавить</button>
     </div>
     <div class="col text-right">
-        <button type="button" class="btn btn-info" onclick="Dashboard.printWelcomeLessonInfo(this);">Распечатать памятку</button>
+        <?php if ($printable): ?>
+            <button type="button" class="btn btn-info" onclick="Dashboard.printWelcomeLessonInfo(this);">Распечатать памятку</button>
+        <?php endif; ?>
     </div>
 </div>

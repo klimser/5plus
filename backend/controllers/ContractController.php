@@ -14,6 +14,7 @@ use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\User;
 use common\components\Action;
+use DateTimeImmutable;
 use yii;
 use yii\web\NotFoundHttpException;
 use yii\web\BadRequestHttpException;
@@ -243,6 +244,39 @@ class ContractController extends AdminController
             $transaction->rollBack();
             return self::getJsonErrorResult($ex->getMessage());
         }
+    }
+    
+    public function actionReport(?int $type = null, ?string $from = null, ?string $to = null)
+    {
+        $this->checkAccess('reportMoney');
+
+        $params = [];
+        if ($type && $from && $to) {
+            $dateFrom = new DateTimeImmutable($from);
+            $dateTo = new DateTimeImmutable($to);
+            /** @var Contract[] $contracts */
+            $contracts = Contract::find()
+                ->andWhere(['status' => Contract::STATUS_PAID])
+                ->andWhere(['payment_type' => $type])
+                ->andWhere(['>', 'paid_at', $dateFrom->modify('midnight')->format('Y-m-d H:i:s')])
+                ->andWhere(['<', 'paid_at', $dateTo->modify('+ 1 day midnight')->format('Y-m-d H:i:s')])
+                ->orderBy(['paid_at' => SORT_ASC])
+                ->all();
+            $totalAmount = 0;
+            foreach ($contracts as $contract) {
+                $totalAmount += $contract->amount;
+            }
+            
+            $params = [
+                'type' => $type,
+                'from' => $dateFrom,
+                'to' => $dateTo,
+                'totalAmount' => $totalAmount,
+                'contracts' => $contracts,
+            ];
+        }
+        
+        return $this->render('report', $params);
     }
 
     /**

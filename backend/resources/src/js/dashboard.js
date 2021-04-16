@@ -210,13 +210,15 @@ let Dashboard = {
                 ids.push($(this).data("key"));
             }
         });
-        let href = '/welcome-lesson/print';
-        let first = true;
-        ids.forEach(function(id) {
-            href += (first ? '?' : '&') + 'id[]=' + id;
-            first = false;
-        });
-        window.open(href);
+        if (ids.length > 0) {
+            let href = '/welcome-lesson/print';
+            let first = true;
+            ids.forEach(function (id) {
+                href += (first ? '?' : '&') + 'id[]=' + id;
+                first = false;
+            });
+            window.open(href);
+        }
     },
     showMoneyIncomeForm: function(e) {
         let groupId = $(e).data('group');

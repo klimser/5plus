@@ -565,7 +565,7 @@ class GroupController extends AdminController
         }
         
         $endDate =  new \DateTimeImmutable($formData['date'] . ' +1 day midnight');
-        if (!$endDate || $endDate < $groupPupil->startDateObject) {
+        if (!$endDate || $endDate < $groupPupil->startDateObject || ($groupPupil->group->date_end && $groupPupil->group->endDateObject < $endDate)) {
             return self::getJsonErrorResult('Неверная дата');
         }
 
@@ -581,9 +581,12 @@ class GroupController extends AdminController
         }
 
         $groupPupil->date_end = $endDate->format('Y-m-d');
-        $groupPupil->active = GroupPupil::STATUS_INACTIVE;
         $groupPupil->end_reason = $formData['reasonId'];
         $groupPupil->comment = $formData['reasonComment'];
+
+        if ($endDate <= new \DateTimeImmutable('tomorrow midnight')) {
+            $groupPupil->active = GroupPupil::STATUS_INACTIVE;
+        }
 
         ComponentContainer::getActionLogger()->log(
             Action::TYPE_GROUP_PUPIL_UPDATED,

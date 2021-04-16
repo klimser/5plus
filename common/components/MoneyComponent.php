@@ -154,6 +154,7 @@ class MoneyComponent extends Component
             $contract->group
         );
         self::setUserChargeDates($contract->user, $contract->group);
+        GroupComponent::calculateTeacherSalary($contract->group);
 
         return $paymentId;
     }
