@@ -13,8 +13,6 @@ use common\components\helpers\MoneyHelper;
  * @property int $lesson_price_discount
  * @property int $price12Lesson
  * @property int $priceMonth
- * @property int $price3Month
- * @property int $price4Month
  * @property int $classesPerWeek
  * @property int $classesPerMonth
  */
@@ -48,22 +46,13 @@ trait GroupParam
 
     public function getPrice12Lesson(): int
     {
-        return MoneyHelper::roundThousand($this->lesson_price * 12);
+        return MoneyHelper::roundThousand(($this->lesson_price_discount ?: $this->lesson_price) * 12);
     }
 
     public function getPriceMonth(): int
     {
-        return MoneyHelper::roundThousand($this->lesson_price * $this->getClassesPerMonth());
-    }
-
-    public function getPrice3Month(): int
-    {
-        return MoneyHelper::roundThousand(($this->lesson_price_discount ?: $this->lesson_price) * $this->getClassesPerMonth() * 3);
-    }
-
-    public function getPrice4Month(): int
-    {
-        return MoneyHelper::roundThousand(($this->lesson_price_discount ?: $this->lesson_price) * $this->getClassesPerMonth() * 4);
+        $perMonth = $this->getClassesPerMonth();
+        return MoneyHelper::roundThousand($perMonth * ($perMonth >= 12 ? $this->lesson_price_discount : $this->lesson_price));
     }
 
     public function getClassesPerWeek(): int

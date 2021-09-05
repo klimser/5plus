@@ -53,8 +53,8 @@ let Contract = {
         } else {
             $("#group_dates").collapse("hide");
         }
-        $("#payment-0").find(".price").text(Main.groupMap[groupId].price);
-        $("#payment-1").find(".price").text(Main.groupMap[groupId].price4);
+        $("#payment-0").find(".price").text(Main.groupMap[groupId].priceLesson);
+        $("#payment-1").find(".price").text(Main.groupMap[groupId].price12Lesson);
         $("#payment_type_block").collapse("show").find("button").removeClass("btn-primary").addClass('btn-outline-dark');
         $("#income_form").collapse('hide');
     },
@@ -66,9 +66,9 @@ let Contract = {
         let amountInput = $("#amount");
         let group = Main.groupMap[Money.groupId];
         if (this.paymentType === 1) {
-            $(amountInput).val(group.price4).attr("min", group.price4);
+            $(amountInput).val(group.price12Lesson).attr("min", group.price12Lesson);
         } else {
-            $(amountInput).val(group.price).attr("min", 1000);
+            $(amountInput).val(group.priceLesson).attr("min", 1000);
         }
         $("#income_form").collapse('show');
     },

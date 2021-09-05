@@ -28,15 +28,15 @@ let Payment = {
                         'Погасить задолженность ' + group.debt + ' сум' +
                         '</button></div>';
                 }
-                htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceLesson + '" onclick="Payment.selectSum(this);">' +
+                htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceLesson + '" data-limit="' + group.priceDiscountLimit + '" onclick="Payment.selectSum(this);">' +
                     'за 1 занятие ' + group.priceLesson + ' сум' +
                     '</button></div>' +
 
-                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceMonth + '" onclick="Payment.selectSum(this);">' +
+                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceMonth + '" data-limit="' + group.priceDiscountLimit + '" onclick="Payment.selectSum(this);">' +
                     'за 1 месяц ' + group.priceMonth + ' сум' +
                     '</button></div>' +
 
-                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="none" onclick="Payment.selectSum(this);">другая сумма</button></div>' +
+                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="none" data-limit="' + group.priceDiscountLimit + '" onclick="Payment.selectSum(this);">другая сумма</button></div>' +
                     '</div></div><hr>';
             });
 
@@ -53,6 +53,7 @@ let Payment = {
     selectSum: function(e) {
         let amountInput = $("#amount");
         let sum = $(e).data("sum");
+        $(amountInput).data('discountLimit', $(e).data("limit"));
         if (sum === 'none') {
             $(amountInput).val(0).prop('disabled', false);
         } else {
@@ -62,6 +63,7 @@ let Payment = {
         $("#pupil").data("val", this.user).val(this.users[this.user].name);
         $("#group").data("val", $(e).closest(".group-payments").data("groupid")).val($(e).closest(".group-payments").data("groupname"));
         $("#payment_form").modal();
+        Payment.checkAmount(amountInput);
     },
     lockPayButton: function() {
         $(".pay_button").prop("disabled", true);
@@ -132,5 +134,13 @@ let Payment = {
             .always(Payment.unlockPayButton);
 
         return false;
+    },
+    checkAmount: function(e) {
+        let sum = parseInt($(e).val());
+        if (sum > 0 && sum < $(e).data('discountLimit')) {
+            $(e).parent().find("#amount-notice").collapse('show');
+        } else {
+            $(e).parent().find("#amount-notice").collapse('hide');
+        }
     }
 };

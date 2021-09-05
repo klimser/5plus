@@ -25,8 +25,9 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
         $script .= "Payment.users[{$pupil->id}].groups.push({
                 id: {$groupPupil->group_id},
                 name: '{$groupPupil->group->legal_name}',
-                price: {$groupPupil->group->priceMonth},
-                priceDiscount: {$groupPupil->group->price4Month},
+                priceLesson: {$groupPupil->group->lesson_price},
+                priceMonth: {$groupPupil->group->priceMonth},
+                priceDiscountLimit: {$groupPupil->group->price12Lesson},
                 debt: {$debt},
                 paid: '" . ($groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '') . "'
             });\n";

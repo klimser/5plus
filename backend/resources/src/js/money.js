@@ -28,7 +28,7 @@ let Money = {
                         '<tr><td><b>Студент</b></td><td>' + data.user_name + '</td></tr>' +
                         '<tr><td><b>Группа</b></td><td>' + data.group_name + '</td></tr>'+
                         '<tr><td><b>Сумма</b></td><td><span class="big-font">' + data.amount + '</span>'
-                        + (data.discount ? ' <span class="label label-success">со скидкой</span>' : '') + '</td></tr>' +
+                        + (data.discount ? '' : ' <span class="label label-danger">повышенная стоимость занятий</span>') + '</td></tr>' +
                         '<tr><td><b>Дата договора</b></td><td>' + data.create_date + '</td></tr>' +
                         '<tr><td><b>Компания</b></td><td>' + data.company_name + '</td></tr>';
                     if (data.group_pupil_id > 0) {

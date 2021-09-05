@@ -37,10 +37,6 @@ $this->params['breadcrumbs'][] = 'Завершение оплаты';
                             <td><?= $group; ?></td>
                         </tr>
                         <tr>
-                            <th>Оплата со скидкой</th>
-                            <td><?= $discount ? 'Да' : 'Нет'; ?></td>
-                        </tr>
-                        <tr>
                             <th>Занятий</th>
                             <td><?= $lessons; ?></td>
                         </tr>

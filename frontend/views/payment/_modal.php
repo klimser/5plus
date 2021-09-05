@@ -33,7 +33,10 @@ use yii\helpers\Url;
                     <div class="form-group">
                         <label for="amount" class="col-4 col-md-3 col-xl-2 control-label">Сумма</label>
                         <div class="col-8 col-md-9 col-xl-10">
-                            <input type="number" class="form-control" id="amount" min="1000" step="1000" inputmode="numeric" autocomplete="transaction-amount" required disabled>
+                            <input type="number" class="form-control" id="amount" min="1000" step="1000" inputmode="numeric" autocomplete="transaction-amount" required disabled onchange="Payment.checkAmount(this);">
+                            <small id="amount-notice" class="form-text text-danger collapse">
+                                Внимание! Оплата с повышенной стоимостью занятия. Для оплаты с обычной стоимостью оплачивайте не менее 12 занятий.
+                            </small>
                         </div>
                     </div>
                     <div class="form-group col-12">

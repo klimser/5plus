@@ -25,6 +25,7 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
                 name: '{$groupPupil->group->legal_name}',
                 priceLesson: {$groupPupil->group->lesson_price},
                 priceMonth: {$groupPupil->group->priceMonth},
+                priceDiscountLimit: {$groupPupil->group->price12Lesson},
                 debt: {$debt},
                 paid: '" . ($groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '') . "'
             });\n";

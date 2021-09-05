@@ -32,8 +32,8 @@ $this->params['breadcrumbs'][] = $group->name;
 </div>
 <div class="row border-top py-2">
     <div class="col-12 col-md-6">
-        Цена занятия: <b><?= $group->lesson_price; ?></b><br>
-        Цена со скидкой: <b><?= $group->lesson_price_discount; ?></b>
+        Цена занятия (&lt; 12 уроков): <b><?= $group->lesson_price; ?></b><br>
+        Цена занятия (&gt; 12 уроков): <b><?= $group->lesson_price_discount; ?></b>
     </div>
     <div class="col-12 col-md-6">
         Учитель <b><?= $group->teacher->name; ?></b>
