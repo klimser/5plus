@@ -3,7 +3,6 @@
 namespace console\controllers;
 
 use common\components\ComponentContainer;
-use common\components\helpers\TelegramHelper;
 use common\components\helpers\WordForm;
 use common\components\paygram\PaygramApiException;
 use common\components\PaymentComponent;
@@ -12,8 +11,12 @@ use common\models\BotPush;
 use common\models\GroupPupil;
 use common\models\Notify;
 use common\models\User;
-use yii;
+use DateTime;
+use Longman\TelegramBot\Entities\Entity;
+
+use Yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * NotifierController is used to send notifications to users.
@@ -26,22 +29,16 @@ class NotifierController extends Controller
     /**
      * Search for a not sent notifications and sends it.
      * @return int
-     * @throws \Longman\TelegramBot\Exception\TelegramException
-     * @throws yii\db\Exception
+     * @throws \Exception
      */
     public function actionSend()
     {
         $currentTime = intval(date('H'));
-        if ($currentTime >= 20 || $currentTime < 9) return yii\console\ExitCode::OK;
+        if ($currentTime >= 20 || $currentTime < 9) return ExitCode::OK;
 
         $condition = ['status' => Notify::STATUS_NEW];
 
-        $tryTelegram = false;
-        if (array_key_exists('telegramPublic', \Yii::$app->components)) {
-            \Yii::$app->db->open();
-            ComponentContainer::getTelegramPublic()->telegram;
-            $tryTelegram = true;
-        }
+        $tryTelegram = array_key_exists('telegramPublic', Yii::$app->components);
 
         $quantity = 0;
         $startTime = microtime(true);
@@ -63,27 +60,27 @@ class NotifierController extends Controller
                 $message = null;
                 switch ($toSend->template_id) {
                     case Notify::TEMPLATE_PUPIL_DEBT:
-                        $message = 'У вас задолженность в группе *' . TelegramHelper::escapeMarkdownV2($toSend->group->legal_name) . '*'
-                            . TelegramHelper::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
+                        $message = 'У вас задолженность в группе *' . Entity::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . Entity::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PUPIL_LOW:
-                        $message = 'В группе *' . TelegramHelper::escapeMarkdownV2($toSend->group->legal_name) . '*'
-                            . TelegramHelper::escapeMarkdownV2(" у вас осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
+                        $message = 'В группе *' . Entity::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . Entity::escapeMarkdownV2(" у вас осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PARENT_DEBT:
                         $child = User::findOne($toSend->parameters['child_id']);
-                        $message = 'У студента ' . TelegramHelper::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
-                            . ' задолженность в группе *' . TelegramHelper::escapeMarkdownV2($toSend->group->legal_name) . '*'
-                            . TelegramHelper::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
+                        $message = 'У студента ' . Entity::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
+                            . ' задолженность в группе *' . Entity::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . Entity::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PARENT_LOW:
                         $child = User::findOne($toSend->parameters['child_id']);
-                        $message = 'У студента ' . TelegramHelper::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
-                            . ' в группе *' . TelegramHelper::escapeMarkdownV2($toSend->group->legal_name) . '*'
-                            . TelegramHelper::escapeMarkdownV2(" осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
+                        $message = 'У студента ' . Entity::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
+                            . ' в группе *' . Entity::escapeMarkdownV2($toSend->group->legal_name) . '*'
+                            . Entity::escapeMarkdownV2(" осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url . ')';
                         break;
                 }
@@ -99,12 +96,11 @@ class NotifierController extends Controller
                     if ($push->save()) {
                         $toSend->status = Notify::STATUS_SENT;
                         $toSend->sent_at = date('Y-m-d H:i:s');
-                        $toSend->save();
                     } else {
                         ComponentContainer::getErrorLogger()->logError('notify/send', $push->getErrorsAsString(), true);
                         $toSend->status = Notify::STATUS_ERROR;
-                        $toSend->save();
                     }
+                    $toSend->save();
                 }
             }
 
@@ -162,7 +158,7 @@ class NotifierController extends Controller
      */
     public function actionCreate()
     {
-        $monthLimit = new \DateTime('-30 days');
+        $monthLimit = new DateTime('-30 days');
 
         /** @var GroupPupil[] $groupPupils */
         $groupPupils = GroupPupil::find()
@@ -191,7 +187,7 @@ class NotifierController extends Controller
                 $needSent = true;
                 if (!empty($sentNotifications)) {
                     $lastNotification = reset($sentNotifications);
-                    $needSent = (date_diff(new \DateTime('now'), $lastNotification->sentDate)->days >= pow(2, count($sentNotifications) - 1));
+                    $needSent = (date_diff(new DateTime('now'), $lastNotification->sentDate)->days >= pow(2, count($sentNotifications) - 1));
                 }
 
                 if ($needSent) {
@@ -240,7 +236,7 @@ class NotifierController extends Controller
                     $needSent = true;
                     if (!empty($sentNotifications)) {
                         $lastNotification = reset($sentNotifications);
-                        $needSent = (date_diff(new \DateTime('now'), $lastNotification->sentDate)->days >= pow(2, count($sentNotifications) - 1));
+                        $needSent = (date_diff(new DateTime('now'), $lastNotification->sentDate)->days >= pow(2, count($sentNotifications) - 1));
                     }
 
                     if ($needSent) {
@@ -261,7 +257,7 @@ class NotifierController extends Controller
             /*----------------------  END TEMPLATE ID 2 ---------------------------*/
         }
 
-        $nextWeek = new \DateTime('+7 days');
+        $nextWeek = new DateTime('+7 days');
         /** @var GroupPupil[] $groupPupils */
         $groupPupils = GroupPupil::find()
             ->joinWith('user')
@@ -301,7 +297,7 @@ class NotifierController extends Controller
                 $needSent = true;
                 if (!empty($sentNotifications)) {
                     $lastNotification = reset($sentNotifications);
-                    $needSent = (date_diff(new \DateTime('now'), $lastNotification->sentDate)->days >= pow(2, count($sentNotifications)));
+                    $needSent = (date_diff(new DateTime('now'), $lastNotification->sentDate)->days >= pow(2, count($sentNotifications)));
                 }
 
                 if ($needSent) {
@@ -352,7 +348,7 @@ class NotifierController extends Controller
                     $needSent = true;
                     if (!empty($sentNotifications)) {
                         $lastNotification = reset($sentNotifications);
-                        $needSent = (date_diff(new \DateTime('now'), $lastNotification->sentDate)->days >= pow(2, count($sentNotifications)));
+                        $needSent = (date_diff(new DateTime('now'), $lastNotification->sentDate)->days >= pow(2, count($sentNotifications)));
                     }
 
                     if ($needSent) {

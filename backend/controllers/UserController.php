@@ -5,6 +5,7 @@ namespace backend\controllers;
 use backend\components\EventComponent;
 use backend\models\Consultation;
 use backend\models\WelcomeLesson;
+use common\components\ComponentContainer;
 use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use backend\components\UserComponent;
@@ -864,6 +865,31 @@ class UserController extends AdminController
                 ->asArray()->all();
         }
         return $this->asJson($jsonData);
+    }
+    
+    public function actionSendAgeSms()
+    {
+        $this->checkRequestIsAjax();
+        $this->checkAccess('moneyManagement');
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        $userId = Yii::$app->request->post('user_id');
+        $phone = Yii::$app->request->post('phone');
+        $user = $this->findModel($userId);
+        $phoneList = array_filter([$user->phone, $user->phone2, $user->parent_id ? $user->parent->phone : null, $user->parent_id ? $user->parent->phone2 : null]);
+        if (!in_array($phone, $phoneList)) {
+            return self::getJsonErrorResult('Invalid phone number');
+        }
+
+        if ($blockUntil = ComponentContainer::getAgeValidator()->getBlockUntilDate($phone)) {
+            return self::getJsonErrorResult('СМС не могут быть отправлены слишком часто, дождитесь получения СМС на телефон или запросите повторную отправку после ' . $blockUntil->format('H:i:s d.m.Y'));
+        }
+
+        if (ComponentContainer::getAgeValidator()->add($phone, 7, [$user])) {
+            return self::getJsonOkResult(['message' => 'СМС отправлена']);
+        }
+
+        return self::getJsonErrorResult('Что-то пошло не так, СМС не отправлена');
     }
 
     /**

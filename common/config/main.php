@@ -131,6 +131,16 @@ return [
             'login' => $params['payme-login'],
             'password' => $params['payme-password'],
         ],
+        'smsBrokerApi' => [
+            'class' => \common\components\SmsBroker\SmsBrokerApi::class,
+            'baseUrl' => $params['smsbroker-url'],
+            'login' => $params['smsbroker-login'],
+            'password' => $params['smsbroker-password'],
+            'sender' => $params['smsbroker-sender-name'],
+        ],
+        'ageValidator' => [
+            'class' => \common\components\AgeValidator::class,
+        ],
     ],
     'aliases' => [
         '@uploads' => '@frontend/web/uploads',

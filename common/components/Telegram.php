@@ -4,6 +4,10 @@ namespace common\components;
 
 use Longman\TelegramBot\Commands\SystemCommands\CallbackqueryCommand;
 use Longman\TelegramBot\TelegramLog;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Yii;
 use yii\base\BaseObject;
 use Longman\TelegramBot\Telegram as TelegramBot;
 use yii\web\Request;
@@ -13,76 +17,79 @@ use yii\web\Request;
  */
 class Telegram extends BaseObject
 {
-    protected $apiKey;
-    protected $botName;
-    protected $commandsPath;
-    protected $tablePrefix;
-    protected $webhookKey;
-    protected $callbackHandlers = [];
+    private ?TelegramBot $bot = null;
 
-    /**
-     * @param mixed $apiKey
-     */
-    public function setApiKey($apiKey)
+    protected string $apiKey;
+    protected string $botName;
+    protected string  $commandsPath;
+    protected string $tablePrefix = '';
+    protected string $webhookKey;
+    protected array $callbackHandlers = [];
+    protected string $paymentToken;
+
+    public function setApiKey(string $apiKey)
     {
         $this->apiKey = $apiKey;
     }
 
-    /**
-     * @param mixed $botName
-     */
-    public function setBotName($botName)
+    public function setBotName(string $botName)
     {
         $this->botName = $botName;
     }
 
-    /**
-     * @param mixed $commandsPath
-     */
-    public function setCommandsPath($commandsPath)
+    public function setCommandsPath(string $commandsPath)
     {
         $this->commandsPath = $commandsPath;
     }
 
-    /**
-     * @param mixed $webhookKey
-     */
-    public function setWebhookKey($webhookKey)
+    public function setWebhookKey(string $webhookKey)
     {
         $this->webhookKey = $webhookKey;
     }
 
-    /**
-     * @param mixed $tablePrefix
-     */
-    public function setTablePrefix($tablePrefix)
+    public function setTablePrefix(string $tablePrefix)
     {
         $this->tablePrefix = $tablePrefix;
     }
 
-    /**
-     * @param array $callbackHandlers
-     */
     public function setCallbackHandlers(array $callbackHandlers): void
     {
         $this->callbackHandlers = $callbackHandlers;
     }
     
-    private $bot;
+    public function setPaymentToken(string $token): void
+    {
+        $this->paymentToken = $token;
+    }
 
     public function getTelegram(): TelegramBot
     {
         if ($this->bot === null) {
             $this->bot = new TelegramBot($this->apiKey, $this->botName);
-            if ($this->tablePrefix) $this->bot->enableExternalMySql(\Yii::$app->db->pdo, $this->tablePrefix);
-            $this->bot->addCommandsPath(\Yii::getAlias($this->commandsPath));
+            $this->bot->setCommandConfig('account', ['payment_provider_token' => $this->paymentToken]);
+            if ($this->tablePrefix) $this->bot->enableExternalMySql(Yii::$app->db->pdo, $this->tablePrefix);
+            $this->bot->addCommandsPath(Yii::getAlias($this->commandsPath));
             foreach ($this->callbackHandlers as $callbackHandler) {
                 CallbackqueryCommand::addCallbackHandler($callbackHandler);
             }
-            TelegramLog::initErrorLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_error.log');
+            
+            $errorLogger = (new StreamHandler(Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_error.log', Logger::ERROR))
+                ->setFormatter(new LineFormatter(null, null, true));
+
             if (YII_ENV === 'dev') {
-                TelegramLog::initUpdateLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_update.log');
-                TelegramLog::initDebugLog(\Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_debug.log');
+                TelegramLog::initialize(
+                    new Logger('telegram_bot_' . $this->botName, [
+                        (new StreamHandler(Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_debug.log', Logger::DEBUG))
+                            ->setFormatter(new LineFormatter(null, null, true)),
+                        $errorLogger,
+                    ]),
+                    new Logger('telegram_bot_updates', [
+                        (new StreamHandler(Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_update.log', Logger::INFO))
+                            ->setFormatter(new LineFormatter('%message%' . PHP_EOL)),
+                    ])
+                );
+            } else {
+                TelegramLog::initialize(new Logger('telegram_bot_' . $this->botName, [$errorLogger]));
             }
         }
         return $this->bot;

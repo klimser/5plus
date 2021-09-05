@@ -131,10 +131,12 @@ class ClickApi extends BaseObject
         try {
             $response = curl_exec($curl);
             $err = curl_error($curl);
-            curl_close($curl);
         } catch (\Throwable $ex) {
-            if (is_resource($curl)) curl_close($curl);
             throw new ClickApiException($ex->getMessage(), $ex->getCode(), $ex);
+        } finally {
+            if (is_resource($curl)) {
+                curl_close($curl);
+            }
         }
 
         if (!$response) throw new ClickApiException("Error: $err");

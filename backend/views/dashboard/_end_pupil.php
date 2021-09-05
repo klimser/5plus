@@ -38,7 +38,7 @@ use common\models\GroupPupil;
                             <?php foreach (GroupPupil::END_REASON_LABELS as $id => $label): ?>
                                 <div class="form-check">
                                     <label class="form-check-label">
-                                        <input class="form-check-input" type="radio" name="end-pupil[reasonId]" value="<?= $id; ?>" required>
+                                        <input class="form-check-input" type="radio" name="end-pupil[reasonId]" value="<?= $id; ?>" required autocomplete="off">
                                         <?= $label; ?>
                                     </label>
                                 </div>

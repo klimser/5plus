@@ -639,8 +639,7 @@ class GroupController extends AdminController
                     $groupParam->lesson_price_discount = $group->lesson_price_discount;
                     $groupParam->schedule = $group->schedule;
                 }
-                $groupData['month_price'] = $groupParam->priceMonth;
-                $groupData['discount_price'] = $groupParam->price4Month;
+                $groupData['lesson_12_price'] = $groupParam->price12Lesson;
                 $jsonData[] = $groupData;
             }
         }

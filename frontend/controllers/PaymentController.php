@@ -2,10 +2,14 @@
 
 namespace frontend\controllers;
 
+use common\components\AgeValidator;
 use common\components\ComponentContainer;
 use common\components\extended\Controller;
+use common\components\helpers\MaskString;
+use common\components\helpers\Phone;
 use common\components\MoneyComponent;
 use common\components\paymo\PaymoApiException;
+use common\models\AgeConfirmation;
 use common\models\Company;
 use common\models\Contract;
 use common\models\GiftCard;
@@ -19,6 +23,7 @@ use common\models\Webpage;
 use himiklab\yii2\recaptcha\ReCaptchaValidator2;
 use Yii;
 use yii\helpers\Url;
+use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -44,9 +49,8 @@ class PaymentController extends Controller
         return $params;
     }
 
-    public function actionIndex()
+    public function actionIndex($type)
     {
-        $type = Yii::$app->request->get('type');
         if (!in_array($type, ['new', 'pupil'])) {
             $type = null;
         }
@@ -55,6 +59,11 @@ class PaymentController extends Controller
 
     public function actionFind()
     {
+        if (!Yii::$app->request->isPost) {
+            throw new BadRequestHttpException('Only post allowed');
+        }
+
+        $pageParams = $this->getPageParams('pupil');
         $validator = new ReCaptchaValidator2();
         $reCaptcha = Yii::$app->request->post('reCaptcha');
         try {
@@ -63,36 +72,209 @@ class PaymentController extends Controller
             }
         } catch (\Exception $ex) {
             Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
-            return $this->render('index-pupil', $this->getPageParams('pupil'));
+            return $this->render('index-pupil', $pageParams);
         }
 
         $phoneFull = '+998' . substr(preg_replace('#\D#', '', Yii::$app->request->post('phoneFormatted')), -9);
-        /** @var User[] $users */
-        $users = User::find()
-            ->andWhere(['or', ['phone' => $phoneFull], ['phone2' => $phoneFull]])
-            ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY, User::ROLE_PUPIL]])
-            ->all();
+        return $this->processPhone($phoneFull);
+    }
+
+    private function processPhone($phoneFull)
+    {
+        $pageParams = $this->getPageParams('pupil');
+        $users = User::findActiveCustomersByPhone($phoneFull);
         if (count($users) == 0) {
             Yii::$app->session->addFlash('error', 'По данному номеру студенты не найдены');
-            return $this->render('index-pupil', $this->getPageParams('pupil'));
+            return $this->render('index-pupil', $pageParams);
         } else {
-            $params = $this->getPageParams('pupil');
-            $params['user'] = null;
-            $params['users'] = [];
             if (count($users) == 1) {
                 $user = reset($users);
-                if ($user->role == User::ROLE_PUPIL) {
-                    $params['user'] = $user;
-                } elseif (count($user->children) == 1) {
-                    $children = $user->children;
-                    $params['user'] = reset($children);
+                if ($user->isAgeConfirmed()) {
+                    return $this->renderPaymentForm($user);
                 } else {
-                    $params['users'] = $user->children;
+                    Yii::$app->session->set('userId', $user->id);
+                    Yii::$app->session->set('phoneFull', $phoneFull);
+                    return $this->renderAgeConfirmationForm($user, $phoneFull);
                 }
-            } else $params['users'] = $users;
+            }
 
-            return $this->render('find', $params);
+            Yii::$app->session->set('phoneFull', $phoneFull);
+            return $this->render('user-select-form', array_merge($pageParams, ['users' => $users]));
         }
+    }
+
+    public function actionSelectUser()
+    {
+        if (!Yii::$app->request->isPost) {
+            throw new BadRequestHttpException('Only post allowed');
+        }
+
+        $userId = null;
+        foreach (Yii::$app->request->post() as $key => $value) {
+            if (preg_match('#^user-(\d+)$#', $key, $matches)) {
+                $userId = $matches[1];
+                break;
+            }
+        }
+        if (!$userId || !($user = User::findActiveCustomerById($userId))) {
+            throw new BadRequestHttpException('User is not found');
+        }
+
+        if ($user->isAgeConfirmed()) {
+            Yii::$app->session->remove('phoneFull');
+            return $this->renderPaymentForm($user);
+        } else {
+            Yii::$app->session->set('userId', $user->id);
+            return $this->renderAgeConfirmationForm($user, Yii::$app->session->get('phoneFull'));
+        }
+    }
+
+    public function actionAgeConfirmation()
+    {
+        $userId = Yii::$app->session->get('userId');
+        $phoneFull = Yii::$app->session->get('phoneFull');
+        if ($userId && ($user = User::findActiveCustomerById($userId)) && $phoneFull) {
+            return $this->renderAgeConfirmationForm($user, $phoneFull);
+        }
+        return $this->renderAgeConfirmationForm();
+    }
+
+    public function actionPay()
+    {
+        $pageParams = $this->getPageParams('pupil');
+        $userId = Yii::$app->session->get('userId');
+        $phoneFull = Yii::$app->session->get('phoneFull');
+        if (!$userId && $phoneFull) {
+            return $this->processPhone($phoneFull);
+        }
+        if ($userId && ($user = User::findActiveCustomerById($userId))) {
+            return $user->isAgeConfirmed() ? $this->renderPaymentForm($user) : $this->renderAgeConfirmationForm($user, $phoneFull);
+        }
+        
+        return $this->redirect(Url::to(['webpage', 'id' => $pageParams['webpage']->id, 'type' => 'pupil']));
+    }
+
+    private function renderPaymentForm(User $user)
+    {
+        $pageParams = $this->getPageParams('pupil');
+        return $this->render('payment-form', array_merge($pageParams, ['user' => $user]));
+    }
+
+    private function renderAgeConfirmationForm(?User $user = null, ?string $phone = null)
+    {
+        $pageParams = $this->getPageParams('pupil');
+        return $this->render(
+            'age-confirmation-form',
+            array_merge(
+                $pageParams,
+                [
+                    'user' => $user,
+                    'phone' => $phone ? MaskString::generate(Phone::getPhoneFormatted($phone), 5, 2) : null
+                ]
+            )
+        );
+    }
+
+    public function actionFlushAgeConfirmationSession()
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        Yii::$app->session->remove('phoneFull');
+        Yii::$app->session->remove('userId');
+        return self::getJsonOkResult();
+    }
+
+    public function actionSendAgeConfirmationSms()
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $validator = new ReCaptchaValidator2();
+        $reCaptcha = Yii::$app->request->post('g-recaptcha-response');
+        if (!$reCaptcha || !$validator->validate($reCaptcha)) {
+            return self::getJsonErrorResult('Проверка на робота не пройдена');
+        }
+        if (!Yii::$app->request->post('agree')) {
+            return self::getJsonErrorResult('Согласие с публичной офертой обязательно');
+        }
+        if ($phoneFormatted = Yii::$app->request->post('phoneFormatted')) {
+            $phoneFull = '+998' . substr(preg_replace('#\D#', '', $phoneFormatted), -9);
+            $users = User::findActiveCustomersByPhone($phoneFull);
+        } elseif (($phoneFull = Yii::$app->session->get('phoneFull')) && ($userId = Yii::$app->session->get('userId'))) {
+            $user = User::findActiveCustomerById($userId);
+            if ($user->phone !== $phoneFull && $user->phone2 !== $phoneFull) {
+                Yii::$app->session->remove('phoneFull');
+                Yii::$app->session->remove('userId');
+                return self::getJsonErrorResult('Обнаружено несоответствие параметров, заполните форму снова');
+            }
+            $users = [$user];
+        }
+        
+        if (!$phoneFull) {
+            return self::getJsonErrorResult('Обнаружено несоответствие параметров, заполните форму снова');
+        }
+        if (empty($users)) {
+            return self::getJsonErrorResult('Не найдено ни одного пользователя');
+        }
+        if ($blockUntil = ComponentContainer::getAgeValidator()->getBlockUntilDate($phoneFull)) {
+            $result = self::getJsonErrorResult('СМС не могут быть отправлены слишком часто, дождитесь получения СМС на телефон или запросите повторную отправку позже');
+            $result['timeout'] = $blockUntil->getTimestamp() - time();
+            return $result;
+        }
+        if (ComponentContainer::getAgeValidator()->add($phoneFull, 7, $users)) {
+            $blockUntil = ComponentContainer::getAgeValidator()->getBlockUntilDate($phoneFull);
+                return self::getJsonOkResult([
+                    'message' => 'СМС отправлена, введите код и нажмите "Подтвердить"',
+                    'timeout' => $blockUntil->getTimestamp() - time(),
+                ]);
+        }
+        
+        return self::getJsonErrorResult('Не удалось отправить СМС');
+    }
+    
+    public function actionAgeConfirm()
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        if (!Yii::$app->request->post('agree')) {
+            return self::getJsonErrorResult('Согласие с публичной офертой обязательно');
+        }
+        if ($phoneFormatted = Yii::$app->request->post('phoneFormatted')) {
+            $phoneFull = '+998' . substr(preg_replace('#\D#', '', $phoneFormatted), -9);
+            $users = User::findActiveCustomersByPhone($phoneFull);
+        } elseif (($phoneFull = Yii::$app->session->get('phoneFull')) && ($userId = Yii::$app->session->get('userId'))) {
+            $user = User::findActiveCustomerById($userId);
+            if ($user->phone !== $phoneFull && $user->phone2 !== $phoneFull) {
+                Yii::$app->session->remove('phoneFull');
+                Yii::$app->session->remove('userId');
+                return self::getJsonErrorResult('Обнаружено несоответствие параметров, заполните форму снова');
+            }
+            $users = [$user];
+        }
+        $smsCode = Yii::$app->request->post('smsCode');
+
+        if (!$phoneFull || !$smsCode) {
+            return self::getJsonErrorResult('Обнаружено несоответствие параметров, заполните форму снова');
+        }
+        if (empty($users)) {
+            return self::getJsonErrorResult('Не найдено ни одного пользователя');
+        }
+        $isValid = false;
+        foreach ($users as $user) {
+            if (ComponentContainer::getAgeValidator()->validate($phoneFull, $user, $smsCode)) {
+                $isValid = true;
+            }
+        }
+        if ($isValid) {
+            Yii::$app->session->set('phoneFull', $phoneFull);
+            if (1 === count($users)) {
+                Yii::$app->session->set('userId', $users[0]->id);
+            }
+            return self::getJsonOkResult(['message' => 'Подтверждено. Перенаправление на страницу оплаты']);
+        }
+        return self::getJsonErrorResult('Не подтверждено. Проверьте корректность введенного кода из СМС.');
     }
 
     public function actionLink($key)

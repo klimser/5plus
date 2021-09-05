@@ -144,7 +144,7 @@ $this->render('/grunt-assets');
 </header>
 
 <main class="content">
-    <?= Alert::widget() ?>
+    <div class="container"><?= Alert::widget() ?></div>
     <?= $content ?>
 </main>
 

@@ -28,6 +28,7 @@ class UserComponent extends Component
         'content' => 'Контент-менеджер',
         'sendPush' => 'Отправлять сообщения подписчикам в Telegram',
         'viewNotes' => 'Смотреть темы групп',
+        'reportMoneyTotal' => 'Просмотр финансового отчета по всем группам',
     ];
     
     public const ACL_TEACHER_RULES =[

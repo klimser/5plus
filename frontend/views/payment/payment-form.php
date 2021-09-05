@@ -6,17 +6,15 @@ use yii\web\View;
 
 /* @var $this \frontend\components\extended\View */
 /* @var $user User|null */
-/* @var $users User[] */
 /* @var $webpage \common\models\Webpage */
 
 $this->params['breadcrumbs'][] = ['url' => Url::to(['webpage', 'id' => $webpage->id]), 'label' => 'Онлайн оплата'];
-$this->params['breadcrumbs'][] = $user !== null ? $user->name : 'Выбрать студента';
+$this->params['breadcrumbs'][] = $user->nameHidden;
 
 $script = '';
 $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
     $script .= "Payment.users[{$pupil->id}] = {
         name: '{$pupil->nameHidden}',
-        age_confirmed: " . ($pupil->age_confirmed || ($pupil->parent_id && $pupil->parent->age_confirmed) ? 'true' : 'false') . ",
         groups: []
     };\n";
     foreach ($pupil->activeGroupPupils as $groupPupil) {
@@ -25,8 +23,8 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
         $script .= "Payment.users[{$pupil->id}].groups.push({
                 id: {$groupPupil->group_id},
                 name: '{$groupPupil->group->legal_name}',
-                price: {$groupPupil->group->priceMonth},
-                priceDiscount: {$groupPupil->group->price4Month},
+                priceLesson: {$groupPupil->group->lesson_price},
+                priceMonth: {$groupPupil->group->priceMonth},
                 debt: {$debt},
                 paid: '" . ($groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '') . "'
             });\n";
@@ -34,7 +32,7 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
     if ($label) {
         return '<h4>' . $pupil->nameHidden . '</h4>';
     } else {
-        return '<button type="button" class="btn btn-lg btn-outline-dark pupil-button" data-pupil="' . $pupil->id . '" onclick="Payment.selectPupil(this);">' . $pupil->name . '</button>';
+        return '<button type="button" class="btn btn-lg btn-outline-dark pupil-button" data-pupil="' . $pupil->id . '" onclick="Payment.selectPupil(this);">' . $pupil->nameHidden . '</button>';
     }
 };
 ?>
@@ -43,14 +41,14 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
     <div class="content-box">
         <div class="row">
             <div id="user_select" class="col-12">
-                <?php if ($user !== null): ?>
+                <?php if (User::ROLE_PUPIL === $user->role): ?>
                     <?= $getPupilButton($user, true); ?>
                 <?php
                     $script .= "Payment.user = {$user->id};
                         Payment.renderGroupSelect();\n";
                 else:
-                    foreach ($users as $user): ?>
-                        <?= $getPupilButton($user); ?>
+                    foreach ($user->children as $pupil): ?>
+                        <?= $getPupilButton($pupil); ?>
                     <?php endforeach;
                 endif; ?>
             </div>

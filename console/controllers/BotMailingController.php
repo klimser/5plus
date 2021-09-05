@@ -32,16 +32,18 @@ class BotMailingController extends Controller
         ComponentContainer::getTelegramPublic()->telegram;
 
         $startTime = microtime(true);
-        while (true) {
-            if (microtime(true) - $startTime > self::TIME_LIMIT) break;
-
+        while (microtime(true) - $startTime < self::TIME_LIMIT) {
             /** @var BotMailing $botMailing */
             $botMailing = BotMailing::find()
                 ->andWhere(['finished_at' => null])
                 ->andWhere(['or', ['started_at' => null], ['<', 'started_at', date('Y-m-d H:i:s')]])
                 ->one();
-            if (!$botMailing || ($botMailing->processResult['status'] ?? 'new') === 'sending') {
-                sleep(1);
+            if (!$botMailing) {
+                return yii\console\ExitCode::OK;
+            }
+
+            if (($botMailing->processResult['status'] ?? 'new') === 'sending') {
+                sleep(5);
                 continue;
             }
 

@@ -2,6 +2,8 @@
 
 namespace common\models\traits;
 
+use common\components\helpers\Phone as PhoneHelper;
+
 /**
  * Trait Phone2
  * @package common\models\traits
@@ -12,38 +14,49 @@ namespace common\models\traits;
  */
 trait Phone2
 {
-    public function setPhone2Formatted($value): void
+    public function setPhone2Formatted(string $value): void
     {
         $this->phone2 = empty($value) ? null : '+998' . substr(preg_replace('#\D#', '', $value), -9);
     }
 
+    private function getPhone2AttributeValue(): ?string
+    {
+        return property_exists($this, 'phone2') ? $this->phone2 : null;
+    }
+
     protected function getPhone2DigitsOnly(): ?string
     {
-        if (!$this->phone2) return $this->phone2;
-        return preg_replace('#\D#', '', $this->phone2);
+        if (!$phone = $this->getPhone2AttributeValue()) {
+            return $phone;
+        }
+
+        return PhoneHelper::getPhoneDigitsOnly($phone);
     }
 
     public function getPhone2Formatted(): ?string
     {
-        $digits = $this->getPhone2DigitsOnly();
-        if (!$digits || strlen($digits) !== 12) return $digits;
+        if (!$phone = $this->getPhone2AttributeValue()) {
+            return $phone;
+        }
 
-        return substr($digits, -9, 2) . ' ' . substr($digits, -7, 3) . '-' . substr($digits, -4);
+        return PhoneHelper::getPhoneFormatted($phone);
     }
 
     public function getPhone2Full(): ?string
     {
-        $digits = $this->getPhone2DigitsOnly();
-        if (!$digits || strlen($digits) !== 12) return $digits;
+        if (!$phone = $this->getPhone2AttributeValue()) {
+            return $phone;
+        }
 
-        return '+' . substr($digits, -12, 3) . '(' . substr($digits, -9, 2) . ') ' . substr($digits, -7, 3) . '-' . substr($digits, -4);
+        return PhoneHelper::getPhoneFull($phone);
     }
 
     public function getPhone2International(): ?string
     {
-        $digits = $this->getPhone2DigitsOnly();
-        if (!$digits || strlen($digits) !== 12) return $digits;
+        if (!$phone = $this->getPhone2AttributeValue()) {
+            return $phone;
+        }
 
-        return "+$digits";
+        return PhoneHelper::getPhoneInternational($phone);
     }
 }

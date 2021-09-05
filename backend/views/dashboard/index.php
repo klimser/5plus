@@ -32,6 +32,7 @@ $this->registerJs($initialJs);
 
 <?= $this->render('_contract'); ?>
 <?= $this->render('_income'); ?>
+<?= $this->render('_age_confirmation'); ?>
 <?= $this->render('_debt'); ?>
 <?= $this->render('/welcome-lesson/_modal'); ?>
 <?= $this->render('_group_move'); ?>

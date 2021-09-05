@@ -5,12 +5,20 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 use backend\models\Event;
 use backend\models\EventMember;
 use common\components\ComponentContainer;
-use common\components\helpers\TelegramHelper;
 use common\components\helpers\WordForm;
+use common\components\MoneyComponent;
 use common\components\PaymentComponent;
 use common\components\SmsConfirmation;
 use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
+use common\models\Company;
+use common\models\Contract;
+use common\models\Group;
+use common\models\GroupPupil;
+use JsonException;
+use Longman\TelegramBot\Entities\Entity;
+use Longman\TelegramBot\Entities\Payments\LabeledPrice;
+use Longman\TelegramBot\Entities\Payments\SuccessfulPayment;
 use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use common\models\Payment;
@@ -20,6 +28,7 @@ use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Exception\TelegramException;
+use Yii;
 use yii\db\Query;
 
 /**
@@ -52,10 +61,9 @@ class AccountCommand extends UserCommand
     /**
      * Command execute method
      *
-     * @return mixed
      * @throws TelegramException
      */
-    public function execute()
+    public function execute(): ServerResponse
     {
         $message = $this->getMessage();
         $chatId = $message->getChat()->getId();
@@ -86,18 +94,26 @@ class AccountCommand extends UserCommand
     {
         $message = $this->getMessage();
         $chatId = $message->getChat()->getId();
-        /** @var User[] $users */
-        $users = User::find()->andWhere(['status' => User::STATUS_ACTIVE, 'tg_chat_id' => $chatId])->orderBy(['name' => SORT_ASC])->all();
+
+        $payload = trim($message->getText(true));
+        if ('pay' === $payload) {
+            $this->addNote($conversation, 'step', 2);
+            $this->addNote($conversation, 'step2', PublicMain::BUTTON_PAY);
+        }
+        
         switch ($conversation->notes['step']) {
             case 1:
                 $this->removeNote($conversation, 'step2');
                 $buttons = [
+                    PublicMain::BUTTON_PAY,
                     [PublicMain::ACCOUNT_BUTTON_ATTEND, PublicMain::ACCOUNT_BUTTON_MARKS],
                     [PublicMain::ACCOUNT_BUTTON_BALANCE, PublicMain::ACCOUNT_BUTTON_PAYMENT],
-                    [PublicMain::ACCOUNT_SUBSCRIPTION],
-                    [PublicMain::ACCOUNT_EDIT_PUPILS],
+                    PublicMain::ACCOUNT_SUBSCRIPTION,
+                    PublicMain::ACCOUNT_EDIT_PUPILS,
                 ];
                 $row = [];
+                /** @var User[] $users */
+                $users = User::find()->andWhere(['status' => User::STATUS_ACTIVE, 'tg_chat_id' => $chatId])->orderBy(['name' => SORT_ASC])->all();
                 foreach ($users as $user) {
                     if (!$user->telegramSettings['trusted']) {
                         $row[] = PublicMain::ACCOUNT_CONFIRM;
@@ -111,12 +127,15 @@ class AccountCommand extends UserCommand
                 
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_1_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_1_TEXT),
                     'reply_markup' => $keyboard,
                 ];
-                break;
             default:
                 $parameter = $message->getText();
+                if (PublicMain::BUTTON_PAY === $parameter) {
+                    $this->addNote($conversation, 'step', 2);
+                    $this->removeNote($conversation, 'step2');
+                }
                 if (array_key_exists('step2', $conversation->notes)) {
                     $parameter = $conversation->notes['step2'];
                     $this->removeNote($conversation, 'step2');
@@ -125,35 +144,28 @@ class AccountCommand extends UserCommand
                 switch ($parameter) {
                     case PublicMain::ACCOUNT_BUTTON_ATTEND:
                         return $this->processAttend($conversation);
-                        break;
                     case PublicMain::ACCOUNT_BUTTON_MARKS:
                         return $this->processMarks($conversation);
-                        break;
                     case PublicMain::ACCOUNT_BUTTON_BALANCE:
                         return $this->processBalance($conversation);
-                        break;
                     case PublicMain::ACCOUNT_BUTTON_PAYMENT:
                         return $this->processPayments($conversation);
-                        break;
                     case PublicMain::ACCOUNT_SUBSCRIPTION:
                         return $this->processSubscribtion($conversation);
-                        break;
                     case PublicMain::ACCOUNT_EDIT_PUPILS:
                         return $this->processUsers($conversation);
-                        break;
                     case PublicMain::ACCOUNT_CONFIRM:
                         return $this->accountConfirm($conversation);
-                        break;
+                    case PublicMain::BUTTON_PAY:
+                        return $this->processPay($conversation);
                     default:
                         return $this->stepBack($conversation);
-                        break;
                 }
-                break;
         }
     }
 
     /**
-     * @return string[]
+     * @return string[][]
      */
     private function getPupilList(): array
     {
@@ -204,7 +216,7 @@ class AccountCommand extends UserCommand
         $keyboard->setResizeKeyboard(true)->setSelective(false);
         return [
             'parse_mode' => 'MarkdownV2',
-            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_2_SELECT_USER),
+            'text' => Entity::escapeMarkdownV2(PublicMain::ACCOUNT_STEP_2_SELECT_USER),
             'reply_markup' => $keyboard,
         ];
     }
@@ -242,16 +254,16 @@ class AccountCommand extends UserCommand
         
         $rows = [];
         if (count($eventMembers) === 0) {
-            $rows[] = TelegramHelper::escapeMarkdownV2(PublicMain::ATTEND_NO_MISSED);
+            $rows[] = Entity::escapeMarkdownV2(PublicMain::ATTEND_NO_MISSED);
         } else {
-            $rows[] = TelegramHelper::escapeMarkdownV2(sprintf(PublicMain::ATTEND_HAS_MISSED, count($eventMembers)));
+            $rows[] = Entity::escapeMarkdownV2(sprintf(PublicMain::ATTEND_HAS_MISSED, count($eventMembers)));
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
                 if ($eventMember->event->group_id != $groupId) {
-                    $rows[] = '*' . TelegramHelper::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
+                    $rows[] = '*' . Entity::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
                     $groupId = $eventMember->event->group_id;
                 }
-                $rows[] = TelegramHelper::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i'));
+                $rows[] = Entity::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i'));
             }
         }
 
@@ -298,16 +310,16 @@ class AccountCommand extends UserCommand
 
         $rows = [];
         if (count($eventMembers) === 0) {
-            $rows[] = TelegramHelper::escapeMarkdownV2(PublicMain::MARKS_NONE);
+            $rows[] = Entity::escapeMarkdownV2(PublicMain::MARKS_NONE);
         } else {
-            $rows[] = TelegramHelper::escapeMarkdownV2(PublicMain::MARKS_TEXT);
+            $rows[] = Entity::escapeMarkdownV2(PublicMain::MARKS_TEXT);
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
                 if ($eventMember->event->group_id != $groupId) {
-                    $rows[] = '*' . TelegramHelper::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
+                    $rows[] = '*' . Entity::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
                     $groupId = $eventMember->event->group_id;
                 }
-                $rows[] = TelegramHelper::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - ') . "*{$eventMember->mark}*";
+                $rows[] = Entity::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - ') . "*{$eventMember->mark}*";
             }
         }
 
@@ -322,18 +334,16 @@ class AccountCommand extends UserCommand
 
     private function processBalance(Conversation $conversation)
     {
-        if (($conversation->notes['step'] ?? 0) > 3) {
+        $step = $conversation->notes['step'] ?? 0;
+        if ($step > 4) {
             return $this->stepBack($conversation);
         }
 
         $userResult = $this->processUserSelect($conversation);
+        $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_BALANCE);
 
         if (!$userResult instanceof User) {
-            $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_BALANCE);
             return $userResult;
-        }
-        if ($conversation->notes['step'] > 2) {
-            $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_BUTTON_BALANCE);
         }
 
         $rows = $groupSet = [];
@@ -342,23 +352,27 @@ class AccountCommand extends UserCommand
                 $balance = $groupPupil->moneyLeft;
                 if ($groupPupil->active || $balance < 0) {
                     $groupSet[$groupPupil->group_id] = true;
-                    $rows[] = TelegramHelper::escapeMarkdownV2($groupPupil->group->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
+                    $rows[] = Entity::escapeMarkdownV2($groupPupil->group->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
                         . '\\(*' . abs($groupPupil->paid_lessons) . '* ' . WordForm::getLessonsForm(abs($groupPupil->paid_lessons)) . '\\) '
                         . '[' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($groupPupil->user_id, $groupPupil->group_id)->url . ')';
                 }
             }
         }
         if (!empty($rows)) {
-            array_unshift($rows, '*' . TelegramHelper::escapeMarkdownV2(PublicMain::BANALCE_TEXT) . '*');
+            array_unshift($rows, '*' . Entity::escapeMarkdownV2(PublicMain::BANALCE_TEXT) . '*');
         }
 
-        $conversation->notes['step']--;
-        $conversation->update();
+        $buttons = [
+            PublicMain::BUTTON_PAY,
+            [PublicMain::TO_BACK, PublicMain::TO_MAIN],
+        ];
+        $keyboard = new Keyboard(...$buttons);
+        $keyboard->setResizeKeyboard(true)->setSelective(false);
 
         return [
             'parse_mode' => 'MarkdownV2',
-            'disable_web_page_preview' => true,
-            'text' => empty($rows) ? TelegramHelper::escapeMarkdownV2(PublicMain::BALANCE_NO_GROUP) : implode("\n", $rows),
+            'text' => empty($rows) ? Entity::escapeMarkdownV2(PublicMain::BALANCE_NO_GROUP) : implode("\n", $rows),
+            'reply_markup' => $keyboard,
         ];
     }
 
@@ -391,12 +405,12 @@ class AccountCommand extends UserCommand
         foreach ($payments as $payment) {
             if (!array_key_exists($payment->group_id, $groupSet)) {
                 $groupSet[$payment->group_id] = true;
-                $rows[] = "\n*" . TelegramHelper::escapeMarkdownV2($payment->group->legal_name) . '*';
+                $rows[] = "\n*" . Entity::escapeMarkdownV2($payment->group->legal_name) . '*';
             }
-            $rows[] = TelegramHelper::escapeMarkdownV2($payment->createDate->format('d.m.Y') . ' - ' . abs($payment->amount) . PublicMain::CURRENCY_SIGN);
+            $rows[] = Entity::escapeMarkdownV2($payment->createDate->format('d.m.Y') . ' - ' . abs($payment->amount) . PublicMain::CURRENCY_SIGN);
         }
         if (!empty($rows)) {
-            array_unshift($rows, '*' . TelegramHelper::escapeMarkdownV2(PublicMain::PAYMENT_TEXT) . '*');
+            array_unshift($rows, '*' . Entity::escapeMarkdownV2(PublicMain::PAYMENT_TEXT) . '*');
         }
 
         $conversation->notes['step']--;
@@ -404,7 +418,7 @@ class AccountCommand extends UserCommand
 
         return [
             'parse_mode' => 'MarkdownV2',
-            'text' => empty($rows) ? TelegramHelper::escapeMarkdownV2(PublicMain::PAYMENT_NO_PAYMENTS) : implode("\n", $rows),
+            'text' => empty($rows) ? Entity::escapeMarkdownV2(PublicMain::PAYMENT_NO_PAYMENTS) : implode("\n", $rows),
         ];
     }
     
@@ -452,7 +466,7 @@ class AccountCommand extends UserCommand
         }
         
         if (count($users) === 1) {
-            $text = TelegramHelper::escapeMarkdownV2($users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_YES : PublicMain::SUBSCRIPTION_NO);
+            $text = Entity::escapeMarkdownV2($users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_YES : PublicMain::SUBSCRIPTION_NO);
             $buttons = [
                 $users[0]->telegramSettings['subscribe'] ? PublicMain::SUBSCRIPTION_DISABLE : PublicMain::SUBSCRIPTION_ENABLE,
                 [PublicMain::TO_BACK, PublicMain::TO_MAIN]
@@ -478,7 +492,7 @@ class AccountCommand extends UserCommand
                 }
                 
                 if ($name) {
-                    $rows[] = TelegramHelper::escapeMarkdownV2($name . ' - ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CHECK : PublicMain::ICON_CROSS));
+                    $rows[] = Entity::escapeMarkdownV2($name . ' - ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CHECK : PublicMain::ICON_CROSS));
                     $buttons[] = $i . ' ' . ($user->telegramSettings['subscribe'] ? PublicMain::ICON_CROSS : PublicMain::ICON_CHECK) . ' ' . $name;
                     $i++;
                 }
@@ -500,7 +514,7 @@ class AccountCommand extends UserCommand
     {
         $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_EDIT_PUPILS);
         
-        $text = TelegramHelper::escapeMarkdownV2(PublicMain::PUPILS_TEXT);
+        $text = Entity::escapeMarkdownV2(PublicMain::PUPILS_TEXT);
         
         if ($conversation->notes['step'] === 3) {
             if ($this->getMessage()->getText() === PublicMain::PUPILS_ADD) {
@@ -585,7 +599,7 @@ class AccountCommand extends UserCommand
             case 2:
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_TEXT),
                     'reply_markup' => PublicMain::getPhoneKeyboard([PublicMain::ACCOUNT_CONFIRM_SMS]),
                 ];
                 break;
@@ -607,7 +621,7 @@ class AccountCommand extends UserCommand
                     if (count($users) === 0) {
                         return [
                             'parse_mode' => 'MarkdownV2',
-                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND),
+                            'text' => Entity::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_FAILED_NOT_FOUND),
                             'reply_markup' => PublicMain::getPhoneKeyboard([PublicMain::ACCOUNT_CONFIRM_SMS]),
                         ];
                     }
@@ -628,7 +642,7 @@ class AccountCommand extends UserCommand
                 } else {
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_3_TEXT),
+                        'text' => Entity::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_3_TEXT),
                         'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
                     ];
                 }
@@ -664,7 +678,7 @@ class AccountCommand extends UserCommand
                     
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => TelegramHelper::escapeMarkdownV2($errorMessage),
+                        'text' => Entity::escapeMarkdownV2($errorMessage),
                         'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
                     ];
                 }
@@ -693,7 +707,7 @@ class AccountCommand extends UserCommand
                     
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_TEXT),
+                        'text' => Entity::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_TEXT),
                         'reply_markup' => Keyboard::remove(),
                     ];
                 } else {
@@ -702,7 +716,7 @@ class AccountCommand extends UserCommand
                     
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_FAILED),
+                        'text' => Entity::escapeMarkdownV2(PublicMain::ACCOUNT_CONFIRM_STEP_4_FAILED),
                         'reply_markup' => $this->getPhonesListKeyboard($untrustedUsers),
                     ];
                 }
@@ -725,7 +739,7 @@ class AccountCommand extends UserCommand
 
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => TelegramHelper::escapeMarkdownV2($errorMessage),
+                        'text' => Entity::escapeMarkdownV2($errorMessage),
                         'reply_markup' => PublicMain::getBackAndMainKeyboard(),
                     ];
                 }
@@ -738,7 +752,7 @@ class AccountCommand extends UserCommand
                     ->all();
                 $rows = $this->confirmUsers($users);
                 if (empty($rows)) {
-                    $rows[] = TelegramHelper::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_SUCCESS_NONE);
+                    $rows[] = Entity::escapeMarkdownV2(PublicMain::ACCOUNT_CHECK_SUCCESS_NONE);
                 } else {
                     SmsConfirmation::invalidate($conversation->notes['sms_confirm_phone']);
                     $this->removeNote($conversation, 'sms_confirm_phone');
@@ -758,10 +772,128 @@ class AccountCommand extends UserCommand
         }
     }
 
+    private function processPay(Conversation $conversation)
+    {
+        $step = $conversation->notes['step'] ?? 2;
+        if (2 === $step) {
+            $this->removeNote($conversation, 'userId');
+        }
+
+        $userResult = $this->processUserSelect($conversation);
+        $this->addNote($conversation, 'step2', PublicMain::BUTTON_PAY);
+
+        if (!$userResult instanceof User) {
+            if (isset($conversation->notes['userId'])) {
+                $user = User::find()
+                    ->andWhere(['id' => $conversation->notes['userId']])
+                    ->andWhere(['u.tg_chat_id' => $this->getMessage()->getChat()->getId()])
+                    ->andWhere(['not', ['u.status' => User::STATUS_LOCKED]])
+                    ->one();
+            }
+            if (isset($user)) {
+                $userResult = $user;
+            } else {
+                return $userResult;
+            }
+        }
+
+        $this->addNote($conversation, 'userId', $userResult->id);
+
+        
+        $buttons = $groupMap = [];
+        foreach ($userResult->groupPupils as $groupPupil) {
+            if (!array_key_exists($groupPupil->group_id, $groupMap) && ($groupPupil->active || $groupPupil->moneyLeft < 0)) {
+                $groupMap[$groupPupil->group_id] = $groupPupil->group->legal_name;
+                $buttons[] = Entity::escapeMarkdownV2($groupPupil->group->legal_name);
+            }
+        }
+
+        if (count($buttons) > 1) {
+            if (isset($conversation->notes['groupId']) && array_key_exists($conversation->notes['groupId'], $groupMap)) {
+                $groupId = $conversation->notes['groupId'];
+            } elseif ($key = array_search($this->getMessage()->getText(), $groupMap)) {
+                $groupId = $key;
+            } else {
+                $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
+                $keyboard = new Keyboard(...$buttons);
+                $keyboard->setResizeKeyboard(true)->setSelective(false);
+                return [
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Entity::escapeMarkdownV2(PublicMain::PAY_CHOOSE_GROUP),
+                    'reply_markup' => $keyboard,
+                ];
+            }
+        } else {
+            $groupIds = array_keys($groupMap);
+            $groupId = reset($groupIds);
+        }
+        
+        $this->addNote($conversation, 'groupId', $groupId);
+        $group = Group::findOne($groupId);
+
+        switch ($this->getMessage()->getText()) {
+            case PublicMain::PAY_ONE_LESSON:
+                $amount = $group->lesson_price;
+                break;
+            case PublicMain::PAY_ONE_MONTH:
+                $amount = $group->priceMonth;
+                break;
+            default:
+                $amount = intval($this->getMessage()->getText());
+                break;
+        }
+
+        if ($amount > 0) {
+            $conversation->notes['step']--;
+            $conversation->update();
+        }
+
+        if ($amount >= PublicMain::PAY_MIN_AMOUNT) {
+            $chatId = $this->getMessage()->getFrom()->getId();
+            $prices = [
+                new LabeledPrice(['label' => sprintf(PublicMain::PAY_ITEM_TITLE, $group->legal_name), 'amount' => $amount * 100]),
+            ];
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                $contract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $userResult, $amount, $group);
+                $transaction->commit();
+            } catch (\Throwable $ex) {
+                ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Contract not created: ' . $ex->getMessage(), true);
+                $transaction->rollBack();
+            }
+
+            return Request::sendInvoice([
+                'chat_id'               => $chatId,
+                'title'                 => sprintf(PublicMain::PAY_ITEM_TITLE, $group->legal_name),
+                'description'           => sprintf(PublicMain::PAY_ITEM_DESCRIPTION, $group->legal_name, $group->lesson_price),
+                'payload'               => !empty($contract) ? $contract->number : json_encode(['user_id' => $userResult->id, 'group_id' => $group->id, 'amount' => $amount]),
+                'start_parameter'       => 'pay',
+                'provider_token'        => $this->getConfig('payment_provider_token'),
+                'currency'              => 'UZS',
+                'prices'                => $prices,
+                'need_shipping_address' => false,
+                'is_flexible'           => false,
+                'max_tip_amount'        => 1000000,
+                'suggested_tip_amounts' => [100000, 200000, 500000, 1000000],
+            ]);
+        }
+
+        $buttons = [
+            [PublicMain::PAY_ONE_LESSON, PublicMain::PAY_ONE_MONTH],
+            [PublicMain::TO_BACK, PublicMain::TO_MAIN],
+        ];
+        $keyboard = new Keyboard(...$buttons);
+        $keyboard->setResizeKeyboard(true)->setSelective(false);
+        return [
+            'parse_mode' => 'MarkdownV2',
+            'text' => Entity::escapeMarkdownV2(PublicMain::PAY_CHOOSE_AMOUNT),
+            'reply_markup' => $keyboard,
+        ];
+    }
+
     /**
      * @param User[] $untrustedUsers
      * @return Keyboard
-     * @throws TelegramException
      */
     private function getPhonesListKeyboard(array $untrustedUsers): Keyboard
     {
@@ -796,10 +928,89 @@ class AccountCommand extends UserCommand
             if (!$user->telegramSettings['trusted']) {
                 $user->telegramSettings = array_merge($user->telegramSettings, ['trusted' => true]);
                 $user->save();
-                $rows[] = TelegramHelper::escapeMarkdownV2($user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS);
+                $rows[] = Entity::escapeMarkdownV2($user->name . ' - ' . PublicMain::ACCOUNT_CHECK_SUCCESS);
             }
         }
         
         return $rows;
+    }
+
+    public static function handleSuccessfulPayment(SuccessfulPayment $payment, int $chatId): ServerResponse
+    {
+        $payload = $payment->getInvoicePayload();
+        $transaction = Yii::$app->db->beginTransaction();
+        $success = false;
+        if (preg_match('#\d+#', $payload)) {
+            $contract = Contract::findOne(['number' => $payload]);
+            if (!empty($contract) && Contract::STATUS_NEW == $contract->status && (int) ($payment->getTotalAmount() / 100) == $contract->amount) {
+                try {
+                    MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_TELEGRAM_PAYME, $payment->getTelegramPaymentChargeId());
+                    $contract->external_id = $payment->getProviderPaymentChargeId();
+                    $contract->save();
+                    $transaction->commit();
+                    $success = true;
+                } catch (\Throwable $ex) {
+                    $transaction->rollBack();
+                    ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Payment is not applied!!! ' . $ex->getMessage(), true);
+                }
+            }
+
+            if (!$success) {
+                if (!$contract) {
+                    $transaction->rollBack();
+                    ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Payment is not applied, contract does not exists: ' . $payload, true);
+                } else {
+                    try {
+                        $newContract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $contract->user, (int) ($payment->getTotalAmount() / 100), $contract->group);
+                        MoneyComponent::payContract($newContract, null, Contract::PAYMENT_TYPE_TELEGRAM_PAYME, $payment->getTelegramPaymentChargeId());
+                        $newContract->external_id = $payment->getProviderPaymentChargeId();
+                        $newContract->save();
+                        $transaction->commit();
+                        $success = true;
+                    } catch (\Throwable $ex) {
+                        $transaction->rollBack();
+                        ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Payment is not applied, Contract not created: ' . $ex->getMessage(), true);
+                    }
+                }
+            }
+        } else {
+            try {
+                $payloadData = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
+                if (!empty($payloadData['user_id']) && !empty($payloadData['group_id'])) {
+                    $user = User::findOne($payloadData['user_id']);
+                    $group = Group::findOne($payloadData['group_id']);
+                    if ($user && $group) {
+                        /** @var GroupPupil $groupPupil */
+                        $groupPupil = GroupPupil::find()
+                            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])
+                            ->one();
+                        if ($groupPupil) {
+                            $newContract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, (int) ($payment->getTotalAmount() / 100), $group);
+                            MoneyComponent::payContract($newContract, null, Contract::PAYMENT_TYPE_TELEGRAM_PAYME, $payment->getTelegramPaymentChargeId());
+                            $newContract->external_id = $payment->getProviderPaymentChargeId();
+                            $newContract->save();
+                            $transaction->commit();
+                            $success = true;
+                        }
+                    }
+                }
+            } catch (JsonException $ex) {
+                $transaction->rollBack();
+                ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Payload malformed: ' . $payload, true);
+            }
+        }
+
+        if (!$success) {
+            ComponentContainer::getErrorLogger()->logError(
+                'telegram/pay',
+                'Unknown error, payload: ' . $payload . ', amount: ' . ($payment->getTotalAmount() / 100) . ', chatId: ' . $chatId,
+                true
+            );
+        }
+
+        return Request::sendMessage([
+            'chat_id' => $chatId,
+            'text' => 'Оплата принята. Спасибо. Ждем вас в Вашем учебном центре "Пять с плюсом"!',
+        ]);
     }
 }

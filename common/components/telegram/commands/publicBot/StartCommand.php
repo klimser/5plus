@@ -2,17 +2,19 @@
 
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
-use common\components\helpers\TelegramHelper;
 use common\components\telegram\commands\ConversationTrait;
+use common\models\User;
+use Longman\TelegramBot\Commands\UserCommand;
+use Longman\TelegramBot\Entities\Entity;
+use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
-use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\Keyboard;
 
 /**
  * Start command
  */
-class StartCommand extends SystemCommand
+class StartCommand extends UserCommand
 {
     use ConversationTrait;
     
@@ -50,7 +52,7 @@ class StartCommand extends SystemCommand
         return $keyboard;
     }
 
-    public function execute()
+    public function execute(): ServerResponse
     {
         $this->flushConversation();
         
@@ -58,10 +60,14 @@ class StartCommand extends SystemCommand
         if (array_key_exists($payload, $this->telegram->getCommandsList())) {
             return $this->telegram->executeCommand($payload);
         }
+        
+        if ('pay' === $payload) {
+            $this->telegram->executeCommand('account');
+        }
 
         $data = [
             'chat_id' => $this->getMessage()->getChat()->getId(),
-            'text'    => TelegramHelper::escapeMarkdownV2(PublicMain::GREETING),
+            'text'    => Entity::escapeMarkdownV2(PublicMain::GREETING),
             'parse_mode' => 'MarkdownV2',
             'reply_markup' => $this->getKeyboard(),
         ];

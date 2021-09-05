@@ -3,6 +3,7 @@
 namespace Longman\TelegramBot\Commands\UserCommands;
 
 use common\components\telegram\commands\ConversationTrait;
+use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use Longman\TelegramBot\Commands\UserCommand;
@@ -33,7 +34,7 @@ class ContactCommand extends UserCommand
      */
     protected $version = '1.1.0';
 
-    public function execute()
+    public function execute(): ServerResponse
     {
         $this->flushConversation();
         

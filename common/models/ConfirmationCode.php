@@ -13,7 +13,7 @@ use common\components\extended\ActiveRecord;
  * @property string $phone
  * @property string $code
  * @property string $valid_until
- * @property \DateTime $validUntilDate
+ * @property \DateTimeImmutable $validUntilDate
  */
 class ConfirmationCode extends ActiveRecord
 {
@@ -51,16 +51,13 @@ class ConfirmationCode extends ActiveRecord
         ];
     }
 
-    public function setValidUntilDate(\DateTime $date)
+    public function setValidUntilDate(\DateTimeInterface $date)
     {
         $this->valid_until = $date->format('Y-m-d H:i:s');
     }
 
-    /**
-     * @return \DateTime|null
-     */
-    public function getValidUntilDate(): ?\DateTime
+    public function getValidUntilDate(): ?\DateTimeImmutable
     {
-        return $this->valid_until ? new \DateTime($this->valid_until) : null;
+        return $this->valid_until ? new \DateTimeImmutable($this->valid_until) : null;
     }
 }

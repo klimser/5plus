@@ -214,30 +214,30 @@ let User = {
             '</label>' +
             '</div>' +
             '</div>';
-        if (this.contractAllowed || this.incomeAllowed) {
-            blockHtml += '<div class="form-check">' +
-                '<input class="form-check-input" type="checkbox" name="group[payment][' + this.iterator + ']" autocomplete="off"' +
-                ' value="1" id="group-payment-' + this.iterator + '" ' + (data.hasOwnProperty('payment') ? ' checked ' : '') + ' onchange="User.checkAddPayment(this);">' +
-                '<label class="form-check-label" for="group-payment-' + this.iterator + '">' +
-                'принять оплату' +
-                '</label>' +
-                '</div>' +
-                '<div class="payment-block collapse ' + (data.hasOwnProperty('payment') ? ' show ' : '') + '">' +
-                '<div class="form-group">' +
-                '<label>Сумма</label>' +
-                '<input class="form-control income-amount" name="group[amount][' + this.iterator + ']" autocomplete="off" type="number" step="1000" min="1000" required ' +
-                (data.hasOwnProperty('payment') ? '' : ' disabled ') + ' value="' + data.amount + '">' +
-                '<div class="amount-helper-buttons">' +
-                '<button type="button" class="btn btn-outline-secondary btn-sm price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>' +
-                '<button type="button" class="btn btn-outline-secondary btn-sm price4" onclick="Dashboard.setAmount(this);">за 4 месяца</button>' +
-                '</div>' +
-                '</div>' +
-                '<div class="form-group payment-comment-block">' +
-                '<label>Комментарий к платежу</label>' +
-                '<input class="form-control" name="group[paymentComment][' + this.iterator + ']" autocomplete="off" value="' + data.paymentComment + '">' +
-                '</div>' +
-                '</div>';
-        }
+        // if (this.contractAllowed || this.incomeAllowed) {
+        //     blockHtml += '<div class="form-check">' +
+        //         '<input class="form-check-input" type="checkbox" name="group[payment][' + this.iterator + ']" autocomplete="off"' +
+        //         ' value="1" id="group-payment-' + this.iterator + '" ' + (data.hasOwnProperty('payment') ? ' checked ' : '') + ' onchange="User.checkAddPayment(this);">' +
+        //         '<label class="form-check-label" for="group-payment-' + this.iterator + '">' +
+        //         'принять оплату' +
+        //         '</label>' +
+        //         '</div>' +
+        //         '<div class="payment-block collapse ' + (data.hasOwnProperty('payment') ? ' show ' : '') + '">' +
+        //         '<div class="form-group">' +
+        //         '<label>Сумма</label>' +
+        //         '<input class="form-control income-amount" name="group[amount][' + this.iterator + ']" autocomplete="off" type="number" step="1000" min="1000" required ' +
+        //         (data.hasOwnProperty('payment') ? '' : ' disabled ') + ' value="' + data.amount + '">' +
+        //         '<div class="amount-helper-buttons">' +
+        //         '<button type="button" class="btn btn-outline-secondary btn-sm price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>' +
+        //         '<button type="button" class="btn btn-outline-secondary btn-sm price4" onclick="Dashboard.setAmount(this);">за 4 месяца</button>' +
+        //         '</div>' +
+        //         '</div>' +
+        //         '<div class="form-group payment-comment-block">' +
+        //         '<label>Комментарий к платежу</label>' +
+        //         '<input class="form-control" name="group[paymentComment][' + this.iterator + ']" autocomplete="off" value="' + data.paymentComment + '">' +
+        //         '</div>' +
+        //         '</div>';
+        // }
         blockHtml += '</div></div>';
         let container = $(parentContainer).find(".groups");
         $(container).append(blockHtml);

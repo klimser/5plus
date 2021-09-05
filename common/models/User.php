@@ -37,6 +37,7 @@ use yii\web\IdentityInterface;
  * @property array $telegramSettings
  * @property int $bitrix_id
  * @property int $bitrix_sync_status
+ * @property int $age_confirmed
  * @property int $created_by
  * @property string $password write-only password
  * @property array $nameParts
@@ -539,5 +540,30 @@ class User extends ActiveRecord implements IdentityInterface
     public function isTeacher(): bool
     {
         return self::ROLE_TEACHER === $this->role;
+    }
+    
+    public function isAgeConfirmed(): bool
+    {
+        return $this->age_confirmed > 0 || ($this->parent_id && $this->parent->age_confirmed > 1);
+    }
+
+    /**
+     * @return User[]|array
+     */
+    public static function findActiveCustomersByPhone(string$phoneFull): array
+    {
+        return self::find()
+            ->andWhere(['or', ['phone' => $phoneFull], ['phone2' => $phoneFull]])
+            ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY, User::ROLE_PUPIL]])
+            ->andWhere(['!=', 'status', User::STATUS_LOCKED])
+            ->all();
+    }
+    
+    public static function findActiveCustomerById(int $id): ?User
+    {
+        return self::find()
+            ->andWhere(['id' => $id])
+            ->andWhere(['!=', 'status', User::STATUS_LOCKED])
+            ->one();
     }
 }

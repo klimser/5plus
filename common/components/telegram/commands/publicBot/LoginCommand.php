@@ -3,9 +3,9 @@
 namespace Longman\TelegramBot\Commands\UserCommands;
 
 use common\components\ComponentContainer;
-use common\components\helpers\TelegramHelper;
 use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
+use Longman\TelegramBot\Entities\Entity;
 use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use common\models\BotPush;
@@ -42,14 +42,8 @@ class LoginCommand extends UserCommand
      * @var string
      */
     protected $version = '1.0.0';
-    
-    /**
-     * Command execute method
-     *
-     * @return mixed
-     * @throws TelegramException
-     */
-    public function execute()
+
+    public function execute(): ServerResponse
     {
         if (!$conversation = $this->handleMessage($this->getMessage())) {
             return $this->telegram->executeCommand('start');
@@ -75,7 +69,7 @@ class LoginCommand extends UserCommand
             case 1:
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_1_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::LOGIN_STEP_1_TEXT),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
                 break;
@@ -88,7 +82,7 @@ class LoginCommand extends UserCommand
                         $conversation->update();
                         return [
                             'parse_mode' => 'MarkdownV2',
-                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
+                            'text' => Entity::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
                         ];
                     }
                     if (strlen($phoneDigits) < 9 || (preg_match('#^\+998#', $phone) && strlen($phoneDigits) < 12)) {
@@ -96,7 +90,7 @@ class LoginCommand extends UserCommand
                         $conversation->update();
                         return [
                             'parse_mode' => 'MarkdownV2',
-                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ERROR_PHONE_LENGTH),
+                            'text' => Entity::escapeMarkdownV2(PublicMain::ERROR_PHONE_LENGTH),
                         ];
                     }
                     $this->addNote($conversation, 'phone', '+998' . substr($phoneDigits, -9));
@@ -124,7 +118,7 @@ class LoginCommand extends UserCommand
                     $this->addNote($conversation, 'role', User::ROLE_PARENTS);
                     $data = [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
+                        'text' => Entity::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
                         'reply_markup' => Keyboard::remove(),
                     ];
                     if ($trusted) {
@@ -158,7 +152,7 @@ class LoginCommand extends UserCommand
                     
                     return [
                         'parse_mode' => 'MarkdownV2',
-                        'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_FAILED),
+                        'text' => Entity::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_FAILED),
                         'reply_markup' => PublicMain::getPhoneKeyboard(),
                     ];
                 }
@@ -166,7 +160,7 @@ class LoginCommand extends UserCommand
                 $this->addNote($conversation, 'role', User::ROLE_PUPIL);
                 $data = [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
                     'reply_markup' => Keyboard::remove(),
                 ];
                 if ($trusted) {
@@ -215,9 +209,9 @@ class LoginCommand extends UserCommand
                 $conversation->notes['step']--;
                 $conversation->update();
                 if (count($users) <= 0) {
-                    $data['text'] = TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_FAILED);
+                    $data['text'] = Entity::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_FAILED);
                 } else {
-                    $data['text'] = TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_MULTIPLE);
+                    $data['text'] = Entity::escapeMarkdownV2(PublicMain::LOGIN_STEP_3_MULTIPLE);
                 }
                 
                 return $data;
@@ -245,7 +239,7 @@ class LoginCommand extends UserCommand
                 $conversation->update();
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
             }
@@ -260,7 +254,7 @@ class LoginCommand extends UserCommand
                 $conversation->update();
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED_UNTRUSTED),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_LOCKED_UNTRUSTED),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
             }
@@ -284,7 +278,7 @@ class LoginCommand extends UserCommand
             $data = [
                 'parse_mode' => 'MarkdownV2',
                 'reply_markup' => $keyboard,
-                'text' => TelegramHelper::escapeMarkdownV2('Произошла ошибка, не удалось привязать аккаунт, мы уже знаем о случившемся и как можно скорее исправим это.'),
+                'text' => Entity::escapeMarkdownV2('Произошла ошибка, не удалось привязать аккаунт, мы уже знаем о случившемся и как можно скорее исправим это.'),
             ];
         }
         

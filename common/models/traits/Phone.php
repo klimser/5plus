@@ -2,6 +2,8 @@
 
 namespace common\models\traits;
 
+use common\components\helpers\Phone as PhoneHelper;
+
 /**
  * Trait Phone
  * @package common\models\traits
@@ -15,6 +17,12 @@ trait Phone
     {
         return property_exists($this, 'phoneAttribute') ? $this->phoneAttribute : 'phone';
     }
+    
+    private function getPhoneAttributeValue(): ?string
+    {
+        $attr = $this->getPhoneAttributeName();
+        return $this->$attr ?? null;
+    }
 
     public function setPhoneFormatted(string $value): void
     {
@@ -24,33 +32,37 @@ trait Phone
 
     protected function getPhoneDigitsOnly(): ?string
     {
-        $attr = $this->getPhoneAttributeName();
-        if (!$this->$attr) return $this->$attr;
+        if (!$phone = $this->getPhoneAttributeValue()) {
+            return $phone;
+        }
 
-        return preg_replace('#\D#', '', $this->$attr);
+        return PhoneHelper::getPhoneDigitsOnly($phone);
     }
 
     public function getPhoneFormatted(): ?string
     {
-        $digits = $this->getPhoneDigitsOnly();
-        if (!$digits || strlen($digits) !== 12) return $digits;
+        if (!$phone = $this->getPhoneAttributeValue()) {
+            return $phone;
+        }
 
-        return substr($digits, -9, 2) . ' ' . substr($digits, -7, 3) . '-' . substr($digits, -4);
+        return PhoneHelper::getPhoneFormatted($phone);
     }
 
     public function getPhoneFull(): ?string
     {
-        $digits = $this->getPhoneDigitsOnly();
-        if (!$digits || strlen($digits) !== 12) return $digits;
+        if (!$phone = $this->getPhoneAttributeValue()) {
+            return $phone;
+        }
 
-        return '+' . substr($digits, -12, 3) . '(' . substr($digits, -9, 2) . ') ' . substr($digits, -7, 3) . '-' . substr($digits, -4);
+        return PhoneHelper::getPhoneFull($phone);
     }
 
     public function getPhoneInternational(): ?string
     {
-        $digits = $this->getPhoneDigitsOnly();
-        if (!$digits || strlen($digits) !== 12) return $digits;
+        if (!$phone = $this->getPhoneAttributeValue()) {
+            return $phone;
+        }
 
-        return "+$digits";
+        return PhoneHelper::getPhoneInternational($phone);
     }
 }

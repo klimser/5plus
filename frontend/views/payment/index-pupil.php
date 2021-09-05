@@ -12,7 +12,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для учащих�
     <div class="content-box payment-panel">
         <?= Html::beginForm(Url::to(['payment/find']), 'post', ['onsubmit' => 'var gToken = grecaptcha.getResponse(); if (gToken.length === 0) return false;']); ?>
             <div class="form-group">
-                <label for="pupil-phone">Введите номер телефона студента или его(её) родителей</label>
+                <label for="pupil-phone">Введите свой номер телефона</label>
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text">+998</span>
@@ -24,7 +24,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для учащих�
                 <?= ReCaptcha2::widget(['name' => 'reCaptcha']) ?>
             </div>
             <div class="float-right mw-100">
-                <button class="btn btn-primary btn-lg">найти</button>
+                <button class="btn btn-primary btn-lg">далее</button>
             </div>
             <div class="clearfix"></div>
         <?= Html::endForm(); ?>

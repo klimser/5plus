@@ -15,7 +15,15 @@ class UserRoleRule extends Rule
     public function execute($user, $item, $params)
     {
         if (!Yii::$app->user->isGuest) {
-            $role = Yii::$app->user->identity->role;
+            if (Yii::$app->user->id === $user) {
+                $userEntity = Yii::$app->user->identity;
+            } else {
+                $userEntity = User::findOne($user);
+                if (!$userEntity) {
+                    return false;
+                }
+            }
+            $role = $userEntity->role;
 
             if ($item->name === 'root') {
                 return $role == User::ROLE_ROOT;

@@ -17,6 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class SalaryComponent
 {
@@ -33,7 +34,7 @@ class SalaryComponent
         $spreadsheet->getActiveSheet()->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
         $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
         $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
-        $spreadsheet->getActiveSheet()->setTitle($date->format('m-Y') . ' ' . mb_substr($group->name, 0, 22));
+        $spreadsheet->getActiveSheet()->setTitle($date->format('m-Y') . ' ' . str_replace(Worksheet::getInvalidCharacters(), '', mb_substr($group->name, 0, 22)));
 
         $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(1, 1, $lastColumn, 1);
         $spreadsheet->getActiveSheet()->setCellValue(

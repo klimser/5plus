@@ -28,12 +28,12 @@ let Payment = {
                         'Погасить задолженность ' + group.debt + ' сум' +
                         '</button></div>';
                 }
-                htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.price + '" onclick="Payment.selectSum(this);">' +
-                    'за 1 месяц ' + group.price + ' сум' +
+                htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceLesson + '" onclick="Payment.selectSum(this);">' +
+                    'за 1 занятие ' + group.priceLesson + ' сум' +
                     '</button></div>' +
 
-                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceDiscount + '" onclick="Payment.selectSum(this);">' +
-                    'за 4 месяца ' + group.priceDiscount + ' сум' +
+                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceMonth + '" onclick="Payment.selectSum(this);">' +
+                    'за 1 месяц ' + group.priceMonth + ' сум' +
                     '</button></div>' +
 
                     '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="none" onclick="Payment.selectSum(this);">другая сумма</button></div>' +

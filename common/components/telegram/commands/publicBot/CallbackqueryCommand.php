@@ -11,6 +11,7 @@
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use common\components\telegram\commands\publicBot\TeacherCallbackCommand;
+use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Request;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\Update;
@@ -56,9 +57,9 @@ class CallbackqueryCommand extends SystemCommand
     /**
      * Command execute method
      *
-     * @return mixed
+     * @return ServerResponse
      */
-    public function execute()
+    public function execute(): ServerResponse
     {
         //$callback_query = $this->getUpdate()->getCallbackQuery();
         //$user_id        = $callback_query->getFrom()->getId();

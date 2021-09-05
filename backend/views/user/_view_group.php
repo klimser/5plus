@@ -71,10 +71,20 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                     <div class="col-4 col-md-3 text-right">
                         <?php if ($groupPupil->active === GroupPupil::STATUS_ACTIVE): ?>
                             <?php if ($incomeAllowed): ?>
-                                <button type="button" title="принять оплату" class="btn btn-primary mb-2" onclick="Dashboard.showMoneyIncomeForm(this);"
-                                        data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
-                                    <span class="fas fa-dollar-sign"></span>
-                                </button>
+                                <?php if ($pupil->isAgeConfirmed()): ?>
+                                    <button type="button" title="принять оплату" class="btn btn-primary mb-2" onclick="Dashboard.showMoneyIncomeForm(this);"
+                                            data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
+                                        <span class="fas fa-dollar-sign"></span>
+                                    </button>
+                                <?php else: ?>
+                                    <button type="button" title="отправить СМС для подтверждения возраста" class="btn btn-primary mb-2"
+                                            onclick="Dashboard.showAgeConfirmationForm(this);" data-user="<?= $pupil->id; ?>"
+                                            data-phone1="<?= $pupil->phone; ?>" data-phone2="<?= $pupil->phone2; ?>"
+                                            data-phone3="<?= $pupil->parent_id ? $pupil->parent->phone : ''; ?>"
+                                            data-phone4="<?= $pupil->parent_id ? $pupil->parent->phone2 : ''; ?>">
+                                        <span class="fas fa-baby"></span>
+                                    </button>
+                                <?php endif; ?>
                             <?php endif; ?>
                         
                             <?php if ($debtAllowed): ?>
@@ -84,12 +94,12 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                                 </button>
                             <?php endif; ?>
         
-                            <?php if ($incomeAllowed): ?>
+                            <?php /* if ($incomeAllowed): ?>
                                 <button type="button" title="выдать договор" class="btn btn-outline-dark mb-2" onclick="Dashboard.showNewContractForm(this);"
                                         data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
                                     <span class="fas fa-file-contract"></span>
                                 </button>
-                            <?php endif; ?>
+                            <?php endif; */ ?>
         
                             <?php if ($groupManagementAllowed): ?>
                                 <button type="button" title="перевести в другую группу" class="btn btn-outline-dark mb-2" onclick="Dashboard.showMovePupilForm(this);"

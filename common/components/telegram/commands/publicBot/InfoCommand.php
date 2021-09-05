@@ -3,9 +3,9 @@
 namespace Longman\TelegramBot\Commands\UserCommands;
 
 use backend\models\TeacherSubjectLink;
-use common\components\helpers\TelegramHelper;
 use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
+use Longman\TelegramBot\Entities\Entity;
 use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use common\models\Page;
@@ -47,7 +47,7 @@ class InfoCommand extends UserCommand
      */
     protected $version = '1.1.0';
 
-    public function execute()
+    public function execute(): ServerResponse
     {
         if (!$conversation = $this->handleMessage($this->getMessage())) {
             return $this->telegram->executeCommand('start');
@@ -82,7 +82,7 @@ class InfoCommand extends UserCommand
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::INFO_STEP_1_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::INFO_STEP_1_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -161,10 +161,9 @@ class InfoCommand extends UserCommand
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::INFO_STEP_2_SUBJECT_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::INFO_STEP_2_SUBJECT_TEXT),
                     'reply_markup' => $keyboard,
                 ];
-                break;
             case 3:
                 $this->addNote($conversation, 'step2', PublicMain::INFO_STEP_BUTTON_SUBJECTS);
                 
@@ -177,7 +176,7 @@ class InfoCommand extends UserCommand
                     return $this->stepBack($conversation);
                 }
 
-                $textLines = ['*' . TelegramHelper::escapeMarkdownV2(PublicMain::INFO_STEP_3_SUBJECT_TEXT) . '*'];
+                $textLines = ['*' . Entity::escapeMarkdownV2(PublicMain::INFO_STEP_3_SUBJECT_TEXT) . '*'];
                 foreach ($category->activeSubjects as $subject) {
                     $textLines[] = "[{$subject->name}](https://5plus.uz/{$subject->webpage->url})";
                 }
@@ -192,7 +191,6 @@ class InfoCommand extends UserCommand
                     'text' => implode("\n", $textLines),
                     'reply_markup' => $keyboard,
                 ];
-                break;
         }
         return $this->stepBack($conversation);
     }
@@ -233,7 +231,7 @@ class InfoCommand extends UserCommand
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::INFO_STEP_2_TEACHER_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::INFO_STEP_2_TEACHER_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -273,7 +271,7 @@ class InfoCommand extends UserCommand
                 Request::sendMessage([
                     'chat_id' => $chatId,
                     'parse_mode' => 'MarkdownV2',
-                    'text' => '*' . TelegramHelper::escapeMarkdownV2($text) . '*',
+                    'text' => '*' . Entity::escapeMarkdownV2($text) . '*',
                     'reply_markup' => PublicMain::getBackAndMainKeyboard(),
                 ]);
 
@@ -286,13 +284,12 @@ class InfoCommand extends UserCommand
                         'chat_id' => $chatId,
                         'parse_mode' => 'MarkdownV2',
                         'disable_web_page_preview' => true,
-                        'text' => TelegramHelper::escapeMarkdownV2($teacher->title) . " [{$teacher->officialName}](https://5plus.uz/{$teacher->webpage->url})",
+                        'text' => Entity::escapeMarkdownV2($teacher->title) . " [{$teacher->officialName}](https://5plus.uz/{$teacher->webpage->url})",
                         'reply_markup' => $inlineKeyboard,
                     ]);
                 }
 
                 return Request::emptyResponse();
-                break;
         }
         return $this->stepBack($conversation);
     }

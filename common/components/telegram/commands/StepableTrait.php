@@ -39,12 +39,11 @@ trait StepableTrait
                 return null;
             }
             $conversation->notes['step']--;
-            $conversation->update();
         } else {
             $conversation->notes['step']++;
-            $conversation->update();
         }
-        
+        $conversation->update();
+
         return $conversation;
     }
 

@@ -23,7 +23,7 @@ class SmsConfirmation extends BaseObject
             $confirmation = new ConfirmationCode();
             $confirmation->phone = $phone;
             $confirmation->code = StringGenerator::generate(5);
-            $confirmation->validUntilDate = date_create("+$validMinutes minutes");
+            $confirmation->validUntilDate = date_create_immutable("+$validMinutes minutes");
             if (!$confirmation->save()) {
                 ComponentContainer::getErrorLogger()
                     ->logError('sms-confirmation/add', $confirmation->getErrorsAsString(), true);
@@ -65,7 +65,7 @@ class SmsConfirmation extends BaseObject
             ->andWhere(['>=', 'valid_until', date('Y-m-d H:i:s')])
             ->all();
         foreach ($entries as $entry) {
-            $entry->validUntilDate = date_create('-1 minute');
+            $entry->validUntilDate = date_create_immutable('-1 minute');
             if (!$entry->save()) {
                 ComponentContainer::getErrorLogger()
                     ->logError('sms-confirmation/add', $entry->getErrorsAsString(), true);

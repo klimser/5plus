@@ -93,9 +93,6 @@ class ReviewController extends AdminController
         return $this->redirect(['index']);
     }
 
-    /**
-     * @return string
-     */
     public function actionPage()
     {
         $webpage = null;

@@ -46,6 +46,7 @@ return [
             'rules' => [
                 ['class' => \frontend\components\WebpageUrlRule::class],
                 'pay/<key:[a-z0-9]+>' => 'payment/link',
+                'age' => 'payment/age-confirmation',
             ],
         ],
     ],

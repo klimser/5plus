@@ -2,6 +2,7 @@
 
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
+use Longman\TelegramBot\Commands\UserCommands\AccountCommand;
 use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use Longman\TelegramBot\Conversation;
@@ -41,21 +42,19 @@ class GenericmessageCommand extends SystemCommand
      * @return ServerResponse
      * @throws TelegramException
      */
-    public function executeNoDb()
+    public function executeNoDb(): ServerResponse
     {
         //Do nothing
         return Request::emptyResponse();
     }
 
-    /**
-     * Execute command
-     *
-     * @return ServerResponse
-     * @throws TelegramException
-     */
-    public function execute()
+    public function execute(): ServerResponse
     {
         $message = $this->getMessage();
+
+        if ($payment = $message->getSuccessfulPayment()) {
+            return AccountCommand::handleSuccessfulPayment($payment, $message->getChat()->getId());
+        }
 
         if ($message->getText() === PublicMain::TO_MAIN) {
             return $this->telegram->executeCommand('start');
@@ -77,19 +76,14 @@ class GenericmessageCommand extends SystemCommand
         switch ($message->getText()) {
             case PublicMain::BUTTON_CONTACT:
                 return $this->telegram->executeCommand('contact');
-                break;
             case PublicMain::BUTTON_INFO:
                 return $this->telegram->executeCommand('info');
-                break;
             case PublicMain::BUTTON_ORDER:
                 return $this->telegram->executeCommand('order');
-                break;
             case PublicMain::BUTTON_REGISTER:
                 return $this->telegram->executeCommand('login');
-                break;
             case PublicMain::BUTTON_ACCOUNT:
                 return $this->telegram->executeCommand('account');
-                break;
             default:
                 return $this->telegram->executeCommand('start');
         }

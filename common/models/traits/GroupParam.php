@@ -11,6 +11,7 @@ use common\components\helpers\MoneyHelper;
  * @property string[] $scheduleData
  * @property int $lesson_price
  * @property int $lesson_price_discount
+ * @property int $price12Lesson
  * @property int $priceMonth
  * @property int $price3Month
  * @property int $price4Month
@@ -43,6 +44,11 @@ trait GroupParam
         }
         if (!$valid) $value = array_fill(0, 7, '');
         $this->setAttribute('schedule', json_encode($value));
+    }
+
+    public function getPrice12Lesson(): int
+    {
+        return MoneyHelper::roundThousand($this->lesson_price * 12);
     }
 
     public function getPriceMonth(): int

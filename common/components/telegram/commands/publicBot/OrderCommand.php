@@ -3,9 +3,9 @@
 namespace Longman\TelegramBot\Commands\UserCommands;
 
 use common\components\ComponentContainer;
-use common\components\helpers\TelegramHelper;
 use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
+use Longman\TelegramBot\Entities\Entity;
 use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
 use common\models\Order;
@@ -47,7 +47,7 @@ class OrderCommand extends UserCommand
     const STEP_BACK_TEXT = 'На предыдущий шаг';
     const CONFIRM_TEXT = 'Отправить';
 
-    public function execute()
+    public function execute(): ServerResponse
     {
         if (!$conversation = $this->handleMessage($this->getMessage())) {
             return $this->telegram->executeCommand('start');
@@ -95,10 +95,10 @@ class OrderCommand extends UserCommand
                 'vcard' => PublicMain::CONTACT_VCARD,
             ]);
             
-            $data['text'] = TelegramHelper::escapeMarkdownV2('К сожалению, не удалось добавить заявку. Наши технические специалисты уже получили уведомление и как можно скорее устранят проблему. Можете позвонить нашим менеджерам и записаться на занятие у них.');
+            $data['text'] = Entity::escapeMarkdownV2('К сожалению, не удалось добавить заявку. Наши технические специалисты уже получили уведомление и как можно скорее устранят проблему. Можете позвонить нашим менеджерам и записаться на занятие у них.');
         } else {
             $order->notifyAdmin();
-            $data['text'] = TelegramHelper::escapeMarkdownV2(PublicMain::ORDER_STEP_6_TEXT);
+            $data['text'] = Entity::escapeMarkdownV2(PublicMain::ORDER_STEP_6_TEXT);
             $conversation->stop();
         }
 
@@ -138,7 +138,7 @@ class OrderCommand extends UserCommand
                 }
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ORDER_STEP_1_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::ORDER_STEP_1_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -148,7 +148,7 @@ class OrderCommand extends UserCommand
                 }
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ORDER_STEP_2_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::ORDER_STEP_2_TEXT),
                     'reply_markup' => PublicMain::getPhoneKeyboard(),
                 ];
                 break;
@@ -161,7 +161,7 @@ class OrderCommand extends UserCommand
 //                        $conversation->update();
 //                        return [
 //                            'parse_mode' => 'MarkdownV2',
-//                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
+//                            'text' => Entity::escapeMarkdownV2(PublicMain::ERROR_PHONE_PREFIX),
 //                        ];
 //                    }
                     if (strlen($phone) > 50 || strlen($phoneDigits) < 9 || (preg_match('#^\+998#', $phone) && strlen($phoneDigits) < 12)) {
@@ -169,7 +169,7 @@ class OrderCommand extends UserCommand
                         $conversation->update();
                         return [
                             'parse_mode' => 'MarkdownV2',
-                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ERROR_PHONE_LENGTH),
+                            'text' => Entity::escapeMarkdownV2(PublicMain::ERROR_PHONE_LENGTH),
                         ];
                     }
 
@@ -189,7 +189,7 @@ class OrderCommand extends UserCommand
                 
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ORDER_STEP_3_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::ORDER_STEP_3_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -202,7 +202,7 @@ class OrderCommand extends UserCommand
                         $conversation->update();
                         return [
                             'parse_mode' => 'MarkdownV2',
-                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ORDER_STEP_3_ERROR),
+                            'text' => Entity::escapeMarkdownV2(PublicMain::ORDER_STEP_3_ERROR),
                         ];
                     }
 
@@ -227,7 +227,7 @@ class OrderCommand extends UserCommand
                 
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ORDER_STEP_4_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::ORDER_STEP_4_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;
@@ -240,7 +240,7 @@ class OrderCommand extends UserCommand
                         $conversation->update();
                         return [
                             'parse_mode' => 'MarkdownV2',
-                            'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ORDER_STEP_4_ERROR),
+                            'text' => Entity::escapeMarkdownV2(PublicMain::ORDER_STEP_4_ERROR),
                         ];
                     }
 
@@ -251,7 +251,7 @@ class OrderCommand extends UserCommand
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => TelegramHelper::escapeMarkdownV2(PublicMain::ORDER_STEP_5_TEXT),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::ORDER_STEP_5_TEXT),
                     'reply_markup' => $keyboard,
                 ];
                 break;

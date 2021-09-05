@@ -11,7 +11,7 @@ class MaskString
             $asteriskLength = $asteriskMaxLength;
         }
         return $strLength <= ($left + $right)
-            ? $string
+            ? mb_substr($string, 0, 1, 'UTF-8') . str_pad('', $strLength - 1, '*')
             : ($left > 0 ? mb_substr($string, 0, $left, 'UTF-8') : '')
                 . str_pad('', $asteriskLength, '*')
                 . ($right > 0 ? mb_substr($string, 0 - $right, null, 'UTF-8') : '');

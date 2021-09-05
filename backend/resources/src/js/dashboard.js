@@ -311,7 +311,7 @@ let Dashboard = {
                     Dashboard.togglePupilInfo(container, true, 'group')
                         .done(function() {
                             let messagesPlace = $(container).find('.user-view-messages-place');
-                            Main.throwFlashMessage(messagesPlace, data.refund ? 'Возврат зарегистрирован' : 'Долг добавлен', 'alert-success');
+                            Main.throwFlashMessage(messagesPlace, data.refund > 0 ? 'Возврат зарегистрирован' : 'Долг добавлен', 'alert-success');
                         });
                 } else {
                     Main.throwFlashMessage('#debt-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
@@ -594,5 +594,57 @@ let Dashboard = {
                 })
                 .always(Dashboard.unlockCreatePupilButton);
         }
+    },
+    showAgeConfirmationForm: function(e) {
+        let userId = $(e).data('user');
+        $('#age-messages-place').html('');
+        let form = $("#modal-age_confirmation");
+        $(form).find("#age-user-id").val(userId);
+        $(form).find("#age-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
+
+        let phones = [
+            $(e).data('phone1'),
+            $(e).data('phone2'),
+            $(e).data('phone3'),
+            $(e).data('phone4'),
+            ];
+        let phoneElem = [
+            $(form).find('#age-phone-1'),
+            $(form).find('#age-phone-2'),
+            $(form).find('#age-phone-3'),
+            $(form).find('#age-phone-4'),
+            ];
+        for (let i = 0; i < 4; i++) {
+            if (phones[i].length > 0) {
+                $(phoneElem[i]).data('phone', phones[i]);
+                $(phoneElem[i]).text(phones[i]);
+                $(phoneElem[i]).show();
+            } else {
+                $(phoneElem[i]).hide();
+            }
+        }
+
+        $(form).modal("show");
+    },
+    sendAgeConfirmationSms: function(btn) {
+        $.ajax({
+            url: '/user/send-age-sms',
+            type: 'post',
+            dataType: 'json',
+            data: {
+                "user_id": $("#age-user-id").val(),
+                "phone": $(btn).data('phone')
+            }
+        })
+            .done(function(data) {
+                if ('ok' === data.status) {
+                    Main.throwFlashMessage('#age-messages-place', data.message, 'alert-success');
+                } else {
+                    Main.throwFlashMessage('#age-messages-place', data.message, 'alert-danger');
+                }
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#age-messages-place');
+            });
     }
 };
