@@ -233,8 +233,8 @@ let Dashboard = {
         $(form).find("#payment_comment").val('');
         $(form).find("#income-group-name").val(group.name);
         let amountHelpersBlock = $(form).find(".amount-helper-buttons");
-        $(amountHelpersBlock).find(".price").data('price', group.price);
-        $(amountHelpersBlock).find(".price4").data('price', group.price4);
+        $(amountHelpersBlock).find(".price-lesson").data('price', group.priceLesson);
+        $(amountHelpersBlock).find(".price-month").data('price', group.priceMonth);
         $("#modal-income").modal("show");
     },
     setAmount: function(e) {
@@ -340,8 +340,8 @@ let Dashboard = {
         $(form).find(".income-amount").val(0);
         $(form).find("#new-contract-group-name").val(group.name);
         let amountHelpersBlock = $(form).find(".amount-helper-buttons");
-        $(amountHelpersBlock).find(".price").data('price', group.price);
-        $(amountHelpersBlock).find(".price4").data('price', group.price4);
+        $(amountHelpersBlock).find(".price-lesson").data('price', group.priceLesson);
+        $(amountHelpersBlock).find(".price-month").data('price', group.priceMonth);
         $("#modal-new-contract").modal("show");
     },
     issueNewContract: function(form) {

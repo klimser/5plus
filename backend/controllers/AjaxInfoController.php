@@ -101,6 +101,7 @@ class AjaxInfoController extends AdminController
                 'teacherId' => $group->teacher_id,
                 'teacher' => $group->teacher->name,
                 'priceLesson' => $group->lesson_price,
+                'priceMonth' => $group->priceMonth,
                 'price12Lesson' => $group->price12Lesson,
                 'dateStart' => $group->date_start,
                 'dateEnd' => $group->date_end,

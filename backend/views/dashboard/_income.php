@@ -29,8 +29,8 @@
                         <div class="col-12 col-sm-9">
                             <input class="form-control income-amount" name="income[amount]" type="number" min="1000" step="1000" placeholder="Сумма оплаты" autocomplete="off" required>
                             <div class="amount-helper-buttons">
-                                <button type="button" class="btn btn-outline-secondary btn-sm price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm price4" onclick="Dashboard.setAmount(this);">за 4 месяца</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm price-lesson" onclick="Dashboard.setAmount(this);">за 1 занятие</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm price-month" onclick="Dashboard.setAmount(this);">за 1 месяц</button>
                             </div>
                         </div>
                     </div>

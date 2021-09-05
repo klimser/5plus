@@ -163,8 +163,8 @@ let Money = {
         $("#group-" + groupId).addClass('btn-primary').removeClass('btn-outline-dark');
 
         let group = Main.groupMap[this.groupId];
-        $("#payment-0").find(".price").text(group.price);
-        $("#payment-1").find(".price").text(group.price4);
+        $("#payment-0").find(".price").text(group.priceLesson);
+        $("#payment-1").find(".price").text(group.price12Lesson);
         if (dateStart !== undefined) {
             $("#date_start").text(dateStart);
         }
@@ -180,9 +180,9 @@ let Money = {
 
         let amountInput = $("#amount");
         if (this.paymentType === 1) {
-            $(amountInput).val(Main.groupMap[this.groupId].price4);
+            $(amountInput).val(Main.groupMap[this.groupId].price12Lesson);
         } else {
-            $(amountInput).val(Main.groupMap[this.groupId].price);
+            $(amountInput).val(Main.groupMap[this.groupId].priceLesson);
         }
         $("#income_form").collapse('show');
     },

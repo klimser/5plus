@@ -52,21 +52,19 @@ if ($paymentLink) {
                             </button>
                         </div>
                     <?php endif; ?>
-            
+
                     <div class="col-12 col-md-auto mb-2">
-                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->group->priceMonth; ?>" onclick="Payment.selectSum(this);">
+                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->group->lesson_price; ?>" data-limit="<?= $paymentLink->group->price12Lesson; ?>" onclick="Payment.selectSum(this);">
+                            за 1 занятие <?= $paymentLink->group->lesson_price; ?> сум
+                        </button>
+                    </div>
+                    <div class="col-12 col-md-auto mb-2">
+                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->group->priceMonth; ?>" data-limit="<?= $paymentLink->group->price12Lesson; ?>" onclick="Payment.selectSum(this);">
                             за 1 месяц <?= $paymentLink->group->priceMonth; ?> сум
                         </button>
                     </div>
-            
                     <div class="col-12 col-md-auto mb-2">
-                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->group->price4Month; ?>" onclick="Payment.selectSum(this);">
-                            за 4 месяца <?= $paymentLink->group->price4Month; ?> сум
-                        </button>
-                    </div>
-
-                    <div class="col-12 col-md-auto mb-2">
-                        <button class="btn btn-secondary btn-block" data-sum="none" onclick="Payment.selectSum(this);">другая сумма</button>
+                        <button class="btn btn-secondary btn-block" data-sum="none" data-limit="<?= $paymentLink->group->price12Lesson; ?>" onclick="Payment.selectSum(this);">другая сумма</button>
                     </div>
                 </div>
             </div>
