@@ -354,8 +354,8 @@ let User = {
         let paymentBlock = $(container).find(".payment-block");
         if (paymentBlock.length > 0) {
             let helperButtonsBlock = $(paymentBlock).find(".amount-helper-buttons");
-            $(helperButtonsBlock).find("button.price").data({price: group.price});
-            $(helperButtonsBlock).find("button.price4").data({price: group.price4});
+            $(helperButtonsBlock).find("button.price-lesson").data({price: group.priceLesson});
+            $(helperButtonsBlock).find("button.price-month").data({price: group.priceMonth});
             if (flushAmount) {
                 $(paymentBlock).find("input.amount").val('');
             }

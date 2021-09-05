@@ -108,10 +108,10 @@ class WelcomeLessons
                 }
                 $y += 15;
                 $this->_doc->SetXY($xLeft + 5, $y);
-                $this->_doc->Write(6, 'Цена - ' . $welcomeLesson->group->priceMonth);
+                $this->_doc->Write(6, 'Цена - ' . $welcomeLesson->group->lesson_price_discount . ' за 1 занятие');
                 $y += 6;
                 $this->_doc->SetXY($xLeft + 5, $y);
-                $this->_doc->Write(6, 'При оплате за 4 месяца - ' . (int)round($welcomeLesson->group->price4Month / 4));
+                $this->_doc->Write(6, 'При оплате менее 12 занятий - ' . $welcomeLesson->group->lesson_price . ' за 1 занятие');
             }
 
             $y += 12;

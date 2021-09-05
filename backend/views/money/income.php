@@ -88,10 +88,10 @@ $this->params['breadcrumbs'][] = $this->title;
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-12 col-md-6">
-                                    <button class="btn btn-outline-dark btn-lg btn-block mb-2" type="button" id="payment-0" onclick="Money.setPayment(0);">Без скидки<br><small><span class="price"></span> в месяц</small></button>
+                                    <button class="btn btn-outline-dark btn-lg btn-block mb-2" type="button" id="payment-0" onclick="Money.setPayment(0);"><span class="price"></span> за 1 занятие</button>
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <button class="btn btn-outline-dark btn-lg btn-block mb-2" type="button" id="payment-1" onclick="Money.setPayment(1);">Со скидкой<br><small><span class="price"></span> за 4 месяца</small></button>
+                                    <button class="btn btn-outline-dark btn-lg btn-block mb-2" type="button" id="payment-1" onclick="Money.setPayment(1);"><span class="price"></span> за 12 занятий</button>
                                 </div>
                             </div>
                             <div class="row">
