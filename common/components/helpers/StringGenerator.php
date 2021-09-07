@@ -17,13 +17,13 @@ class StringGenerator
         }
         $charset = [];
         if ($allowNumbers) {
-            $charset = array_merge(self::COLLECTION_NUMBERS);
+            $charset = array_merge($charset, self::COLLECTION_NUMBERS);
         }
         if ($allowLetters) {
-            $charset = array_merge(self::COLLECTION_LETTERS);
+            $charset = array_merge($charset, self::COLLECTION_LETTERS);
         }
         if ($allowUppercase) {
-            $charset = array_merge(self::COLLECTION_UPPERCASE);
+            $charset = array_merge($charset, self::COLLECTION_UPPERCASE);
         }
 
         $result = '';

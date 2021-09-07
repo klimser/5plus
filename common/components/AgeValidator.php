@@ -27,7 +27,7 @@ class AgeValidator extends BaseObject
                 $transaction->rollBack();
                 return false;
             }
-            $code = StringGenerator::generate(5, true, false, true);
+            $code = StringGenerator::generate(4, true, false, true);
             $ageConfirmations = [];
             foreach ($users as $user) {
                 $ageConfirmation = new AgeConfirmation();
@@ -44,7 +44,6 @@ class AgeValidator extends BaseObject
                 $ageConfirmations[] = $ageConfirmation;
             }
 
-            Yii::$app->log->logger->log('Code: '  . $code, Logger::LEVEL_INFO);
             $params = [
                 'code' => $code,
             ];
