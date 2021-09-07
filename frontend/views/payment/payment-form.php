@@ -47,6 +47,12 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
                 <?php
                     $script .= "Payment.user = {$user->id};
                         Payment.renderGroupSelect();\n";
+                elseif (1 === count($user->children)):
+                    $student = $user->children[0]; ?>
+                    <?= $getPupilButton($student, true); ?>
+                    <?php
+                    $script .= "Payment.user = {$student->id};
+                        Payment.renderGroupSelect();\n";
                 else:
                     foreach ($user->children as $pupil): ?>
                         <?= $getPupilButton($pupil); ?>

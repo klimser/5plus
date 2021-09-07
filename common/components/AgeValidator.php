@@ -77,7 +77,14 @@ class AgeValidator extends BaseObject
             ->andWhere(['phone' => $phoneFull, 'status' => AgeConfirmation::STATUS_SENT])
             ->andWhere(['>', 'valid_until', date('Y-m-d H:i:s')]);
         if ($user) {
-            $qB->andWhere(['user_id' => $user->id]);
+            $ids = [$user->id];
+            if ($user->parent_id) {
+                $ids[] = $user->parent_id;
+            }
+            foreach ($user->children as $child) {
+                $ids[] = $child->id;
+            }
+            $qB->andWhere(['user_id' => $ids]);
         }
         return $qB->all();
     }
@@ -91,7 +98,11 @@ class AgeValidator extends BaseObject
                 $ageConfirmation->confirmed_at = date('Y-m-d H:i:s');
                 $ageConfirmation->status = AgeConfirmation::STATUS_CONFIRMED;
                 $ageConfirmation->user->age_confirmed = 1;
-                if (!$ageConfirmation->save() || !$ageConfirmation->user->save()) {
+                if ($ageConfirmation->user->parent_id
+                    && ($ageConfirmation->user->parent->phone === $phoneFull || $ageConfirmation->user->parent->phone2 === $phoneFull)) {
+                    $ageConfirmation->user->parent->age_confirmed = 1;
+                }
+                if (!$ageConfirmation->save() || !$ageConfirmation->user->save() || ($ageConfirmation->user->parent_id && !$ageConfirmation->user->parent->save())) {
                     $transaction->rollBack();
                     ComponentContainer::getErrorLogger()
                         ->logError('age-validator/validate', $ageConfirmation->getErrorsAsString() . ' - ' . $ageConfirmation->user->getErrorsAsString(), true);

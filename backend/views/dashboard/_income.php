@@ -27,7 +27,10 @@
                     <div class="form-group row">
                         <label class="col-12 col-sm-3 control-label">Сумма</label>
                         <div class="col-12 col-sm-9">
-                            <input class="form-control income-amount" name="income[amount]" type="number" min="1000" step="1000" placeholder="Сумма оплаты" autocomplete="off" required>
+                            <input class="form-control income-amount" name="income[amount]" type="number" min="1000" step="1000" placeholder="Сумма оплаты" autocomplete="off" required onchange="Dashboard.checkAmount(this);">
+                            <small id="amount-notice" class="form-text text-danger collapse">
+                                Внимание! Оплата с повышенной стоимостью занятия. Для оплаты с обычной стоимостью оплачивайте не менее 12 занятий.
+                            </small>
                             <div class="amount-helper-buttons">
                                 <button type="button" class="btn btn-outline-secondary btn-sm price-lesson" onclick="Dashboard.setAmount(this);">за 1 занятие</button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm price-month" onclick="Dashboard.setAmount(this);">за 1 месяц</button>

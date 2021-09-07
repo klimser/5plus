@@ -4,6 +4,9 @@ let AgeConfirmation = {
     agreeClick: function (e) {
         $("#confirmation-block").collapse($(e).is(':checked') ? 'show' : 'hide');
     },
+    showSendSmsButton: function() {
+        $("#send-sms-button-block").collapse('show');
+    },
     triggerSms: function (e) {
         let form = $(e).closest('form');
         let phoneInput = $('#phone');
@@ -108,7 +111,7 @@ let AgeConfirmation = {
                     AgeConfirmation.unlockSubmitButton();
                 } else {
                     Main.throwFlashMessage('#messages_place', data.message, 'alert-success');
-                    window.setTimeout(function() {window.location = '/payment/pay';}, 5000);
+                    $("#age-confirmation-form").collapse('hide');
                 }
             })
             .fail(function (jqXHR, textStatus, errorThrown) {

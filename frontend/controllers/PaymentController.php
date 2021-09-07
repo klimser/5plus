@@ -169,7 +169,7 @@ class PaymentController extends Controller
                 $pageParams,
                 [
                     'user' => $user,
-                    'phone' => $phone ? MaskString::generate(Phone::getPhoneFormatted($phone), 5, 2) : null
+                    'phone' => $phone ? Phone::getPhoneFormatted($phone) : null
                 ]
             )
         );
@@ -272,7 +272,7 @@ class PaymentController extends Controller
             if (1 === count($users)) {
                 Yii::$app->session->set('userId', $users[0]->id);
             }
-            return self::getJsonOkResult(['message' => 'Подтверждено. Перенаправление на страницу оплаты']);
+            return self::getJsonOkResult(['message' => 'Спасибо, желаем Вам шикарной учебы!']);
         }
         return self::getJsonErrorResult('Не подтверждено. Проверьте корректность введенного кода из СМС.');
     }

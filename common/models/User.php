@@ -544,7 +544,7 @@ class User extends ActiveRecord implements IdentityInterface
     
     public function isAgeConfirmed(): bool
     {
-        return $this->age_confirmed > 0 || ($this->parent_id && $this->parent->age_confirmed > 1);
+        return $this->age_confirmed > 0 || ($this->parent_id && $this->parent->age_confirmed > 0);
     }
 
     /**

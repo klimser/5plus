@@ -229,7 +229,8 @@ let Dashboard = {
         $(form).find("#income-user-id").val($(e).data("user"));
         $(form).find("#income-group-id").val(groupId);
         $(form).find("#income-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
-        $(form).find(".income-amount").val(0);
+        $(form).find(".income-amount").val(0).data('discountLimit', group.price12Lesson);
+        $(form).find("#amount-notice").collapse('hide');
         $(form).find("#payment_comment").val('');
         $(form).find("#income-group-name").val(group.name);
         let amountHelpersBlock = $(form).find(".amount-helper-buttons");
@@ -238,7 +239,17 @@ let Dashboard = {
         $("#modal-income").modal("show");
     },
     setAmount: function(e) {
-        $(e).closest(".form-group").find(".income-amount").val($(e).data('price'));
+        let incomeInput = $(e).closest(".form-group").find(".income-amount");
+        $(incomeInput).val($(e).data('price'));
+        this.checkAmount(incomeInput);
+    },
+    checkAmount: function(e) {
+        let sum = parseInt($(e).val());
+        if (sum > 0 && sum < $(e).data('discountLimit')) {
+            $(e).parent().find("#amount-notice").collapse('show');
+        } else {
+            $(e).parent().find("#amount-notice").collapse('hide');
+        }
     },
     completeIncome: function(form) {
         this.lockIncomeButton();
