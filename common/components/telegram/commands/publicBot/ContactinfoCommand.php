@@ -9,18 +9,18 @@ use common\components\telegram\text\PublicMain;
 use Longman\TelegramBot\Commands\UserCommand;
 
 /**
- * User "/contact" command
+ * User "/contactinfo" command
  *
  * Command that shows contact info for customers.
  */
-class ContactCommand extends UserCommand
+class ContactinfoCommand extends UserCommand
 {
     use ConversationTrait;
     
     /**
      * @var string
      */
-    protected $name = 'contact';
+    protected $name = 'contactinfo';
     /**
      * @var string
      */
@@ -28,7 +28,7 @@ class ContactCommand extends UserCommand
     /**
      * @var string
      */
-    protected $usage = '/contact';
+    protected $usage = '/contactinfo';
     /**
      * @var string
      */

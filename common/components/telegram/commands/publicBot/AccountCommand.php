@@ -4,7 +4,9 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 
 use backend\models\Event;
 use backend\models\EventMember;
+use common\components\AgeValidator;
 use common\components\ComponentContainer;
+use common\components\helpers\MaskString;
 use common\components\helpers\WordForm;
 use common\components\MoneyComponent;
 use common\components\PaymentComponent;
@@ -772,6 +774,112 @@ class AccountCommand extends UserCommand
         }
     }
 
+    private function processAgeConfirmation(Conversation $conversation, User $user)
+    {
+        $messageText = trim($this->getMessage()->getText());
+
+        $phones = [$user->phoneInternational];
+        if ($user->phone2) {
+            $phones[] = $user->phone2International;
+        }
+        if ($user->parent_id) {
+            $phones[] = $user->parent->phoneInternational;
+            if ($user->parent->phone2) {
+                $phones[] = $user->parent->phone2International;
+            }
+        }
+
+        $buttons = [
+            [PublicMain::AGE_SEND_SMS],
+            [PublicMain::TO_BACK, PublicMain::TO_MAIN],
+        ];
+        $sendSmsKeyboard = new Keyboard(...$buttons);
+        $sendSmsKeyboard->setResizeKeyboard(true)->setSelective(false);
+
+        if (preg_match('#^([1-4])\. #', $messageText, $matches)) {
+            $this->addNote($conversation, 'phone', $phones[(int)$matches[1] - 1]);
+            
+            Request::sendMessage([
+                'chat_id' => $this->getMessage()->getChat()->getId(),
+                'parse_mode' => 'MarkdownV2',
+                'text' => Entity::escapeMarkdownV2(PublicMain::AGE_ENTER_THE_CODE),
+            ]);
+            return [
+                'parse_mode' => 'MarkdownV2',
+                'text' => sprintf(Entity::escapeMarkdownV2(PublicMain::AGE_AGREEMENT), PublicMain::PUBLIC_OFFER_LINK),
+                'reply_markup' => $sendSmsKeyboard,
+            ];
+        }
+
+        if (PublicMain::TO_BACK === $messageText) {
+            $this->removeNote($conversation, 'phone');
+        }
+
+        $phoneUsed = $conversation->notes['phone'] ?? null;
+        if (!$phoneUsed) {
+            $buttons = [];
+            $row = [];
+            foreach ($phones as $key => $phone) {
+                $row[] = ($key + 1) . '. ' . MaskString::generate($phone, 6, 3);
+                if (count($row) >= 2) {
+                    $buttons[] = $row;
+                    $row = [];
+                }
+            }
+            if (!empty($row)) {
+                $buttons[] = $row;
+            }
+            $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
+            $keyboard = new Keyboard(...$buttons);
+            $keyboard->setResizeKeyboard(true)->setSelective(false);
+            return [
+                'parse_mode' => 'MarkdownV2',
+                'text' => sprintf(Entity::escapeMarkdownV2(PublicMain::AGE_GREETING), PublicMain::PUBLIC_OFFER_LINK),
+                'reply_markup' => $keyboard,
+            ];
+        }
+
+        if (PublicMain::AGE_SEND_SMS === $messageText) {
+            if ($blockUntil = ComponentContainer::getAgeValidator()->getBlockUntilDate($phoneUsed)) {
+                return [
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Entity::escapeMarkdownV2(sprintf(PublicMain::AGE_SMS_DELAY, 'через ' . ceil(($blockUntil->getTimestamp() - time()) / 60) . ' мин')),
+                    'reply_markup' => $sendSmsKeyboard,
+                ];
+            }
+            if (ComponentContainer::getAgeValidator()->add($phoneUsed, 7, [$user])) {
+                return [
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Entity::escapeMarkdownV2(PublicMain::AGE_SMS_SENT),
+                    'reply_markup' => $sendSmsKeyboard,
+                ];
+            } else {
+                return [
+                    'parse_mode' => 'MarkdownV2',
+                    'text' => Entity::escapeMarkdownV2(PublicMain::AGE_SMS_FAILED),
+                    'reply_markup' => $sendSmsKeyboard,
+                ];
+            }
+        }
+
+        if (ComponentContainer::getAgeValidator()->validate($phoneUsed, $user, $messageText)) {
+            $this->removeNote($conversation, 'phone');
+            $this->addNote($conversation, 'step', 1);
+            $this->addNote($conversation, 'step2', PublicMain::BUTTON_PAY);
+            return [
+                'parse_mode' => 'MarkdownV2',
+                'text' => Entity::escapeMarkdownV2(PublicMain::AGE_COMPLETE),
+                'reply_markup' => PublicMain::getBackAndMainKeyboard(),
+            ];
+        } else {
+            return [
+                'parse_mode' => 'MarkdownV2',
+                'text' => Entity::escapeMarkdownV2(PublicMain::AGE_FAILED),
+                'reply_markup' => $sendSmsKeyboard,
+            ];
+        }
+    }
+
     private function processPay(Conversation $conversation)
     {
         $step = $conversation->notes['step'] ?? 2;
@@ -797,6 +905,10 @@ class AccountCommand extends UserCommand
             }
         }
 
+        if (!$userResult->isAgeConfirmed()) {
+            return $this->processAgeConfirmation($conversation, $userResult);
+        }
+        
         $this->addNote($conversation, 'userId', $userResult->id);
 
         

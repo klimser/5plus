@@ -84,6 +84,12 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                                             data-phone4="<?= $pupil->parent_id ? $pupil->parent->phone2 : ''; ?>">
                                         <span class="fas fa-baby"></span>
                                     </button>
+                                    <?php if ($debtAllowed): ?>
+                                        <button type="button" title="принять оплату" class="btn btn-primary mb-2" onclick="if (confirm('Are you sure?')) Dashboard.showMoneyIncomeForm(this);"
+                                                data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
+                                            <span class="fas fa-dollar-sign"></span>
+                                        </button>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             <?php endif; ?>
                         

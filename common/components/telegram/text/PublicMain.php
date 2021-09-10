@@ -148,6 +148,17 @@ MESSAGE;
     const PAY_ITEM_TITLE = 'Оплата занятий в группе "%s"';
     const PAY_ITEM_DESCRIPTION = 'Оплата за обучение в группе "%s".' . "\n" . 'Стоимость одного занятия - %d';
     
+    public const PUBLIC_OFFER_LINK = '[Публичной офертой](https://5plus.uz/uploads/images/legal_documents/public_offer.pdf)';
+    public const AGE_GREETING = 'Для оплаты услуг учебного центра "Пять с плюсом" необходимо согласие с %s. Выберите номер телефона для получения кода подтверждения.';
+    public const AGE_SEND_SMS = 'Получить код';
+    public const AGE_ENTER_THE_CODE = 'Введите код из СМС или нажмите "' . self::AGE_SEND_SMS . '" если СМС еще не была вам отправлена.';
+    public const AGE_SMS_SENT = 'СМС отправлена. Введите код из СМС.';
+    public const AGE_SMS_DELAY = 'СМС не могут быть отправлены слишком часто, дождитесь получения СМС на телефон или запросите повторную отправку позже (%s)';
+    public const AGE_SMS_FAILED = 'Не удалось отправить СМС. Попробуйте позже или обратитесь за помощью к менеджерам учебного центра';
+    public const AGE_AGREEMENT = 'Подтверждаю, что ознакомлен(-а) и согласен(-на) с %s и подтверждаю, что мне исполнилось 18 лет.';
+    public const AGE_FAILED = 'Не подтверждено. Проверьте корректность введенного кода из СМС.';
+    public const AGE_COMPLETE = 'Спасибо, желаем Вам шикарной учебы!';
+    
     public static function getBackAndMainKeyboard()
     {
         $keyboard = new Keyboard([self::TO_BACK, self::TO_MAIN]);

@@ -75,7 +75,7 @@ class GenericmessageCommand extends SystemCommand
 
         switch ($message->getText()) {
             case PublicMain::BUTTON_CONTACT:
-                return $this->telegram->executeCommand('contact');
+                return $this->telegram->executeCommand('contactinfo');
             case PublicMain::BUTTON_INFO:
                 return $this->telegram->executeCommand('info');
             case PublicMain::BUTTON_ORDER:
