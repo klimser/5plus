@@ -94,12 +94,12 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                                 </button>
                             <?php endif; ?>
         
-                            <?php /* if ($incomeAllowed): ?>
+                            <?php if ($incomeAllowed): ?>
                                 <button type="button" title="выдать договор" class="btn btn-outline-dark mb-2" onclick="Dashboard.showNewContractForm(this);"
                                         data-group="<?= $groupPupil->group_id; ?>" data-user="<?= $pupil->id; ?>">
                                     <span class="fas fa-file-contract"></span>
                                 </button>
-                            <?php endif; */ ?>
+                            <?php endif; ?>
         
                             <?php if ($groupManagementAllowed): ?>
                                 <button type="button" title="перевести в другую группу" class="btn btn-outline-dark mb-2" onclick="Dashboard.showMovePupilForm(this);"

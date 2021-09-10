@@ -45,6 +45,7 @@ return [
             ]
         ],
         'request' => [
+            'enableCsrfValidation' => false,
             'csrfParam' => '_csrf_be',
             'csrfCookie' => [
                 'httpOnly' => true,

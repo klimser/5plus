@@ -16,6 +16,7 @@ return [
             'class' => \frontend\components\extended\View::class,
         ],
         'request' => [
+            'enableCsrfValidation' => false,
             'csrfParam' => '_csrf_fe',
             'csrfCookie' => [
                 'httpOnly' => true,
@@ -46,7 +47,6 @@ return [
             'rules' => [
                 ['class' => \frontend\components\WebpageUrlRule::class],
                 'pay/<key:[a-z0-9]+>' => 'payment/link',
-                'age' => 'payment/age-confirmation',
             ],
         ],
     ],

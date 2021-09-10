@@ -10,13 +10,15 @@ use yii\helpers\Url;
 /* @var $phone string|null */
 /* @var $webpage \common\models\Webpage */
 
-$this->params['breadcrumbs'][] = ['url' => Url::to(['webpage', 'id' => $webpage->id]), 'label' => 'Онлайн оплата'];
-$this->params['breadcrumbs'][] = 'Подтвердите свой созраст';
+//$this->params['breadcrumbs'][] = ['url' => Url::to(['webpage', 'id' => $webpage->id]), 'label' => 'Онлайн оплата'];
+//$this->params['breadcrumbs'][] = 'Подтвердите свой созраст';
 ?>
 
 <div class="container">
     <div class="content-box">
-        <h1>Подтвердите свой созраст</h1>
+        <?php if ($webpage->module->action !== 'age-confirmation'): ?>
+            <h2>Подтвердите свой возраст</h2>
+        <?php endif; ?>
         <div class="row">
             <div class="col-12">
                 <?= $form = Html::beginForm('', 'post', ['onsubmit' => 'return AgeConfirmation.submit(this);']); ?>

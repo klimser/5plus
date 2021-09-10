@@ -94,7 +94,7 @@ class PaymentController extends Controller
                 } else {
                     Yii::$app->session->set('userId', $user->id);
                     Yii::$app->session->set('phoneFull', $phoneFull);
-                    return $this->renderAgeConfirmationForm($user, $phoneFull);
+                    return $this->renderAgeConfirmationForm($user, $phoneFull, $pageParams);
                 }
             }
 
@@ -125,18 +125,20 @@ class PaymentController extends Controller
             return $this->renderPaymentForm($user);
         } else {
             Yii::$app->session->set('userId', $user->id);
-            return $this->renderAgeConfirmationForm($user, Yii::$app->session->get('phoneFull'));
+            $pageParams = $this->getPageParams('pupil');
+            return $this->renderAgeConfirmationForm($user, Yii::$app->session->get('phoneFull'), $pageParams);
         }
     }
 
-    public function actionAgeConfirmation()
+    public function actionAgeConfirmation($id, $webpage)
     {
         $userId = Yii::$app->session->get('userId');
         $phoneFull = Yii::$app->session->get('phoneFull');
+        $pageParams = ['hide_social' => true, 'h1' => 'Подтвердите свой возраст', 'webpage' => $webpage];
         if ($userId && ($user = User::findActiveCustomerById($userId)) && $phoneFull) {
-            return $this->renderAgeConfirmationForm($user, $phoneFull);
+            return $this->renderAgeConfirmationForm($user, $phoneFull, $pageParams);
         }
-        return $this->renderAgeConfirmationForm();
+        return $this->renderAgeConfirmationForm(null, null, $pageParams);
     }
 
     public function actionPay()
@@ -148,7 +150,7 @@ class PaymentController extends Controller
             return $this->processPhone($phoneFull);
         }
         if ($userId && ($user = User::findActiveCustomerById($userId))) {
-            return $user->isAgeConfirmed() ? $this->renderPaymentForm($user) : $this->renderAgeConfirmationForm($user, $phoneFull);
+            return $user->isAgeConfirmed() ? $this->renderPaymentForm($user) : $this->renderAgeConfirmationForm($user, $phoneFull, $pageParams);
         }
         
         return $this->redirect(Url::to(['webpage', 'id' => $pageParams['webpage']->id, 'type' => 'pupil']));
@@ -160,9 +162,8 @@ class PaymentController extends Controller
         return $this->render('payment-form', array_merge($pageParams, ['user' => $user]));
     }
 
-    private function renderAgeConfirmationForm(?User $user = null, ?string $phone = null)
+    private function renderAgeConfirmationForm(?User $user = null, ?string $phone = null, array $pageParams = [])
     {
-        $pageParams = $this->getPageParams('pupil');
         return $this->render(
             'age-confirmation-form',
             array_merge(
