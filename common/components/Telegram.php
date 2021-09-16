@@ -66,7 +66,9 @@ class Telegram extends BaseObject
     {
         if ($this->bot === null) {
             $this->bot = new TelegramBot($this->apiKey, $this->botName);
-            $this->bot->setCommandConfig('account', ['payment_provider_token' => $this->paymentToken]);
+            if (isset($this->paymentToken)) {
+                $this->bot->setCommandConfig('account', ['payment_provider_token' => $this->paymentToken]);
+            }
             if ($this->tablePrefix) $this->bot->enableExternalMySql(Yii::$app->db->pdo, $this->tablePrefix);
             $this->bot->addCommandsPath(Yii::getAlias($this->commandsPath));
             foreach ($this->callbackHandlers as $callbackHandler) {

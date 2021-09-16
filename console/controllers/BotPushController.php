@@ -35,12 +35,10 @@ class BotPushController extends Controller
 
         $condition = ['status' => BotPush::STATUS_NEW];
         $startTime = microtime(true);
-        while (true) {
-            if(microtime(true) - $startTime > self::TIME_LIMIT) break;
-            
+        while (microtime(true) - $startTime < self::TIME_LIMIT) {
             $botPush = BotPush::findOne($condition);
             if (!$botPush) {
-                sleep(1);
+                sleep(10);
                 continue;
             }
 

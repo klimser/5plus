@@ -21,7 +21,7 @@ class MailController extends Controller
     public function actionSend()
     {
         $condition = ['state' => EmailQueue::STATUS_NEW];
-        
+
         $tryTelegram = false;
         if (array_key_exists('telegramAdminNotifier', \Yii::$app->components)) {
             \Yii::$app->db->open();
@@ -29,11 +29,8 @@ class MailController extends Controller
             $subscribed = DB::selectChats([]);
             if (!empty($subscribed)) $tryTelegram = true;
         }
-        
-        while (true) {
-            $toSend = EmailQueue::findOne($condition);
-            if (!$toSend) break;
 
+        while ($toSend = EmailQueue::findOne($condition)) {
             $toSend->state = EmailQueue::STATUS_SENDING;
             $toSend->save();
 
@@ -62,10 +59,10 @@ class MailController extends Controller
                         'sendMessage',
                         ['parse_mode' => 'Markdown', 'text' => $message],
                         [
-                            'groups'      => true,
+                            'groups' => true,
                             'supergroups' => true,
-                            'channels'    => false,
-                            'users'       => true,
+                            'channels' => false,
+                            'users' => true,
                         ]
                     );
                     foreach ($results as $result) {

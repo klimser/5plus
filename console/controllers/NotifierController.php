@@ -42,13 +42,10 @@ class NotifierController extends Controller
 
         $quantity = 0;
         $startTime = microtime(true);
-        while (true) {
-            $currentTime = microtime(true);
-            if($quantity >= self::QUANTITY_LIMIT || $currentTime - $startTime > self::TIME_LIMIT) break;
-            
+        while ($quantity < self::QUANTITY_LIMIT && microtime(true) - $startTime < self::TIME_LIMIT) {            
             $toSend = Notify::findOne($condition);
             if (!$toSend) {
-                sleep(1);
+                sleep(10);
                 continue;
             }
 
@@ -110,7 +107,7 @@ class NotifierController extends Controller
                     switch ($toSend->template_id) {
                         case Notify::TEMPLATE_PUPIL_DEBT:
                             $params['group_name'] = $toSend->group->legal_name;
-                            $params['debt'] = $toSend->parameters['debt'] . ' ' . WordForm::getLessonsForm($toSend->parameters['debt']);
+                            $params['debt'] = $toSend->parameters['debt']; // . ' ' . WordForm::getLessonsForm($toSend->parameters['debt']);
                             $params['link'] = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url;
                             break;
                         case Notify::TEMPLATE_PUPIL_LOW:
@@ -122,7 +119,7 @@ class NotifierController extends Controller
                             $child = User::findOne($toSend->parameters['child_id']);
                             $params['student_name'] = $child->name;
                             $params['group_name'] = $toSend->group->legal_name;
-                            $params['debt'] = $toSend->parameters['debt'] . ' ' . WordForm::getLessonsForm($toSend->parameters['debt']);
+                            $params['debt'] = $toSend->parameters['debt']; // . ' ' . WordForm::getLessonsForm($toSend->parameters['debt']);
                             $params['link'] = PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url;
                             break;
                         case Notify::TEMPLATE_PARENT_LOW:
@@ -149,7 +146,7 @@ class NotifierController extends Controller
                 $quantity++;
             }
         }
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 
     /**
@@ -364,6 +361,6 @@ class NotifierController extends Controller
             /*----------------------  END TEMPLATE ID 4 ---------------------------*/
         }
 
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }

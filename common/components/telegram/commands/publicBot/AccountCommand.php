@@ -973,11 +973,15 @@ class AccountCommand extends UserCommand
                 ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Contract not created: ' . $ex->getMessage(), true);
                 $transaction->rollBack();
             }
+            $description = sprintf(PublicMain::PAY_ITEM_DESCRIPTION, $group->legal_name, $amount >= $group->price12Lesson ? $group->lesson_price_discount : $group->lesson_price);
+            if ($amount < $group->price12Lesson) {
+                $description .= ' ' . PublicMain::PAY_ITEM_ATTENTION;
+            }
 
             return Request::sendInvoice([
                 'chat_id'               => $chatId,
                 'title'                 => sprintf(PublicMain::PAY_ITEM_TITLE, $group->legal_name),
-                'description'           => sprintf(PublicMain::PAY_ITEM_DESCRIPTION, $group->legal_name, $group->lesson_price),
+                'description'           => $description,
                 'payload'               => !empty($contract) ? $contract->number : json_encode(['user_id' => $userResult->id, 'group_id' => $group->id, 'amount' => $amount]),
                 'start_parameter'       => 'pay',
                 'provider_token'        => $this->getConfig('payment_provider_token'),
