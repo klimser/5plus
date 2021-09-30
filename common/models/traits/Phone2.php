@@ -21,7 +21,7 @@ trait Phone2
 
     private function getPhone2AttributeValue(): ?string
     {
-        return property_exists($this, 'phone2') ? $this->phone2 : null;
+        return $this->phone2 ?? null;
     }
 
     protected function getPhone2DigitsOnly(): ?string
