@@ -16,7 +16,7 @@ class BotHandleController extends Controller
         $telegram = ComponentContainer::getTelegramPublic()->telegram;
         try {
             while (true) {
-                $lastResponse = $telegram->handleGetUpdates(['limit' => 1, 'timeout' => 300]);
+                $lastResponse = $telegram->handleGetUpdates(['timeout' => 3600]);
                 if (!$lastResponse->isOk()) {
                     TelegramLog::error('NOk response. ' . $lastResponse->getErrorCode() . ': ' . $lastResponse->getDescription(), ['response' => $lastResponse]);
                 }
