@@ -13,11 +13,10 @@ class BotHandleController extends Controller
     public function actionRun()
     {
         Yii::$app->db->open();
-        $telegram = ComponentContainer::getTelegramPublic();
+        $telegram = ComponentContainer::getTelegramPublic()->telegram;
         try {
             while (true) {
-                $telegram->telegram->handleGetUpdates(null, 300);
-                $lastResponse = $telegram->telegram->getLastCommandResponse();
+                $lastResponse = $telegram->handleGetUpdates(['limit' => 1, 'timeout' => 300]);
                 if (!$lastResponse->isOk()) {
                     TelegramLog::error('NOk response. ' . $lastResponse->getErrorCode() . ': ' . $lastResponse->getDescription(), ['response' => $lastResponse]);
                 }
