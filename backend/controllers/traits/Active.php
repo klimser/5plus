@@ -9,7 +9,7 @@ use common\components\extended\ActiveRecord;
  */
 trait Active
 {
-    protected abstract function findModel($id): ActiveRecord;
+    protected abstract function findModel($id);
     protected abstract static function getJsonOkResult(array $resultDataArray = []): array;
     protected abstract static function getJsonErrorResult(string $message = ''): array;
     public abstract function asJson($data);
