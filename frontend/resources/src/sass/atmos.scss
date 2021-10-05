@@ -1,0 +1,20 @@
+.atmos_logo {
+  border: 1px solid #A9CACB;
+  background: #000;
+  background:-webkit-repeating-radial-gradient(circle farthest-side at 50% 200%, #1b2121 0%, #010101 15%);
+  background:-o-repeating-radial-gradient(circle farthest-side at 50% 200%, #1b2121 0%, #010101 15%);
+  background:-moz-repeating-radial-gradient(circle farthest-side at 50% 200%, #1b2121 0%, #010101 15%);
+  background:repeating-radial-gradient(circle farthest-side at 50% 200%, #1b2121 0%, #010101 15%);
+  color: #A9CACB; 
+  &:hover {
+    color: #FFF;
+  }
+}
+.atmos_logo i {
+  background: url("../images/logo-atmos.png") no-repeat left center;
+  background-size: contain;
+  width: 84px;
+  height: 22px;
+  display: flex;
+  float: right;
+}

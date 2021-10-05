@@ -104,7 +104,7 @@ class PaymoServer
                 MoneyComponent::payContract(
                     $contract,
                     new \DateTime(array_key_exists('transaction_time', $params) ? $params['transaction_time'] : 'now'),
-                    Contract::PAYMENT_TYPE_PAYMO,
+                    Contract::PAYMENT_TYPE_ATMOS,
                     $params['transaction_id']
                 );
                 $transaction->commit();

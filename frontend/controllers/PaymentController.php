@@ -328,14 +328,14 @@ class PaymentController extends Controller
             $redirectUrl = null;
             $returnUrl = urlencode(Url::to(['payment/complete', 'payment' => $contract->id], true));
             switch ($paymentMethodId) {
-                case Contract::PAYMENT_TYPE_PAYMO:
+                case Contract::PAYMENT_TYPE_ATMOS:
                     $paymoApi = ComponentContainer::getPaymoApi();
                     $paymoId = $paymoApi->payCreate($contract->amount, $contract->number, [
                         'студент' => $pupil->name,
                         'группа' => $group->legal_name,
                         'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price))),
                     ]);
-                    $contract->payment_type = Contract::PAYMENT_TYPE_PAYMO;
+                    $contract->payment_type = Contract::PAYMENT_TYPE_ATMOS;
                     $contract->external_id = $paymoId;
                     $contract->status = Contract::STATUS_PROCESS;
                     $redirectUrl = "$paymoApi->paymentUrl/invoice/get?storeId=$paymoApi->storeId&transactionId=$paymoId&redirectLink=$returnUrl";
@@ -411,7 +411,7 @@ class PaymentController extends Controller
             $redirectUrl = null;
             $returnUrl = urlencode(Url::to(['payment/complete', 'gc' => $giftCard->code], true));
             switch ($paymentMethodId) {
-                case Contract::PAYMENT_TYPE_PAYMO:
+                case Contract::PAYMENT_TYPE_ATMOS:
                     $paymoApi = ComponentContainer::getPaymoApi();
                     $paymoId = $paymoApi->payCreate($giftCard->amount, "gc-$giftCard->id", [
                         'студент' => $giftCard->customer_name,
