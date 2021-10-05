@@ -13,7 +13,7 @@ use yii\base\BaseObject;
  */
 class PaymoApi extends BaseObject
 {
-    const API_URL = 'https://api.pays.uz:8243';
+    const API_URL = 'https://api.paymo.uz';
 
     /** @var string */
     protected $paymentUrl;
