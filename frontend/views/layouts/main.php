@@ -60,7 +60,7 @@ $this->render('/grunt-assets');
         <div class="bg-light d-lg-none w-100 navbar-bg"></div>
         <div class="container navbar-body">
             <div class="row no-gutters align-items-center justify-content-between align-items-lg-start justify-content-lg-center pt-lg-4">
-                <button class="btn-menu-open btn btn-light col-auto d-lg-none px-2" type="button" onclick="Main.toggleMainMenu(this);" data-target=".main-menu-collapsible">
+                <button class="btn-menu-open btn btn-light col-auto d-lg-none px-2" type="button" onclick="Main.toggleMainMenu(this);" data-target=".main-menu-collapsible" aria-label="Главное меню">
                     <span class="line1"></span>
                     <span class="line2"></span>
                     <span class="line3"></span>
