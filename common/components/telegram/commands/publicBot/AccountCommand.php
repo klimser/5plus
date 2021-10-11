@@ -305,7 +305,7 @@ class AccountCommand extends UserCommand
                 'gp.user_id' => $userResult->id,
             ])
             ->andWhere(['not', ['em.mark' => null]])
-            ->andWhere(['>', 'e.event_date', date_create('-30 days')->format('Y-m-d H:i:s')])
+            ->andWhere(['>', 'e.event_date', date_create('-90 days')->format('Y-m-d H:i:s')])
             ->with('event.group')
             ->orderBy(['e.group_id' => SORT_ASC, 'e.event_date' => SORT_ASC])
             ->all();
@@ -398,7 +398,7 @@ class AccountCommand extends UserCommand
         $payments = Payment::find()
             ->andWhere(['user_id' => $userResult->id])
             ->andWhere(['<', 'amount', 0])
-            ->andWhere(['>', 'created_at', date_create('-30 days')->format('Y-m-d H:i:s')])
+            ->andWhere(['>', 'created_at', date_create('-90 days')->format('Y-m-d H:i:s')])
             ->orderBy(['group_id' => SORT_ASC, 'created_at' => SORT_ASC])
             ->with('group')
             ->all();

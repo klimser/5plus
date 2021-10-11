@@ -196,8 +196,9 @@ class GroupController extends AdminController
                 if (!empty($weekday[$i]) && empty($weektime[$i])) {
                     Yii::$app->session->addFlash('error', 'Не указано время занятий');
                     $error = true;
+                } else {
+                    $scheduleArray[$i] = !empty($weekday[$i]) ? $weektime[$i] : '';
                 }
-                $scheduleArray[$i] = !empty($weekday[$i]) ? $weektime[$i] : '';
             }
             $group->scheduleData = $scheduleArray;
 

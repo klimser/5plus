@@ -124,7 +124,7 @@ class OrderController extends AdminController
             $model->scenario = Order::SCENARIO_ADMIN;
             return $model;
         } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+            throw new NotFoundHttpException('The requested order does not exist.');
         }
     }
 }

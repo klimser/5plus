@@ -30,5 +30,6 @@
     "swiper": "^6",
     "time-grunt": "1.x.x",
     "yarn": "^1"
-  }
+  },
+  "packageManager": "yarn@3.0.2"
 }
