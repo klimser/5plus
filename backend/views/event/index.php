@@ -22,7 +22,7 @@ $previousDate = $startDate->modify('-1 day');
 $nextDate = $startDate->modify('+1 day');
 
 $this->registerJs('
-Event.init(' . time() . ');
+StudyEvent.init(' . time() . ');
 ');
 
 ?>
@@ -81,7 +81,7 @@ Event.init(' . time() . ');
                 }
                 ?>
                 <div class="col">
-                    <div class="w-100 btn btn-<?= $statusClass; ?>" onclick="Event.toggleEvent(<?= $event->id; ?>);">
+                    <div class="w-100 btn btn-<?= $statusClass; ?>" onclick="StudyEvent.toggleEvent(<?= $event->id; ?>);">
                         <div class="w-100 text-left">
                             <span class="badge badge-light"><?= $event->eventTime; ?></span>
                             <?= $event->group->name; ?>
@@ -114,12 +114,12 @@ Event.init(' . time() . ');
                                 <div id="messages_place_event_<?= $event->id; ?>"></div>
                                 <div class="row">
                                     <div class="col">
-                                        <button class="btn btn-success btn-block" title="Состоялось" onclick="Event.changeStatus(<?= $event->id; ?>, <?= Event::STATUS_PASSED; ?>);">
+                                        <button class="btn btn-success btn-block" title="Состоялось" onclick="StudyEvent.changeStatus(<?= $event->id; ?>, <?= Event::STATUS_PASSED; ?>);">
                                             <span class="fas fa-check"></span>
                                         </button>
                                     </div>
                                     <div class="col">
-                                        <button class="btn btn-danger btn-block" title="Было отменено" onclick="Event.changeStatus(<?= $event->id; ?>, <?= Event::STATUS_CANCELED; ?>);">
+                                        <button class="btn btn-danger btn-block" title="Было отменено" onclick="StudyEvent.changeStatus(<?= $event->id; ?>, <?= Event::STATUS_CANCELED; ?>);">
                                             <span class="fas fa-times"></span>
                                         </button>
                                     </div>

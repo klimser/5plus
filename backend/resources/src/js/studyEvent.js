@@ -1,4 +1,4 @@
-let Event = {
+let StudyEvent = {
     eventStatusUnknown: 0,
     eventStatusPassed: 1,
     eventStatusCancelled: 2,
@@ -19,10 +19,10 @@ let Event = {
             let pupilsBlock = $(detailsBlock).find(".pupils_block");
             if (parseInt($(pupilsBlock).data("buttonState")) === 0) {
                 $(pupilsBlock).find(".event_member").each(function () {
-                    Event.fillMemberButtons($(this).data("id"));
+                    StudyEvent.fillMemberButtons($(this).data("id"));
                 });
                 $(pupilsBlock).find(".event_welcome_member").each(function () {
-                    Event.fillWelcomeMemberButtons($(this).data("id"));
+                    StudyEvent.fillWelcomeMemberButtons($(this).data("id"));
                 });
                 $(pupilsBlock).data("buttonState", 1);
             }
@@ -86,27 +86,27 @@ let Event = {
                 $(eventDetailsBlock).data("status", data.eventStatus).find(".status_block").remove();
                 let pupilsBlock = $(eventDetailsBlock).find(".pupils_block");
                 $(pupilsBlock).find(".event_member").each(function() {
-                    if (data.eventStatus === Event.eventStatusCancelled) {
-                        $(this).data("status", Event.memberStatusMiss);
+                    if (data.eventStatus === StudyEvent.eventStatusCancelled) {
+                        $(this).data("status", StudyEvent.memberStatusMiss);
                     }
-                    Event.fillMemberButtons($(this).data("id"));
+                    StudyEvent.fillMemberButtons($(this).data("id"));
                 });
                 $(pupilsBlock).find(".event_welcome_member").each(function () {
-                    if (data.eventStatus === Event.eventStatusCancelled) {
+                    if (data.eventStatus === StudyEvent.eventStatusCancelled) {
                         $(this).data("status", WelcomeLesson.statusCanceled);
                     }
-                    Event.fillWelcomeMemberButtons($(this).data("id"));
+                    StudyEvent.fillWelcomeMemberButtons($(this).data("id"));
                 });
                 
                 $(pupilsBlock).collapse('show');
             } else {
-                Main.throwFlashMessage('#messages_place_event_' + Event.processingEventId, 'Ошибка: ' + data.message, 'alert-danger');
-                Event.unlockStatusButtons();
+                Main.throwFlashMessage('#messages_place_event_' + StudyEvent.processingEventId, 'Ошибка: ' + data.message, 'alert-danger');
+                StudyEvent.unlockStatusButtons();
             }
         })
         .fail(function(xhr, textStatus, errorThrown) {
-            Main.throwFlashMessage('#messages_place_event_' + Event.processingEventId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            Event.unlockStatusButtons();
+            Main.throwFlashMessage('#messages_place_event_' + StudyEvent.processingEventId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+            StudyEvent.unlockStatusButtons();
         });
     },
     isAttendEditAllowed: function(memberId) {
@@ -119,10 +119,10 @@ let Event = {
     getButtonsColumn: function(memberId, memberStatus, memberMark) {
         switch (memberStatus) {
             case this.memberStatusUnknown:
-                return '<button class="btn btn-success" onclick="Event.setPupilAttendStatus(' + memberId + ', ' + this.memberStatusAttend + ');" title="Присутствовал(а)">' +
+                return '<button class="btn btn-success" onclick="StudyEvent.setPupilAttendStatus(' + memberId + ', ' + this.memberStatusAttend + ');" title="Присутствовал(а)">' +
                         '<span class="fas fa-check"></span>' +
                     '</button>' +
-                    '<button class="btn btn-danger" onclick="Event.setPupilAttendStatus(' + memberId + ', ' + this.memberStatusMiss + ');" title="Отсутствовал(а)">' +
+                    '<button class="btn btn-danger" onclick="StudyEvent.setPupilAttendStatus(' + memberId + ', ' + this.memberStatusMiss + ');" title="Отсутствовал(а)">' +
                         '<span class="fas fa-times"></span>' +
                     '</button>';
             case this.memberStatusAttend:
@@ -130,7 +130,7 @@ let Event = {
                     return '<b>' + memberMark + '</b>';
                 }
                 
-                return '<form onsubmit="return Event.setPupilMark(this, ' + memberId + ');">' +
+                return '<form onsubmit="return StudyEvent.setPupilMark(this, ' + memberId + ');">' +
                     '<div class="input-group">' +
                     '<input type="number" name="mark" step="1" min="1" max="5" class="form-control" placeholder="Балл" title="Балл" required>' +
                     '<div class="input-group-append">' +
@@ -138,7 +138,7 @@ let Event = {
                     '</div></div></form>';
             case this.memberStatusMiss:
                 if (this.isAttendEditAllowed(memberId)) {
-                    return '<button class="btn btn-outline-dark" onclick="Event.revertMissStatus(this, ' + memberId + ');">' +
+                    return '<button class="btn btn-outline-dark" onclick="StudyEvent.revertMissStatus(this, ' + memberId + ');">' +
                            '<span class="fas fa-pencil-alt"></span>' +
                         '</button>';
                 }
@@ -148,10 +148,10 @@ let Event = {
     },
     getWelcomeButtonsColumn: function(memberId, memberStatus) {
         if (memberStatus === WelcomeLesson.statusUnknown) {
-            return '<button class="btn btn-success" onclick="Event.setPupilAttendStatus(' + memberId + ', ' + WelcomeLesson.statusPassed + ', \'welcomeMemberId\');" title="Присутствовал(а)">' +
+            return '<button class="btn btn-success" onclick="StudyEvent.setPupilAttendStatus(' + memberId + ', ' + WelcomeLesson.statusPassed + ', \'welcomeMemberId\');" title="Присутствовал(а)">' +
                 '<span class="fas fa-check"></span>' +
                 '</button>' +
-                '<button class="btn btn-danger" onclick="Event.setPupilAttendStatus(' + memberId + ', ' + WelcomeLesson.statusMissed + ', \'welcomeMemberId\');" title="Отсутствовал(а)">' +
+                '<button class="btn btn-danger" onclick="StudyEvent.setPupilAttendStatus(' + memberId + ', ' + WelcomeLesson.statusMissed + ', \'welcomeMemberId\');" title="Отсутствовал(а)">' +
                 '<span class="fas fa-times"></span>' +
                 '</button>';
         }
@@ -188,26 +188,26 @@ let Event = {
                 if (data.memberId) {
                     let memberBlock = $("#event_member_" + data.memberId);
                     $(memberBlock).data("status", data.memberStatus);
-                    Event.fillMemberButtons(data.memberId);
+                    StudyEvent.fillMemberButtons(data.memberId);
                 } else {
                     let memberBlock = $("#event_welcome_member_" + data.welcomeMemberId);
                     $(memberBlock).data("status", data.memberStatus);
-                    Event.fillWelcomeMemberButtons(data.welcomeMemberId);
+                    StudyEvent.fillWelcomeMemberButtons(data.welcomeMemberId);
                 }
             } else {
-                Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
+                Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
             }
-            Event.unlockMemberButtons();
+            StudyEvent.unlockMemberButtons();
         })
         .fail(function(xhr, textStatus, errorThrown) {
-            Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            Event.unlockMemberButtons();
+            Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+            StudyEvent.unlockMemberButtons();
         });
     },
     setPupilMark: function(e, memberId) {
         let mark = parseInt($(e).find("input[name='mark']").val());
         if (!mark || mark <= 0 || mark > 5) {
-            Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, "Укажите оценку от 1 до 5", 'alert-danger');
+            Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, "Укажите оценку от 1 до 5", 'alert-danger');
             return false;
         }
         this.lockMemberButtons(memberId);
@@ -222,15 +222,15 @@ let Event = {
         .done(function(data) {
             if (data.status === 'ok') {
                 $("#event_member_" + data.memberId).data('mark', data.memberMark);
-                Event.fillMemberButtons(data.memberId);
+                StudyEvent.fillMemberButtons(data.memberId);
             } else {
-                Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
+                Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
             }
-            Event.unlockMemberButtons();
+            StudyEvent.unlockMemberButtons();
         })
         .fail(function(xhr, textStatus, errorThrown) {
-            Main.throwFlashMessage('#messages_place_event_member_' + Event.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            Event.unlockMemberButtons();
+            Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+            StudyEvent.unlockMemberButtons();
         });
         return false;
     }

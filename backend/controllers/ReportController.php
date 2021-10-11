@@ -60,7 +60,7 @@ class ReportController extends AdminController
      */
     public function actionDebt()
     {
-        if (!Yii::$app->user->can('reportDebt')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('reportDebt');
 
         ob_start();
         $objWriter = IOFactory::createWriter(DebtReport::create(), 'Xlsx');
