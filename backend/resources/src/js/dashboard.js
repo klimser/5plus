@@ -295,7 +295,7 @@ let Dashboard = {
         $(form).find("#debt-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
         $(form).find("#debt_comment").val('');
         if (isRefund) {
-            $(form).find("#debt-amount").val(parseInt($(e).data('amount').replace(/ /, '')));
+            $(form).find("#debt-amount").val(parseInt($(e).data('amount').replace(/ /g, '')));
             $(form).find("#debt-amount").prop("readonly", true);
             $(form).find("#debt-refund").val(1);
         } else {
