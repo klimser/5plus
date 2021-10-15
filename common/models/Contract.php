@@ -30,6 +30,7 @@ use yii\db\ActiveQuery;
  * @property string $paidDateString
  * @property int $lessonsCount
  * @property int $weeksCount
+ * @property int $monthCount
  *
  * @property User $user
  * @property Group $group
@@ -192,20 +193,19 @@ class Contract extends ActiveRecord
         return $groupParam;
     }
 
-    /**
-     * @return int
-     */
     public function getLessonsCount(): int
     {
-        return round($this->discount ? $this->amount / $this->groupParam->lesson_price_discount : $this->amount / $this->groupParam->lesson_price);
+        return round($this->amount / ($this->discount ? $this->groupParam->lesson_price_discount : $this->groupParam->lesson_price));
     }
 
-    /**
-     * @return int
-     */
     public function getWeeksCount(): int
     {
         return round($this->lessonsCount / $this->groupParam->classesPerWeek);
+    }
+
+    public function getMonthCount(): float
+    {
+        return round($this->lessonsCount / $this->groupParam->classesPerMonth, 2);
     }
 
     /**

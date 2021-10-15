@@ -419,7 +419,7 @@ class GroupController extends AdminController
                 EventComponent::fillSchedule($groupPupil->group);
                 GroupComponent::calculateTeacherSalary($groupPupil->group);
             }
-            GroupComponent::addPupilToGroup($groupPupil->user, $groupTo, $dateTo);
+            GroupComponent::addPupilToGroup($groupPupil->user, $groupTo, $dateTo, null, false);
             GroupComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user, $dateTo);
 
             $transaction->commit();
