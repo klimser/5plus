@@ -166,6 +166,164 @@ class SalaryComponent
         return $spreadsheet;
     }
 
+    public static function getMonthDetailedSalarySpreadsheet(DateTime $date): Spreadsheet
+    {
+        $daysCount = intval($date->format('t'));
+        $lastColumn = $daysCount + 2;
+        $nextMonth = clone $date;
+        $nextMonth->modify('+1 month');
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+        $spreadsheet->getActiveSheet()->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+        $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
+        $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
+
+        $spreadsheet->getActiveSheet()->setTitle($date->format('m-Y'));
+        $row = 1;
+
+        /** @var GroupParam[] $groupParams */
+        $groupParams = GroupParam::find()
+            ->andWhere(['year' => $date->format('Y'), 'month' => $date->format('m')])
+            ->andWhere(['>', 'teacher_salary', 0])
+            ->with(['teacher', 'group'])
+            ->orderBy([GroupParam::tableName() . '.teacher_id' => SORT_ASC])->all();
+        foreach ($groupParams as $groupParam) {
+            $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(1, $row, $lastColumn, $row);
+            $spreadsheet->getActiveSheet()->setCellValue(
+                "A$row",
+                "{$groupParam->group->name} - " . Calendar::$monthNames[intval($date->format('n'))] . ' ' . $date->format('Y')
+            );
+            $spreadsheet->getActiveSheet()->getStyle("A$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $spreadsheet->getActiveSheet()->getStyle("A$row")->getFont()->setSize(22);
+            $spreadsheet->getActiveSheet()->getStyle("A$row")->getFont()->setBold(true);
+            $row += 2;
+
+            $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Преподаватель');
+            $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(2, $row, $lastColumn, $row);
+            $spreadsheet->getActiveSheet()->setCellValue("B$row", $groupParam->teacher->name);
+            $row++;
+            $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Стоимость занятия');
+            $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(2, $row, $lastColumn, $row);
+            $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $groupParam->lesson_price, DataType::TYPE_NUMERIC);
+            $row++;
+            $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Стоимость со скидкой');
+            $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(2, $row, $lastColumn, $row);
+            $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $groupParam->lesson_price_discount ?? $groupParam->lesson_price, DataType::TYPE_NUMERIC);
+            $spreadsheet->getActiveSheet()->getStyle('B' . ($row - 2) . ":B$row")->getFont()->setBold(true);
+            $row += 2;
+
+            /** @var Event[] $events */
+            $events = Event::find()
+                ->andWhere(['group_id' => $groupParam->group_id])
+                ->andWhere(['BETWEEN', 'event_date', $date->format('Y-m-d H:i:s'), $nextMonth->format('Y-m-d H:i:s')])
+                ->with('members.payments')
+                ->all();
+
+            if (empty($events)) {
+                $spreadsheet->getActiveSheet()->mergeCellsByColumnAndRow(1, $row, $lastColumn, $row);
+                $spreadsheet->getActiveSheet()->getStyle("A$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $spreadsheet->getActiveSheet()->setCellValue("A$row", 'В группе не было занятий');
+            } else {
+                $groupPupilMap = [];
+                $userMap = [];
+                $userChargeMap = [];
+
+                for ($i = 1; $i <= $daysCount; $i++) {
+                    $spreadsheet->getActiveSheet()
+                        ->setCellValueExplicitByColumnAndRow($i + 1, $row, $i, DataType::TYPE_NUMERIC);
+                }
+                $spreadsheet->getActiveSheet()->setCellValueByColumnAndRow($lastColumn, $row, 'Итого');
+                $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(2, $row, $lastColumn, 7)
+                    ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(2, $row, $lastColumn, 7)
+                    ->getFont()->setBold(true);
+                $startRow = $row;
+                $row++;
+
+                /** @var GroupPupil[] $groupPupils */
+                $groupPupils = GroupPupil::find()
+                    ->andWhere(['group_id' => $groupParam->group_id])
+                    ->andWhere(['<', 'date_start', $nextMonth->format('Y-m-d')])
+                    ->andWhere(['or', 'date_end IS NULL', ['>=', 'date_end', $date->format('Y-m-d')]])
+                    ->joinWith('user')
+                    ->orderBy([User::tableName() . '.name' => SORT_ASC])
+                    ->all();
+                foreach ($groupPupils as $groupPupil) {
+                    if (!array_key_exists($groupPupil->user_id, $userMap)) {
+                        $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupPupil->user->name);
+                        $userMap[$groupPupil->user_id] = $row;
+                        $groupPupilMap[$groupPupil->id] = $row;
+                        $row++;
+                    } else {
+                        $groupPupilMap[$groupPupil->id] = $userMap[$groupPupil->user_id];
+                    }
+                    $userChargeMap[$groupPupil->user_id] = 0;
+                }
+
+                $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Зарплата преподавателю');
+                $redColor = 'f2dede';
+                foreach ($events as $event) {
+                    $column = intval($event->eventDateTime->format('j')) + 1;
+
+                    if ($event->status == Event::STATUS_CANCELED) {
+                        $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, $startRow, $column, $row)
+                            ->getFill()->setFillType(Fill::FILL_SOLID)
+                            ->getStartColor()->setRGB($redColor);
+                    } else {
+                        $totalSum = 0;
+                        foreach ($event->members as $member) {
+                            if ($member->payments) {
+                                $paymentSum = 0;
+                                foreach ($member->payments as $payment) {
+                                    if ($payment->used_payment_id) {
+                                        $paymentSum += $payment->amount;
+                                        $userChargeMap[$payment->user_id] += $payment->amount;
+                                        $totalSum += $payment->amount;
+                                    }
+                                }
+                                $spreadsheet->getActiveSheet()
+                                    ->setCellValueExplicitByColumnAndRow($column, $groupPupilMap[$member->group_pupil_id], $paymentSum * -1, DataType::TYPE_NUMERIC);
+                            }
+
+                            if ($member->status == EventMember::STATUS_MISS) {
+                                $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, $groupPupilMap[$member->group_pupil_id])
+                                    ->getFill()->setFillType(Fill::FILL_SOLID)
+                                    ->getStartColor()->setRGB($redColor);
+                            }
+                        }
+
+                        $spreadsheet->getActiveSheet()
+                            ->setCellValueExplicitByColumnAndRow($column, $row, round($totalSum * (-1) / 100 * $groupParam->teacher_rate), DataType::TYPE_NUMERIC);
+                    }
+                }
+
+                foreach ($userChargeMap as $userId => $chargeAmount) {
+                    $spreadsheet->getActiveSheet()
+                        ->setCellValueExplicitByColumnAndRow($lastColumn, $userMap[$userId], $chargeAmount * (-1), DataType::TYPE_NUMERIC);
+                }
+                $spreadsheet->getActiveSheet()
+                    ->setCellValueExplicitByColumnAndRow($lastColumn, $row, $groupParam->teacher_salary, DataType::TYPE_NUMERIC);
+                $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(1, $row, $lastColumn, $row)->getFont()->setBold(true);
+                $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(1, $startRow, $lastColumn, $row)->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => Border::BORDER_THIN,
+                            'color' => ['argb' => 'FF000000'],
+                        ],
+                    ],
+                ]);
+            }
+
+            for ($i = 1; $i < $daysCount + 2; $i++) {
+                $spreadsheet->getActiveSheet()->getColumnDimensionByColumn($i)->setAutoSize(true);
+            }
+            $row += 2;
+        }
+
+        return $spreadsheet;
+    }
+
     public static function getMonthSalarySpreadsheet(DateTime $date): Spreadsheet
     {
         /** @var GroupParam[] $groupParams */

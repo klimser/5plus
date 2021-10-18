@@ -19,6 +19,7 @@ $nextMonth = $date->modify('+1 month');
     ><span class="fas fa-arrow-left"></span></a>
     <?= Html::encode($this->title) ?> <?= Calendar::$monthNames[$date->format('n')]; ?> <?= $date->format('Y'); ?>
     <a href="<?= Url::to(['salary-details', 'year' => $date->format('Y'), 'month' => $date->format('n')]); ?>"><span class="fas fa-file"></span></a>
+    <a href="<?= Url::to(['salary-details', 'year' => $date->format('Y'), 'month' => $date->format('n'), 'detail' => 1]); ?>"><span class="fas fa-file-invoice"></span></a>
     <a href="<?= Url::to(['salary', 'year' => $nextMonth->format('Y'), 'month' => $nextMonth->format('n')]); ?>"
     ><span class="fas fa-arrow-right"></span></a>
 </h1>
