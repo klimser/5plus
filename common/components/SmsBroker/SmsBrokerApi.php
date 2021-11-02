@@ -2,22 +2,23 @@
 
 namespace common\components\SmsBroker;
 
-class SmsBrokerApi
+use CurlHandle;
+use InvalidArgumentException;
+use Throwable;
+use yii\base\BaseObject;
+
+class SmsBrokerApi extends BaseObject
 {
-    /** @var string */
-    protected $baseUrl;
-    /** @var string */
-    protected $login;
-    /** @var string */
-    protected $password;
-    /** @var string */
-    protected $sender;
+    protected string $baseUrl;
+    protected string $login;
+    protected string $password;
+    protected string $sender;
 
     public function sendSingleMessage(string $recipientPhone, string $content, ?string $from = null, ?string $messageId = null)
     {
         $recipientPhone = preg_replace('\D', '', $recipientPhone);
         if (12 !== strlen($recipientPhone)) {
-            throw new \InvalidArgumentException('Invalid recipient phone');
+            throw new InvalidArgumentException('Invalid recipient phone');
         }
 
         $sms = [
@@ -39,13 +40,6 @@ class SmsBrokerApi
         return $this->execute('/send', $params);
     }
 
-    /**
-     * Выполнить запрос
-     * @param string $urlAddon
-     * @param array $params
-     * @param array $headers
-     * @return mixed
-     */
     private function execute(string $urlAddon, array $params = [], array $headers = [])
     {
         $curl = curl_init($this->baseUrl . $urlAddon);
@@ -58,17 +52,17 @@ class SmsBrokerApi
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_TIMEOUT => 60,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_USERPWD => "{$this->login}:{$this->password}",
+            CURLOPT_USERPWD => $this->login . ':' . $this->password,
         ]);
 
         try {
             $response = curl_exec($curl);
             $err = curl_error($curl);
             $code = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-        } catch (\Throwable $ex) {
+        } catch (Throwable $ex) {
             throw new SmsBrokerApiException($ex->getMessage(), $ex->getCode(), $ex);
         } finally {
-            if (is_resource($curl)) {
+            if ($curl instanceof CurlHandle) {
                 curl_close($curl);
             }
         }
