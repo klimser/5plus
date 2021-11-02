@@ -93,7 +93,7 @@ class SmsBrokerApi extends BaseObject
         if ($data === false) throw new SmsBrokerApiException("Wrong response: $response");
 
         if (200 !== $code) {
-            throw new SmsBrokerApiException("Error {$data['error_code']}: {$data['error_description']}");
+            throw new SmsBrokerApiException('Error: ' . print_r($data, true));
         }
 
         return $data;
