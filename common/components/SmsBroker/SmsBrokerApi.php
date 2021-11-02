@@ -14,6 +14,26 @@ class SmsBrokerApi extends BaseObject
     protected string $password;
     protected string $sender;
 
+    public function setBaseUrl(string $baseUrl): void
+    {
+        $this->baseUrl = $baseUrl;
+    }
+
+    public function setLogin(string $login): void
+    {
+        $this->login = $login;
+    }
+
+    public function setPassword(string $password): void
+    {
+        $this->password = $password;
+    }
+
+    public function setSender(string $sender): void
+    {
+        $this->sender = $sender;
+    }
+
     public function sendSingleMessage(string $recipientPhone, string $content, ?string $from = null, ?string $messageId = null)
     {
         $recipientPhone = preg_replace('\D', '', $recipientPhone);
