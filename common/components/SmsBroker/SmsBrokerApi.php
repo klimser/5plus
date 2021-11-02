@@ -36,7 +36,7 @@ class SmsBrokerApi extends BaseObject
 
     public function sendSingleMessage(string $recipientPhone, string $content, ?string $from = null, ?string $messageId = null)
     {
-        $recipientPhone = preg_replace('\D', '', $recipientPhone);
+        $recipientPhone = preg_replace('#\D#', '', $recipientPhone);
         if (12 !== strlen($recipientPhone)) {
             throw new InvalidArgumentException('Invalid recipient phone');
         }
