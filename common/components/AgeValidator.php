@@ -4,12 +4,12 @@ namespace common\components;
 
 use common\components\helpers\StringGenerator;
 use common\models\AgeConfirmation;
-use common\models\ConfirmationCode;
 use common\models\User;
 use DateTimeImmutable;
+use Exception;
+use InvalidArgumentException;
 use Yii;
 use yii\base\BaseObject;
-use yii\log\Logger;
 
 class AgeValidator extends BaseObject
 {
@@ -18,8 +18,11 @@ class AgeValidator extends BaseObject
     /**
      * @param User[]|array $users
      */
-    public function add(string $phone, int $validDays = 7, array $users = []): bool
+    public function add(string $phone, array $users, int $validDays = 7): bool
     {
+        if (empty($users)) {
+            throw new InvalidArgumentException('You cannot validate no users');
+        }
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
@@ -44,11 +47,16 @@ class AgeValidator extends BaseObject
                 $ageConfirmations[] = $ageConfirmation;
             }
 
-            $params = [
-                'code' => $code,
-            ];
-            ComponentContainer::getPaygramApi()
-                ->sendSms(self::TEMPLATE_AGE_CONFIRMATION, substr($phone, -12, 12), $params);
+            ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+                substr($phone, -12, 12),
+                'Vash kod: ' . $code . '. Perehod po ssilke https://5plus.uz/age i vvod dannogo koda oznachaet vashe soglasie s publichnoy ofertoy OOO "Exclusive Education"',
+                'fav' . $users[0]->id . '_' . time()
+            );
+//            $params = [
+//                'code' => $code,
+//            ];
+//            ComponentContainer::getPaygramApi()
+//                ->sendSms(self::TEMPLATE_AGE_CONFIRMATION, substr($phone, -12, 12), $params);
 
             foreach ($ageConfirmations as $ageConfirmation) {
                 $ageConfirmation->status = AgeConfirmation::STATUS_SENT;
@@ -57,7 +65,7 @@ class AgeValidator extends BaseObject
             }
             $transaction->commit();
             return true;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()
                 ->logError('age-validator/add', $exception->getMessage() . ' - ' . $exception->getTraceAsString(), true);
@@ -66,9 +74,7 @@ class AgeValidator extends BaseObject
     }
 
     /**
-     * @param string $phoneFull
-     * @param User|null $user
-     * @return array|AgeConfirmation[]
+     * @return AgeConfirmation[]
      */
     public function findValid(string $phoneFull, ?User $user = null): array
     {
@@ -118,7 +124,7 @@ class AgeValidator extends BaseObject
         return true;
     }
     
-    public function invalidate(string $phone, array $users = [])
+    public function invalidate(string $phone, array $users = []): bool
     {
         $qB = AgeConfirmation::find()
             ->andWhere(['phone' => $phone])
