@@ -847,7 +847,7 @@ class AccountCommand extends UserCommand
                     'reply_markup' => $sendSmsKeyboard,
                 ];
             }
-            if (ComponentContainer::getAgeValidator()->add($phoneUsed, 7, [$user])) {
+            if (ComponentContainer::getAgeValidator()->add($phoneUsed, [$user])) {
                 return [
                     'parse_mode' => 'MarkdownV2',
                     'text' => Entity::escapeMarkdownV2(PublicMain::AGE_SMS_SENT),

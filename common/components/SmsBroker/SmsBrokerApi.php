@@ -9,10 +9,10 @@ use yii\base\BaseObject;
 
 class SmsBrokerApi extends BaseObject
 {
-    protected string $baseUrl;
-    protected string $login;
-    protected string $password;
-    protected string $sender;
+    protected string $baseUrl = '';
+    protected string $login = '';
+    protected string $password = '';
+    protected string $sender = '';
 
     public function setBaseUrl(string $baseUrl): void
     {
@@ -34,30 +34,24 @@ class SmsBrokerApi extends BaseObject
         $this->sender = $sender;
     }
 
-    public function sendSingleMessage(string $recipientPhone, string $content, ?string $from = null, ?string $messageId = null)
+    public function sendSingleMessage(string $recipientPhone, string $content, string $messageId, ?string $from = null)
     {
         $recipientPhone = preg_replace('#\D#', '', $recipientPhone);
         if (12 !== strlen($recipientPhone)) {
             throw new InvalidArgumentException('Invalid recipient phone');
         }
 
-        $sms = [
-            'content' => [
-                'text' => $content,
-            ]
-        ];
-        $sms['originator'] = $from ?? $this->sender;
         $message = [
             'recipient' => $recipientPhone,
-            'sms' => $sms,
+            'sms' => [
+                'content' => [
+                    'text' => $content,
+                ],
+                'originator' => $from ?? $this->sender,
+            ],
+            'message-id' => $messageId,
         ];
-        if ($messageId) {
-            $message['message-id'] = $messageId;
-        }
-        $params = [
-            'messages' => [$message]
-        ];
-        return $this->execute('/send', $params);
+        return $this->execute('/send', ['messages' => [$message]]);
     }
 
     private function execute(string $urlAddon, array $params = [], array $headers = [])
@@ -93,7 +87,7 @@ class SmsBrokerApi extends BaseObject
         if ($data === false) throw new SmsBrokerApiException("Wrong response: $response");
 
         if (200 !== $code) {
-            throw new SmsBrokerApiException('Error: ' . print_r($data, true));
+            throw new SmsBrokerApiException('Error ' . ($data['error-code'] ?? 'unknown') . ': ' . ($data['error-description'] ?? 'unknown'));
         }
 
         return $data;

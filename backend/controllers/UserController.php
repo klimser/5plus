@@ -885,7 +885,7 @@ class UserController extends AdminController
             return self::getJsonErrorResult('СМС не могут быть отправлены слишком часто, дождитесь получения СМС на телефон или запросите повторную отправку после ' . $blockUntil->format('H:i:s d.m.Y'));
         }
 
-        if (ComponentContainer::getAgeValidator()->add($phone, 7, [$user])) {
+        if (ComponentContainer::getAgeValidator()->add($phone, [$user])) {
             return self::getJsonOkResult(['message' => 'СМС отправлена']);
         }
 

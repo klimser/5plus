@@ -223,7 +223,7 @@ class PaymentController extends Controller
             $result['timeout'] = $blockUntil->getTimestamp() - time();
             return $result;
         }
-        if (ComponentContainer::getAgeValidator()->add($phoneFull, 7, $users)) {
+        if (ComponentContainer::getAgeValidator()->add($phoneFull, $users)) {
             $blockUntil = ComponentContainer::getAgeValidator()->getBlockUntilDate($phoneFull);
                 return self::getJsonOkResult([
                     'message' => 'СМС отправлена, введите код и нажмите "Подтвердить"',
