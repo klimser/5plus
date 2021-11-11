@@ -19,8 +19,6 @@ use common\models\Teacher;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
 use Yii;
-use yii\helpers\ArrayHelper;
-use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
 /**
@@ -30,7 +28,7 @@ class ReportController extends AdminController
 {
     public function actionGroupMovement()
     {
-        if (!Yii::$app->user->can('reportGroupMovement')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('reportGroupMovement');
 
         if (Yii::$app->request->isPost) {
             [$month, $year] = explode('.', Yii::$app->request->post('date', ''));
@@ -63,7 +61,7 @@ class ReportController extends AdminController
         $this->checkAccess('reportDebt');
 
         ob_start();
-        $objWriter = IOFactory::createWriter(DebtReport::create(), 'Xlsx');
+        $objWriter = IOFactory::createWriter((new DebtReport)->getReport(), 'Xlsx');
         $objWriter->save('php://output');
         return Yii::$app->response->sendContentAsFile(
             ob_get_clean(),
@@ -74,7 +72,7 @@ class ReportController extends AdminController
 
     public function actionMoney()
     {
-        if (!Yii::$app->user->can('reportMoney')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('reportMoney');
 
         if (Yii::$app->request->isPost) {
             [$month, $year] = explode('.', Yii::$app->request->post('date', ''));
@@ -85,7 +83,7 @@ class ReportController extends AdminController
 
                 $groupId = Yii::$app->request->post('group');
                 if ($groupId == 'all') {
-                    if (!Yii::$app->user->can('reportMoneyTotal')) throw new ForbiddenHttpException('Access denied!');
+                    $this->checkAccess('reportMoneyTotal');
 
                     $spreadsheet = MoneyReport::createAll($startDate, $endDate);
                 } else {
@@ -115,7 +113,7 @@ class ReportController extends AdminController
 
     public function actionCash()
     {
-        if (!Yii::$app->user->can('reportCash')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('reportCash');
 
         if (Yii::$app->request->isPost) {
             $date = new \DateTimeImmutable(Yii::$app->request->post('date', 'now'));
@@ -139,7 +137,7 @@ class ReportController extends AdminController
 
     public function actionRestMoney()
     {
-        if (!Yii::$app->user->can('reportCash')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('reportCash');
 
         ob_start();
         $objWriter = IOFactory::createWriter(
@@ -156,7 +154,7 @@ class ReportController extends AdminController
     
     public function actionManagerSalary()
     {
-        if (!Yii::$app->user->can('reportMoney')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('reportMoney');
 
         if (Yii::$app->request->isPost) {
             $date = new \DateTimeImmutable(Yii::$app->request->post('date', 'now'));
