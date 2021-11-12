@@ -39,7 +39,7 @@ trait UploadImage
     /**
      * @param string $filename
      */
-    public abstract static function deleteImages($filename);
+    public abstract static function deleteImages(string $filename): void;
 
     /**
      * @param null|string $uploadedField
