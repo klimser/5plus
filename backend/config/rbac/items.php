@@ -17,6 +17,7 @@ return [
             'pupilChangePast',
             'moneyCorrection',
             'deleteTeachers',
+            'adminSchedule',
         ],
     ],
     'manager' => [
@@ -172,6 +173,10 @@ return [
     'manageSchedule' => [
         'type' => 2,
         'description' => 'Manage schedule',
+    ],
+    'adminSchedule' => [
+        'type' => 2,
+        'description' => 'Admin schedule, change statuses after',
     ],
     'viewMissed' => [
         'type' => 2,

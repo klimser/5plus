@@ -4,6 +4,8 @@ let WelcomeLesson = {
     statusMissed: 3,
     statusCanceled: 4,
     statusDenied: 5,
+    statusSuccess: 6,
+    statusRescheduled: 7,
 
     denyReasonTeacher: 1,
     denyReasonLevelTooLow: 2,

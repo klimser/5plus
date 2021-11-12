@@ -4,10 +4,10 @@ namespace common\components\extended;
 
 class ActiveRecord extends \yii\db\ActiveRecord
 {
-    const STATUS_ACTIVE = 1;
-    const STATUS_INACTIVE = 0;
+    public const STATUS_ACTIVE = 1;
+    public const STATUS_INACTIVE = 0;
 
-    public function moveErrorsToFlash()
+    public function moveErrorsToFlash(): void
     {
         if (!empty($this->errors)) {
             foreach ($this->getErrors() as $field => $errorArray) {
@@ -19,7 +19,7 @@ class ActiveRecord extends \yii\db\ActiveRecord
     }
 
     /**
-     * @return array|string[]
+     * @return array<string>
      */
     public function getErrorsAsStringArray(): array
     {
@@ -34,11 +34,7 @@ class ActiveRecord extends \yii\db\ActiveRecord
         return $errors;
     }
 
-    /**
-     * @param string|null $field
-     * @return string
-     */
-    public function getErrorsAsString($field = null): string
+    public function getErrorsAsString(?string $field = null): string
     {
         $output = '';
         if (!empty($this->errors)) {
@@ -61,10 +57,9 @@ class ActiveRecord extends \yii\db\ActiveRecord
 
     /**
      * @param \yii\db\ActiveRecord[] $list
-     * @param string $fieldName
-     * @return array
      */
-    public static function getListAsMap($list, $fieldName = 'id') {
+    public static function getListAsMap(array $list, string $fieldName = 'id'): array
+    {
         $map = [];
         /** @var \yii\db\ActiveRecord $list */
         foreach ($list as $element) {
@@ -73,24 +68,16 @@ class ActiveRecord extends \yii\db\ActiveRecord
         return $map;
     }
 
-    /**
-     * @param string $text
-     * @param string $highlightClassName
-     * @return string
-     */
-    public static function convertTextForEditor($text, $highlightClassName) {
+    public static function convertTextForEditor(string $text, string $highlightClassName): string
+    {
         if (!is_string($text)) $text = '';
         $text = str_replace(['<span class="' . $highlightClassName . '">', '</span>', '</p><p>'], ['{{', '}}', "\n"], $text);
         $text = str_replace(['<p>', '</p>'], '', $text);
         return $text;
     }
 
-    /**
-     * @param string $text
-     * @param string $highlightClassName
-     * @return string
-     */
-    public static function convertTextForDB($text, $highlightClassName) {
+    public static function convertTextForDB(string $text, string $highlightClassName): string
+    {
         if (!is_string($text)) $text = '';
         $text = str_replace(['{{', '}}'], ['<span class="' . $highlightClassName . '">', '</span>'], trim($text));
         $text = '<p>' . str_replace(["\r\n", "\n\r", "\n", "\r"], '</p><p>', $text) . '</p>';
@@ -98,10 +85,8 @@ class ActiveRecord extends \yii\db\ActiveRecord
         return $text;
     }
 
-    /**
-     * @param string $filename
-     */
-    public static function deleteImages($filename) {
+    public static function deleteImages(string $filename): void
+    {
         if (file_exists($filename)) @unlink($filename);
         $parts = explode('.', $filename);
         if (count($parts) > 1) {

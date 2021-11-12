@@ -8,6 +8,7 @@ use common\models\Group;
 use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\Teacher;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "{{%event}}".
@@ -193,12 +194,10 @@ class Event extends ActiveRecord
     }
 
     /**
-     * @return WelcomeLesson[]|array
+     * @return ActiveQuery
      */
-    public function getWelcomeMembers(): array
+    public function getWelcomeMembers()
     {
-        return WelcomeLesson::find()
-            ->andWhere(['group_id' => $this->group_id, 'lesson_date' => $this->event_date])
-            ->all();
+        return $this->hasMany(WelcomeLesson::class, ['group_id' => 'group_id', 'lesson_date' => 'event_date']);
     }
 }

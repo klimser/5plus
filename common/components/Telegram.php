@@ -13,7 +13,7 @@ use Longman\TelegramBot\Telegram as TelegramBot;
 use yii\web\Request;
 
 /**
- * @property TelegramBot $telegram
+ * @property TelegramBot|null $telegram
  */
 class Telegram extends BaseObject
 {
@@ -21,7 +21,7 @@ class Telegram extends BaseObject
 
     protected string $apiKey;
     protected string $botName;
-    protected string  $commandsPath;
+    protected string $commandsPath;
     protected string $tablePrefix = '';
     protected string $webhookKey;
     protected array $callbackHandlers = [];
@@ -61,8 +61,8 @@ class Telegram extends BaseObject
     {
         $this->paymentToken = $token;
     }
-
-    public function getTelegram(): TelegramBot
+    
+    public function initBot(): void
     {
         if ($this->bot === null) {
             $this->bot = new TelegramBot($this->apiKey, $this->botName);
@@ -74,7 +74,7 @@ class Telegram extends BaseObject
             foreach ($this->callbackHandlers as $callbackHandler) {
                 CallbackqueryCommand::addCallbackHandler($callbackHandler);
             }
-            
+
             $errorLogger = (new StreamHandler(Yii::getAlias('@runtime/telegram') . '/' . $this->botName . '_error.log', Logger::ERROR))
                 ->setFormatter(new LineFormatter(null, null, true));
 
@@ -94,6 +94,11 @@ class Telegram extends BaseObject
                 TelegramLog::initialize(new Logger('telegram_bot_' . $this->botName, [$errorLogger]));
             }
         }
+    }
+
+    public function getTelegram(): TelegramBot
+    {
+        $this->initBot();
         return $this->bot;
     }
 

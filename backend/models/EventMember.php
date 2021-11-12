@@ -15,6 +15,9 @@ use yii;
  * @property int $event_id
  * @property int $status
  * @property int $mark
+ * @property int $mark_homework
+ * @property int $attendance_notification_sent
+ * @property int $mark_notification_sent
  *
  * @property Event $event
  * @property GroupPupil $groupPupil
@@ -37,7 +40,7 @@ class EventMember extends ActiveRecord
     {
         return [
             [['group_pupil_id', 'event_id'], 'required'],
-            [['group_pupil_id', 'event_id', 'status', 'mark'], 'integer'],
+            [['group_pupil_id', 'event_id', 'status', 'mark', 'mark_homework'], 'integer'],
             [['event_id'], 'exist', 'targetRelation' => 'event'],
             [['group_pupil_id'], 'exist', 'targetRelation' => 'groupPupil'],
             [['status'], 'in', 'range' => [self::STATUS_UNKNOWN, self::STATUS_ATTEND, self::STATUS_MISS]],
@@ -51,7 +54,8 @@ class EventMember extends ActiveRecord
             'id' => 'ID',
             'event_id' => 'Занятие',
             'status' => 'Статус',
-            'mark' => 'Оценка',
+            'mark' => 'Оценка в классе',
+            'mark_homework' => 'Оценка ДЗ',
         ];
     }
 

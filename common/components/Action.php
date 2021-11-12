@@ -8,17 +8,21 @@ use yii\base\BaseObject;
 
 class Action extends BaseObject
 {
-    const TYPE_INCOME = 1;
-    const TYPE_CHARGE = 2;
-    const TYPE_CANCEL_AUTO = 3;
-    const TYPE_RECHARGE_AUTO = 4;
-    const TYPE_CANCEL_MANUAL = 5;
-    const TYPE_CONTRACT_ADDED = 6;
-    const TYPE_CONTRACT_PAID = 7;
-    const TYPE_GROUP_ADDED = 11;
-    const TYPE_GROUP_UPDATED = 12;
-    const TYPE_GROUP_PUPIL_ADDED = 13;
-    const TYPE_GROUP_PUPIL_UPDATED = 14;
+    public const TYPE_INCOME = 1;
+    public const TYPE_CHARGE = 2;
+    public const TYPE_CANCEL_AUTO = 3;
+    public const TYPE_RECHARGE_AUTO = 4;
+    public const TYPE_CANCEL_MANUAL = 5;
+    public const TYPE_CONTRACT_ADDED = 6;
+    public const TYPE_CONTRACT_PAID = 7;
+    public const TYPE_GROUP_ADDED = 11;
+    public const TYPE_GROUP_UPDATED = 12;
+    public const TYPE_GROUP_PUPIL_ADDED = 13;
+    public const TYPE_GROUP_PUPIL_UPDATED = 14;
+    public const TYPE_EVENT_PASSED = 15;
+    public const TYPE_EVENT_CANCELLED = 16;
+    public const TYPE_EVENT_STATUS_REVERTED = 17;
+    public const TYPE_WELCOME_LESSON_STATUS_CHANGED = 18;
 
     public const TYPE_LABELS = [
         self::TYPE_INCOME => 'Внесение админом',
@@ -32,17 +36,13 @@ class Action extends BaseObject
         self::TYPE_GROUP_UPDATED => 'Данные группы изменены',
         self::TYPE_GROUP_PUPIL_ADDED => 'Студент добавлен в группу',
         self::TYPE_GROUP_PUPIL_UPDATED => 'Изменены данные студента в группе',
+        self::TYPE_EVENT_PASSED => 'Занятие отмечено проведенным',
+        self::TYPE_EVENT_CANCELLED => 'Занятие отмечено отмененным',
+        self::TYPE_EVENT_STATUS_REVERTED => 'Статус занятия сброшен',
+        self::TYPE_WELCOME_LESSON_STATUS_CHANGED => 'Статус пробного занятия изменён',
     ];
 
-    /**
-     * @param int $type
-     * @param User $user
-     * @param int $amount
-     * @param Group|null $group
-     * @param string|null $comment
-     * @return bool
-     */
-    public function log(int $type, ?User $user = null, ?int $amount = null, ?Group $group = null, $comment = null)
+    public function log(int $type, ?User $user = null, ?int $amount = null, ?Group $group = null, ?string $comment = null): bool
     {
         $action = new \backend\models\Action();
         $action->admin_id = \Yii::$app->user->id;

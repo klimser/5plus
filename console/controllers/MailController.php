@@ -2,11 +2,12 @@
 
 namespace console\controllers;
 
+use common\components\ComponentContainer;
 use Longman\TelegramBot\Request;
 use common\models\EmailQueue;
 use common\models\GiftCard;
 use Longman\TelegramBot\DB;
-use yii;
+use Yii;
 use yii\console\Controller;
 
 /**
@@ -23,9 +24,9 @@ class MailController extends Controller
         $condition = ['state' => EmailQueue::STATUS_NEW];
 
         $tryTelegram = false;
-        if (array_key_exists('telegramAdminNotifier', \Yii::$app->components)) {
-            \Yii::$app->db->open();
-            \Yii::$app->telegramAdminNotifier->telegram;
+        if (array_key_exists('telegramAdminNotifier', Yii::$app->components)) {
+            Yii::$app->db->open();
+            ComponentContainer::getTelegramAdminNotifier()->initBot();
             $subscribed = DB::selectChats([]);
             if (!empty($subscribed)) $tryTelegram = true;
         }
@@ -38,21 +39,15 @@ class MailController extends Controller
 
             $sendEmail = true;
             if ($tryTelegram) {
-                $message = null;
-                switch ($toSend->template_html) {
-                    case 'order-html':
-                        $message = "На сайте посетитель {$params['userName']} оставил заявку на занятие \"{$params['subjectName']}\".\n"
-                            . '[Обработать заявку](https://cabinet.5plus.uz/order/index)';
-                        break;
-                    case 'review-html':
-                        $message = "На сайте посетитель {$params['userName']} оставил отзыв, проверьте его содержание и утвердите или отклоните его.\n"
-                            . '[Обработать отзыв](https://cabinet.5plus.uz/review/index)';
-                        break;
-                    case 'feedback-html':
-                        $message = "На сайте посетитель {$params['userName']} оставил сообщение через форму обратной связи.\n"
-                            . '[Обработать сообщение](https://cabinet.5plus.uz/feedback/index)';
-                        break;
-                }
+                $message = match ($toSend->template_html) {
+                    'order-html' => "На сайте посетитель {$params['userName']} оставил заявку на занятие \"{$params['subjectName']}\".\n"
+                        . '[Обработать заявку](https://cabinet.5plus.uz/order/index)',
+                    'review-html' => "На сайте посетитель {$params['userName']} оставил отзыв, проверьте его содержание и утвердите или отклоните его.\n"
+                        . '[Обработать отзыв](https://cabinet.5plus.uz/review/index)',
+                    'feedback-html' => "На сайте посетитель {$params['userName']} оставил сообщение через форму обратной связи.\n"
+                        . '[Обработать сообщение](https://cabinet.5plus.uz/feedback/index)',
+                    default => null,
+                };
                 if ($message) {
                     /** @var \Longman\TelegramBot\Entities\ServerResponse[] $results */
                     $results = Request::sendToActiveChats(

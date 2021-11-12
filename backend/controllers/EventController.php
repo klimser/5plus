@@ -2,39 +2,45 @@
 
 namespace backend\controllers;
 
+use backend\components\EventComponent;
 use backend\models\WelcomeLesson;
+use common\components\Action;
 use common\components\ComponentContainer;
 use common\components\GroupComponent;
+use common\components\helpers\WordForm;
 use common\components\MoneyComponent;
 use backend\models\Event;
 use backend\models\EventMember;
 use common\models\GroupParam;
+use DateTime;
+use Exception;
+use Throwable;
 use yii;
 use yii\web\NotFoundHttpException;
-use yii\web\BadRequestHttpException;
+use yii\web\Response;
 
 class EventController extends AdminController
 {
+    private string $adminRule = 'adminSchedule';
     protected $accessRule = 'manageSchedule';
+    
 
-    private function getLimitDate(): \DateTime
+    private function getLimitDate(): DateTime
     {
 //        return new \DateTime('+30 minute');
-        return new \DateTime('tomorrow midnight');
+        return new DateTime('tomorrow midnight');
     }
 
     /**
      * @param Event $event
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     private function isTeacherHasAccess(Event $event): bool
     {
         if (Yii::$app->user->can('teacher')) {
-            $groupParam = GroupComponent::getGroupParam($event->group, new \DateTime());
-            if ($groupParam->teacher_id != Yii::$app->user->identity->teacher_id) {
-                return false;
-            }
+            $groupParam = GroupComponent::getGroupParam($event->group, new DateTime());
+            return $groupParam->teacher_id == Yii::$app->user->identity->teacher_id;
         }
         return true;
     }
@@ -43,7 +49,7 @@ class EventController extends AdminController
      * Lists all Event models.
      * @param string|null $date
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public function actionIndex(?string $date = null)
     {
@@ -53,7 +59,7 @@ class EventController extends AdminController
         $eventsQuery = Event::find()
             ->where('event_date > :startDate', [':startDate' => $startDate->format('Y-m-d H:i:s')])
             ->andWhere('event_date < :endDate', [':endDate' => $endDate->format('Y-m-d H:i:s')])
-            ->with(['group', 'members.groupPupil.user'])
+            ->with(['group', 'members.groupPupil.user', 'welcomeMembers'])
             ->orderBy(['event_date' => SORT_ASC]);
         
         if (Yii::$app->user->can('teacher')) {
@@ -79,183 +85,228 @@ class EventController extends AdminController
             'events' => $events,
             'limitDate' => $this->getLimitDate(),
             'isTeacher' => Yii::$app->user->can('teacher'),
+            'isAdmin' => Yii::$app->user->can($this->adminRule),
         ]);
     }
 
-    /**
-     * @param int $event
-     * @return yii\web\Response
-     * @throws yii\db\Exception
-     * @throws BadRequestHttpException
-     */
-    public function actionChangeStatus($event)
+    public function actionGet(int $id)
     {
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
         /** @var Event $event */
-        $event = Event::find()->andWhere(['id' => $event])->with('members.groupPupil.user')->one();
-        if (!$event) $jsonData = self::getJsonErrorResult('Event not found');
-        else {
-            $status = Yii::$app->getRequest()->post('status');
-            
-            if (!$this->isTeacherHasAccess($event)
-                || $event->status != Event::STATUS_UNKNOWN
-                || $event->eventDateTime > $this->getLimitDate()) {
-                $jsonData = self::getJsonErrorResult('Event edit denied!');
-            } elseif (!in_array($status, [Event::STATUS_PASSED, Event::STATUS_CANCELED])) $jsonData = self::getJsonErrorResult('Wrong status!');
-            else {
-                $transaction = \Yii::$app->db->beginTransaction();
-                try {
-                    $event->status = $status;
-                    if (!$event->save()) {
-                        ComponentContainer::getErrorLogger()
-                            ->logError('event/change-status', $event->getErrorsAsString(), true);
-                        throw new \Exception('Server error');
-                    } else {
-                        switch ($status) {
-                            case Event::STATUS_PASSED:
-                                MoneyComponent::chargeByEvent($event);
-                                GroupComponent::calculateTeacherSalary($event->group);
-
-                                foreach ($event->members as $member) {
-                                    MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
-                                    if ($member->groupPupil->user->getDebt($member->groupPupil->group)) {
-                                        ComponentContainer::getBotPush()->lowBalance($member->groupPupil);
-                                    }
-                                }
-                                break;
-                            case Event::STATUS_CANCELED:
-                                foreach ($event->members as $member) {
-                                    $member->status = EventMember::STATUS_MISS;
-                                    $member->save();
-                                    MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
-                                }
-                                foreach ($event->welcomeMembers as $welcomeMember) {
-                                    $welcomeMember->status = WelcomeLesson::STATUS_CANCELED;
-                                    $welcomeMember->save();
-                                }
-                                break;
-                        }
-
-                        $transaction->commit();
-                        $jsonData = self::getJsonOkResult([
-                            'eventId' => $event->id,
-                            'eventStatus' => (int)$event->status,
-                        ]);
-                    }
-                } catch (\Throwable $ex) {
-                    $transaction->rollBack();
-                    ComponentContainer::getErrorLogger()
-                        ->logError('event/change-status', $ex->getMessage(), true);
-                    $jsonData = self::getJsonErrorResult($ex->getMessage());
-                }
-            }
+        $event = Event::find()
+            ->andWhere(['id' => $id])
+            ->with(['members.groupPupil.user', 'welcomeMembers.user'])
+            ->one();
+        if (empty($event)) {
+            return self::getJsonErrorResult('Event not found');
         }
-
-        return $this->asJson($jsonData);
+        
+        return self::getJsonOkResult(['eventData' => $this->prepareEventData($event)]);
     }
 
-    /**
-     * @param int $memberId
-     * @param null $welcomeMemberId
-     * @return yii\web\Response
-     * @throws BadRequestHttpException
-     */
-    public function actionSetPupilStatus($memberId = null, $welcomeMemberId = null)
+    public function actionChangeStatus(int $id)
     {
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
-        if (!$memberId && !$welcomeMemberId) throw new BadRequestHttpException('Wrong request');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $status = intval(Yii::$app->getRequest()->post('status'));
-        if ($memberId) {
-            /** @var EventMember $eventMember */
-            $eventMember = EventMember::findOne($memberId);
-            if (!$eventMember) $jsonData = self::getJsonErrorResult('Pupil not found');
-            else {
-                if (!in_array($status, [EventMember::STATUS_ATTEND, EventMember::STATUS_MISS])) $jsonData = self::getJsonErrorResult('Wrong status!');
-                elseif (!$this->isTeacherHasAccess($eventMember->event)
-                    || $eventMember->event->eventDateTime > $this->getLimitDate()
-                    || ($eventMember->status != EventMember::STATUS_UNKNOWN && ($eventMember->status != EventMember::STATUS_MISS || $eventMember->event->limitAttendTimestamp < time()))) {
-                    $jsonData = self::getJsonErrorResult('Pupil edit denied!');
-                } elseif (Yii::$app->user->can('teacher')
-                    && $eventMember->event->teacherEditLimitDate < new \DateTime()) {
-                    $jsonData = self::getJsonErrorResult('Прошло слишком много времени после завершения занятия! Обратитесь в администрацию');
-                } else {
-                    $eventMember->status = $status;
-                    if ($eventMember->save()) {
-                        if ($eventMember->event->eventDateTime >= date_create('midnight')) {
-                            ComponentContainer::getBotPush()->attendance($eventMember);
-                        }
-                        $jsonData = self::getJsonOkResult([
-                            'memberId' => $eventMember->id,
-                            'memberStatus' => $eventMember->status,
-                        ]);
-                    } else {
-                        ComponentContainer::getErrorLogger()
-                            ->logError('Event.setPupilStatus', $eventMember->getErrorsAsString(), true);
-                        $jsonData = self::getJsonErrorResult('Server error');
-                    }
-                }
-            }
-        } elseif ($welcomeMemberId) {
-            $welcomeLesson = WelcomeLesson::findOne(['id' => $welcomeMemberId, 'status' => WelcomeLesson::STATUS_UNKNOWN]);
-            if (!$welcomeLesson) $jsonData = self::getJsonErrorResult('Pupil not found');
-            elseif (!in_array($status, [WelcomeLesson::STATUS_PASSED, WelcomeLesson::STATUS_MISSED])) $jsonData = self::getJsonErrorResult('Wrong status!');
-            else {
-                $welcomeLesson->status = $status;
-                $welcomeLesson->save();
-                if ($welcomeLesson->save()) {
-                    $jsonData = self::getJsonOkResult([
-                        'welcomeMemberId' => $welcomeLesson->id,
-                        'memberStatus' => $welcomeLesson->status,
-                    ]);
-                } else {
-                    ComponentContainer::getErrorLogger()
-                        ->logError('Event.setWelcomePupilStatus', $welcomeLesson->getErrorsAsString(), true);
-                    $jsonData = self::getJsonErrorResult('Server error');
-                }
-            }
+        /** @var Event $event */
+        $event = Event::find()->andWhere(['id' => $id])->with('members.groupPupil.user')->one();
+        if (!$event) {
+            return self::getJsonErrorResult('Event not found');
         }
 
-        return $this->asJson($jsonData);
-    }
+        $status = Yii::$app->getRequest()->post('status');
+        
+        if (!$this->isTeacherHasAccess($event)
+            || (!Yii::$app->user->can($this->adminRule) && $event->status != Event::STATUS_UNKNOWN)
+            || $event->eventDateTime > $this->getLimitDate()) {
+            return self::getJsonErrorResult('Event edit denied!');
+        } 
+        if (!in_array($status, [Event::STATUS_PASSED, Event::STATUS_CANCELED])) {
+            return self::getJsonErrorResult('Wrong status!');
+        }
 
-    /**
-     * @param int $member
-     * @return yii\web\Response
-     * @throws yii\web\BadRequestHttpException
-     */
-    public function actionSetPupilMark($member)
-    {
-        if (!Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
-
-        /** @var EventMember $eventMember */
-        $eventMember = EventMember::findOne($member);
-        $mark = intval(Yii::$app->getRequest()->post('mark'));
-        if (!$eventMember) $jsonData = self::getJsonErrorResult('Pupil not found');
-        elseif (!$this->isTeacherHasAccess($eventMember->event) || $eventMember->status != EventMember::STATUS_ATTEND) {
-            $jsonData = self::getJsonErrorResult('Pupil edit denied!');
-        } elseif ($mark <= 0 || $mark > 5) {
-            $jsonData = self::getJsonErrorResult('Wrong mark!');
-        } elseif (Yii::$app->user->can('teacher')
-            && $eventMember->event->teacherEditLimitDate < new \DateTime()) {
-            $jsonData = self::getJsonErrorResult('Прошло слишком много времени после завершения занятия! Обратитесь в администрацию');
-        }else {
-            $eventMember->mark = $mark;
-            if ($eventMember->save()) {
-                ComponentContainer::getBotPush()->mark($eventMember);
-                $jsonData = self::getJsonOkResult([
-                    'memberId' => $eventMember->id,
-                    'memberMark' => $eventMember->mark,
-                ]);
-            } else {
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $revertMemberStatuses = Event::STATUS_CANCELED == $event->status && Event::STATUS_PASSED == $status;
+            $recalculateCharges = Event::STATUS_PASSED == $event->status && Event::STATUS_CANCELED == $status;
+            if (!empty($event->status)) {
+                ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_STATUS_REVERTED, null, null, $event->group);
+            }
+            $event->status = $status;
+            if (!$event->save()) {
                 ComponentContainer::getErrorLogger()
-                    ->logError('Event.setPupilMark', $eventMember->getErrorsAsString(), true);
-                $jsonData = self::getJsonErrorResult();
+                    ->logError('event/change-status', $event->getErrorsAsString(), true);
+                throw new Exception('Server error');
+            }
+            switch ($status) {
+                case Event::STATUS_PASSED:
+                    MoneyComponent::chargeByEvent($event);
+                    GroupComponent::calculateTeacherSalary($event->group);
+
+                    foreach ($event->members as $member) {
+                        MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
+                        if ($member->groupPupil->user->getDebt($member->groupPupil->group)) {
+                            ComponentContainer::getBotPush()->lowBalance($member->groupPupil);
+                        }
+                        if ($revertMemberStatuses) {
+                            $member->status = EventMember::STATUS_UNKNOWN;
+                            $member->save();
+                        }
+                    }
+                    if ($revertMemberStatuses) {
+                        foreach ($event->welcomeMembers as $welcomeMember) {
+                            $welcomeMember->status = WelcomeLesson::STATUS_UNKNOWN;
+                            $welcomeMember->save();
+                        }
+                    }
+                    ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_PASSED, null, null, $event->group);
+                    break;
+                case Event::STATUS_CANCELED:
+                    if ($recalculateCharges) {
+                        EventComponent::fillSchedule($event->group);
+                    }
+                    foreach ($event->members as $member) {
+                        $member->status = EventMember::STATUS_MISS;
+                        $member->save();
+                        if ($recalculateCharges) {
+                            MoneyComponent::rechargePupil($member->groupPupil->user, $event->group);
+                        }
+                        MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
+                    }
+                    foreach ($event->welcomeMembers as $welcomeMember) {
+                        $welcomeMember->status = WelcomeLesson::STATUS_CANCELED;
+                        $welcomeMember->save();
+                    }
+                    if ($recalculateCharges) {
+                        GroupComponent::calculateTeacherSalary($event->group);
+                    }
+                    ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_CANCELLED, null, null, $event->group);
+                    break;
+            }
+
+            $transaction->commit();
+            return self::getJsonOkResult(['eventData' => $this->prepareEventData($event)]);
+        } catch (Throwable $ex) {
+            $transaction->rollBack();
+            ComponentContainer::getErrorLogger()
+                ->logError('event/change-status', $ex->getMessage(), true);
+            return self::getJsonErrorResult($ex->getMessage());
+        }
+    }
+
+    public function actionSetWelcomeMemberStatus(int $id)
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $status = intval(Yii::$app->getRequest()->post('status'));
+        
+        $welcomeLesson = WelcomeLesson::findOne(['id' => $id, 'status' => WelcomeLesson::STATUS_UNKNOWN]);
+        if (!$welcomeLesson) {
+            return self::getJsonErrorResult('Student not found');
+        }
+        if (!in_array($status, [WelcomeLesson::STATUS_PASSED, WelcomeLesson::STATUS_MISSED])) {
+            return self::getJsonErrorResult('Wrong status!');
+        }
+        
+        $welcomeLesson->status = $status;
+        if (!$welcomeLesson->save()) {
+            ComponentContainer::getErrorLogger()
+                ->logError('Event.setWelcomePupilStatus', $welcomeLesson->getErrorsAsString(), true);
+            return self::getJsonErrorResult();
+        }
+        ComponentContainer::getActionLogger()
+            ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->group, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
+
+        return self::getJsonOkResult(['member' => $this->prepareWelcomeMemberData($welcomeLesson)]);
+    }
+
+    public function actionSetMemberStatus(int $id)
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $status = intval(Yii::$app->getRequest()->post('status'));
+
+        /** @var EventMember $member */
+        if (!$member = EventMember::findOne($id)) {
+            return self::getJsonErrorResult('Student not found');
+        }
+        if (!in_array($status, [EventMember::STATUS_ATTEND, EventMember::STATUS_MISS])) {
+            return self::getJsonErrorResult('Wrong status!');
+        }
+
+        if ($status !== $member->status) {
+            if (!Yii::$app->user->can($this->adminRule) &&
+                (!$this->isTeacherHasAccess($member->event)
+                    || $member->event->eventDateTime > $this->getLimitDate()
+                    || ($member->status != EventMember::STATUS_UNKNOWN && ($member->status != EventMember::STATUS_MISS || $member->event->limitAttendTimestamp < time())))) {
+                return self::getJsonErrorResult('Student edit denied!');
+            }
+            if (Yii::$app->user->can('teacher')
+                && $member->event->teacherEditLimitDate < new DateTime()) {
+                return self::getJsonErrorResult('Прошло слишком много времени после завершения занятия! Обратитесь в администрацию');
+            }
+
+            $member->status = $status;
+            if ($member->status == EventMember::STATUS_MISS) {
+                $member->mark = null;
+                $member->mark_homework = null;
+            }
+            if (!$member->save()) {
+                ComponentContainer::getErrorLogger()
+                    ->logError('Event.setPupilStatus', $member->getErrorsAsString(), true);
+                return self::getJsonErrorResult();
+            }
+
+            if ($member->event->eventDateTime >= date_create('midnight') && !$member->attendance_notification_sent) {
+                ComponentContainer::getBotPush()->attendance($member);
+                $member->attendance_notification_sent = 1;
+                $member->save();
             }
         }
 
-        return $this->asJson($jsonData);
+        return self::getJsonOkResult(['member' => $this->prepareMemberData($member)]);
+    }
+
+    public function actionSetMark(int $memberId)
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        /** @var EventMember $member */
+        $member = EventMember::findOne($memberId);
+        $mark = intval(Yii::$app->getRequest()->post('mark'));
+        $markHomework = intval(Yii::$app->getRequest()->post('mark_homework'));
+        if (!$member) {
+            return self::getJsonErrorResult('Student not found');
+        }
+        if (!$this->isTeacherHasAccess($member->event) || $member->status != EventMember::STATUS_ATTEND) {
+            return self::getJsonErrorResult('Mark set denied!');
+        }
+        if (Yii::$app->user->can('teacher') && $member->event->teacherEditLimitDate < new DateTime()) {
+            return self::getJsonErrorResult('Прошло слишком много времени после завершения занятия! Обратитесь в администрацию');
+        }
+        if ($mark > 0 && $mark <= 5) {
+            $member->mark = $mark;
+        }
+        if ($markHomework > 0 && $markHomework <= 5) {
+            $member->mark_homework = $markHomework;
+        }
+
+        if ($member->save()) {
+            if ($member->mark > 0 && $member->event->eventDateTime >= date_create('midnight') && !$member->mark_notification_sent) {
+                ComponentContainer::getBotPush()->mark($member);
+                $member->mark_notification_sent = 1;
+                $member->save();
+            }
+            return self::getJsonOkResult(['member' => $this->prepareMemberData($member)]);
+        } else {
+            ComponentContainer::getErrorLogger()
+                ->logError('Event.setMark', $member->getErrorsAsString(), true);
+            return self::getJsonErrorResult();
+        }
     }
 
     /**
@@ -272,5 +323,57 @@ class EventController extends AdminController
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+    private function prepareEventData(Event $event): array
+    {
+        $members = [];
+        foreach ($event->members as $member) {
+            $members[] = $this->prepareMemberData($member);
+        }
+        $welcomeMembers = [];
+        foreach ($event->welcomeMembers as $welcomeLesson) {
+            $welcomeMembers[] = $this->prepareWelcomeMemberData($welcomeLesson);
+        }
+        return [
+            'id' => $event->id,
+            'status' => (int)$event->status,
+            'time' => $event->eventTime,
+            'limitAttendTimestamp' => $event->limitAttendTimestamp,
+            'name' => $event->group->name,
+            'teacher' => $event->teacher->name,
+            'members' => $members,
+            'welcomeMembers' => $welcomeMembers,
+        ];
+    }
+    private function prepareMemberData(EventMember $member): array
+    {
+        return [
+            'id' => $member->id,
+            'status' => $member->status,
+            'mark' => $member->mark,
+            'markHomework' => $member->mark_homework,
+            'groupPupil' => [
+                'id' => $member->groupPupil->id,
+                'debtMessage' => $member->groupPupil->paid_lessons < 0 ? 'долг ' . (0 - $member->groupPupil->paid_lessons) . ' ' . WordForm::getLessonsForm($member->groupPupil->paid_lessons) . '!' : null,
+                'paidLessons' => $member->groupPupil->paid_lessons,
+                'user' => [
+                    'id' => $member->groupPupil->user->id,
+                    'name' => $member->groupPupil->user->name,
+                    'note' => $member->groupPupil->user->note,
+                ]
+            ]
+        ];
+    }
+    private function prepareWelcomeMemberData(WelcomeLesson $welcomeLesson): array
+    {
+        return [
+            'id' => $welcomeLesson->id,
+            'status' => $welcomeLesson->status,
+            'user' => [
+                'id' => $welcomeLesson->user->id,
+                'name' => $welcomeLesson->user->name,
+                'note' => $welcomeLesson->user->note,
+            ]
+        ];
     }
 }

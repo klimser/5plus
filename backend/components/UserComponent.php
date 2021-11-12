@@ -29,6 +29,7 @@ class UserComponent extends Component
         'sendPush' => 'Отправлять сообщения подписчикам в Telegram',
         'viewNotes' => 'Смотреть темы групп',
         'reportMoneyTotal' => 'Просмотр финансового отчета по всем группам',
+        'adminSchedule' => 'Администратор расписания (изменение статуса занятий/студентов)',
     ];
     
     public const ACL_TEACHER_RULES =[

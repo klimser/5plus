@@ -130,6 +130,8 @@ class WelcomeLessonController extends AdminController
         if (!$welcomeLesson->save()) {
             return self::getJsonErrorResult($welcomeLesson->getErrorsAsString('status'));
         }
+        ComponentContainer::getActionLogger()
+            ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->group, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
 
         return $this->getAjaxInfoResult($welcomeLesson);
     }
@@ -253,6 +255,8 @@ class WelcomeLessonController extends AdminController
             if (!$newWelcomeLesson->save()) {
                 throw new \Exception('Server error: ' . $newWelcomeLesson->getErrorsAsString());
             }
+            ComponentContainer::getActionLogger()
+                ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->group, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
 
             $transaction->commit();
             return $this->getAjaxInfoResult($welcomeLesson);
@@ -318,6 +322,8 @@ class WelcomeLessonController extends AdminController
             MoneyComponent::setUserChargeDates($welcomeLesson->user, $group);
             $welcomeLesson->status = WelcomeLesson::STATUS_SUCCESS;
             $welcomeLesson->save();
+            ComponentContainer::getActionLogger()
+                ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->group, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
             $transaction->commit();
             return $this->getAjaxInfoResult($welcomeLesson);
         } catch (\Throwable $exception) {

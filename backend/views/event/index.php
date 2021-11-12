@@ -1,11 +1,8 @@
 <?php
 
-use backend\models\WelcomeLesson;
-use common\components\helpers\WordForm;
 use yii\bootstrap4\Html;
 use common\components\helpers\Calendar;
 use \backend\models\Event;
-use \backend\models\EventMember;
 use yii\helpers\Url;
 use yii\jui\DatePicker;
 
@@ -14,6 +11,7 @@ use yii\jui\DatePicker;
 /* @var $events Event[] */
 /* @var $limitDate \DateTime */
 /* @var $isTeacher bool */
+/* @var $isAdmin bool */
 
 $this->title = 'Расписание ' . $startDate->format('d.m.Y');
 $this->params['breadcrumbs'][] = $this->title;
@@ -22,7 +20,7 @@ $previousDate = $startDate->modify('-1 day');
 $nextDate = $startDate->modify('+1 day');
 
 $this->registerJs('
-StudyEvent.init(' . time() . ');
+StudyEvent.init(' . time() . ', ' . $limitDate->getTimestamp() . ', ' . ($isTeacher ? 'true' : 'false') . ', ' . ($isAdmin ? 'true' : 'false') . ');
 ');
 
 ?>
@@ -61,12 +59,19 @@ StudyEvent.init(' . time() . ');
 
     <div id="messages_place"></div>
 
-    <div class="row justify-content-end">
-        <div class="col-12 col-md-4 col-lg-3">
-            <a class="btn btn-outline-dark btn-block" href="<?= Url::to(['index', 'date' => $previousDate->format('d.m.Y')]); ?>">
-                <span class="fas fa-chevron-up"></span>
+    <div class="row">
+        <div class="col">
+            <a class="btn btn-outline-dark btn-block text-left" href="<?= Url::to(['index', 'date' => $previousDate->format('d.m.Y')]); ?>">
+                <span class="fas fa-chevron-left"></span>
                 <?= $previousDate->format('d.m.Y'); ?>
                 <small><?= Calendar::$weekDays[$previousDate->format('w')]; ?></small>
+            </a>
+        </div>
+        <div class="col">
+            <a class="btn btn-outline-dark btn-block text-right" href="<?= Url::to(['index', 'date' => $nextDate->format('d.m.Y')]); ?>">
+                <?= $nextDate->format('d.m.Y'); ?>
+                <small><?= Calendar::$weekDays[$nextDate->format('w')]; ?></small>
+                <span class="fas fa-chevron-right"></span>
             </a>
         </div>
     </div>
@@ -74,20 +79,20 @@ StudyEvent.init(' . time() . ');
     <div class="schedule-table">
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3">
             <?php foreach ($events as $event):
-                $statusClass = 'outline-dark';
-                switch ($event->status) {
-                    case Event::STATUS_PASSED: $statusClass = 'success'; break;
-                    case Event::STATUS_CANCELED: $statusClass = 'danger'; break;
-                }
+                $statusClass = match ($event->status) {
+                    Event::STATUS_PASSED => 'success',
+                    Event::STATUS_CANCELED => 'danger',
+                    default => 'outline-dark',
+                };
                 ?>
-                <div class="col">
-                    <div class="w-100 btn btn-<?= $statusClass; ?>" onclick="StudyEvent.toggleEvent(<?= $event->id; ?>);">
+                <div class="col mb-2">
+                    <div id="event-button-<?= $event->id; ?>" class="w-100 btn btn-<?= $statusClass; ?>" onclick="StudyEvent.openEvent(<?= $event->id; ?>);">
                         <div class="w-100 text-left">
                             <span class="badge badge-light"><?= $event->eventTime; ?></span>
                             <?= $event->group->name; ?>
                         </div>
                     </div>
-                    <div class="event_details collapse card" id="event_details_<?= $event->id; ?>" data-status="<?= $event->status; ?>" data-limit-attend-timestamp="<?= $event->limitAttendTimestamp; ?>">
+                    <?php /*<div class="event_details collapse card" id="event_details_<?= $event->id; ?>" data-status="<?= $event->status; ?>" data-limit-attend-timestamp="<?= $event->limitAttendTimestamp; ?>">
                         <?php if (!$isTeacher): ?>
                             <div class="card-header p-2">
                                 <div class="row teacher-block no-gutters align-items-center">
@@ -175,19 +180,32 @@ StudyEvent.init(' . time() . ');
                             <?php endforeach; ?>
                         </ul>
                     </div>
-                    <hr class="thin">
+                    <hr class="thin">*/ ?>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
-    <hr>
-    <div class="row justify-content-end mb-2">
-        <div class="col-12 col-md-4 col-lg-3">
-            <a class="btn btn-outline-dark btn-block" href="<?= Url::to(['index', 'date' => $nextDate->format('d.m.Y')]); ?>">
-                <span class="fas fa-chevron-down"></span>
-                <?= $nextDate->format('d.m.Y'); ?>
-                <small><?= Calendar::$weekDays[$nextDate->format('w')]; ?></small>
-            </a>
+
+    <div id="modal-event" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title"></h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body card p-0">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-auto"><span class="badge badge-warning" id="event-time"></span></div>
+                            <div class="col" id="event-teacher"></div>
+                        </div>
+                    </div>
+                    <div id="event-messages-place" class="card-body p-0"></div>
+                    <div id="event-content"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

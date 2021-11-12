@@ -9,29 +9,149 @@ let StudyEvent = {
 
     serverTimestamp: null,
     clientTimestamp: null,
-    init: function(serverTimestamp) {
+    limitTimestamp: null,
+    eventData: null,
+    isTeacher: true,
+    isAdmin: false,
+    
+    eventModal: null,
+    init: function(serverTimestamp, limitTimestamp, isTeacher = true, isAdmin = false) {
         this.serverTimestamp = serverTimestamp;
         this.clientTimestamp = Math.floor(Date.now() / 1000);
+        this.limitTimestamp = limitTimestamp;
+        this.isTeacher = isTeacher;
+        this.isAdmin = isAdmin;
+        this.eventModal = $("#modal-event");
     },
-    toggleEvent: function(eventId) {
-        let detailsBlock = $("#event_details_" + eventId);
-        if (parseInt($(detailsBlock).data('status')) !== this.eventStatusUnknown) {
-            let pupilsBlock = $(detailsBlock).find(".pupils_block");
-            if (parseInt($(pupilsBlock).data("buttonState")) === 0) {
-                $(pupilsBlock).find(".event_member").each(function () {
-                    StudyEvent.fillMemberButtons($(this).data("id"));
-                });
-                $(pupilsBlock).find(".event_welcome_member").each(function () {
-                    StudyEvent.fillWelcomeMemberButtons($(this).data("id"));
-                });
-                $(pupilsBlock).data("buttonState", 1);
-            }
+    openEvent: function(eventId) {
+        $(this.eventModal).modal("show");
+        this.loadEvent(eventId);
+    },
+    loadEvent: function(eventId) {
+        this.eventData = null;
+        $(this.eventModal).find("#event-messages-place").html('');
+        $(this.eventModal).find("#event-content").html('<div class="loading-box"></div>');
+        $.ajax({
+            url: '/event/get?id=' + eventId,
+            type: 'get',
+            dataType: 'json'
+        })
+            .done(function (data) {
+                if (data.status === 'ok') {
+                    StudyEvent.eventData = data.eventData;
+                    StudyEvent.renderEvent();
+                } else {
+                    Main.throwFlashMessage('#event-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
+                }
+            })
+            .fail(function (xhr, textStatus, errorThrown) {
+                $(StudyEvent.eventModal).find("#event-content").html('');
+                Main.logAndFlashAjaxError(xhr, textStatus, errorThrown, '#event-messages-place');
+            });
+    },
+    renderEvent: function() {
+        if (null === this.eventData) {
+            Main.throwFlashMessage('#event-messages-place', 'Event data missing, try to reload', 'alert-danger');
         }
-        $(detailsBlock).collapse('toggle');
+        $(this.eventModal).find("#event-messages-place").html('');
+        $(this.eventModal).find(".modal-title").text(this.eventData.name);
+        $(this.eventModal).find("#event-time").text(this.eventData.time);
+        if (!this.isTeacher) {
+            $(this.eventModal).find("#event-teacher").text(this.eventData.teacher);
+        }
+        let content = '';
+        switch (this.eventData.status) {
+            case this.eventStatusUnknown:
+                content = '<div class="card-body status_block">' +
+                    '<div class="row">' +
+                    '<div class="col">' +
+                    '<button class="btn btn-success btn-block" title="Состоялось" onclick="StudyEvent.setEventStatus(' + this.eventStatusPassed + ');">' +
+                    '<span class="fas fa-check"></span>' +
+                    '</button>' +
+                    '</div>' +
+                    '<div class="col">' +
+                    '<button class="btn btn-danger btn-block" title="Было отменено" onclick="StudyEvent.setEventStatus(' + this.eventStatusCancelled + ');">' +
+                    '<span class="fas fa-times"></span>' +
+                    '</button>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                break;
+            case this.eventStatusPassed:
+            case this.eventStatusCancelled:
+                content = '';
+                if (this.isAdmin) {
+                    content += '<div class="card-body"><button class="btn btn-block btn-outline-secondary" onclick="StudyEvent.revertEventStatus();"><span class="fas fa-pencil-alt"></span></button></div>';
+                }
+                content += '<ul class="list-group list-group-flush students_block">' +
+                    '<li class="list-group-item list-group-item-secondary text-center">Студенты</li>';
+                    this.eventData.welcomeMembers.forEach(function(welcomeMember) {
+                        let titleCssClass = '';
+                        switch (welcomeMember.status) {
+                            case WelcomeLesson.statusPassed:
+                                titleCssClass = ' text-success ';
+                                break;
+                            case WelcomeLesson.statusMissed:
+                                titleCssClass = ' text-danger ';
+                                break;
+                        }
+                        content += '<li class="list-group-item list-group-item-warning p-2">' +
+                            '<div id="messages_place_event_welcome_member_' + welcomeMember.id + '"></div>' +
+                            '<div id="event_welcome_member_' + welcomeMember.id + '" data-id="' + welcomeMember.id + '" ' +
+                            ' data-status="' + welcomeMember.status + '" class="event_welcome_member row no-gutters align-items-center ' + titleCssClass + '">' +
+                            '<div class="col-8">' + welcomeMember.user.name +
+                            '</div>' +
+                            '<div class="col-4 buttons-column text-right">' + StudyEvent.getWelcomeButtonsColumn(welcomeMember) + '</div>' +
+                            '</div>' +
+                            '</li>';
+                    });
+                    this.eventData.members.forEach(function(member) {
+                        let titleCssClass = '';
+                        switch (member.status) {
+                            case StudyEvent.memberStatusAttend:
+                                titleCssClass = ' text-success ';
+                                break;
+                            case StudyEvent.memberStatusMiss:
+                                titleCssClass = ' text-danger ';
+                                break;
+                        }
+                        content += '<li class="list-group-item p-2">' +
+                            '<div id="messages_place_event_member_' + member.id + '"></div>' +
+                            '<div id="event_member_' + member.id + '" data-id="' + member.id + '" data-status="' + member.status + '" ' +
+                            ' data-mark="' + (member.mark ?? 0) + '" class="event_member row no-gutters align-items-center ' + titleCssClass + '">' +
+                            '<div class="col-8">' + member.groupPupil.user.name +
+                            (null !== member.groupPupil.debtMessage
+                                ? ' <span class="fas fa-info-circle text-danger" data-toggle="tooltip" data-placement="top" data-html="true" title="' + member.groupPupil.debtMessage + '"></span>'
+                                : '') +
+                            '</div>' +
+                            '<div class="col-4 buttons-column text-right">' + StudyEvent.getButtonsColumn(member, false) + '</div>' +
+                            '</div>' +
+                            '<div class="marks-form collapse">' + StudyEvent.getMarksForm(member) + '</div>' +
+                            '</li>';
+                    });
+                content += '</ul>';
+                break;
+        }
+        $(this.eventModal).find("#event-content").html(content);
+        $(this.eventModal).find("#event-content").find('[data-toggle="tooltip"]').tooltip()
     },
-    fillMemberButtons: function(memberId) {
-        let memberRow = $("#event_member_" + memberId);
-        switch ($(memberRow).data("status")) {
+    renderEventStatus: function() {
+        let eventButton = $("#event-button-" + this.eventData.id);
+        switch (this.eventData.status) {
+            case this.eventStatusUnknown:
+                $(eventButton).removeClass("btn-success btn-danger").addClass('btn-outline-dark');
+                break;
+            case this.eventStatusPassed:
+                $(eventButton).removeClass("btn-outline-dark btn-danger").addClass('btn-success');
+                break;
+            case this.eventStatusCancelled:
+                $(eventButton).removeClass("btn-outline-dark btn-success").addClass('btn-danger');
+                break;
+        }
+    },
+    fillMemberButtons: function(member) {
+        let memberRow = $("#event_member_" + member.id);
+        switch (member.status) {
             case this.memberStatusUnknown:
                 $(memberRow).removeClass("text-success text-danger");
                 break;
@@ -42,11 +162,11 @@ let StudyEvent = {
                 $(memberRow).addClass("text-danger").removeClass("text-success");
                 break;
         }
-        $(memberRow).find(".buttons-column").html(this.getButtonsColumn(memberId, $(memberRow).data('status'), $(memberRow).data('mark')));
+        $(memberRow).find(".buttons-column").html(this.getButtonsColumn(member));
     },
-    fillWelcomeMemberButtons: function(memberId) {
-        let memberRow = $("#event_welcome_member_" + memberId);
-        switch ($(memberRow).data("status")) {
+    fillWelcomeMemberButtons: function(member) {
+        let memberRow = $("#event_welcome_member_" + member.id);
+        switch (member.status) {
             case WelcomeLesson.statusUnknown:
                 $(memberRow).removeClass("text-success text-danger");
                 break;
@@ -58,22 +178,18 @@ let StudyEvent = {
                 $(memberRow).addClass("text-danger").removeClass("text-success");
                 break;
         }
-        $(memberRow).find(".buttons-column").html(this.getWelcomeButtonsColumn(memberId, $(memberRow).data('status')));
+        $(memberRow).find(".buttons-column").html(this.getWelcomeButtonsColumn(member));
     },
-    lockStatusButtons: function(eventId) {
-        $('#event_details_' + eventId).find(".status_block button").prop("disabled", true);
-        this.processingEventId = eventId;
+    lockStatusButtons: function() {
+        $(this.eventModal).find(".status_block button").prop("disabled", true);
     },
     unlockStatusButtons: function() {
-        $(".status_block").each(function() {
-            $(this).find("button").prop("disabled", false);
-        });
-        this.processingEventId = null;
+        $(this.eventModal).find(".status_block button").prop("disabled", false);
     },
-    changeStatus: function(eventId, status) {
-        this.lockStatusButtons(eventId);
+    setEventStatus: function(status) {
+        this.lockStatusButtons();
         $.ajax({
-                url: '/event/change-status?event=' + eventId,
+                url: '/event/change-status?id=' + this.eventData.id,
                 type: 'post',
                 dataType: 'json',
                 data: {
@@ -82,63 +198,48 @@ let StudyEvent = {
             })
         .done(function(data) {
             if (data.status === 'ok') {
-                let eventDetailsBlock = $('#event_details_' + data.eventId);
-                $(eventDetailsBlock).data("status", data.eventStatus).find(".status_block").remove();
-                let pupilsBlock = $(eventDetailsBlock).find(".pupils_block");
-                $(pupilsBlock).find(".event_member").each(function() {
-                    if (data.eventStatus === StudyEvent.eventStatusCancelled) {
-                        $(this).data("status", StudyEvent.memberStatusMiss);
-                    }
-                    StudyEvent.fillMemberButtons($(this).data("id"));
-                });
-                $(pupilsBlock).find(".event_welcome_member").each(function () {
-                    if (data.eventStatus === StudyEvent.eventStatusCancelled) {
-                        $(this).data("status", WelcomeLesson.statusCanceled);
-                    }
-                    StudyEvent.fillWelcomeMemberButtons($(this).data("id"));
-                });
-                
-                $(pupilsBlock).collapse('show');
+                StudyEvent.eventData = data.eventData;
+                StudyEvent.renderEvent();
+                StudyEvent.renderEventStatus();
             } else {
-                Main.throwFlashMessage('#messages_place_event_' + StudyEvent.processingEventId, 'Ошибка: ' + data.message, 'alert-danger');
+                Main.throwFlashMessage('#event-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
                 StudyEvent.unlockStatusButtons();
             }
         })
         .fail(function(xhr, textStatus, errorThrown) {
-            Main.throwFlashMessage('#messages_place_event_' + StudyEvent.processingEventId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+            Main.logAndFlashAjaxError(xhr, textStatus, errorThrown, '#event-messages-place');
             StudyEvent.unlockStatusButtons();
         });
     },
-    isAttendEditAllowed: function(memberId) {
-        let eventDetailsBlock = $("#event_member_" + memberId).closest(".event_details");
-        if ($(eventDetailsBlock).data("status") !== this.eventStatusPassed) return false;
-        let limitTimestamp = $(eventDetailsBlock).data("limitAttendTimestamp");
+    isAttendEditAllowed: function() {
+        if (this.eventData.status !== this.eventStatusPassed) return false;
+        if (this.isAdmin) return true;
         let currentTime = this.serverTimestamp + (Math.floor(Date.now() / 1000) - this.clientTimestamp);
-        return currentTime <= limitTimestamp;
+        return currentTime <= this.eventData.limitAttendTimestamp;
     },
-    getButtonsColumn: function(memberId, memberStatus, memberMark) {
-        switch (memberStatus) {
+    getButtonsColumn: function(member, fillMarks = true) {
+        switch (member.status) {
             case this.memberStatusUnknown:
-                return '<button class="btn btn-success" onclick="StudyEvent.setPupilAttendStatus(' + memberId + ', ' + this.memberStatusAttend + ');" title="Присутствовал(а)">' +
+                return '<button class="btn btn-success" onclick="StudyEvent.setMemberStatus(' + member.id + ', ' + this.memberStatusAttend + ');" title="Присутствовал(а)">' +
                         '<span class="fas fa-check"></span>' +
                     '</button>' +
-                    '<button class="btn btn-danger" onclick="StudyEvent.setPupilAttendStatus(' + memberId + ', ' + this.memberStatusMiss + ');" title="Отсутствовал(а)">' +
+                    '<button class="btn btn-danger" onclick="StudyEvent.setMemberStatus(' + member.id + ', ' + this.memberStatusMiss + ');" title="Отсутствовал(а)">' +
                         '<span class="fas fa-times"></span>' +
                     '</button>';
             case this.memberStatusAttend:
-                if (memberMark > 0) {
-                    return '<b>' + memberMark + '</b>';
+                if (fillMarks) {
+                    $("#event_member_" + member.id).closest(".list-group-item").find(".marks-form").html(this.getMarksForm(member));
                 }
-                
-                return '<form onsubmit="return StudyEvent.setPupilMark(this, ' + memberId + ');">' +
-                    '<div class="input-group">' +
-                    '<input type="number" name="mark" step="1" min="1" max="5" class="form-control" placeholder="Балл" title="Балл" required>' +
-                    '<div class="input-group-append">' +
-                        '<button class="btn btn-primary">OK</button>' +
-                    '</div></div></form>';
+                let content = '<a href="#" class="btn btn-outline-warning marks" onclick="StudyEvent.toggleMarks(this); return false;">' + (member.mark ?? 0) + ' / ' + (member.markHomework ?? 0) + '</a>';
+                if (this.isAttendEditAllowed()) {
+                    content += ' <button class="btn btn-outline-dark" onclick="StudyEvent.revertMemberStatus(' + member.id + ');">' +
+                            '<span class="fas fa-pencil-alt"></span>' +
+                        '</button>';
+                }
+                return content;
             case this.memberStatusMiss:
-                if (this.isAttendEditAllowed(memberId)) {
-                    return '<button class="btn btn-outline-dark" onclick="StudyEvent.revertMissStatus(this, ' + memberId + ');">' +
+                if (this.isAttendEditAllowed()) {
+                    return '<button class="btn btn-outline-dark" onclick="StudyEvent.revertMemberStatus(' + member.id + ');">' +
                            '<span class="fas fa-pencil-alt"></span>' +
                         '</button>';
                 }
@@ -146,92 +247,169 @@ let StudyEvent = {
         }
         return '';
     },
-    getWelcomeButtonsColumn: function(memberId, memberStatus) {
-        if (memberStatus === WelcomeLesson.statusUnknown) {
-            return '<button class="btn btn-success" onclick="StudyEvent.setPupilAttendStatus(' + memberId + ', ' + WelcomeLesson.statusPassed + ', \'welcomeMemberId\');" title="Присутствовал(а)">' +
+    getMarksForm: function(member) {
+        if (member.status !== this.memberStatusAttend) {
+            return '';
+        }
+        return '<div class="row">' +
+            '<div class="col"><div class="form-group">' +
+            '<label>Оценка на занятии</label>' +
+            '<div class="input-group">' +
+            '<input type="number" step="1" min="1" max="5" class="form-control mark" placeholder="Балл" title="Балл" value="' + (member.mark ?? 0) + '" required>' +
+            '<div class="input-group-append">' +
+            '<button class="btn btn-primary" onclick="StudyEvent.setMark(' + member.id + ', this);">OK</button>' +
+            '</div>' +
+            '</div>' +
+            '</div></div>' +
+            '<div class="col"><div class="form-group">' +
+            '<label>Оценка за домашнее задание</label>' +
+            '<div class="input-group">' +
+            '<input type="number" step="1" min="1" max="5" class="form-control markHomework" placeholder="Балл" title="Балл" value="' + (member.markHomework ?? 0) + '" required>' +
+            '<div class="input-group-append">' +
+            '<button class="btn btn-primary" onclick="StudyEvent.setMarkHomework(' + member.id + ', this);">OK</button>' +
+            '</div>' +
+            '</div>' +
+            '</div></div>' +
+            '</div>';
+    },
+    getWelcomeButtonsColumn: function(member) {
+        if (member.status === WelcomeLesson.statusUnknown) {
+            return '<button class="btn btn-success" onclick="StudyEvent.setWelcomeMemberStatus(' + member.id + ', ' + WelcomeLesson.statusPassed + ');" title="Присутствовал(а)">' +
                 '<span class="fas fa-check"></span>' +
                 '</button>' +
-                '<button class="btn btn-danger" onclick="StudyEvent.setPupilAttendStatus(' + memberId + ', ' + WelcomeLesson.statusMissed + ', \'welcomeMemberId\');" title="Отсутствовал(а)">' +
+                '<button class="btn btn-danger" onclick="StudyEvent.setWelcomeMemberStatus(' + member.id + ', ' + WelcomeLesson.statusMissed + ');" title="Отсутствовал(а)">' +
                 '<span class="fas fa-times"></span>' +
                 '</button>';
         }
         return '';
     },
     lockMemberButtons: function(memberId) {
-        $(".pupils_block").find("button").prop("disabled", true);
+        $(this.eventModal).find(".students_block").find("button").prop("disabled", true);
         this.processingEventMemberId = memberId;
     },
     unlockMemberButtons: function() {
-        $(".pupils_block").find("button").prop("disabled", false);
-        this.processingEventMemberId = null;
+        $(StudyEvent.eventModal).find(".students_block").find("button").prop("disabled", false);
+        StudyEvent.processingEventMemberId = null;
     },
-    revertMissStatus: function(e, memberId) {
+    revertEventStatus: function() {
+        let actualStatus = this.eventData.status;
+        this.eventData.status = this.eventStatusUnknown;
+        this.renderEvent();
+        this.eventData.status = actualStatus;
+    },
+    revertMemberStatus: function(memberId) {
         let memberRow = $("#event_member_" + memberId);
         $(memberRow).find(".buttons-column")
-            .html(this.getButtonsColumn(memberId, this.isAttendEditAllowed(memberId) ? this.memberStatusUnknown : this.memberStatusMiss, $(memberRow).data('mark')));
+            .html(this.getButtonsColumn({id: memberId, status: this.memberStatusUnknown}));
+        $(memberRow).closest(".list-group-item").find(".marks-form").html('');
     },
-    setPupilAttendStatus: function(memberId, status, key) {
-        if (key === undefined) {
-            key = 'memberId';
-        }
+    setMemberStatus: function(memberId, status) {
         this.lockMemberButtons(memberId);
         $.ajax({
-                url: '/event/set-pupil-status?' + key + '=' + memberId,
+                url: '/event/set-member-status?id=' + memberId,
                 type: 'post',
                 dataType: 'json',
                 data: {
                     status: status
                 }
             })
-        .done(function(data) {
-            if (data.status === 'ok') {
-                if (data.memberId) {
-                    let memberBlock = $("#event_member_" + data.memberId);
-                    $(memberBlock).data("status", data.memberStatus);
-                    StudyEvent.fillMemberButtons(data.memberId);
+            .done(function(data) {
+                if (data.status === 'ok') {
+                    StudyEvent.fillMemberButtons(data.member);
                 } else {
-                    let memberBlock = $("#event_welcome_member_" + data.welcomeMemberId);
-                    $(memberBlock).data("status", data.memberStatus);
-                    StudyEvent.fillWelcomeMemberButtons(data.welcomeMemberId);
-                }
-            } else {
-                Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
-            }
-            StudyEvent.unlockMemberButtons();
-        })
-        .fail(function(xhr, textStatus, errorThrown) {
-            Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            StudyEvent.unlockMemberButtons();
-        });
-    },
-    setPupilMark: function(e, memberId) {
-        let mark = parseInt($(e).find("input[name='mark']").val());
-        if (!mark || mark <= 0 || mark > 5) {
-            Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, "Укажите оценку от 1 до 5", 'alert-danger');
-            return false;
-        }
-        this.lockMemberButtons(memberId);
-        $.ajax({
-                url: '/event/set-pupil-mark?member=' + memberId,
-                type: 'post',
-                dataType: 'json',
-                data: {
-                    mark: mark
+                    Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
                 }
             })
-        .done(function(data) {
-            if (data.status === 'ok') {
-                $("#event_member_" + data.memberId).data('mark', data.memberMark);
-                StudyEvent.fillMemberButtons(data.memberId);
-            } else {
-                Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
+            .fail(function(xhr, textStatus, errorThrown) {
+                Main.logAndFlashAjaxError(xhr, textStatus, errorThrown, '#messages_place_event_member_' + StudyEvent.processingEventMemberId);
+            })
+            .always(StudyEvent.unlockMemberButtons);
+    },
+    setWelcomeMemberStatus: function(id, status) {
+        this.lockMemberButtons(id);
+        $.ajax({
+            url: '/event/set-welcome-member-status?id=' + id,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                status: status
             }
-            StudyEvent.unlockMemberButtons();
         })
-        .fail(function(xhr, textStatus, errorThrown) {
-            Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            StudyEvent.unlockMemberButtons();
-        });
+            .done(function (data) {
+                if (data.status === 'ok') {
+                    StudyEvent.fillWelcomeMemberButtons(data.member);
+                } else {
+                    Main.throwFlashMessage('#messages_place_event_welcome_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
+                }
+            })
+            .fail(function (xhr, textStatus, errorThrown) {
+                Main.logAndFlashAjaxError(xhr, textStatus, errorThrown, '#messages_place_event_welcome_member_' + StudyEvent.processingEventMemberId);
+            })
+            .always(StudyEvent.unlockMemberButtons);
+    },
+    toggleMarks: function(e) {
+        $(e).closest(".list-group-item").find(".marks-form").collapse('toggle');
+    },
+    setMark: function(memberId, e) {
+        let markInput = $(e).closest(".form-group").find(".mark");
+        $(markInput).removeClass("is-invalid");
+        let mark = parseInt($(markInput).val());
+        if (!mark || mark <= 0 || mark > 5) {
+            $(markInput).addClass("is-invalid");
+            return false;
+        }
+
+        this.lockMemberButtons(memberId);
+        $.ajax({
+            url: '/event/set-mark?memberId=' + memberId,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                mark: mark
+            }
+        })
+            .done(function(data) {
+                if (data.status === 'ok') {
+                    $("#event_member_" + data.member.id).find(".marks").text((data.member.mark ?? 0) + ' / ' + (data.member.markHomework ?? 0));
+                } else {
+                    Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
+                }
+            })
+            .fail(function(xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+            })
+            .always(StudyEvent.unlockMemberButtons);
+        return false;
+    },
+    setMarkHomework: function(memberId, e) {
+        let markInput = $(e).closest(".form-group").find(".markHomework");
+        $(markInput).removeClass("is-invalid");
+        let markHomework = parseInt($(markInput).val());
+        if (!markHomework || markHomework <= 0 || markHomework > 5) {
+            $(markInput).addClass("is-invalid");
+            return false;
+        }
+
+        this.lockMemberButtons(memberId);
+        $.ajax({
+            url: '/event/set-mark?memberId=' + memberId,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                mark_homework: markHomework
+            }
+        })
+            .done(function(data) {
+                if (data.status === 'ok') {
+                    $("#event_member_" + data.member.id).find(".marks").text(data.member.mark + ' / ' + data.member.markHomework);
+                } else {
+                    Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
+                }
+            })
+            .fail(function(xhr, textStatus, errorThrown) {
+                Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
+            })
+            .always(StudyEvent.unlockMemberButtons);
         return false;
     }
 };

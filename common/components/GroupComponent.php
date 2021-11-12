@@ -8,6 +8,7 @@ use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\Payment;
 use common\models\User;
+use DateTimeInterface;
 use Yii;
 use yii\base\Component;
 
@@ -19,7 +20,7 @@ class GroupComponent extends Component
      * @return GroupParam
      * @throws \Exception
      */
-    public static function getGroupParam(Group $group, \DateTime $date): GroupParam
+    public static function getGroupParam(Group $group, DateTimeInterface $date): GroupParam
     {
         $groupParam = GroupParam::findByDate($group, $date);
         if (!$groupParam) {
@@ -94,7 +95,7 @@ class GroupComponent extends Component
      * @return GroupPupil
      * @throws \Exception
      */
-    public static function addPupilToGroup(User $pupil, Group $group, \DateTimeInterface $startDate, ?\DateTimeInterface $endDate = null, bool $fillSchedule = true): GroupPupil
+    public static function addPupilToGroup(User $pupil, Group $group, DateTimeInterface $startDate, ?DateTimeInterface $endDate = null, bool $fillSchedule = true): GroupPupil
     {
         $startDate = (clone $startDate)->modify('midnight');
         if (!$group || !$startDate || ($endDate && $endDate < $startDate)) {
@@ -169,7 +170,7 @@ class GroupComponent extends Component
      * @param User $user
      * @param \DateTime|null $moveDate
      */
-    public static function moveMoney(Group $groupFrom, Group $groupTo, User $user, ?\DateTimeInterface $moveDate = null)
+    public static function moveMoney(Group $groupFrom, Group $groupTo, User $user, ?DateTimeInterface $moveDate = null)
     {
         $moneyLeft = Payment::find()
             ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
@@ -218,11 +219,11 @@ class GroupComponent extends Component
 
     /**
      * @param GroupPupil|null $groupPupil
-     * @param \DateTimeInterface $startDate
-     * @param \DateTimeInterface|null $endDate
+     * @param DateTimeInterface $startDate
+     * @param DateTimeInterface|null $endDate
      * @throws \Exception
      */
-    public static function checkPupilDates(?GroupPupil $groupPupil, \DateTimeInterface $startDate, ?\DateTimeInterface $endDate)
+    public static function checkPupilDates(?GroupPupil $groupPupil, DateTimeInterface $startDate, ?DateTimeInterface $endDate)
     {
         $limitDate = self::getPupilLimitDate();
         if ($limitDate && (($groupPupil && $groupPupil->startDateObject != $startDate && ($groupPupil->startDateObject < $limitDate || $startDate < $limitDate))
