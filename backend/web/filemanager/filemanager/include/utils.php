@@ -365,9 +365,9 @@ function rename_folder($old_path, $name, $ftp = null, $config = null)
 function ftp_con($config){
 	if(isset($config['ftp_host']) && $config['ftp_host']){
 		// *** Include the class
-		include('include/FtpClient.php');
-		include('include/FtpException.php');
-		include('include/FtpWrapper.php');
+        include __DIR__ . '/FtpClient.php';
+        include __DIR__ . '/FtpException.php';
+        include __DIR__ . '/FtpWrapper.php';
 
 		$ftp = new \FtpClient\FtpClient();
 		try{
@@ -682,7 +682,7 @@ function check_files_extensions_on_phar($phar, &$files, $basepath, $config)
 */
 function fix_get_params($str)
 {
-	return strip_tags(preg_replace("/[^a-zA-Z0-9\.\[\]_| -]/", '', $str));
+    return htmlentities(strip_tags(stripslashes($str)), ENT_COMPAT, "UTF-8");
 }
 
 
