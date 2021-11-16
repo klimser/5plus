@@ -1,3 +1,8 @@
+<?php
+
+use common\models\Contract;
+
+?>
 <div id="modal-income" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -25,9 +30,9 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label">Сумма</label>
+                        <label class="col-12 col-sm-3 control-label" for="income-amount">Сумма</label>
                         <div class="col-12 col-sm-9">
-                            <input class="form-control income-amount" name="income[amount]" type="number" min="1000" step="1000" placeholder="Сумма оплаты" autocomplete="off" required onchange="Dashboard.checkAmount(this);">
+                            <input  id="income-amount" class="form-control income-amount" name="income[amount]" type="number" min="1000" step="1000" placeholder="Сумма оплаты" autocomplete="off" required onchange="Dashboard.checkAmount(this);">
                             <small id="amount-notice" class="form-text text-danger collapse">
                                 Внимание! Оплата с повышенной стоимостью занятия. Для оплаты с обычной стоимостью оплачивайте не менее 12 занятий.
                             </small>
@@ -35,6 +40,17 @@
                                 <button type="button" class="btn btn-outline-secondary btn-sm price-lesson" onclick="Dashboard.setAmount(this);">за 1 занятие</button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm price-month" onclick="Dashboard.setAmount(this);">за 1 месяц</button>
                             </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-12 col-sm-3 control-label">Способ оплаты</label>
+                        <div class="col-12 col-sm-9">
+                            <?php foreach (Contract::MANUAL_PAYMENT_TYPES as $key => $paymentMethod): ?>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="income[payment_type]" id="payment_type_<?= $key; ?>" value="<?= $paymentMethod; ?>" required>
+                                    <label class="form-check-label" for="payment_type_<?= $key; ?>"><?= Contract::PAYMENT_TYPE_LABELS[$paymentMethod]; ?></label>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                     <div class="form-group row">

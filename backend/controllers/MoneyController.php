@@ -61,22 +61,24 @@ class MoneyController extends AdminController
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $formData = Yii::$app->request->post('income', []);
-        if (!isset($formData['userId'], $formData['groupId'], $formData['amount'], $formData['comment'])) {
+        if (!isset($formData['userId'], $formData['groupId'], $formData['amount'], $formData['payment_type'], $formData['comment'])) {
             return self::getJsonErrorResult('Wrong request');
         }
 
         $user = User::findOne($formData['userId']);
         $group = Group::findOne(['id' => $formData['groupId'], 'active' => Group::STATUS_ACTIVE]);
         $amount = (int)$formData['amount'];
+        $paymentType = $formData['payment_type'];
 
         if (!$user) return self::getJsonErrorResult('Студент не найден');
         if ($amount <= 0) return self::getJsonErrorResult('Сумма не может быть <= 0');
         if (!$group) return self::getJsonErrorResult('Группа не найдена');
+        if (!in_array($paymentType, Contract::MANUAL_PAYMENT_TYPES)) return self::getJsonErrorResult('Неверный метод оплаты');
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $contract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, $amount, $group);
-            $paymentId = MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $formData['comment']);
+            $paymentId = MoneyComponent::payContract($contract, null, $paymentType, $formData['comment']);
 
             $transaction->commit();
             return self::getJsonOkResult(['paymentId' => $paymentId, 'userId' => $user->id, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);

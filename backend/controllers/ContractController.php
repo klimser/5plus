@@ -248,7 +248,7 @@ class ContractController extends AdminController
     
     public function actionReport(?int $type = null, ?string $from = null, ?string $to = null)
     {
-        $this->checkAccess('reportMoney');
+        $this->checkAccess('root');
 
         $params = [];
         if ($type && $from && $to) {

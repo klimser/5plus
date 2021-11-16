@@ -85,7 +85,7 @@ class ActiveRecord extends \yii\db\ActiveRecord
         return $text;
     }
 
-    public static function deleteImages(string $filename): void
+    public function deleteImages(string $filename): void
     {
         if (file_exists($filename)) @unlink($filename);
         $parts = explode('.', $filename);

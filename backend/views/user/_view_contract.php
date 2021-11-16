@@ -25,7 +25,7 @@ $contracts = $pupil->getContracts()->with('group')->all();
                 <td class="text-right"><?= MoneyHelper::formatThousands($contract->amount); ?></td>
                 <td><?= $contract->createDate->format('d.m.Y'); ?></td>
                 <td>
-                    <?php if ($contract->payment_type): ?>
+                    <?php if ($contract->payment_type && !in_array($contract->payment_type, Contract::MANUAL_PAYMENT_TYPES)): ?>
                         <?= Contract::PAYMENT_TYPE_LABELS[$contract->payment_type]; ?>
                     <?php endif; ?>
                 </td>

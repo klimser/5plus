@@ -39,7 +39,7 @@ trait UploadImage
     /**
      * @param string $filename
      */
-    public abstract static function deleteImages(string $filename): void;
+    public abstract function deleteImages(string $filename): void;
 
     /**
      * @param null|string $uploadedField
@@ -184,7 +184,7 @@ trait UploadImage
                 );
 
                 if ($this->$imageField && $this->$imageField != $fileName) {
-                    self::deleteImages(Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $this->$imageField);
+                    $this->deleteImages(Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $this->$imageField);
                 }
                 $this->$imageField = $fileName;
             } catch (Exception $ex) {
@@ -230,7 +230,7 @@ trait UploadImage
             return true;
         }
 
-        self::deleteImages(Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $this->$imageField);
+        $this->deleteImages(Yii::getAlias('@uploads/' . $config['imageFolder'] . '/') . $this->$imageField);
         $this->$imageField = null;
         return true;
     }

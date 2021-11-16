@@ -44,29 +44,51 @@ use yii\db\ActiveQuery;
 class Contract extends ActiveRecord
 {
     use Inserted;
-    
-    const STATUS_NEW = 0;
-    const STATUS_PROCESS = 1;
-    const STATUS_PAID = 2;
 
-    const PAYMENT_TYPE_MANUAL = 1;
-    const PAYMENT_TYPE_PAYME = 2;
-    const PAYMENT_TYPE_ATMOS = 3;
-    const PAYMENT_TYPE_CLICK = 4;
-    const PAYMENT_TYPE_TELEGRAM_PAYME = 5;
-    
-    const STATUS_LABELS = [
+    public const STATUS_NEW = 0;
+    public const STATUS_PROCESS = 1;
+    public const STATUS_PAID = 2;
+
+    public const PAYMENT_TYPE_MANUAL = 1;
+    public const PAYMENT_TYPE_PAYME = 2;
+    public const PAYMENT_TYPE_ATMOS = 3;
+    public const PAYMENT_TYPE_CLICK = 4;
+    public const PAYMENT_TYPE_TELEGRAM_PAYME = 5;
+    public const PAYMENT_TYPE_MANUAL_CASH = 6;
+    public const PAYMENT_TYPE_MANUAL_UZKARD = 7;
+    public const PAYMENT_TYPE_MANUAL_HUMO = 8;
+    public const PAYMENT_TYPE_MANUAL_PAYME = 9;
+    public const PAYMENT_TYPE_MANUAL_BANK = 10;
+    public const PAYMENT_TYPE_MANUAL_OLD = 11;
+
+    public const STATUS_LABELS = [
         self::STATUS_NEW => 'не оплачен',
         self::STATUS_PROCESS => 'не завершен',
         self::STATUS_PAID => 'оплачен',
     ];
-    
-    const PAYMENT_TYPE_LABELS = [
+
+    public const PAYMENT_TYPE_LABELS = [
         self::PAYMENT_TYPE_MANUAL => 'офис',
         self::PAYMENT_TYPE_PAYME => 'Payme',
         self::PAYMENT_TYPE_ATMOS => 'ATMOS',
         self::PAYMENT_TYPE_CLICK => 'CLICK',
         self::PAYMENT_TYPE_TELEGRAM_PAYME => 'Telegram (Payme)',
+        self::PAYMENT_TYPE_MANUAL_CASH => 'Наличные',
+        self::PAYMENT_TYPE_MANUAL_UZKARD => 'терминал Uzkard',
+        self::PAYMENT_TYPE_MANUAL_HUMO => 'терминал HUMO',
+        self::PAYMENT_TYPE_MANUAL_PAYME => 'Payme приложение',
+        self::PAYMENT_TYPE_MANUAL_BANK => 'Банковский перевод (юр лица)',
+        self::PAYMENT_TYPE_MANUAL_OLD => 'прошлый учебный год',
+    ];
+
+    public const MANUAL_PAYMENT_TYPES = [
+        self::PAYMENT_TYPE_MANUAL,
+        self::PAYMENT_TYPE_MANUAL_CASH,
+        self::PAYMENT_TYPE_MANUAL_UZKARD,
+        self::PAYMENT_TYPE_MANUAL_HUMO,
+        self::PAYMENT_TYPE_MANUAL_PAYME,
+        self::PAYMENT_TYPE_MANUAL_BANK,
+        self::PAYMENT_TYPE_MANUAL_OLD,
     ];
 
     /**
@@ -93,7 +115,19 @@ class Contract extends ActiveRecord
             ['discount', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_NEW, self::STATUS_PROCESS, self::STATUS_PAID]],
             ['status', 'default', 'value' => self::STATUS_NEW],
-            ['payment_type', 'in', 'range' => [self::PAYMENT_TYPE_MANUAL, self::PAYMENT_TYPE_PAYME, self::PAYMENT_TYPE_ATMOS, self::PAYMENT_TYPE_CLICK, self::PAYMENT_TYPE_TELEGRAM_PAYME]],
+            ['payment_type', 'in', 'range' => [
+                self::PAYMENT_TYPE_MANUAL,
+                self::PAYMENT_TYPE_PAYME,
+                self::PAYMENT_TYPE_ATMOS,
+                self::PAYMENT_TYPE_CLICK,
+                self::PAYMENT_TYPE_TELEGRAM_PAYME,
+                self::PAYMENT_TYPE_MANUAL_CASH,
+                self::PAYMENT_TYPE_MANUAL_UZKARD,
+                self::PAYMENT_TYPE_MANUAL_HUMO,
+                self::PAYMENT_TYPE_MANUAL_PAYME,
+                self::PAYMENT_TYPE_MANUAL_BANK,
+                self::PAYMENT_TYPE_MANUAL_OLD,
+            ]],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],
             [['company_id'], 'exist', 'targetRelation' => 'company'],
@@ -122,7 +156,8 @@ class Contract extends ActiveRecord
         ];
     }
 
-    public function beforeValidate() {
+    public function beforeValidate()
+    {
         if (!parent::beforeValidate()) return false;
 
         if ($this->isNewRecord && empty($this->number)) {
@@ -255,7 +290,7 @@ class Contract extends ActiveRecord
     {
         return $this->hasOne(Company::class, ['id' => 'company_id']);
     }
-    
+
     public function isNew()
     {
         return $this->status === self::STATUS_NEW;

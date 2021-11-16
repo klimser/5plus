@@ -244,9 +244,11 @@ $this->title = 'Панель управления';
                             <a class="dropdown-item" href="<?= Url::to(['report/manager-salary']); ?>">
                                 <span class="fas fa-battery-half"></span> Эффективность менеджеров
                             </a>
-                            <a class="dropdown-item" href="<?= Url::to(['contract/report']); ?>">
-                                <span class="fas fa-hand-holding-usd"></span> Денежные поступления
-                            </a> 
+                            <?php if ($admin->can('root')): ?>
+                                <a class="dropdown-item" href="<?= Url::to(['contract/report']); ?>">
+                                    <span class="fas fa-hand-holding-usd"></span> Денежные поступления
+                                </a> 
+                            <?php endif; ?>
                         <?php endif; ?>
                         <?php if ($admin->can('reportCash')): ?>
                             <a class="dropdown-item" href="<?= Url::to(['report/cash']); ?>">
