@@ -82,7 +82,6 @@ class Contract extends ActiveRecord
     ];
 
     public const MANUAL_PAYMENT_TYPES = [
-        self::PAYMENT_TYPE_MANUAL,
         self::PAYMENT_TYPE_MANUAL_CASH,
         self::PAYMENT_TYPE_MANUAL_UZKARD,
         self::PAYMENT_TYPE_MANUAL_HUMO,
