@@ -34,7 +34,7 @@ class PaymeServer
                 }
             }
             if (!$authComplete) {
-//                throw new PaymeApiException('Authorization failed', -32504);
+                throw new PaymeApiException('Authorization failed', -32504);
             }
             
             switch ($requestData['method']) {

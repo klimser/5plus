@@ -421,11 +421,11 @@ class MoneyComponent extends Component
                 $w = intval($currentDate->format('w'));
                 foreach ($groupPupilMap as $id => $item) {
                     if (!$item['state']) {
-                        if ($item['entity']->date_end && $item['entity']->endDateObject < $currentDate) {
+                        if ($item['entity']->date_end && $item['entity']->endDateObject <= $currentDate) {
                             $item['entity']->date_charge_till = $item['entity']->date_end;
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
-                        } elseif ($item['entity']->group->date_end && $item['entity']->group->endDateObject < $currentDate) {
+                        } elseif ($item['entity']->group->date_end && $item['entity']->group->endDateObject <= $currentDate) {
                             $item['entity']->date_charge_till = $item['entity']->group->date_end;
                             $groupPupilMap[$id]['state'] = true;
                             $continue--;
