@@ -39,14 +39,6 @@ use yii\helpers\Url;
                             </small>
                         </div>
                     </div>
-                    <div class="form-group col-12">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="1" id="agreement" required>
-                            <label class="form-check-label" for="agreement">
-                                С <a href="<?= Yii::$app->homeUrl; ?>uploads/images/legal_documents/public_offer.pdf" target="_blank">публичной офертой</a> ознакомлен(а) и согласен(на)
-                            </label>
-                        </div>
-                    </div>
                     <div class="form-group">
                         <div class="col-12 text-center">
                             <?php if (Yii::$app->request->get('apelsin_test') == 'mfp45'): ?>

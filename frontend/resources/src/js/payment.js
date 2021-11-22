@@ -74,7 +74,7 @@ let Payment = {
     },
     completePayment: function(button) {
         let form = $(button).closest("form");
-        if (!$("#pupil").data("val") || !$("#group").data("val") || $("#amount").val() < 1000 || !$("#agreement").is(":checked")) return false;
+        if (!$("#pupil").data("val") || !$("#group").data("val") || $("#amount").val() < 1000 || ($(form).find('#giftcard-email').length > 0 && !$("#agreement").is(":checked"))) return false;
 
         this.lockPayButton();
         $.ajax({
