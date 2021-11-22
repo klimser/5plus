@@ -141,6 +141,13 @@ return [
         'ageValidator' => [
             'class' => \common\components\AgeValidator::class,
         ],
+        'apelsinApi' => [
+            'class' => \common\components\apelsin\ApelsinApi::class,
+            'paymentUrl' => $params['apelsin-url'],
+            'cashId' => $params['apelsin-cashId'],
+            'login' => $params['apelsin-login'],
+            'password' => $params['apelsin-password'],
+        ]
     ],
     'aliases' => [
         '@uploads' => '@frontend/web/uploads',

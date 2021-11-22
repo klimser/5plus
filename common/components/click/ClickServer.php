@@ -6,19 +6,27 @@ use common\components\ComponentContainer;
 use common\components\MoneyComponent;
 use common\models\Contract;
 use common\models\GiftCard;
+use common\service\payment\AbstractPaymentServer;
+use DateTime;
+use Throwable;
 use Yii;
+use yii\web\Request;
+use yii\web\Response;
 
-class ClickServer
+class ClickServer extends AbstractPaymentServer
 {
-    public function processPrepare(): array
+    public function processPrepare(Request $request): Response
     {
+        $response = new Response();
+        $response->format = Response::FORMAT_JSON;
         $jsonData = ['error' => -8];
-        if (!Yii::$app->request->isPost) {
+        if (!$request->isPost) {
             $jsonData['error_note'] = 'Request should be POST';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
 
-        $params = Yii::$app->request->post();
+        $params = $request->post();
         if (empty($params)
             || !array_key_exists('click_trans_id', $params)
             || !array_key_exists('service_id', $params)
@@ -28,7 +36,8 @@ class ClickServer
             || !array_key_exists('sign_time', $params)
             || !array_key_exists('sign_string', $params)) {
             $jsonData['error_note'] = 'Invalid request';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
 
         $hash = $params['click_trans_id'] . $params['service_id'] . ComponentContainer::getClickApi()->secretKey
@@ -38,80 +47,72 @@ class ClickServer
         if ($sign !== $params['sign_string']) {
             $jsonData['error'] = -1;
             $jsonData['error_note'] = 'Invalid signature';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
 
-        if (preg_match('#^gc-(\d+)$#', $params['merchant_trans_id'], $matches)) {
-            /** @var GiftCard $giftCard */
-            $giftCard = GiftCard::findOne(intval($matches[1]));
+        switch ($this->getTypeById($params['merchant_trans_id'])) {
+            case Contract::class:
+                $transaction = Yii::$app->db->beginTransaction();
+                try {
+                    $contract = $this->getContractById($params['merchant_trans_id'], (int)$params['amount'] * 100);
 
-            if (!$giftCard) {
-                $jsonData['error'] = -5;
-                $jsonData['error_note'] = 'Invoice not found';
-                return $jsonData;
-            }
-            
-            if ($giftCard->status != GiftCard::STATUS_NEW) {
-                $jsonData['error'] = -4;
-                $jsonData['error_note'] = 'Инвойс уже оплачен, повторная оплата невозможна';
-                return $jsonData;
-            }
-            if (bccomp($giftCard->amount, $params['amount'], 2) !== 0) {
-                $jsonData['error'] = -2;
-                $jsonData['error_note'] = 'Wrong amount';
-                return $jsonData;
-            }
-            
-            return [
-                'click_trans_id' => $params['click_trans_id'],
-                'merchant_trans_id' => $params['merchant_trans_id'],
-                'merchant_prepare_id' => $giftCard->id,
-                'error' => 0,
-            ];
-        } else {
-            /** @var Contract $contract */
-            $contract = Contract::findOne(['number' => $params['merchant_trans_id']]);
+                    $contract->status = Contract::STATUS_PROCESS;
+                    $contract->external_id = $params['click_trans_id'];
+                    $contract->save();
+                    $transaction->commit();
+                } catch (Throwable $exception) {
+                    $transaction->rollBack();
+                    $jsonData['error'] = -7;
+                    $jsonData['error_note'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
+                    $response->data = $jsonData;
+                    return $response;
+                }
+                $response->data = [
+                    'click_trans_id' => $params['click_trans_id'],
+                    'merchant_trans_id' => $params['merchant_trans_id'],
+                    'merchant_prepare_id' => $contract->id,
+                    'error' => 0,
+                ];
+                return $response;
+            case GiftCard::class:
+                $transaction = Yii::$app->db->beginTransaction();
+                try {
+                    $giftCard = $this->getGiftCardById($params['merchant_trans_id'], (int)$params['amount'] * 100);
+                } catch (Throwable $exception) {
+                        $transaction->rollBack();
+                        $jsonData['error'] = -7;
+                        $jsonData['error_note'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
+                        $response->data = $jsonData;
+                        return $response;
+                    }
 
-            if (!$contract) {
-                $jsonData['error'] = -5;
-                $jsonData['error_note'] = 'Invoice not found';
-                return $jsonData;
-            }
-            
-            if ($contract->status == Contract::STATUS_PAID) {
-                $jsonData['error'] = -4;
-                $jsonData['error_note'] = 'Инвойс уже оплачен, повторная оплата невозможна';
-                return $jsonData;
-            }
-            
-            if (bccomp($contract->amount, $params['amount'], 2) !== 0) {
-                $jsonData['error'] = -2;
-                $jsonData['error_note'] = 'Wrong amount';
-                return $jsonData;
-            }
-            
-            $contract->status = Contract::STATUS_PROCESS;
-            $contract->external_id = $params['click_trans_id'];
-            $contract->save();
-
-            return [
-                'click_trans_id' => $params['click_trans_id'],
-                'merchant_trans_id' => $params['merchant_trans_id'],
-                'merchant_prepare_id' => $contract->id,
-                'error' => 0,
-            ];
+                $response->data = [
+                    'click_trans_id' => $params['click_trans_id'],
+                    'merchant_trans_id' => $params['merchant_trans_id'],
+                    'merchant_prepare_id' => $giftCard->id,
+                    'error' => 0,
+                ];
+                return $response;
         }
+
+        $jsonData['error_note'] = 'Unknown error';
+        $response->data = $jsonData;
+        return $response;
     }
 
-    public function processComplete(): array
+    public function handle(Request $request): Response
     {
+        $response = new Response();
+        $response->format = Response::FORMAT_JSON;
         $jsonData = ['error' => -8];
-        if (!Yii::$app->request->isPost) {
+        if (!$request->isPost) {
             $jsonData['error_note'] = 'Request should be POST';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
 
-        $params = Yii::$app->request->post();
+        $params = $request->post();
         if (empty($params)
             || !array_key_exists('click_trans_id', $params)
             || !array_key_exists('service_id', $params)
@@ -122,13 +123,15 @@ class ClickServer
             || !array_key_exists('sign_time', $params)
             || !array_key_exists('sign_string', $params)) {
             $jsonData['error_note'] = 'Invalid request';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
         
         if (array_key_exists('error', $params) && $params['error'] != 0) {
             $jsonData['error'] = -9;
             $jsonData['error_note'] = 'Payment cancelled';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
 
         $hash = $params['click_trans_id'] . $params['service_id'] . ComponentContainer::getClickApi()->secretKey
@@ -138,111 +141,90 @@ class ClickServer
         if ($sign !== $params['sign_string']) {
             $jsonData['error'] = -1;
             $jsonData['error_note'] = 'Invalid signature';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
 
-        if (preg_match('#^gc-(\d+)$#', $params['merchant_trans_id'], $matches)) {
-            /** @var GiftCard $giftCard */
-            $giftCard = GiftCard::findOne(intval($matches[1]));
+        switch ($this->getTypeById($params['merchant_trans_id'])) {
+            case Contract::class:
+                $transaction = Yii::$app->db->beginTransaction();
+                try {
+                    $contract = $this->getContractById($params['merchant_trans_id'], (int) $params['amount'] * 100);
+                    $paymentId = MoneyComponent::payContract(
+                        $contract,
+                        new DateTime($params['sign_time']),
+                        $this->getPaymentTypeId(),
+                        $params['click_paydoc_id']
+                    );
 
-            if (!$giftCard) {
-                $jsonData['error'] = -5;
-                $jsonData['error_note'] = 'Invoice not found';
-                return $jsonData;
-            }
-            if ($giftCard->status != GiftCard::STATUS_NEW) {
-                $jsonData['error'] = -4;
-                $jsonData['error_note'] = 'Инвойс уже оплачен, повторная оплата невозможна';
-                return $jsonData;
-            }
-            if (bccomp($giftCard->amount, $params['amount'], 2) !== 0) {
-                $jsonData['error'] = -2;
-                $jsonData['error_note'] = 'Wrong amount';
-                return $jsonData;
-            }
+                    $contract->external_id = $params['click_trans_id'];
+                    $contract->save();
 
-            $transaction = Yii::$app->db->beginTransaction();
-            try {
-                $giftCard->status = GiftCard::STATUS_PAID;
-                $giftCard->paid_at = $params['sign_time'];
-                if (!$giftCard->save()) {
-                    ComponentContainer::getErrorLogger()->logError('api/click', $giftCard->getErrorsAsString(), true);
+                    $transaction->commit();
+                } catch (Throwable $exception) {
+                    $transaction->rollBack();
                     $jsonData['error'] = -7;
-                    $jsonData['error_note'] = 'Ошибка регистрации оплаты';
-                    return $jsonData;
+                    $jsonData['error_note'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
+                    ComponentContainer::getErrorLogger()->logError('api/click', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
+                    $response->data = $jsonData;
+                    return $response;
                 }
 
-                ComponentContainer::getMailQueue()->add(
-                    'Квитанция об оплате',
-                    $giftCard->customer_email,
-                    'gift-card-html',
-                    'gift-card-text',
-                    ['id' => $giftCard->id]
-                );
+                $response->data = [
+                    'click_trans_id' => $params['click_trans_id'],
+                    'merchant_trans_id' => $params['merchant_trans_id'],
+                    'merchant_confirm_id' => $paymentId,
+                    'error' => 0,
+                ];
+                return $response;
+            case GiftCard::class:
+                $transaction = Yii::$app->db->beginTransaction();
+                try {
+                    $giftCard = $this->getGiftCardById($params['merchant_trans_id'], (int) $params['amount'] * 100);
+                    
+                    $giftCard->status = GiftCard::STATUS_PAID;
+                    $giftCard->paid_at = $params['sign_time'];
+                    if (!$giftCard->save()) {
+                        ComponentContainer::getErrorLogger()->logError('api/click', $giftCard->getErrorsAsString(), true);
+                        $jsonData['error'] = -7;
+                        $jsonData['error_note'] = 'Ошибка регистрации оплаты';
+                        $response->data = $jsonData;
+                        return $response;
+                    }
 
-                $transaction->commit();
-            } catch (\Throwable $exception) {
-                $transaction->rollBack();
-                $jsonData['message'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
-                ComponentContainer::getErrorLogger()->logError('api/paymo', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
-                return $jsonData;
-            }
+                    ComponentContainer::getMailQueue()->add(
+                        'Квитанция об оплате',
+                        $giftCard->customer_email,
+                        'gift-card-html',
+                        'gift-card-text',
+                        ['id' => $giftCard->id]
+                    );
 
-            return [
-                'click_trans_id' => $params['click_trans_id'],
-                'merchant_trans_id' => $params['merchant_trans_id'],
-                'merchant_confirm_id' => null,
-                'error' => 0,
-            ];
-        } else {
-            /** @var Contract $contract */
-            $contract = Contract::findOne(['number' => $params['merchant_trans_id']]);
+                    $transaction->commit();
+                } catch (Throwable $exception) {
+                    $transaction->rollBack();
+                    ComponentContainer::getErrorLogger()->logError('api/paymo', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
+                    $jsonData['error_note'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
+                    $response->data = $jsonData;
+                    return $response;
+                }
 
-            if (!$contract) {
-                $jsonData['error'] = -5;
-                $jsonData['error_note'] = 'Invoice not found';
-                return $jsonData;
-            }
-            
-            if ($contract->status == Contract::STATUS_PAID) {
-                $jsonData['error'] = -4;
-                $jsonData['error_note'] = 'Договор уже оплачен!';
-                return $jsonData;
-            }
-            
-            if (bccomp($contract->amount, $params['amount'], 2) !== 0) {
-                $jsonData['error'] = -2;
-                $jsonData['error_note'] = 'Wrong amount';
-                return $jsonData;
-            }
-
-            $transaction = Yii::$app->db->beginTransaction();
-            try {
-                $paymentId = MoneyComponent::payContract(
-                    $contract,
-                    new \DateTime($params['sign_time']),
-                    Contract::PAYMENT_TYPE_CLICK,
-                    $params['click_paydoc_id']
-                );
-
-                $contract->external_id = $params['click_trans_id'];
-                $contract->save();
-
-                $transaction->commit();
-            } catch (\Throwable $exception) {
-                $transaction->rollBack();
-                $jsonData['error'] = -7;
-                $jsonData['error_note'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
-                ComponentContainer::getErrorLogger()->logError('api/click', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
-                return $jsonData;
-            }
-
-            return [
-                'click_trans_id' => $params['click_trans_id'],
-                'merchant_trans_id' => $params['merchant_trans_id'],
-                'merchant_confirm_id' => $paymentId,
-                'error' => 0,
-            ];
+                $response->data = [
+                    'click_trans_id' => $params['click_trans_id'],
+                    'merchant_trans_id' => $params['merchant_trans_id'],
+                    'merchant_confirm_id' => null,
+                    'error' => 0,
+                ];
+                return $response;
         }
+
+        $jsonData['error_note'] = 'Unknown error';
+        $response->data = $jsonData;
+        return $response;
+    }
+
+    public function getPaymentTypeId(): int
+    {
+        return Contract::PAYMENT_TYPE_CLICK;
     }
 }

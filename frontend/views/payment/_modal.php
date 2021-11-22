@@ -49,8 +49,13 @@ use yii\helpers\Url;
                     </div>
                     <div class="form-group">
                         <div class="col-12 text-center">
+                            <?php if (Yii::$app->request->get('apelsin_test') == 'mfp45'): ?>
+                                <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_APELSIN; ?>" class="btn apelsin_logo pay_button m-2">
+                                    Оплатить через <span class="sr-only">Apelsin</span> <i class="ml-2"></i>
+                                </button>
+                            <?php endif; ?>
                             <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_ATMOS; ?>" class="btn atmos_logo pay_button m-2">
-                                Оплатить через <span class="sr-only">Paymo</span> <i class="ml-2"></i>
+                                Оплатить через <span class="sr-only">ATMOS</span> <i class="ml-2"></i>
                             </button>
                             <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_CLICK; ?>" class="btn click_logo pay_button m-2">
                                 Оплатить через <span class="sr-only">CLICK</span> <i class="ml-2"></i>

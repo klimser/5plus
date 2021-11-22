@@ -2,6 +2,7 @@
 
 namespace common\components;
 
+use common\components\apelsin\ApelsinApi;
 use common\components\bitrix\Bitrix;
 use common\components\click\ClickApi;
 use common\components\paygram\PaygramApi;
@@ -71,5 +72,9 @@ class ComponentContainer
     public static function getAgeValidator(): AgeValidator
     {
         return Yii::$app->ageValidator;
+    }
+    public static function getApelsinApi(): ApelsinApi
+    {
+        return Yii::$app->apelsinApi;
     }
 }

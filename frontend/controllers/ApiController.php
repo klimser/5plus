@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\components\apelsin\ApelsinServer;
 use common\components\click\ClickServer;
 use common\components\ComponentContainer;
 use common\components\payme\PaymeServer;
@@ -50,38 +51,26 @@ class ApiController extends Controller
 
     public function actionPaymoComplete()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
-        $jsonData = (new PaymoServer())->processPaymoRequest();
-        if (!array_key_exists('status', $jsonData) || $jsonData['status'] != 1) {
-            ComponentContainer::getErrorLogger()->logError(
-                'api/paymo',
-                print_r(Yii::$app->request, true) . "\n" . print_r($jsonData, true),
-                true
-            );
-        }
-
-        return $jsonData;
+        return (new PaymoServer())->handle(Yii::$app->request);
     }
 
     public function actionClickPrepare()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
-        return (new ClickServer())->processPrepare();
+        return (new ClickServer())->processPrepare(Yii::$app->request);
     }
 
     public function actionClickComplete()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
-        return (new ClickServer())->processComplete();
+        return (new ClickServer())->handle(Yii::$app->request);
     }
 
     public function actionPayme()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
+        return (new PaymeServer())->handle(Yii::$app->request);
+    }
 
-        return (new PaymeServer())->handle();
+    public function actionApelsin()
+    {
+        return (new ApelsinServer())->handle(Yii::$app->request);
     }
 }

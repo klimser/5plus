@@ -2,8 +2,9 @@
 
 namespace common\components\click;
 
+use common\service\payment\PaymentServiceException;
 
-class ClickApiException extends \Exception
+class ClickApiException extends PaymentServiceException
 {
 
 }

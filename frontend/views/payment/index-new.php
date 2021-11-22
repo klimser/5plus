@@ -74,6 +74,11 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
             </div>
             <div id="message_board"></div>
             <div class="text-right mw-100">
+                <?php if (Yii::$app->request->get('apelsin_test') == 'mfp45'): ?>
+                    <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_APELSIN; ?>" class="btn apelsin_logo pay_button m-2">
+                        Оплатить через <span class="sr-only">Apelsin</span> <i class="ml-2"></i>
+                    </button>
+                <?php endif; ?>
                 <button type="submit" onclick="return Payment.completeNewPayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_ATMOS; ?>" class="btn atmos_logo pay_button m-2">
                     Оплатить через <span class="sr-only">Atmos</span> <i class="ml-2"></i>
                 </button>

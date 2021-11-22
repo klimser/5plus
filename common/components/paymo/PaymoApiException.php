@@ -2,8 +2,9 @@
 
 namespace common\components\paymo;
 
+use common\service\payment\PaymentServiceException;
 
-class PaymoApiException extends \Exception
+class PaymoApiException extends PaymentServiceException
 {
 
 }

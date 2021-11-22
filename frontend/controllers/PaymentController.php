@@ -349,6 +349,11 @@ class PaymentController extends Controller
                     $contract->payment_type = Contract::PAYMENT_TYPE_PAYME;
                     $contract->status = Contract::STATUS_PROCESS;
                     break;
+                case Contract::PAYMENT_TYPE_APELSIN:
+                    $redirectUrl = ComponentContainer::getApelsinApi()->payCreate($contract->amount, $contract->number, $returnUrl);
+                    $contract->payment_type = Contract::PAYMENT_TYPE_APELSIN;
+                    $contract->status = Contract::STATUS_PROCESS;
+                    break;
                 default:
                     return self::getJsonErrorResult('Wrong payment method');
             }
@@ -424,6 +429,9 @@ class PaymentController extends Controller
                     break;
                 case Contract::PAYMENT_TYPE_PAYME:
                     $redirectUrl = ComponentContainer::getPaymeApi()->payCreate($giftCard->amount, "gc-$giftCard->id", $returnUrl);
+                    break;
+                case Contract::PAYMENT_TYPE_APELSIN:
+                    $redirectUrl = ComponentContainer::getApelsinApi()->payCreate($giftCard->amount, "gc-$giftCard->id", $returnUrl);
                     break;
                 default:
                     return self::getJsonErrorResult('Wrong payment method');

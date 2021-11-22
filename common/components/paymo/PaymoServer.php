@@ -6,118 +6,123 @@ use common\components\ComponentContainer;
 use common\components\MoneyComponent;
 use common\models\Contract;
 use common\models\GiftCard;
+use common\service\payment\AbstractPaymentServer;
+use common\service\payment\PaymentServiceException;
 use Yii;
+use yii\web\Request;
+use yii\web\Response;
 
-class PaymoServer
+class PaymoServer extends AbstractPaymentServer
 {
-    public function processPaymoRequest(): array
+    private const IP_WHITELIST = ['185.8.212.47', '185.8.212.48'];
+
+    public function handle(Request $request): Response
     {
+        $response = new Response();
+        $response->format = Response::FORMAT_JSON;
         $jsonData = ['status' => 0];
-        $whiteList = ['185.8.212.47', '185.8.212.48'];
 
-        if (!Yii::$app->request->isPost) {
+        if (!$request->isPost) {
             $jsonData['message'] = 'Request should be POST';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
-        if (!in_array(Yii::$app->request->remoteIP, $whiteList)) {
+        if (!in_array($request->remoteIP, self::IP_WHITELIST)) {
             $jsonData['message'] = 'Wrong server IP';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
 
-        $params = json_decode(Yii::$app->request->rawBody, true);
-
-        if ($params === false
+        $params = json_decode($request->rawBody, true);
+        if (false === $params
             || !array_key_exists('store_id', $params)
             || !array_key_exists('transaction_id', $params)
             || !array_key_exists('invoice', $params)
             || !array_key_exists('amount', $params)
             || !array_key_exists('sign', $params)) {
             $jsonData['message'] = 'Invalid JSON-body';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
 
         $hash = $params['store_id'] . $params['transaction_id'] . $params['invoice'] . $params['amount'] . ComponentContainer::getPaymoApi()->apiKey;
         $sign = md5($hash);
 
-        if ($sign != $params['sign']) {
+        if ($sign !== $params['sign']) {
             $jsonData['message'] = 'Invalid signature';
-            return $jsonData;
+            $response->data = $jsonData;
+            return $response;
         }
 
-        if (preg_match('#^gc-(\d+)$#', $params['invoice'], $matches)) {
-            /** @var GiftCard $giftCard */
-            $giftCard = GiftCard::findOne(intval($matches[1]));
+        try {
+            switch ($this->getTypeById($params['invoice'])) {
+                case Contract::class:
+                    $contract = $this->getContractById($params['invoice'], $params['amount']);
 
-            if (!$giftCard) {
-                $jsonData['message'] = 'Invoice not found';
-                return $jsonData;
-            }
-            if ($giftCard->status != GiftCard::STATUS_NEW) {
-                $jsonData['message'] = 'Инвойс уже оплачен, повторная оплата невозможна';
-                return $jsonData;
-            }
-            if ($giftCard->amount * 100 != $params['amount']) {
-                $jsonData['message'] = 'Wrong amount';
-                return $jsonData;
-            }
+                    $transaction = Yii::$app->db->beginTransaction();
+                    try {
+                        MoneyComponent::payContract(
+                            $contract,
+                            new \DateTime(array_key_exists('transaction_time', $params) ? $params['transaction_time'] : 'now'),
+                            Contract::PAYMENT_TYPE_ATMOS,
+                            $params['transaction_id']
+                        );
+                        $transaction->commit();
+                    } catch (\Throwable $exception) {
+                        $transaction->rollBack();
+                        $jsonData['message'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
+                        ComponentContainer::getErrorLogger()->logError('api/paymo', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
+                        $response->data = $jsonData;
+                        return $response;
+                    }
+                    break;
+                case GiftCard::class:
+                    $giftCard = $this->getGiftCardById($params['invoice'], $params['amount']);
 
-            $transaction = Yii::$app->db->beginTransaction();
-            try {
-                $giftCard->status = GiftCard::STATUS_PAID;
-                $giftCard->paid_at = array_key_exists('transaction_time', $params) ? $params['transaction_time'] : date('Y-m-d H:i:s');
-                if (!$giftCard->save()) {
-                    ComponentContainer::getErrorLogger()->logError('api/paymo', $giftCard->getErrorsAsString(), true);
-                    $jsonData['message'] = 'Внутренняя ошибка сервера';
-                    return $jsonData;
-                }
+                    $transaction = Yii::$app->db->beginTransaction();
+                    try {
+                        $giftCard->status = GiftCard::STATUS_PAID;
+                        $giftCard->paid_at = array_key_exists('transaction_time', $params) ? $params['transaction_time'] : date('Y-m-d H:i:s');
+                        if (!$giftCard->save()) {
+                            $transaction->rollBack();
+                            ComponentContainer::getErrorLogger()->logError('api/paymo', $giftCard->getErrorsAsString(), true);
+                            $jsonData['message'] = 'Внутренняя ошибка сервера';
+                            $response->data = $jsonData;
+                            return $response;
+                        }
 
-                ComponentContainer::getMailQueue()->add(
-                    'Квитанция об оплате',
-                    $giftCard->customer_email,
-                    'gift-card-html',
-                    'gift-card-text',
-                    ['id' => $giftCard->id]
-                );
+                        ComponentContainer::getMailQueue()->add(
+                            'Квитанция об оплате',
+                            $giftCard->customer_email,
+                            'gift-card-html',
+                            'gift-card-text',
+                            ['id' => $giftCard->id]
+                        );
 
-                $transaction->commit();
-            } catch (\Throwable $exception) {
-                $transaction->rollBack();
-                $jsonData['message'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
-                ComponentContainer::getErrorLogger()->logError('api/paymo', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
-                return $jsonData;
+                        $transaction->commit();
+                    } catch (\Throwable $exception) {
+                        $transaction->rollBack();
+                        ComponentContainer::getErrorLogger()->logError('api/paymo', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
+                        $jsonData['message'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
+                        $response->data = $jsonData;
+                        return $response;
+                    }
+                    break;
             }
-        } else {
-            /** @var Contract $contract */
-            $contract = Contract::findOne(['number' => $params['invoice']]);
-
-            if (!$contract) {
-                $jsonData['message'] = 'Invoice not found';
-                return $jsonData;
-            }
-            if ($contract->amount * 100 != $params['amount']) {
-                $jsonData['message'] = 'Wrong amount';
-                return $jsonData;
-            }
-
-            $transaction = Yii::$app->db->beginTransaction();
-            try {
-                MoneyComponent::payContract(
-                    $contract,
-                    new \DateTime(array_key_exists('transaction_time', $params) ? $params['transaction_time'] : 'now'),
-                    Contract::PAYMENT_TYPE_ATMOS,
-                    $params['transaction_id']
-                );
-                $transaction->commit();
-            } catch (\Throwable $exception) {
-                $transaction->rollBack();
-                $jsonData['message'] = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
-                ComponentContainer::getErrorLogger()->logError('api/paymo', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
-                return $jsonData;
-            }
+        } catch (PaymentServiceException $ex) {
+            $jsonData['message'] = $ex->getMessage();
+            $response->data = $jsonData;
+            return $response;
         }
 
         $jsonData['status'] = 1;
         $jsonData['message'] = 'Успешно';
-        return $jsonData;
+        $response->data = $jsonData;
+        return $response;
+    }
+
+    public function getPaymentTypeId(): int
+    {
+        return Contract::PAYMENT_TYPE_ATMOS;
     }
 }

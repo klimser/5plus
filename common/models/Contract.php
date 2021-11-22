@@ -60,6 +60,7 @@ class Contract extends ActiveRecord
     public const PAYMENT_TYPE_MANUAL_PAYME = 9;
     public const PAYMENT_TYPE_MANUAL_BANK = 10;
     public const PAYMENT_TYPE_MANUAL_OLD = 11;
+    public const PAYMENT_TYPE_APELSIN = 12;
 
     public const STATUS_LABELS = [
         self::STATUS_NEW => 'не оплачен',
@@ -79,6 +80,7 @@ class Contract extends ActiveRecord
         self::PAYMENT_TYPE_MANUAL_PAYME => 'Payme приложение',
         self::PAYMENT_TYPE_MANUAL_BANK => 'Банковский перевод (юр лица)',
         self::PAYMENT_TYPE_MANUAL_OLD => 'прошлый учебный год',
+        self::PAYMENT_TYPE_APELSIN => 'Apelsin',
     ];
 
     public const MANUAL_PAYMENT_TYPES = [
@@ -126,6 +128,7 @@ class Contract extends ActiveRecord
                 self::PAYMENT_TYPE_MANUAL_PAYME,
                 self::PAYMENT_TYPE_MANUAL_BANK,
                 self::PAYMENT_TYPE_MANUAL_OLD,
+                self::PAYMENT_TYPE_APELSIN,
             ]],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
             [['group_id'], 'exist', 'targetRelation' => 'group'],

@@ -6,25 +6,33 @@ use common\components\ComponentContainer;
 use common\components\MoneyComponent;
 use common\models\Contract;
 use common\models\GiftCard;
+use common\service\payment\AbstractPaymentServer;
+use common\service\payment\PaymentServiceException;
 use Yii;
+use yii\web\Request;
+use yii\web\Response;
 
-class PaymeServer
+class PaymeServer extends AbstractPaymentServer
 {
-    public function handle(): array
+    public function handle(Request $request): Response
     {
-        if (!Yii::$app->request->isPost) {
-            return ['id' => 0, 'error' => ['code' => -32300, 'message' => ['en' => 'Request should be POST']]];
+        $response = new Response();
+        $response->format = Response::FORMAT_JSON;
+        if (!$request->isPost) {
+            $response->data = ['id' => 0, 'error' => ['code' => -32300, 'message' => ['en' => 'Request should be POST']]];
+            return $response;
         }
         
-        $requestData = json_decode(Yii::$app->request->rawBody, true);
+        $requestData = json_decode($request->rawBody, true);
         
         if (!$requestData) {
-            return ['id' => 0, 'error' => ['code' => -32700, 'message' => ['en' => 'Failed to parse JSON']]];
+            $response->data =  ['id' => 0, 'error' => ['code' => -32700, 'message' => ['en' => 'Failed to parse JSON']]];
+            return $response;
         }
 
         try {
             $authComplete = false;
-            $auth = Yii::$app->request->getHeaders()->get('Authorization', '');
+            $auth = $request->getHeaders()->get('Authorization', '');
             if ($auth) {
                 [$devNull, $auth] = explode(' ', trim($auth), 2);
                 $auth = base64_decode($auth);
@@ -58,57 +66,16 @@ class PaymeServer
                     break;
                 case 'ChangePassword':
                     throw new PaymeApiException('Password is immutable', -32400);
-                    break;
                 default:
                     $responseData = ['error' => ['code' => -32601, 'message' => ['en' => 'Method does not exists']]];
             }
-        } catch (PaymeApiException $ex) {
+        } catch (PaymentServiceException $ex) {
             $responseData = ['error' => ['code' => $ex->getCode(), 'message' => $ex->getMessage()]];
         }
         
         $responseData['id'] = $requestData['id'];
-        return $responseData;
-    }
-
-    /**
-     * @param string $id
-     * @param int $amount
-     * @return Contract|GiftCard
-     * @throws PaymeApiException
-     */
-    private function getPaymentById(string $id, int $amount)
-    {
-        if (preg_match('#^gc-(\d+)$#', $id, $matches)) {
-            /** @var GiftCard $giftCard */
-            $giftCard = GiftCard::findOne((int) $matches[1]);
-
-            if (!$giftCard || !$giftCard->additionalData['payment_method'] || Contract::PAYMENT_TYPE_PAYME !== $giftCard->additionalData['payment_method']) {
-                throw new PaymeApiException('Invoice not found', -31055);
-            }
-            if ($giftCard->status != GiftCard::STATUS_NEW) {
-                throw new PaymeApiException('Invoice was already paid', -31056);
-            }
-            if ($giftCard->amount * 100 != $amount) {
-                throw new PaymeApiException('Wrong amount', -31001);
-            }
-            
-            return $giftCard;
-        } else {
-            /** @var Contract $contract */
-            $contract = Contract::findOne(['number' => $id, 'payment_type' => Contract::PAYMENT_TYPE_PAYME]);
-
-            if (!$contract) {
-                throw new PaymeApiException('Invoice not found', -31055);
-            }
-            if ($contract->status == Contract::STATUS_PAID) {
-                throw new PaymeApiException('Invoice was already paid', -31056);
-            }
-            if ($contract->amount * 100 != $amount) {
-                throw new PaymeApiException('Wrong amount', -31001);
-            }
-            
-            return $contract;
-        }
+        $response->data =  $responseData;
+        return $response;
     }
     
     private function checkPerformTransaction($params): array
@@ -119,10 +86,21 @@ class PaymeServer
             || !isset($params['account']['order_id'])) {
             throw new PaymeApiException('Invalid request data', -31050);
         }
-        
-        $this->getPaymentById($params['account']['order_id'], (int) $params['amount']);
-        
-        return ['result' => ['allow' => true]];
+
+        switch ($this->getTypeById($params['account']['order_id'])) {
+            case Contract::class:
+                if ($this->getContractById($params['account']['order_id'], (int) $params['amount'])) {
+                    return ['result' => ['allow' => true]];
+                }
+                break;
+            case GiftCard::class:
+                if ($this->getGiftCardById($params['account']['order_id'], (int) $params['amount'])) {
+                    return ['result' => ['allow' => true]];
+                }
+                break;
+        }
+
+        throw new PaymeApiException('Invoice not found', -31050);
     }
 
     private function createTransaction($params): array
@@ -134,41 +112,48 @@ class PaymeServer
             throw new PaymeApiException('Invalid request data', -31050);
         }
 
-        $payment = $this->getPaymentById($params['account']['order_id'], (int) $params['amount']);
-        
         $transactionTime = 0;
-        if ($payment instanceof Contract) {
-            if ($payment->external_id) {
-                [$id, $time] = explode('|', $payment->external_id);
-                if ($id !== $params['id']) {
-                    throw new PaymeApiException('Another transaction was already started', -31057);
+        switch ($this->getTypeById($params['account']['order_id'])) {
+            case Contract::class:
+                if ($contract = $this->getContractById($params['account']['order_id'], (int) $params['amount'])) {
+                    if ($contract->external_id) {
+                        [$id, $time] = explode('|', $contract->external_id);
+                        if ($id !== $params['id']) {
+                            throw new PaymeApiException('Another transaction was already started', -31057);
+                        }
+                        $transactionTime = (int)$time;
+                    } else {
+                        $contract->payment_type = $this->getPaymentTypeId();
+                        if (!$transactionTime) {
+                            $contract->external_id = $params['id'] . '|' . $params['time'];
+                            $transactionTime = $params['time'];
+                        }
+                    }
+                    $contract->save();
+                    return ['result' => ['create_time' => $transactionTime, 'transaction' => (string)$contract->id, 'state' => 1]];
                 }
-                $transactionTime = (int)$time;
-            } else {
-                $payment->payment_type = Contract::PAYMENT_TYPE_PAYME;
-                if (!$transactionTime) {
-                    $payment->external_id = $params['id'] . '|' . $params['time'];
-                    $transactionTime = $params['time'];
+                break;
+            case GiftCard::class:
+                if ($giftCard = $this->getGiftCardById($params['account']['order_id'], (int) $params['amount'])) {
+                    $data = $giftCard->additionalData;
+                    if (isset($data['payme_transaction_id'])) {
+                        if($data['payme_transaction_id'] !== $params['id']) {
+                            throw new PaymeApiException('Another transaction was already started', -31057);
+                        }
+                        $transactionTime = (int)$data['payme_transaction_time'];
+                    } else {
+                        $data['payme_transaction_id'] = $params['id'];
+                        $data['payme_transaction_time'] = $params['time'];
+                        $giftCard->additionalData = $data;
+                        $giftCard->save();
+                        $transactionTime = $params['time'];
+                    }
+                    return ['result' => ['create_time' => $transactionTime, 'transaction' => (string)$giftCard->id, 'state' => 1]];
                 }
-            }
-            $payment->save();
-        } elseif ($payment instanceof GiftCard) {
-            $data = $payment->additionalData;
-            if (isset($data['payme_transaction_id'])) {
-                if($data['payme_transaction_id'] !== $params['id']) {
-                    throw new PaymeApiException('Another transaction was already started', -31057);
-                }
-                $transactionTime = (int)$data['payme_transaction_time'];
-            } else {
-                $data['payme_transaction_id'] = $params['id'];
-                $data['payme_transaction_time'] = $params['time'];
-                $payment->additionalData = $data;
-                $payment->save();
-                $transactionTime = $params['time'];
-            }
+                break;
         }
 
-        return ['result' => ['create_time' => $transactionTime, 'transaction' => (string)$payment->id, 'state' => 1]];
+        throw new PaymeApiException('Invalid request data', -31050);
     }
 
     private function complete($params): array
@@ -178,10 +163,9 @@ class PaymeServer
         }
         
         /** @var Contract $contract */
-        $contract = Contract::find()
+        if ($contract = Contract::find()
             ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_PAYME])
-            ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one();
-        if ($contract) {
+            ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one()) {
             if ($contract->status != Contract::STATUS_PAID) {
                 $transaction = Yii::$app->db->beginTransaction();
                 try {
@@ -202,8 +186,7 @@ class PaymeServer
         }
 
         /** @var GiftCard $giftCard */
-        $giftCard = GiftCard::find()->andWhere(['like', 'additional', '"payme_transaction_id":"' . $params['id'] . '"'])->one();
-        if ($giftCard) {
+        if ($giftCard = GiftCard::find()->andWhere(['like', 'additional', '"payme_transaction_id":"' . $params['id'] . '"'])->one()) {
             if ($giftCard->status == GiftCard::STATUS_NEW) {
                 $transaction = Yii::$app->db->beginTransaction();
                 try {
@@ -234,7 +217,7 @@ class PaymeServer
 
         throw new PaymeApiException('Transaction not found', -31003);
     }
-    
+
     private function cancel($params): array
     {
         if (empty($params) || !array_key_exists('id', $params)) {
@@ -242,10 +225,9 @@ class PaymeServer
         }
 
         /** @var Contract $contract */
-        $contract = Contract::find()
+        if ($contract = Contract::find()
             ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_PAYME])
-            ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one();
-        if ($contract) {
+            ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one()) {
             if ($contract->status == Contract::STATUS_PAID) {
                 throw new PaymeApiException('Transaction is not allowed to cancel', -31007);
             }
@@ -253,8 +235,7 @@ class PaymeServer
         }
 
         /** @var GiftCard $giftCard */
-        $giftCard = GiftCard::find()->andWhere(['like', 'additional', '"payme_transaction_id":"' . $params['id'] . '"'])->one();
-        if ($giftCard) {
+        if ($giftCard = GiftCard::find()->andWhere(['like', 'additional', '"payme_transaction_id":"' . $params['id'] . '"'])->one()) {
             if ($giftCard->status != GiftCard::STATUS_NEW) {
                 throw new PaymeApiException('Transaction is not allowed to cancel', -31007);
             }
@@ -271,10 +252,9 @@ class PaymeServer
         }
 
         /** @var Contract $contract */
-        $contract = Contract::find()
+        if ($contract = Contract::find()
             ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_PAYME])
-            ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one();
-        if ($contract) {
+            ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one()) {
             [$id, $time] = explode('|', $contract->external_id);
             return ['result' => [
                 'create_time' => (int)$time,
@@ -287,8 +267,7 @@ class PaymeServer
         }
 
         /** @var GiftCard $giftCard */
-        $giftCard = GiftCard::find()->andWhere(['like', 'additional', '"payme_transaction_id":"' . $params['id'] . '"'])->one();
-        if ($giftCard) {
+        if ($giftCard = GiftCard::find()->andWhere(['like', 'additional', '"payme_transaction_id":"' . $params['id'] . '"'])->one()) {
             return ['result' => [
                 'create_time' => (int)$giftCard->additionalData['payme_transaction_time'],
                 'transaction' => (string)$giftCard->id,
@@ -363,5 +342,10 @@ class PaymeServer
         
         ksort($results);
         return ['result' => ['transactions' => array_values($results)]]; 
+    }
+
+    public function getPaymentTypeId(): int
+    {
+        return Contract::PAYMENT_TYPE_PAYME;
     }
 }

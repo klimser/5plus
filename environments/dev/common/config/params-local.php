@@ -27,5 +27,28 @@ return [
         \common\models\Notify::TEMPLATE_PUPIL_LOW => 19,
         \common\models\Notify::TEMPLATE_PARENT_DEBT => 20,
         \common\models\Notify::TEMPLATE_PARENT_LOW => 21,
+        \common\components\SmsConfirmation::TEMPLATE_CONFIRMATION_CODE => 21,
+        \common\components\AgeValidator::TEMPLATE_AGE_CONFIRMATION => 610,
     ],
+
+    'click-url' => '',
+    'click-merchantId' => '456',
+    'click-serviceId' => '987',
+    'click-merchantUserId' => '123',
+    'click-secretKey' => 'test',
+
+    'payme-url' => '',
+    'payme-merchantId' => '',
+    'payme-login' => 'test',
+    'payme-password' => 'test',
+
+    'smsbroker-url' => 'http://91.204.239.44/broker-api',
+    'smsbroker-login' => 'test',
+    'smsbroker-password' => 'test',
+    'smsbroker-sender-name' => 'FIVEPLUS',
+
+    'apelsin-url' => 'https://oplata.kapitalbank.uz',
+    'apelsin-cashId' => 'test',
+    'apelsin-login' => 'test',
+    'apelsin-password' => 'test',
 ];
