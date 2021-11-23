@@ -52,7 +52,7 @@ class ApelsinServer extends AbstractPaymentServer
 
             switch ($this->getTypeById($requestData['paymentId'])) {
                 case Contract::class:
-                    $contract = $this->getContractById($requestData['paymentId'], (int) $requestData['amount'] * 100);
+                    $contract = $this->getContractById($requestData['paymentId'], (int) $requestData['amount']);
                     MoneyComponent::payContract(
                         $contract,
                         new DateTime(),
@@ -68,7 +68,7 @@ class ApelsinServer extends AbstractPaymentServer
                     $response->data = ['status' => true];
                     return $response;
                 case GiftCard::class:
-                    $giftCard = $this->getGiftCardById($requestData['paymentId'], (int) $requestData['amount'] * 100);
+                    $giftCard = $this->getGiftCardById($requestData['paymentId'], (int) $requestData['amount']);
                     $giftCard->status = GiftCard::STATUS_PAID;
                     $giftCard->paid_at = date('Y-m-d H:i:s');
                     if (!$giftCard->save()) {
