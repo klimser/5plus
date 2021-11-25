@@ -893,9 +893,8 @@ class AccountCommand extends UserCommand
         if (!$userResult instanceof User) {
             if (isset($conversation->notes['userId'])) {
                 $user = User::find()
-                    ->andWhere(['id' => $conversation->notes['userId']])
-                    ->andWhere(['u.tg_chat_id' => $this->getMessage()->getChat()->getId()])
-                    ->andWhere(['not', ['u.status' => User::STATUS_LOCKED]])
+                    ->andWhere(['id' => $conversation->notes['userId'], 'tg_chat_id' => $this->getMessage()->getChat()->getId()])
+                    ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
                     ->one();
             }
             if (isset($user)) {
