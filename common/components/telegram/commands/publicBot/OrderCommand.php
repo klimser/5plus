@@ -120,6 +120,7 @@ class OrderCommand extends UserCommand
                 $userName = trim($this->getMessage()->getFrom()->getFirstName());
                 if ($this->getMessage()->getFrom()->getLastName()) {
                     $userName .= ' ' . trim($this->getMessage()->getFrom()->getLastName());
+                    $userName = trim($userName);
                 }
                 if (!empty($userName)) {
                     $buttons[] = $userName;
@@ -143,6 +144,9 @@ class OrderCommand extends UserCommand
                 ];
                 break;
             case 2:
+                if (empty($message->getText())) {
+                    return $this->stepBack($conversation);
+                }
                 if ($message->getText() !== PublicMain::TO_BACK) {
                     $this->addNote($conversation, 'name', $message->getText());
                 }
@@ -209,7 +213,7 @@ class OrderCommand extends UserCommand
                     $this->addNote($conversation, 'category_id', $subjectCategory->id);
                     $this->addNote($conversation, 'category', $subjectCategory->name);
                 } elseif (empty($conversation->notes['category'])) {
-                    $this->stepBack($conversation);
+                    return $this->stepBack($conversation);
                 }
 
                 $buttons = [];
