@@ -9,6 +9,7 @@ use common\models\GroupPupil;
 use common\models\User;
 use yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * MoneyController is used to charge pupils.
@@ -58,10 +59,10 @@ class MoneyController extends Controller
             echo $ex->getMessage();
             ComponentContainer::getErrorLogger()
                 ->logError('console/money-charge', $ex->getMessage(), true);
-            if ($transaction !== null) $transaction->rollBack();
-            return yii\console\ExitCode::UNSPECIFIED_ERROR;
+            $transaction?->rollBack();
+            return ExitCode::UNSPECIFIED_ERROR;
         }
 
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }

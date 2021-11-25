@@ -7,6 +7,7 @@ use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\TelegramLog;
 use yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 class BotHandleController extends Controller
 {
@@ -24,6 +25,6 @@ class BotHandleController extends Controller
         } catch (TelegramException $e) {
             TelegramLog::error($e);
         }
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }

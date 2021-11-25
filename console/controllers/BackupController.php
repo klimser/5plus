@@ -5,6 +5,7 @@ namespace console\controllers;
 use common\components\ComponentContainer;
 use yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * BackupController is used to store DB backup to Google drive.
@@ -81,7 +82,7 @@ class BackupController extends Controller
             } else {
                 ComponentContainer::getErrorLogger()
                     ->logError('backup/create', 'No google drive credentials', true);
-                return yii\console\ExitCode::OK;
+                return ExitCode::OK;
 
 //            $authUrl = $client->createAuthUrl();
 //            printf("Open the following link in your browser:\n%s\n", $authUrl);
@@ -168,6 +169,6 @@ class BackupController extends Controller
             }
         }
 
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }

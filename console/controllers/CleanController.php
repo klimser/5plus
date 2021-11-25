@@ -5,6 +5,7 @@ namespace console\controllers;
 use common\models\QuizResult;
 use yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * CleanController is used to clean old records from DB.
@@ -28,6 +29,6 @@ class CleanController extends Controller
             $result->delete();
         }
 
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }

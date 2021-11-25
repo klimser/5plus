@@ -8,6 +8,7 @@ use common\models\BotMailing;
 use common\models\User;
 use yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * BotMailingController is used to send mailing to telegram bot users.
@@ -25,7 +26,7 @@ class BotMailingController extends Controller
     public function actionSend()
     {
         if (!array_key_exists('telegramPublic', \Yii::$app->components)) {
-            return yii\console\ExitCode::OK;
+            return ExitCode::OK;
         }
 
         \Yii::$app->db->open();
@@ -39,7 +40,7 @@ class BotMailingController extends Controller
                 ->andWhere(['or', ['started_at' => null], ['<', 'started_at', date('Y-m-d H:i:s')]])
                 ->one();
             if (!$botMailing) {
-                return yii\console\ExitCode::OK;
+                return ExitCode::OK;
             }
 
             if (($botMailing->processResult['status'] ?? 'new') === 'sending') {
@@ -122,6 +123,6 @@ class BotMailingController extends Controller
                 $botMailing->save();
             }
         }
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }

@@ -9,6 +9,7 @@ use common\models\GiftCard;
 use Longman\TelegramBot\DB;
 use Yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * MailController is used to send e-mails from queue.
@@ -87,6 +88,6 @@ class MailController extends Controller
                 $toSend->save();
             }
         }
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }

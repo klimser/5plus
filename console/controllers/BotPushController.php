@@ -8,6 +8,7 @@ use common\models\BotPush;
 use common\models\User;
 use yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * BotPushController is used to send data to telegram bot users.
@@ -27,7 +28,7 @@ class BotPushController extends Controller
         $currentTime = intval(date('H'));
         if (!array_key_exists('telegramPublic', \Yii::$app->components)
             || $currentTime >= 20 || $currentTime < 9) {
-            return yii\console\ExitCode::OK;
+            return ExitCode::OK;
         }
 
         \Yii::$app->db->open();
@@ -77,6 +78,6 @@ class BotPushController extends Controller
             }
             $botPush->save();
         }
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }

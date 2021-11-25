@@ -7,6 +7,7 @@ use common\components\ComponentContainer;
 use Tinify\Source;
 use yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * TinifyController is used to tinify images uploaded through WYSIWIG.
@@ -54,10 +55,10 @@ class TinifyController extends Controller
                 echo $exception->getMessage();
                 ComponentContainer::getErrorLogger()
                     ->logError('console/tinify', $exception->getMessage(), true);
-                return yii\console\ExitCode::UNSPECIFIED_ERROR;
+                return ExitCode::UNSPECIFIED_ERROR;
             }
         }
 
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }

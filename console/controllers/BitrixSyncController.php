@@ -8,6 +8,7 @@ use common\components\bitrix\WelcomeLessonSyncronizer;
 use common\components\ComponentContainer;
 use yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * BitrixSyncController is used to sync data with Bitrix.
@@ -41,23 +42,23 @@ class BitrixSyncController extends Controller
         $userSyncronizer->formatUsers();
 
         while ($userSyncronizer->syncNextUser()) {
-            if ($this->isTimeExceeded()) return yii\console\ExitCode::OK;
+            if ($this->isTimeExceeded()) return ExitCode::OK;
         }
 
         // PAYMENTS
 
         $paymentSyncronizer = new PaymentSyncronizer(ComponentContainer::getBitrix());
         while ($paymentSyncronizer->syncNextPayment()) {
-            if ($this->isTimeExceeded()) return yii\console\ExitCode::OK;
+            if ($this->isTimeExceeded()) return ExitCode::OK;
         }
 
         // WELCOME LESSONS
 
         $welcomeLessonSyncronizer = new WelcomeLessonSyncronizer(ComponentContainer::getBitrix());
         while ($welcomeLessonSyncronizer->syncNextWelcomeLesson()) {
-            if ($this->isTimeExceeded()) return yii\console\ExitCode::OK;
+            if ($this->isTimeExceeded()) return ExitCode::OK;
         }
 
-        return yii\console\ExitCode::OK;
+        return ExitCode::OK;
     }
 }
