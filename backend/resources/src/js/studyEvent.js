@@ -97,8 +97,7 @@ let StudyEvent = {
                         }
                         content += '<li class="list-group-item list-group-item-warning p-2">' +
                             '<div id="messages_place_event_welcome_member_' + welcomeMember.id + '"></div>' +
-                            '<div id="event_welcome_member_' + welcomeMember.id + '" data-id="' + welcomeMember.id + '" ' +
-                            ' data-status="' + welcomeMember.status + '" class="event_welcome_member row no-gutters align-items-center ' + titleCssClass + '">' +
+                            '<div id="event_welcome_member_' + welcomeMember.id + '" class="event_welcome_member row no-gutters align-items-center ' + titleCssClass + '">' +
                             '<div class="col-8">' + welcomeMember.user.name +
                             '</div>' +
                             '<div class="col-4 buttons-column text-right">' + StudyEvent.getWelcomeButtonsColumn(welcomeMember) + '</div>' +
@@ -117,8 +116,7 @@ let StudyEvent = {
                         }
                         content += '<li class="list-group-item p-2">' +
                             '<div id="messages_place_event_member_' + member.id + '"></div>' +
-                            '<div id="event_member_' + member.id + '" data-id="' + member.id + '" data-status="' + member.status + '" ' +
-                            ' data-mark="' + (member.mark ?? 0) + '" class="event_member row no-gutters align-items-center ' + titleCssClass + '">' +
+                            '<div id="event_member_' + member.id + '" class="event_member row no-gutters align-items-center ' + titleCssClass + '">' +
                             '<div class="col-8">' + member.groupPupil.user.name +
                             (null !== member.groupPupil.debtMessage
                                 ? ' <span class="fas fa-info-circle text-danger" data-toggle="tooltip" data-placement="top" data-html="true" title="' + member.groupPupil.debtMessage + '"></span>'
@@ -230,7 +228,7 @@ let StudyEvent = {
                 if (fillMarks) {
                     $("#event_member_" + member.id).closest(".list-group-item").find(".marks-form").html(this.getMarksForm(member));
                 }
-                let content = '<a href="#" class="btn btn-outline-warning marks" onclick="StudyEvent.toggleMarks(this); return false;">' + (member.mark ?? 0) + ' / ' + (member.markHomework ?? 0) + '</a>';
+                let content = '<a href="#" class="btn btn-outline-' + this.getMarksClass(member) + ' marks" onclick="StudyEvent.toggleMarks(this); return false;">' + (member.mark ?? 0) + ' / ' + (member.markHomework ?? 0) + '</a>';
                 if (this.isAttendEditAllowed()) {
                     content += ' <button class="btn btn-outline-dark" onclick="StudyEvent.revertMemberStatus(' + member.id + ');">' +
                             '<span class="fas fa-pencil-alt"></span>' +
@@ -247,6 +245,15 @@ let StudyEvent = {
         }
         return '';
     },
+    getMarksClass: function(member) {
+        if ((member.mark ?? 0) > 0 && (member.markHomework ?? 0) > 0) {
+            return 'success';
+        }
+        if ((member.mark ?? 0) > 0 || (member.markHomework ?? 0) > 0) {
+            return 'warning';
+        }
+        return 'secondary';
+    },
     getMarksForm: function(member) {
         if (member.status !== this.memberStatusAttend) {
             return '';
@@ -255,7 +262,8 @@ let StudyEvent = {
             '<div class="col"><div class="form-group">' +
             '<label>Оценка на занятии</label>' +
             '<div class="input-group">' +
-            '<input type="number" step="1" min="1" max="5" class="form-control mark" placeholder="Балл" title="Балл" value="' + (member.mark ?? 0) + '" required>' +
+            '<input type="number" step="1" min="1" max="5" class="form-control mark ' + ((member.mark ?? 0) > 0 ? 'is-valid' : '') + '" ' +
+            'placeholder="Балл" title="Балл" value="' + ((member.mark ?? 0) > 0 ? member.mark : '') + '" required>' +
             '<div class="input-group-append">' +
             '<button class="btn btn-primary" onclick="StudyEvent.setMark(' + member.id + ', this);">OK</button>' +
             '</div>' +
@@ -264,7 +272,8 @@ let StudyEvent = {
             '<div class="col"><div class="form-group">' +
             '<label>Оценка за домашнее задание</label>' +
             '<div class="input-group">' +
-            '<input type="number" step="1" min="1" max="5" class="form-control markHomework" placeholder="Балл" title="Балл" value="' + (member.markHomework ?? 0) + '" required>' +
+            '<input type="number" step="1" min="1" max="5" class="form-control markHomework ' + ((member.markHomework ?? 0) > 0 ? 'is-valid' : '') + '" ' +
+            'placeholder="Балл" title="Балл" value="' + ((member.markHomework ?? 0) > 0 ? member.markHomework : '') + '" required>' +
             '<div class="input-group-append">' +
             '<button class="btn btn-primary" onclick="StudyEvent.setMarkHomework(' + member.id + ', this);">OK</button>' +
             '</div>' +
@@ -351,8 +360,13 @@ let StudyEvent = {
         $(e).closest(".list-group-item").find(".marks-form").collapse('toggle');
     },
     setMark: function(memberId, e) {
-        let markInput = $(e).closest(".form-group").find(".mark");
-        $(markInput).removeClass("is-invalid");
+        return this.setMarks($(e).closest(".form-group").find(".mark"), 'mark', memberId);
+    },
+    setMarkHomework: function(memberId, e) {
+        return this.setMarks($(e).closest(".form-group").find(".markHomework"), 'mark_homework', memberId);
+    },
+    setMarks: function(markInput, dataKey, memberId) {
+        $(markInput).removeClass("is-invalid").removeClass("is-valid");
         let mark = parseInt($(markInput).val());
         if (!mark || mark <= 0 || mark > 5) {
             $(markInput).addClass("is-invalid");
@@ -364,44 +378,21 @@ let StudyEvent = {
             url: '/event/set-mark?memberId=' + memberId,
             type: 'post',
             dataType: 'json',
-            data: {
-                mark: mark
-            }
+            data: {[dataKey]: mark}
         })
             .done(function(data) {
                 if (data.status === 'ok') {
-                    $("#event_member_" + data.member.id).find(".marks").text((data.member.mark ?? 0) + ' / ' + (data.member.markHomework ?? 0));
-                } else {
-                    Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
-                }
-            })
-            .fail(function(xhr, textStatus, errorThrown) {
-                Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, "Ошибка: " + textStatus + ' ' + errorThrown, 'alert-danger');
-            })
-            .always(StudyEvent.unlockMemberButtons);
-        return false;
-    },
-    setMarkHomework: function(memberId, e) {
-        let markInput = $(e).closest(".form-group").find(".markHomework");
-        $(markInput).removeClass("is-invalid");
-        let markHomework = parseInt($(markInput).val());
-        if (!markHomework || markHomework <= 0 || markHomework > 5) {
-            $(markInput).addClass("is-invalid");
-            return false;
-        }
-
-        this.lockMemberButtons(memberId);
-        $.ajax({
-            url: '/event/set-mark?memberId=' + memberId,
-            type: 'post',
-            dataType: 'json',
-            data: {
-                mark_homework: markHomework
-            }
-        })
-            .done(function(data) {
-                if (data.status === 'ok') {
-                    $("#event_member_" + data.member.id).find(".marks").text(data.member.mark + ' / ' + data.member.markHomework);
+                    let marksButton = $("#event_member_" + data.member.id).find(".marks");
+                    let marksForm = $(marksButton).closest('li').find('.marks-form');
+                    $(marksButton).text((data.member.mark ?? 0) + ' / ' + (data.member.markHomework ?? 0));
+                    $(marksButton).removeClass('btn-outline-success').removeClass('btn-outline-warning').removeClass('btn-outline-secondary')
+                        .addClass('btn-outline-' + StudyEvent.getMarksClass(data.member));
+                    if ((data.member.mark ?? 0) > 0) {
+                        $(marksForm).find('.mark').addClass("is-valid");
+                    }
+                    if ((data.member.markHomework ?? 0) > 0) {
+                        $(marksForm).find('.markHomework').addClass("is-valid");
+                    }
                 } else {
                     Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');
                 }
