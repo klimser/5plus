@@ -31,12 +31,11 @@ class SmsConfirmation extends BaseObject
                 return false;
             }
 
-            $params = [
-                'code' => $confirmation->code,
-                'valid' => $validMinutes
-            ];
-            ComponentContainer::getPaygramApi()
-                ->sendSms(self::TEMPLATE_CONFIRMATION_CODE, substr($phone, -12, 12), $params);
+            ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+                substr($phone, -12, 12),
+                sprintf('Kod podtverzhdeniya %s. Deystvitelen v techenie %d minut.', $confirmation->code, $validMinutes),
+                'fic' . mt_rand(100, 999) . '_' . time()
+            );
 
             $transaction->commit();
             return true;

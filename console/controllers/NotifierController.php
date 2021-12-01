@@ -2,10 +2,11 @@
 
 namespace console\controllers;
 
+use backend\components\TranslitComponent;
 use common\components\ComponentContainer;
 use common\components\helpers\WordForm;
-use common\components\paygram\PaygramApiException;
 use common\components\PaymentComponent;
+use common\components\SmsBroker\SmsBrokerApiException;
 use common\components\telegram\text\PublicMain;
 use common\models\BotPush;
 use common\models\GroupPupil;
@@ -13,7 +14,6 @@ use common\models\Notify;
 use common\models\User;
 use DateTime;
 use Longman\TelegramBot\Entities\Entity;
-
 use Yii;
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -103,41 +103,56 @@ class NotifierController extends Controller
 
             if ($sendSms) {
                 try {
-                    $params = [];
+                    $smsText = '';
                     switch ($toSend->template_id) {
                         case Notify::TEMPLATE_PUPIL_DEBT:
-                            $params['group_name'] = $toSend->group->legal_name;
-                            $params['debt'] = $toSend->parameters['debt']; // . ' ' . WordForm::getLessonsForm($toSend->parameters['debt']);
-                            $params['link'] = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url;
+                            $smsText = sprintf(
+                                'U vas zadolzhennost v gruppe "%s" - %s. Oplata online - %s',
+                                TranslitComponent::text($toSend->group->legal_name),
+                                $toSend->parameters['debt'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['debt'])),
+                                PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url
+                            );
                             break;
                         case Notify::TEMPLATE_PUPIL_LOW:
-                            $params['group_name'] = $toSend->group->legal_name;
-                            $params['paid_lessons'] = $toSend->parameters['paid_lessons'] . ' ' . WordForm::getLessonsForm($toSend->parameters['paid_lessons']);
-                            $params['link'] = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url;
+                            $smsText = sprintf(
+                                'V gruppe "%s" u vas ostalos %s. Oplata online - %s',
+                                TranslitComponent::text($toSend->group->legal_name),
+                                $toSend->parameters['paid_lessons'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['paid_lessons'])),
+                                PaymentComponent::getPaymentLink($toSend->user_id, $toSend->group_id)->url
+                            );
                             break;
                         case Notify::TEMPLATE_PARENT_DEBT:
                             $child = User::findOne($toSend->parameters['child_id']);
-                            $params['student_name'] = $child->name;
-                            $params['group_name'] = $toSend->group->legal_name;
-                            $params['debt'] = $toSend->parameters['debt']; // . ' ' . WordForm::getLessonsForm($toSend->parameters['debt']);
-                            $params['link'] = PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url;
+                            $smsText = sprintf(
+                                'U studenta %s zadolzhennost v gruppe "%s" - %s. Oplata online - %s',
+                                TranslitComponent::text($child->name),
+                                TranslitComponent::text($toSend->group->legal_name),
+                                $toSend->parameters['debt'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['debt'])),
+                                PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url
+                            );
                             break;
                         case Notify::TEMPLATE_PARENT_LOW:
                             $child = User::findOne($toSend->parameters['child_id']);
-                            $params['student_name'] = $child->name;
-                            $params['group_name'] = $toSend->group->legal_name;
-                            $params['paid_lessons'] = $toSend->parameters['paid_lessons'] . ' ' . WordForm::getLessonsForm($toSend->parameters['paid_lessons']);
-                            $params['link'] = PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url;
+                            $smsText = sprintf(
+                            'U studenta %s v gruppe "%s" ostalos %s. Oplata online - %s',
+                                TranslitComponent::text($child->name),
+                                TranslitComponent::text($toSend->group->legal_name),
+                                $toSend->parameters['paid_lessons'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['paid_lessons'])),
+                                PaymentComponent::getPaymentLink($child->id, $toSend->group_id)->url
+                            );
                             break;
                     }
 
                     if ($toSend->user->phone) {
-                        ComponentContainer::getPaygramApi()
-                            ->sendSms($toSend->template_id, substr($toSend->user->phone, -12, 12), $params);
+                        ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+                            substr($toSend->user->phone, -12, 12),
+                            $smsText,
+                            'fsn' . $toSend->user->id . '_' . time()
+                        );
                     }
                     $toSend->status = Notify::STATUS_SENT;
                     $toSend->sent_at = date('Y-m-d H:i:s');
-                } catch (PaygramApiException $exception) {
+                } catch (SmsBrokerApiException $exception) {
                     $toSend->status = Notify::STATUS_ERROR;
                     ComponentContainer::getErrorLogger()
                         ->logError('notifier/send', $exception->getMessage(), true);
