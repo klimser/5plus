@@ -315,12 +315,11 @@ class Teacher extends ActiveRecord
         return \Yii::getAlias('@uploadsUrl') . '/' . $config['imageFolder'] . '/no_photo.png';
     }
 
-    /**
-     * @return string
-     */
-    public function getDescriptionForEdit()
+    public function getDescriptionForEdit(): ?string
     {
-        if ($this->descriptionForEdit === null) $this->descriptionForEdit = self::convertTextForEditor($this->description, 'teacher_highlight');
+        if (null === $this->descriptionForEdit && null !== $this->description) {
+            $this->descriptionForEdit = self::convertTextForEditor($this->description, 'teacher_highlight');
+        }
         return $this->descriptionForEdit;
     }
 
