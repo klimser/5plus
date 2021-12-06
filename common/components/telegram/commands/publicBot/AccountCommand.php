@@ -321,7 +321,8 @@ class AccountCommand extends UserCommand
                     $rows[] = '*' . Entity::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
                     $groupId = $eventMember->event->group_id;
                 }
-                $rows[] = Entity::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - ') . "*{$eventMember->mark}*";
+                $rows[] = Entity::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - ')
+                    . "*{$eventMember->mark}*" . ($eventMember->mark_homework > 0 ? " \/ *{$eventMember->mark_homework}*" : '');
             }
         }
 
