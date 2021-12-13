@@ -28,7 +28,9 @@ class TeacherCallbackCommand
                     $message .= '*' . Entity::escapeMarkdownV2($teacher->officialName) . "*\n";
                 }
                 
-                $message .= str_replace(['{{', '}}'], '*', Entity::escapeMarkdownV2($teacher->descriptionForEdit));
+                if ($teacher->descriptionForEdit) {
+                    $message .= str_replace(['{{', '}}'], '*', Entity::escapeMarkdownV2($teacher->descriptionForEdit));
+                }
                 Request::sendMessage([
                     'chat_id' => $callbackQuery->getMessage()->getChat()->getId(),
                     'parse_mode' => 'MarkdownV2',
