@@ -920,7 +920,13 @@ class AccountCommand extends UserCommand
             }
         }
 
-        if (count($buttons) > 1) {
+        if (empty($buttons)) {
+            return [
+                'parse_mode' => 'MarkdownV2',
+                'text' => Entity::escapeMarkdownV2(PublicMain::PAY_NO_GROUP),
+                'reply_markup' => PublicMain::getBackAndMainKeyboard(),
+            ];
+        } elseif (count($buttons) > 1) {
             if (isset($conversation->notes['groupId']) && array_key_exists($conversation->notes['groupId'], $groupMap)) {
                 $groupId = $conversation->notes['groupId'];
             } elseif ($key = array_search($this->getMessage()->getText(), $groupMap)) {
@@ -943,17 +949,11 @@ class AccountCommand extends UserCommand
         $this->addNote($conversation, 'groupId', $groupId);
         $group = Group::findOne($groupId);
 
-        switch ($this->getMessage()->getText()) {
-            case PublicMain::PAY_ONE_LESSON:
-                $amount = $group->lesson_price;
-                break;
-            case PublicMain::PAY_ONE_MONTH:
-                $amount = $group->priceMonth;
-                break;
-            default:
-                $amount = intval($this->getMessage()->getText());
-                break;
-        }
+        $amount = match ($this->getMessage()->getText()) {
+            PublicMain::PAY_ONE_LESSON => $group->lesson_price,
+            PublicMain::PAY_ONE_MONTH => $group->priceMonth,
+            default => intval($this->getMessage()->getText()),
+        };
 
         if ($amount > 0) {
             $conversation->notes['step']--;
