@@ -206,6 +206,7 @@ class GroupComponent extends Component
             }
         }
         EventComponent::fillSchedule($groupTo);
+        MoneyComponent::rechargePupil($user, $groupTo);
         GroupComponent::calculateTeacherSalary($groupTo);
         MoneyComponent::setUserChargeDates($user, $groupFrom);
         MoneyComponent::setUserChargeDates($user, $groupTo);
