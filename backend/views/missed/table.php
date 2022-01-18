@@ -66,7 +66,7 @@ $nextMonth = $date->modify('+1 month');
                      }
                  } ?>">
                     <?= array_key_exists($i, $pupilData)
-                        ? $pupilData[$i]['mark'] . ($pupilData[$i]['mark_homework'] > 0 ? " \/ {$pupilData[$i]['mark_homework']}" : '')
+                        ? $pupilData[$i]['mark'] . ($pupilData[$i]['mark_homework'] > 0 ? " / {$pupilData[$i]['mark_homework']}" : '')
                         : ''; ?>
                 </td><?php endfor; ?>
             </tr>
