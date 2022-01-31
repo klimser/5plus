@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?=
         $form->field($botMailing, 'message_text')
             ->widget(TinyMce::class, [
-            'options' => ['rows' => 12, 'required' => true],
+            'options' => ['rows' => 12],
             'language' => 'ru',
             'clientOptions' => [
                 'element_format' => 'html',
