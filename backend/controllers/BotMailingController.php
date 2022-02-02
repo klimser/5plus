@@ -50,8 +50,9 @@ class BotMailingController extends AdminController
         if (Yii::$app->request->isPost) {
             $transaction = Yii::$app->getDb()->beginTransaction();
             try {
-                if (!$botMailing->load(Yii::$app->request->post())) Yii::$app->session->addFlash('error', 'Form data not found');
-                else {
+                if (!$botMailing->load(Yii::$app->request->post())) {
+                    Yii::$app->session->addFlash('error', 'Form data not found');
+                } else {
                     $startedAtTime = Yii::$app->request->post('started_at_time');
                     if (!empty($botMailing->started_at) && !empty($startedAtTime) && preg_match('^(\d{2}):(\d{2})$', $startedAtTime, $matches)) {
                         $date = $botMailing->startDate;
@@ -59,7 +60,10 @@ class BotMailingController extends AdminController
                         $botMailing->started_at = $date->format('Y-m-d H:i:s');
                     }
                     $botMailing->imageFile = UploadedFile::getInstance($botMailing, 'imageFile');
-                    if (!$botMailing->save()) {
+                    if (mb_strlen($botMailing->message_text, 'UTF-8') > 4096
+                        || ($botMailing->imageFile && mb_strlen($botMailing->message_text, 'UTF-8') > 1024)) {
+                        Yii::$app->session->addFlash('error', 'Слишком длинный текст');
+                    } elseif (!$botMailing->save()) {
                         $botMailing->moveErrorsToFlash();
                         $transaction->rollBack();
                     } else {
