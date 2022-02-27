@@ -150,7 +150,6 @@ class WelcomeLessonController extends AdminController
         }
 
         $welcomeLesson->deny_reason = intval(Yii::$app->request->post('deny_reason'));
-        $welcomeLesson->comment = Yii::$app->request->post('comment');
         if (!$welcomeLesson->save()) {
             return self::getJsonErrorResult($welcomeLesson->getErrorsAsString());
         }
@@ -329,6 +328,31 @@ class WelcomeLessonController extends AdminController
         } catch (\Throwable $exception) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()->logError('welcome-lesson/move', $exception->getMessage(), true);
+            return self::getJsonErrorResult($exception->getMessage());
+        }
+    }
+
+    public function actionAddComment($id)
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $welcomeLesson = $this->findModel($id);
+
+        $comment = Yii::$app->request->post('comment');
+        if (empty($comment)) {
+            return self::getJsonErrorResult('Wrong request');
+        }
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $welcomeLesson->addComment($comment);
+            $welcomeLesson->save();
+            $transaction->commit();
+            return $this->getAjaxInfoResult($welcomeLesson);
+        } catch (\Throwable $exception) {
+            $transaction->rollBack();
+            ComponentContainer::getErrorLogger()->logError('welcome-lesson/addComment', $exception->getMessage(), true);
             return self::getJsonErrorResult($exception->getMessage());
         }
     }

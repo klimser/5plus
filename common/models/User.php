@@ -67,12 +67,12 @@ class User extends ActiveRecord implements IdentityInterface
     use InsertedUpdated, Phone, Phone2;
 
     const SYSTEM_USER_ID = 4;
-    
-    const STATUS_LOCKED = 0;
-    const STATUS_ACTIVE = 10;
+
+    const STATUS_LOCKED   = 0;
+    const STATUS_ACTIVE   = 10;
     const STATUS_INACTIVE = 20;
 
-    const ROLE_ROOT   = 1;
+    const ROLE_ROOT    = 1;
     const ROLE_PARENTS = 2;
     const ROLE_PUPIL   = 3;
     const ROLE_COMPANY = 4;
@@ -81,8 +81,8 @@ class User extends ActiveRecord implements IdentityInterface
 
     public $password;
 
-    const SCENARIO_ADMIN = 'admin';
-    const SCENARIO_USER = 'user';
+    const SCENARIO_ADMIN    = 'admin';
+    const SCENARIO_USER     = 'user';
     const SCENARIO_CUSTOMER = 'customer';
 
     public function scenarios()
@@ -91,6 +91,7 @@ class User extends ActiveRecord implements IdentityInterface
         $scenarios[self::SCENARIO_ADMIN] = ['username', 'name', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'role', 'password', 'teacher_id'];
         $scenarios[self::SCENARIO_CUSTOMER] = ['username', 'password'];
         $scenarios[self::SCENARIO_USER] = ['name', 'note', 'phone', 'phone2', 'phoneFormatted', 'phone2Formatted', 'password'];
+
         return $scenarios;
     }
 
@@ -106,14 +107,17 @@ class User extends ActiveRecord implements IdentityInterface
 //            [['username', 'name', 'auth_key', 'password_hash'], 'required'],
             [['name', 'username', 'note'], 'trim'],
             ['status', 'default', 'value' => self::STATUS_INACTIVE, 'on' => self::SCENARIO_USER],
-            ['status', 'default', 'value' => self::STATUS_ACTIVE,  'on' => self::SCENARIO_ADMIN],
+            ['status', 'default', 'value' => self::STATUS_ACTIVE, 'on' => self::SCENARIO_ADMIN],
             ['individual', 'default', 'value' => 1],
             ['role', 'default', 'value' => self::ROLE_PUPIL],
             ['bitrix_sync_status', 'default', 'value' => 0],
             [['password_hash'], 'default', 'value' => ''],
             [['username', 'note', 'password_reset_token', 'phone2'], 'default', 'value' => null],
-            
-            [['name'], 'required', 'whenClient' => "function (attribute, value) {
+
+            [
+                ['name'],
+                'required',
+                'whenClient' => "function (attribute, value) {
                 var parentExpr = /\[parent\].*/;
                 var companyExpr = /\[parentCompany\].*/;
                 if (parentExpr.test(attribute.name)
@@ -125,7 +129,8 @@ class User extends ActiveRecord implements IdentityInterface
                     return false;
                 }
                 return true;
-            }"],
+            }"
+            ],
             [['created_by'], 'required'],
             [['status', 'money', 'role', 'parent_id', 'teacher_id', 'bitrix_id', 'tg_chat_id'], 'integer'],
             [['username', 'note', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
@@ -139,10 +144,17 @@ class User extends ActiveRecord implements IdentityInterface
             [['username'], 'unique'],
             [['password_reset_token'], 'unique'],
             [['password'], 'safe'],
-            [['password'], 'required', 'on' => self::SCENARIO_ADMIN, 'when' => function ($model) {return $model->isNewRecord;},
+            [
+                ['password'],
+                'required',
+                'on' => self::SCENARIO_ADMIN,
+                'when' => function ($model) {
+                    return $model->isNewRecord;
+                },
                 'whenClient' => "function (attribute, value) {
                     return $(attribute.input).data(\"id\").length === 0;
-                }"],
+                }"
+            ],
 
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_LOCKED]],
             ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER, self::ROLE_TEACHER]],
@@ -155,9 +167,9 @@ class User extends ActiveRecord implements IdentityInterface
     public function attributeLabels()
     {
         return [
-            'id'        => 'ID',
-            'username'  => 'Логин',
-            'name'      => 'Имя',
+            'id' => 'ID',
+            'username' => 'Логин',
+            'name' => 'Имя',
             'note' => 'Заметки',
             'phone' => 'Телефон',
             'phone2' => 'Доп. телефон',
@@ -166,14 +178,17 @@ class User extends ActiveRecord implements IdentityInterface
             'phoneFull' => 'Телефон',
             'phone2Full' => 'Доп. телефон',
             'role' => 'Уровень доступа',
-            'status'    => 'Статус',
-            'money'     => 'Баланс',
-            'password'  => 'Пароль',
-            'teacher_id'   => 'Учитель',
+            'status' => 'Статус',
+            'money' => 'Баланс',
+            'password' => 'Пароль',
+            'teacher_id' => 'Учитель',
         ];
     }
 
-    public function getPassword() {return '';}
+    public function getPassword()
+    {
+        return '';
+    }
 
     /**
      * @return ActiveQuery
@@ -196,7 +211,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getNotLockedChildren()
     {
-        return $this->hasMany(User::class, ['parent_id' => 'id'])->andWhere('status != :locked', [':locked' => self::STATUS_LOCKED]) ->orderBy('name');
+        return $this->hasMany(User::class, ['parent_id' => 'id'])->andWhere('status != :locked', [':locked' => self::STATUS_LOCKED])->orderBy('name');
     }
 
     /**
@@ -280,7 +295,7 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return $this->hasMany(Contract::class, ['user_id' => 'id'])->orderBy(['created_at' => SORT_DESC]);
     }
-    
+
     /**
      * @return ActiveQuery
      */
@@ -339,27 +354,34 @@ class User extends ActiveRecord implements IdentityInterface
 
     /**
      * @param Group $group
+     *
      * @return Debt|null
      */
     public function getDebt(Group $group): ?Debt
     {
         foreach ($this->debts as $debt) {
-            if ($debt->group_id == $group->id) return $debt;
+            if ($debt->group_id == $group->id) {
+                return $debt;
+            }
         }
+
         return null;
     }
 
     public function getNameParts(): array
     {
-        if (empty($this->name)) return [];
+        if (empty($this->name)) {
+            return [];
+        }
         $parts = explode(' ', $this->name);
         if (count($parts) > 2) {
             return [$parts[0], $parts[1], implode(' ', array_slice($parts, 2))];
         }
+
         return $parts;
     }
-    
-    public function getFirstName(): string 
+
+    public function getFirstName(): string
     {
         $nameParts = $this->nameParts;
         if (count($nameParts) === 1) {
@@ -368,7 +390,7 @@ class User extends ActiveRecord implements IdentityInterface
             return $nameParts[1];
         }
     }
-    
+
     public function getNameHidden(): string
     {
         $nameParts = $this->nameParts;
@@ -376,6 +398,7 @@ class User extends ActiveRecord implements IdentityInterface
         if (!empty($nameParts[1])) {
             $userName .= ' ' . MaskString::generate($nameParts[1], 1, 0, 4);
         }
+
         return $userName;
     }
 
@@ -393,7 +416,8 @@ class User extends ActiveRecord implements IdentityInterface
         return $result;
     }
 
-    public function beforeValidate() {
+    public function beforeValidate()
+    {
         if ($this->isNewRecord) {
             $this->generateAuthKey();
             $this->created_by = Yii::$app->user->id;
@@ -407,11 +431,11 @@ class User extends ActiveRecord implements IdentityInterface
             $this->password_hash = '';
         }
         $this->name = preg_replace('#[ ]+#', ' ', $this->name);
-        
+
         if (!parent::beforeValidate()) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -431,6 +455,7 @@ class User extends ActiveRecord implements IdentityInterface
      * Finds user by username
      *
      * @param string $username
+     *
      * @return static|null
      */
     public static function findByUsername($username)
@@ -442,6 +467,7 @@ class User extends ActiveRecord implements IdentityInterface
      * Finds user by password reset token
      *
      * @param string $token password reset token
+     *
      * @return static|null
      */
     public static function findByPasswordResetToken($token)
@@ -460,6 +486,7 @@ class User extends ActiveRecord implements IdentityInterface
      * Finds out if password reset token is valid
      *
      * @param string $token password reset token
+     *
      * @return boolean
      */
     public static function isPasswordResetTokenValid($token)
@@ -470,6 +497,7 @@ class User extends ActiveRecord implements IdentityInterface
 
         $timestamp = (int) substr($token, strrpos($token, '_') + 1);
         $expire = Yii::$app->params['user.passwordResetTokenExpire'];
+
         return $timestamp + $expire >= time();
     }
 
@@ -495,6 +523,7 @@ class User extends ActiveRecord implements IdentityInterface
      * Validates password
      *
      * @param string $password password to validate
+     *
      * @return boolean if password provided is valid for current user
      */
     public function validatePassword($password)
@@ -506,6 +535,7 @@ class User extends ActiveRecord implements IdentityInterface
      * Generates password hash from password and sets it to the model
      *
      * @param string $password
+     *
      * @throws yii\base\Exception
      */
     public function setPassword($password)
@@ -536,12 +566,12 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->password_reset_token = null;
     }
-    
+
     public function isTeacher(): bool
     {
         return self::ROLE_TEACHER === $this->role;
     }
-    
+
     public function isAgeConfirmed(): bool
     {
         return $this->age_confirmed > 0 || ($this->parent_id && $this->parent->age_confirmed > 0);
@@ -550,7 +580,7 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * @return User[]|array
      */
-    public static function findActiveCustomersByPhone(string$phoneFull): array
+    public static function findActiveCustomersByPhone(string $phoneFull): array
     {
         return self::find()
             ->andWhere(['or', ['phone' => $phoneFull], ['phone2' => $phoneFull]])
@@ -558,12 +588,19 @@ class User extends ActiveRecord implements IdentityInterface
             ->andWhere(['!=', 'status', User::STATUS_LOCKED])
             ->all();
     }
-    
+
     public static function findActiveCustomerById(int $id): ?User
     {
         return self::find()
             ->andWhere(['id' => $id])
             ->andWhere(['!=', 'status', User::STATUS_LOCKED])
             ->one();
+    }
+
+    public static function getNameById(int $userId): ?string
+    {
+        $user = self::findOne($userId);
+
+        return $user?->name;
     }
 }

@@ -20,6 +20,7 @@ use yii\db\ActiveQuery;
  * @property int $status
  * @property int $deny_reason
  * @property string $comment
+ * @property array $comments
  * @property int $bitrix_sync_status
  * @property int $created_by
  * @property-read User $user
@@ -32,21 +33,21 @@ class WelcomeLesson extends ActiveRecord
 {
     use Inserted;
 
-    public const STATUS_UNKNOWN = 1;
-    public const STATUS_PASSED = 2;
-    public const STATUS_MISSED = 3;
-    public const STATUS_CANCELED = 4;
-    public const STATUS_DENIED = 5;
-    public const STATUS_SUCCESS = 6;
+    public const STATUS_UNKNOWN     = 1;
+    public const STATUS_PASSED      = 2;
+    public const STATUS_MISSED      = 3;
+    public const STATUS_CANCELED    = 4;
+    public const STATUS_DENIED      = 5;
+    public const STATUS_SUCCESS     = 6;
     public const STATUS_RESCHEDULED = 7;
 
-    public const DENY_REASON_TEACHER = 1;
-    public const DENY_REASON_LEVEL_TOO_LOW = 2;
+    public const DENY_REASON_TEACHER        = 1;
+    public const DENY_REASON_LEVEL_TOO_LOW  = 2;
     public const DENY_REASON_LEVEL_TOO_HIGH = 3;
-    public const DENY_REASON_OTHER_GROUP = 4;
-    public const DENY_REASON_TOO_CROWDED = 5;
-    public const DENY_REASON_SUBJECT = 6;
-    public const DENY_REASON_OTHER = 7;
+    public const DENY_REASON_OTHER_GROUP    = 4;
+    public const DENY_REASON_TOO_CROWDED    = 5;
+    public const DENY_REASON_SUBJECT        = 6;
+    public const DENY_REASON_OTHER          = 7;
 
     public const STATUS_LIST = [
         self::STATUS_UNKNOWN,
@@ -67,7 +68,7 @@ class WelcomeLesson extends ActiveRecord
         self::STATUS_SUCCESS => 'Студент добавлен в группу',
         self::STATUS_RESCHEDULED => 'Перенесено',
     ];
-    
+
     public const DENY_REASON_LIST = [
         self::DENY_REASON_TEACHER,
         self::DENY_REASON_LEVEL_TOO_LOW,
@@ -77,7 +78,7 @@ class WelcomeLesson extends ActiveRecord
         self::DENY_REASON_SUBJECT,
         self::DENY_REASON_OTHER,
     ];
-    
+
     public const DENY_REASON_LABELS = [
         self::DENY_REASON_TEACHER => 'не понравился учитель',
         self::DENY_REASON_LEVEL_TOO_LOW => 'нужен уровень выше',
@@ -171,6 +172,7 @@ class WelcomeLesson extends ActiveRecord
     public function setLessonDateTime(DateTime $newDate)
     {
         $this->lesson_date = $newDate->format('Y-m-d H:i:s');
+
         return $this;
     }
 
@@ -182,7 +184,8 @@ class WelcomeLesson extends ActiveRecord
         return $this->hasOne(User::class, ['id' => 'created_by']);
     }
 
-    public function beforeValidate() {
+    public function beforeValidate()
+    {
         if (!parent::beforeValidate()) {
             return false;
         }
@@ -190,6 +193,24 @@ class WelcomeLesson extends ActiveRecord
         if ($this->isNewRecord) {
             $this->created_by = Yii::$app->user->id;
         }
+
+        if (array_key_exists('comments', $this->oldAttributes)
+            && !empty($this->oldAttributes['comments'])
+            && (count($this->oldAttributes['comments']) > count($this->comments)
+                || (count($this->oldAttributes['comments']) === count($this->comments) && $this->oldAttributes['comments'] != $this->comments))) {
+
+            return false;
+        }
+
         return true;
+    }
+
+    public function addComment(string $comment): self
+    {
+        $comments = $this->comments;
+        $comments[] = ['text' => $comment, 'admin_id' => Yii::$app->user->id, 'date' => date('Y-m-d H:i:s')];
+        $this->comments = $comments;
+
+        return $this;
     }
 }

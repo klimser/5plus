@@ -1,9 +1,10 @@
 <?php
 
 use backend\models\WelcomeLesson;
+use common\models\User;
 
 /* @var $this yii\web\View */
-/* @var $pupil \common\models\User */
+/* @var $pupil User */
 $printable = false;
 ?>
 <div class="welcome_lessons mt-2">
@@ -37,6 +38,19 @@ $printable = false;
                             <?php if ($welcomeLesson->comment): ?>
                                 <br><i><?= $welcomeLesson->comment; ?></i>
                             <?php endif; ?>
+                        <?php endif; ?>
+                        <?php if ($welcomeLesson->comments): ?>
+                            <br><br><p class="small">
+                            <?php foreach ($welcomeLesson->comments as $comment): ?>
+                                <i class="small">
+                                    <?= User::getNameById($comment['admin_id']); ?><br>
+                                    <?= $comment['date']; ?>
+
+                                </i><br>
+                                <?= $comment['text']; ?><br>
+                                -<br>
+                            <?php endforeach; ?>
+                            </p>
                         <?php endif; ?>
                     </td>
                     <td class="buttons-column"></td>

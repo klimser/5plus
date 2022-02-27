@@ -18,7 +18,7 @@ class AgeValidator extends BaseObject
     /**
      * @param User[]|array $users
      */
-    public function add(string $phone, array $users, int $validDays = 7): bool
+    public function add(string $phone, array $users, int $validMinutes = 20): bool
     {
         if (empty($users)) {
             throw new InvalidArgumentException('You cannot validate no users');
@@ -36,7 +36,7 @@ class AgeValidator extends BaseObject
                 $ageConfirmation = new AgeConfirmation();
                 $ageConfirmation->phone = $phone;
                 $ageConfirmation->user_id = $user->id;
-                $ageConfirmation->validUntilDate = date_create_immutable("+$validDays days");
+                $ageConfirmation->validUntilDate = date_create_immutable("+$validMinutes minutes");
                 $ageConfirmation->generateHash($code);
                 if (!$ageConfirmation->save()) {
                     $transaction->rollBack();
