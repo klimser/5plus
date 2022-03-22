@@ -331,11 +331,11 @@ class MoneyComponent extends Component
         if (count($groupPupils) == 0) return;
 
         /*    Собираем информацию обо всех внесенных средствах    */
-        $money = Payment::find()
+        $money = (int) Payment::find()
             ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_INACTIVE])
             ->andWhere(['event_member_id' => null])
             ->select('SUM(amount)')->scalar();
-        $moneyDiscount = Payment::find()
+        $moneyDiscount = (int) Payment::find()
             ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'discount' => Payment::STATUS_ACTIVE])
             ->andWhere(['event_member_id' => null])
             ->select('SUM(amount)')->scalar();
@@ -374,7 +374,7 @@ class MoneyComponent extends Component
                         $money += $payment->amount;
                     }
                 }
-                if ($money < 0) {
+                if ($moneyDiscount < 0 && $money < 0) {
                     if (!$groupPupilMap[$member->group_pupil_id]['state']) {
                         $groupPupilMap[$member->group_pupil_id]['entity']->date_charge_till = $event->event_date;
                         $groupPupilMap[$member->group_pupil_id]['state'] = true;
@@ -440,7 +440,7 @@ class MoneyComponent extends Component
                                     $item['entity']->paid_lessons++;
                                     continue;
                                 } else {
-                                    $toCharge = round($item['param']->lesson_price * (1 - ($moneyDiscount / $toCharge)));
+                                    $toCharge = (int) round($item['param']->lesson_price * (1 - ($moneyDiscount / $toCharge)));
                                     $moneyDiscount = 0;
                                 }
                             }
