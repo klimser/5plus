@@ -374,7 +374,7 @@ class MoneyComponent extends Component
                         $money += $payment->amount;
                     }
                 }
-                if ($moneyDiscount < 0 && $money < 0) {
+                if ($moneyDiscount <= 0 && $money < 0) {
                     if (!$groupPupilMap[$member->group_pupil_id]['state']) {
                         $groupPupilMap[$member->group_pupil_id]['entity']->date_charge_till = $event->event_date;
                         $groupPupilMap[$member->group_pupil_id]['state'] = true;
