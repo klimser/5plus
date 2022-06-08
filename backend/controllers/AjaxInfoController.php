@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\components\GroupComponent;
 use common\models\Company;
 use common\models\Group;
 use common\models\Teacher;
@@ -92,6 +93,17 @@ class AjaxInfoController extends AdminController
             ->all();
         $resultArray = [];
         foreach ($groups as $group) {
+            $startDate = clone $group->startDateObject;
+            $endDate = $group->date_end ? clone ($group->endDateObject) : new \DateTime();
+            $scheduleMap = [];
+            while ($startDate < $endDate) {
+                $scheduleMap[$startDate->format('Y-n')] =
+                    array_map(
+                        static fn($val) => ($val + 1) % 7,
+                        array_keys(array_filter(GroupComponent::getGroupParam($group, $startDate)->scheduleData))
+                    );
+                $startDate->modify('+1 month');
+            }
             $resultArray[] = [
                 'id' => $group->id,
                 'name' => $group->name,
@@ -106,6 +118,7 @@ class AjaxInfoController extends AdminController
                 'dateStart' => $group->date_start,
                 'dateEnd' => $group->date_end,
                 'weekDays' => array_map(function($val) { return ($val + 1) % 7; }, array_keys(array_filter($group->scheduleData))),
+                'scheduleMap' => $scheduleMap,
             ];
         }
 

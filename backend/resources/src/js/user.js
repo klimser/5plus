@@ -321,7 +321,11 @@ let User = {
             let dateSelect = $(container).find(".date-select");
             $(dateSelect).datepicker("option", "minDate", new Date(group.dateStart));
             $(dateSelect).datepicker("option", "beforeShowDay", function(date) {
-                return [group.weekDays.indexOf(date.getDay()) >= 0, ""];
+                let weekDays = group.scheduleMap[date.getFullYear() + '-' + date.getMonth()];
+                if (undefined === weekDays) {
+                    weekDays = group.weekDays;
+                }
+                return [weekDays.indexOf(date.getDay()) >= 0, ""];
             });
             $(dateSelect).val('');
         } else {
