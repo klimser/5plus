@@ -321,7 +321,7 @@ let User = {
             let dateSelect = $(container).find(".date-select");
             $(dateSelect).datepicker("option", "minDate", new Date(group.dateStart));
             $(dateSelect).datepicker("option", "beforeShowDay", function(date) {
-                let weekDays = group.scheduleMap[date.getFullYear() + '-' + date.getMonth()];
+                let weekDays = group.scheduleMap[date.getFullYear() + '-' + (date.getMonth() + 1)];
                 if (undefined === weekDays) {
                     weekDays = group.weekDays;
                 }

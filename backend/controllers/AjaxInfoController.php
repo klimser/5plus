@@ -96,7 +96,7 @@ class AjaxInfoController extends AdminController
             $startDate = clone $group->startDateObject;
             $endDate = $group->date_end ? clone ($group->endDateObject) : new \DateTime();
             $scheduleMap = [];
-            while ($startDate < $endDate) {
+            while ($startDate->format('Y-m') <= $endDate->format('Y-m')) {
                 $scheduleMap[$startDate->format('Y-n')] =
                     array_map(
                         static fn($val) => ($val + 1) % 7,
