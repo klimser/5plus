@@ -16,7 +16,7 @@ let Group = {
             });
         }
         
-        $("#group-teacher_id").html(listHtml);
+        $("#groupconfig-teacher_id").html(listHtml);
     },
     pupilsActive: [],
     renderPupilForm: function () {
@@ -74,12 +74,12 @@ let Group = {
         return false;
     },
     submitForm: function () {
-        var validForm = true;
-        var startDate = null, endDate = null;
-        var startDateInput = $("#group-date_start");
-        var endDateInput = $("#group-date_end");
-        var startString = $(startDateInput).val();
-        var endString = $(endDateInput).val();
+        let validForm = true;
+        let startDate = null, endDate = null;
+        let startDateInput = $("#group-date_start");
+        let endDateInput = $("#group-date_end");
+        let startString = $(startDateInput).val();
+        let endString = $(endDateInput).val();
 
         if (startString.length > 0) {
             if (!this.dateRegexp.test(startString)) {
@@ -108,11 +108,17 @@ let Group = {
             $(endDateInput).removeClass('is-invalid');
         }
 
-        if ($('input[name^="weekday"]:checked').length === 0) {
-            $('input[name^="weekday"]').addClass('is-invalid');
-            validForm = false;
+        validForm = false;
+        let timeInputs = $('input[name^="weektime"]');
+        $(timeInputs).each(function() {
+            if ($(this).val().length > 0) {
+                validForm = true;
+            }
+        });
+        if (validForm) {
+            $(timeInputs).removeClass('is-invalid');
         } else {
-            $('input[name^="weekday"]').removeClass('is-invalid');
+            $(timeInputs).addClass('is-invalid');
         }
 
         $("input.pupil-id").each(function () {
@@ -220,5 +226,11 @@ let Group = {
                 $(form).find('button').prop('disabled', false);
             });
         return false;
+    },
+    addConfig: function(e) {
+        let form = $("#form_group_config");
+        $(form).collapse('show');
+        $(e).hide();
+        $(form).find('input,select,textarea').prop('disabled', false);
     }
 };

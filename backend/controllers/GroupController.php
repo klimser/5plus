@@ -6,25 +6,27 @@ use backend\components\EventComponent;
 use backend\models\GroupNote;
 use common\components\Action;
 use common\components\ComponentContainer;
+use common\components\GroupComponent;
 use common\components\MoneyComponent;
 use common\models\Group;
+use common\models\GroupConfig;
 use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\GroupSearch;
 use common\models\GroupType;
 use common\models\Payment;
-use common\models\User;
-use common\components\GroupComponent;
 use common\models\Subject;
 use common\models\Teacher;
+use common\models\User;
+use DateTimeImmutable;
 use yii;
-use yii\web\NotFoundHttpException;
-use yii\web\ForbiddenHttpException;
-use yii\web\BadRequestHttpException;
-use yii\web\Response;
 use yii\bootstrap4\Html;
-use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 /**
  * GroupController implements the CRUD actions for Teacher model.
@@ -40,7 +42,10 @@ class GroupController extends AdminController
         if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
 
         if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
-            
+
+            $group = Group::findOne(403);
+            $groupConfig = GroupConfig::findByDate($group, new DateTimeImmutable('2022-05-07'));
+            var_dump($groupConfig);
             
 //        $user = User::findOne(7227);
 //        foreach ($user->groupPupils as $groupPupil) {
@@ -189,18 +194,30 @@ class GroupController extends AdminController
                 $group->active = Group::STATUS_ACTIVE;
             }
 
-            $weekday = Yii::$app->request->post('weekday', []);
-            $weektime = Yii::$app->request->post('weektime', []);
-            $scheduleArray = [];
-            for ($i = 0; $i < 7; $i++) {
-                if (!empty($weekday[$i]) && empty($weektime[$i])) {
+            $groupConfigData = Yii::$app->request->post('GroupConfig');
+            if (!empty($groupConfigData)) {
+                $weektime = Yii::$app->request->post('weektime', []);
+                if (empty(array_filter($weektime))) {
                     Yii::$app->session->addFlash('error', 'Не указано время занятий');
                     $error = true;
                 } else {
-                    $scheduleArray[$i] = !empty($weekday[$i]) ? $weektime[$i] : '';
+                    $groupConfig = new GroupConfig();
+                    $groupConfig->load($groupConfigData, '');
+                    $groupConfig->schedule = $weektime;
+                    if ($group->isNewRecord) {
+                        $groupConfig->date_from = $group->date_start;
+                        // TODO remove this after migration
+                        $group->teacher_id = $groupConfig->teacher_id;
+                        $group->lesson_price = $groupConfig->lesson_price;
+                    } else {
+                        $groupConfig->dateFromObject = new DateTimeImmutable($groupConfigData['date_from']);
+                    }
+                    if ($group->groupConfig) {
+                        $group->groupConfig->dateToObject = new DateTimeImmutable($groupConfigData['date_from']);
+                        $group->groupConfig->save();
+                    }
                 }
             }
-            $group->scheduleData = $scheduleArray;
 
             if (!$error) {
                 $transaction = Yii::$app->db->beginTransaction();
@@ -220,18 +237,30 @@ class GroupController extends AdminController
                         if (empty($group->groupPupils) && !empty($newPupils)) {
                             $this->fillGroupParams($group);
                         }
-                        $this->saveGroupPupils($group, $newPupils);
-                        /** @var Group $group */
-                        $group = Group::find()->with(['groupPupils', 'events.members.payments'])->andWhere(['id' => $group->id])->one();
-                        EventComponent::fillSchedule($group);
-                        GroupComponent::calculateTeacherSalary($group);
-                        foreach ($group->groupPupils as $groupPupil) {
-                            MoneyComponent::setUserChargeDates($groupPupil->user, $group);
+                        if (isset($groupConfig)) {
+                            $group->link('groupConfigs', $groupConfig);
+//                            if (!$groupConfig->save()) {
+//                                $transaction->rollBack();
+//                                $groupConfig->moveErrorsToFlash();
+//                                Yii::$app->session->addFlash('error', 'Внутренняя ошибка сервера');
+//                                $error = true;
+//                            }
                         }
+                        if (!$error) {
+                            $this->saveGroupPupils($group, $newPupils);
+                            /** @var Group $group */
+                            $group = Group::find()->with(['groupPupils', 'events.members.payments'])->andWhere(['id' => $group->id])->one();
+                            EventComponent::fillSchedule($group);
+                            GroupComponent::calculateTeacherSalary($group);
+                            foreach ($group->groupPupils as $groupPupil) {
+                                MoneyComponent::setUserChargeDates($groupPupil->user, $group);
+                            }
 
-                        $transaction->commit();
-                        Yii::$app->session->addFlash('success', 'Данные успешно сохранены');
-                        return $this->redirect(['update', 'id' => $group->id]);
+                            $transaction->commit();
+                            Yii::$app->session->addFlash('success', 'Данные успешно сохранены');
+
+                            return $this->redirect(['update', 'id' => $group->id]);
+                        }
                     } else {
                         $transaction->rollBack();
                         $group->moveErrorsToFlash();
@@ -376,8 +405,8 @@ class GroupController extends AdminController
             return self::getJsonErrorResult('Группа В не найдена');
         }
         
-        $dateFrom =  new \DateTimeImmutable($formData['date_from'] . ' +1 day midnight');
-        $dateTo =  new \DateTimeImmutable($formData['date_to'] . ' midnight');
+        $dateFrom =  new DateTimeImmutable($formData['date_from'] . ' +1 day midnight');
+        $dateTo =  new DateTimeImmutable($formData['date_to'] . ' midnight');
         if (!$dateFrom
             || !$dateTo
             || ($groupPupil->group->date_end && $dateFrom > $groupPupil->group->endDateObject)
@@ -454,7 +483,7 @@ class GroupController extends AdminController
 
         $dateEnd = GroupPupil::find()->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])->select('MAX(date_end)')->scalar();
         if (!$dateEnd) throw new BadRequestHttpException('Студент ещё занимается в группе');
-        $dateEnd = new \DateTimeImmutable($dateEnd);
+        $dateEnd = new DateTimeImmutable($dateEnd);
         
         $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $dateEnd);
         if ($unknownEvent !== null) {
@@ -565,7 +594,7 @@ class GroupController extends AdminController
             return self::getJsonErrorResult('Pupil not found');
         }
         
-        $endDate =  new \DateTimeImmutable($formData['date'] . ' +1 day midnight');
+        $endDate =  new DateTimeImmutable($formData['date'] . ' +1 day midnight');
         if (!$endDate || $endDate < $groupPupil->startDateObject || ($groupPupil->group->date_end && $groupPupil->group->endDateObject < $endDate)) {
             return self::getJsonErrorResult('Неверная дата');
         }
@@ -585,7 +614,7 @@ class GroupController extends AdminController
         $groupPupil->end_reason = $formData['reasonId'];
         $groupPupil->comment = $formData['reasonComment'];
 
-        if ($endDate <= new \DateTimeImmutable('tomorrow midnight')) {
+        if ($endDate <= new DateTimeImmutable('tomorrow midnight')) {
             $groupPupil->active = GroupPupil::STATUS_INACTIVE;
         }
 

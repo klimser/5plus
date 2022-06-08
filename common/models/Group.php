@@ -36,6 +36,7 @@ use yii\db\ActiveQuery;
  * @property GroupPupil[] $activeGroupPupils
  * @property GroupPupil[] $finishedGroupPupils
  * @property GroupPupil[] $movedGroupPupils
+ * @property GroupConfig[] $groupConfigs
  * @property Subject $subject
  * @property Teacher $teacher
  * @property GroupType $type
@@ -43,6 +44,7 @@ use yii\db\ActiveQuery;
  * @property Event[] $eventsByDateMap
  * @property GroupNote[] $notes
  * @property GroupNote $note
+ * @property ?GroupConfig $groupConfig
  */
 class Group extends ActiveRecord
 {
@@ -181,6 +183,23 @@ class Group extends ActiveRecord
             ->inverseOf('group');
     }
 
+    public function getGroupConfig(): ?GroupConfig
+    {
+        $groupConfigs = $this->groupConfigs;
+        return empty($groupConfigs) ? null : end($groupConfigs);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getGroupConfigs(): ActiveQuery
+    {
+        return $this->hasMany(GroupConfig::class, ['group_id' => 'id'])
+            ->with('teacher')
+            ->orderBy(GroupConfig::tableName() . '.date_from')
+            ->inverseOf('group');
+    }
+
     /**
      * @return GroupPupil[]
      */
@@ -249,9 +268,6 @@ class Group extends ActiveRecord
         $this->date_start = $startDate ? $startDate->format('Y-m-d') : null;
     }
 
-    /**
-     * @return DateTime|null
-     */
     public function getStartDateObject(): ?DateTime
     {
         return empty($this->date_start) ? null : new DateTime($this->date_start . ' midnight');

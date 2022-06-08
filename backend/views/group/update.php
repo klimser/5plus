@@ -1,11 +1,11 @@
 <?php
 
 use common\components\DefaultValuesComponent;
+use common\models\GroupConfig;
 use common\models\GroupPupil;
 use yii\helpers\ArrayHelper;
 use yii\bootstrap4\ActiveForm;
 use common\components\helpers\Html;
-use common\components\helpers\Calendar;
 use yii\helpers\Url;
 use yii\jui\DatePicker;
 
@@ -41,56 +41,55 @@ if ($group->teacher_id) {
     </h1>
     <div class="clearfix"></div>
 
-    <?php $form = ActiveForm::begin(['options' => ['class' => 'row', 'onsubmit' => 'return Group.submitForm();']]); ?>
+    <?php $form = ActiveForm::begin(['options' => ['onsubmit' => 'return Group.submitForm();']]); ?>
 
-    <?= $form->field($group, 'name', ['options' => ['class' => 'form-group col-12 col-lg-4']])
-        ->textInput(['maxlength' => true, 'required' => true]) ?>
+    <div class="row">
+        <div class="col-12 col-lg-6">
+            <?= $form->field($group, 'name', ['options' => ['class' => 'form-group']])
+                ->textInput(['maxlength' => true, 'required' => true]) ?>
 
-    <?= $form->field($group, 'legal_name', ['options' => ['class' => 'form-group col-12 col-lg-4']])
-        ->textInput(['maxlength' => true, 'required' => true]) ?>
+            <?= $form->field($group, 'legal_name', ['options' => ['class' => 'form-group']])
+                ->textInput(['maxlength' => true, 'required' => true]) ?>
 
-    <?= $form->field($group, 'type_id', ['options' => ['class' => 'form-group col-12 col-lg-4']])
-        ->dropDownList(ArrayHelper::map($groupTypes, 'id', 'name'), ['required' => true]); ?>
+            <?= $form->field($group, 'type_id', ['options' => ['class' => 'form-group']])
+                ->dropDownList(ArrayHelper::map($groupTypes, 'id', 'name'), ['required' => true]); ?>
 
-    <?= $form->field($group, 'subject_id', ['options' => ['class' => 'form-group col-12 col-md-6']])
-        ->dropDownList(ArrayHelper::map($subjects, 'id', 'name'), ['onChange' => 'Group.loadTeacherSelect(this);', 'required' => true, 'disabled' => count($group->pupils) > 0]); ?>
-    <?php
-    $teachersList = $group->subject_id ? ArrayHelper::map($group->subject->teachers, 'id', 'name') : [];
-    ?>
-    <?= $form->field($group, 'teacher_id', ['options' => ['class' => 'form-group col-12 col-md-6']])
-        ->dropDownList($teachersList, ['required' => true]); ?>
-
-    <?= $form->field($group, 'teacher_rate', ['options' => ['class' => 'form-group col-12 col-md-6']])
-        ->input('number', ['required' => true, 'min' => 0, 'max' => 100, 'step' => '0.01']); ?>
-
-    <?= $form->field($group, 'room_number', ['options' => ['class' => 'form-group col-12 col-md-6']])
-        ->textInput(['maxlength' => true]); ?>
-
-    <div class="form-group col-12">
-        <div class="row no-gutters" id="weekdays">
-            <?php for ($i = 0; $i < 7; $i++): ?>
-                <div class="col one_day_block">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="weekday[<?= $i; ?>]" value="1" <?= empty($group->scheduleData[$i]) ? '' : 'checked'; ?> onchange="Group.toggleWeekday(this);">
-                            <span class="d-md-none"><?= Calendar::$weekDaysShort[($i + 1) % 7]; ?></span>
-                            <span class="d-none d-sm-inline"><?= Calendar::$weekDays[($i + 1) % 7]; ?></span>
-                        </label>
-                    </div>
-                    <input class="form-control weektime" name="weektime[<?= $i; ?>]" value="<?= $group->scheduleData[$i]; ?>" placeholder="Время" pattern="\d{2}:\d{2}" maxlength="5" required <?= empty($group->scheduleData[$i]) ? 'disabled' : ''; ?>>
-                </div>
-            <?php endfor; ?>
+            <?= $form->field($group, 'subject_id', ['options' => ['class' => 'form-group']])
+                ->dropDownList(
+                    ArrayHelper::map($subjects, 'id', 'name'),
+                    ['onChange' => 'Group.loadTeacherSelect(this);', 'required' => true, 'disabled' => !$group->isNewRecord]
+                ); ?>
+        </div>
+        <div class="col-12 col-lg-6">
+            <h3>Параметры</h3>
+            <?php
+            $teacherList = $group->subject_id ? ArrayHelper::map($group->subject->teachers, 'id', 'name') : [];
+            foreach ($group->groupConfigs as $groupConfig) {
+                echo $this->render(
+                    '_config_card',
+                    [
+                        'groupConfig' => $groupConfig,
+                        'teacherList' => $teacherList,
+                    ]
+                );
+            } ?>
+            <?= $this->render(
+                    '_config_form',
+                    [
+                        'groupConfig' => new GroupConfig(),
+                        'teacherList' => $teacherList,
+                        'form' => $form,
+                        'visible' => $group->isNewRecord,
+                        'dateFromAllowed' => !$group->isNewRecord,
+                    ]);
+            ?>
+            <?php if (!$group->isNewRecord): ?>
+                <button type="button" class="btn btn-info" onclick="Group.addConfig(this);">
+                    <span class="fas fa-plus"></span> Добавить
+                </button>
+            <?php endif; ?>
         </div>
     </div>
-
-    <?= $form->field($group, 'lesson_price', ['options' => ['class' => 'form-group col-12 col-md-6']])
-        ->input('number', ['placeholder' => 'Только целое число, например: 24000', 'required' => true]); ?>
-
-    <?= $form->field($group, 'lesson_price_discount', ['options' => ['class' => 'form-group col-12 col-md-6']])
-        ->input('number', ['placeholder' => 'Только целое число, например: 18000']); ?>
-
-    <?= $form->field($group, 'lesson_duration', ['options' => ['class' => 'form-group col-12'], 'inputTemplate' => '<div class="input-group">{input}<span class="input-group-append"><span class="input-group-text">мин</span></span></div>'])
-        ->input('number', ['placeholder' => 'Только целое число, например: 40', 'required' => true]); ?>
 
     <div class="form-group col-12" id="group_date">
         <h5>Группа занимается</h5>
@@ -109,9 +108,8 @@ if ($group->teacher_id) {
                         ['options' => [
                             'required' => true,
                             'autocomplete' => 'off',
-                            'id' => 'group-date-start',
                             'onchange' => 'Main.handleDateRangeFrom(this)',
-                            'data' => ['target-to-selector' => '#group-date-end'],
+                            'data' => ['target-to-selector' => '#group-date_end'],
                         ]]
                     )); ?>
                 <?= $form->field(
@@ -126,9 +124,8 @@ if ($group->teacher_id) {
                         DefaultValuesComponent::getDatePickerSettings(),
                         ['options' => [
                             'autocomplete' => 'off',
-                            'id' => 'group-date-end',
                             'onchange' => 'Main.handleDateRangeTo(this)',
-                            'data' => ['target-from-selector' => '#group-date-start'],
+                            'data' => ['target-from-selector' => '#group-date_start'],
                         ]]
                     )); ?>
         </div>
@@ -310,7 +307,7 @@ if ($group->teacher_id) {
 
     <div class="form-group col-12 mt-3">
         <?= Html::submitButton($group->isNewRecord ? 'Добавить' : 'Сохранить', ['class' => 'btn btn-primary']) ?>
-        <div id="form-valid"></div>
+        <div id="form-valid" class="my-2 px-2 rounded"></div>
     </div>
 
     <?php ActiveForm::end(); ?>

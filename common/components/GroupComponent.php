@@ -4,6 +4,7 @@ namespace common\components;
 
 use backend\components\EventComponent;
 use common\models\Group;
+use common\models\GroupConfig;
 use common\models\GroupParam;
 use common\models\GroupPupil;
 use common\models\Payment;
@@ -36,6 +37,15 @@ class GroupComponent extends Component
             if (!$groupParam->save()) throw new \Exception('Unable to save group param: ' . $groupParam->getErrorsAsString());
         }
         return $groupParam;
+    }
+
+    public static function getGroupConfig(Group $group, DateTimeInterface $date): GroupConfig
+    {
+        $groupConfig = GroupConfig::findByDate($group, $date);
+        if (!$groupConfig) {
+            throw new \Exception(sprintf('No group config: Group %s, date %s ', $group->name, $date->format('d.m.Y')));
+        }
+        return $groupConfig;
     }
 
     /**

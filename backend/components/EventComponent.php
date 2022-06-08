@@ -78,18 +78,18 @@ class EventComponent extends Component
     public static function fillSchedule(Group $group)
     {
         $limitDate = new DateTime('+1 day midnight');
-        $startDate = clone $group->startDateObject;
-        $startDate->modify('midnight');
+        $lookupDate = clone $group->startDateObject;
+        $lookupDate->modify('midnight');
         $endDate = $group->endDateObject ? clone $group->endDateObject : null;
         if (!$endDate || $endDate > $limitDate) $endDate = $limitDate;
         $endDate->modify('midnight');
         $intervalDay = new DateInterval('P1D');
-        while ($startDate <= $endDate) {
-            if ($group->groupPupils || $group->hasWelcomeLessons($startDate)) {
-                $event = self::addEvent($group, $startDate);
+        while ($lookupDate <= $endDate) {
+            if ($group->groupPupils || $group->hasWelcomeLessons($lookupDate)) {
+                $event = self::addEvent($group, $lookupDate);
                 if ($event) MoneyComponent::chargeByEvent($event);
             }
-            $startDate->add($intervalDay);
+            $lookupDate->add($intervalDay);
         }
         /** @var Event[] $overEvents */
         $overEvents = Event::find()
