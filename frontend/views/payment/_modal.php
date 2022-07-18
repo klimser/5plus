@@ -41,6 +41,11 @@ use yii\helpers\Url;
                     </div>
                     <div class="form-group">
                         <div class="col-12 text-center">
+                            <?php if ('kolobok' === Yii::$app->request->get('prelaunch')): ?>
+                                <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_PAYBOX; ?>" class="btn freedompay_logo pay_button m-2">
+                                    Оплатить через <span class="sr-only">FreedomPay</span> <i class="ml-2"></i>
+                                </button>
+                            <?php endif; ?>
                             <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_APELSIN; ?>" class="btn apelsin_logo pay_button m-2">
                                 Оплатить через <span class="sr-only">Apelsin</span> <i class="ml-2"></i>
                             </button>

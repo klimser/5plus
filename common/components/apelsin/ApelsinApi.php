@@ -2,6 +2,8 @@
 
 namespace common\components\apelsin;
 
+use common\service\payment\PaymentApiInterface;
+use common\service\payment\TransactionResponse;
 use yii\base\BaseObject;
 
 /**
@@ -12,7 +14,7 @@ use yii\base\BaseObject;
  * @property string $login
  * @property string $password
  */
-class ApelsinApi extends BaseObject
+class ApelsinApi extends BaseObject implements PaymentApiInterface
 {
     protected string $paymentUrl;
     protected string $cashId;
@@ -60,13 +62,14 @@ class ApelsinApi extends BaseObject
     }
 
     /**
-     * @param float $amount
-     * @param string $paymentId
-     * @param string|null $returnUrl
-     * @return string
+     * @param array<mixed> $details
      */
-    public function payCreate(float $amount, string $paymentId, ?string $returnUrl = null): string
+    public function payCreate(float $amount, string $paymentId, ?string $returnUrl = null, array $details = []): TransactionResponse
     {
-        return $this->paymentUrl . '?cash=' . $this->cashId . '&amount=' . round($amount * 100) . '&paymentId=' . $paymentId . '&redirectUrl=' . $returnUrl;
+        return new TransactionResponse(
+            null,
+            $this->paymentUrl . '?cash=' . $this->cashId . '&amount=' . round($amount * 100) . '&paymentId=' . $paymentId . '&redirectUrl=' . $returnUrl,
+            []
+        );
     }
 }

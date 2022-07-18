@@ -2,6 +2,8 @@
 
 namespace common\components\click;
 
+use common\service\payment\PaymentApiInterface;
+use common\service\payment\TransactionResponse;
 use yii\base\BaseObject;
 
 /**
@@ -13,7 +15,7 @@ use yii\base\BaseObject;
  * @property int $merchantUserId
  * @property string $secretKey
  */
-class ClickApi extends BaseObject
+class ClickApi extends BaseObject implements PaymentApiInterface
 {
     const API_URL = 'https://api.click.uz/v2/merchant';
 
@@ -154,15 +156,16 @@ class ClickApi extends BaseObject
     }
 
     /**
-     * @param float $amount
-     * @param string $paymentId
-     * @param string|null $returnUrl
-     * @return string
+     * @param array<mixed> $details
      */
-    public function payCreate(float $amount, string $paymentId, ?string $returnUrl = null): string
+    public function payCreate(float $amount, string $paymentId, ?string $returnUrl = null, array $details = []): TransactionResponse
     {
-        return "$this->paymentUrl/services/pay?service_id=$this->serviceId&merchant_id=$this->merchantId&amount="
+        return new TransactionResponse(
+            null,
+            "$this->paymentUrl/services/pay?service_id=$this->serviceId&merchant_id=$this->merchantId&amount="
             . number_format(round($amount, 2), 2, '.', '') . "&transaction_param=$paymentId"
-            . ($returnUrl ? "&return_url=$returnUrl" : '');
+            . ($returnUrl ? "&return_url=$returnUrl" : ''),
+            []
+        );
     }
 }

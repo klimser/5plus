@@ -20,6 +20,8 @@ use common\models\Module;
 use common\models\PaymentLink;
 use common\models\User;
 use common\models\Webpage;
+use common\service\payment\PaymentApiFactory;
+use common\service\payment\PaymentServiceException;
 use himiklab\yii2\recaptcha\ReCaptchaValidator2;
 use Yii;
 use yii\helpers\Url;
@@ -318,44 +320,39 @@ class PaymentController extends Controller
         if (!$groupPupil) return self::getJsonErrorResult('Для этого студента внесение оплаты невозможно');
 
         try {
-            $contract = MoneyComponent::addPupilContract(
-                Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
-                $pupil,
-                $amount,
-                $group
-            );
+            $paymentApi = PaymentApiFactory::getPaymentApi($paymentMethodId);
+        } catch (PaymentServiceException $ex) {
+            return self::getJsonErrorResult('Wrong payment method');
+        }
 
-            $redirectUrl = null;
-            $returnUrl = urlencode(Url::to(['payment/complete', 'payment' => $contract->id], true));
-            switch ($paymentMethodId) {
-                case Contract::PAYMENT_TYPE_ATMOS:
-                    $paymoApi = ComponentContainer::getPaymoApi();
-                    $paymoId = $paymoApi->payCreate($contract->amount, $contract->number, [
-                        'студент' => $pupil->name,
-                        'группа' => $group->legal_name,
-                        'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price))),
-                    ]);
-                    $contract->payment_type = Contract::PAYMENT_TYPE_ATMOS;
-                    $contract->external_id = $paymoId;
-                    $contract->status = Contract::STATUS_PROCESS;
-                    $redirectUrl = "$paymoApi->paymentUrl/invoice/get?storeId=$paymoApi->storeId&transactionId=$paymoId&redirectLink=$returnUrl";
-                    break;
-                case Contract::PAYMENT_TYPE_CLICK:
-                    $redirectUrl = ComponentContainer::getClickApi()->payCreate($contract->amount, $contract->number, $returnUrl);
-                    $contract->payment_type = Contract::PAYMENT_TYPE_CLICK;
-                    break;
-                case Contract::PAYMENT_TYPE_PAYME:
-                    $redirectUrl = ComponentContainer::getPaymeApi()->payCreate($contract->amount, $contract->number, $returnUrl);
-                    $contract->payment_type = Contract::PAYMENT_TYPE_PAYME;
-                    $contract->status = Contract::STATUS_PROCESS;
-                    break;
-                case Contract::PAYMENT_TYPE_APELSIN:
-                    $redirectUrl = ComponentContainer::getApelsinApi()->payCreate($contract->amount, $contract->number, $returnUrl);
-                    $contract->payment_type = Contract::PAYMENT_TYPE_APELSIN;
-                    $contract->status = Contract::STATUS_PROCESS;
-                    break;
-                default:
-                    return self::getJsonErrorResult('Wrong payment method');
+        $contract = MoneyComponent::addPupilContract(
+            Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
+            $pupil,
+            $amount,
+            $group
+        );
+
+        $returnUrl = urlencode(Url::to(['payment/complete', 'payment' => $contract->id], true));
+        $details = [
+            'description' => sprintf(
+                'Оплата занятий в группе %s: %d занятий',
+                $group->legal_name,
+                intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price)))
+            ),
+            'ip' => Yii::$app->request->userIP,
+            'paymentDetails' => [
+                'студент' => $pupil->name,
+                'группа' => $group->legal_name,
+                'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price)))
+            ]
+        ];
+
+        try {
+            $transactionResponse = $paymentApi->payCreate($contract->amount, $contract->number, $returnUrl, $details);
+            $contract->payment_type = $paymentMethodId;
+            $contract->status = Contract::STATUS_PROCESS;
+            if ($transactionResponse->getTransactionId()) {
+                $contract->external_id = $transactionResponse->getTransactionId();
             }
             
             if (!$contract->save()) {
@@ -363,14 +360,12 @@ class PaymentController extends Controller
                     ->logError('payment/create', print_r($contract->getErrors(), true), true);
                 return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
             }
-            return self::getJsonOkResult(['redirectUrl' => $redirectUrl]);
-        } catch (PaymoApiException $exception) {
-            ComponentContainer::getErrorLogger()
-                ->logError('payment/create', 'Paymo: ' . $exception->getMessage(), true);
-            return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
+
+            return self::getJsonOkResult(['redirectUrl' => $transactionResponse->getRedirectUrl()]);
         } catch (\Throwable $exception) {
             ComponentContainer::getErrorLogger()
                 ->logError('payment/create', 'Exception: ' . $exception->getMessage(), true);
+
             return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
         }
     }
@@ -390,59 +385,66 @@ class PaymentController extends Controller
         $giftCardType = GiftCardType::findOne(['id' => $giftCardData['type'], 'active' => GiftCardType::STATUS_ACTIVE]);
         if (!$giftCardType) return self::getJsonErrorResult('Unknown type');
 
-        $transaction = Yii::$app->db->beginTransaction();
         try {
-            $giftCard = new GiftCard();
-            $giftCard->name = $giftCardType->name;
-            $giftCard->amount = $giftCardType->amount;
-            $giftCard->status = GiftCard::STATUS_NEW;
-            $giftCard->customer_name = $giftCardData['pupil_name'];
-            $giftCard->phoneFormatted = $giftCardData['pupil_phone'];
-            $giftCard->customer_email = $giftCardData['email'];
-            $additionalData = ['payment_method' => (int)$paymentMethodId];
-            if ($giftCardData['parents_name'] && $giftCardData['parents_phone']) {
-                $additionalData['parents_name'] = $giftCardData['parents_name'];
-                $additionalData['parents_phone'] = $giftCardData['parents_phone'];
-            }
-            $giftCard->additionalData = $additionalData;
+            $paymentApi = PaymentApiFactory::getPaymentApi($paymentMethodId);
+        } catch (PaymentServiceException $ex) {
+            return self::getJsonErrorResult('Wrong payment method');
+        }
 
-            if (!$giftCard->save()) {
-                $transaction->rollBack();
-                ComponentContainer::getErrorLogger()
-                    ->logError('payment/create-new', print_r($giftCard->getErrors(), true), true);
-                return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
-            }
+        $transaction = Yii::$app->db->beginTransaction();
 
-            $redirectUrl = null;
-            $returnUrl = urlencode(Url::to(['payment/complete', 'gc' => $giftCard->code], true));
-            switch ($paymentMethodId) {
-                case Contract::PAYMENT_TYPE_ATMOS:
-                    $paymoApi = ComponentContainer::getPaymoApi();
-                    $paymoId = $paymoApi->payCreate($giftCard->amount, "gc-$giftCard->id", [
-                        'студент' => $giftCard->customer_name,
-                        'предмет' => $giftCard->name,
-                    ]);
-                    $redirectUrl = "$paymoApi->paymentUrl/invoice/get?storeId=$paymoApi->storeId&transactionId=$paymoId&redirectLink=$returnUrl";
-                    break;
-                case Contract::PAYMENT_TYPE_CLICK:
-                    $redirectUrl = ComponentContainer::getClickApi()->payCreate($giftCard->amount, "gc-$giftCard->id", $returnUrl);
-                    break;
-                case Contract::PAYMENT_TYPE_PAYME:
-                    $redirectUrl = ComponentContainer::getPaymeApi()->payCreate($giftCard->amount, "gc-$giftCard->id", $returnUrl);
-                    break;
-                case Contract::PAYMENT_TYPE_APELSIN:
-                    $redirectUrl = ComponentContainer::getApelsinApi()->payCreate($giftCard->amount, "gc-$giftCard->id", $returnUrl);
-                    break;
-                default:
-                    return self::getJsonErrorResult('Wrong payment method');
+        $giftCard = new GiftCard();
+        $giftCard->name = $giftCardType->name;
+        $giftCard->amount = $giftCardType->amount;
+        $giftCard->status = GiftCard::STATUS_NEW;
+        $giftCard->customer_name = $giftCardData['pupil_name'];
+        $giftCard->phoneFormatted = $giftCardData['pupil_phone'];
+        $giftCard->customer_email = $giftCardData['email'];
+        $additionalData = ['payment_method' => $paymentMethodId];
+        if ($giftCardData['parents_name'] && $giftCardData['parents_phone']) {
+            $additionalData['parents_name'] = $giftCardData['parents_name'];
+            $additionalData['parents_phone'] = $giftCardData['parents_phone'];
+        }
+        $giftCard->additionalData = $additionalData;
+
+        if (!$giftCard->save()) {
+            $transaction->rollBack();
+            ComponentContainer::getErrorLogger()
+                ->logError('payment/create-new', print_r($giftCard->getErrors(), true), true);
+            return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
+        }
+
+        $returnUrl = urlencode(Url::to(['payment/complete', 'gc' => $giftCard->code], true));
+        $details = [
+            'description' => sprintf(
+                'Оплата занятий по предмету %s',
+                $giftCard->name
+            ),
+            'ip' => Yii::$app->request->userIP,
+            'paymentDetails' => [
+                'студент' => $giftCard->customer_name,
+                'предмет' => $giftCard->name,
+            ]
+        ];
+
+        try {
+            $transactionResponse = $paymentApi->payCreate($giftCard->amount, "gc-$giftCard->id", $returnUrl, $details);
+
+            if ($transactionResponse->getTransactionId()) {
+                $additionalData = $giftCard->additionalData;
+                $additionalData['transaction_id'] = $transactionResponse->getTransactionId();
+                $giftCard->additionalData = $additionalData;
+                $giftCard->save();
             }
             
             $transaction->commit();
-            return self::getJsonOkResult(['redirectUrl' => $redirectUrl]);
-        } catch (PaymoApiException $exception) {
+
+            return self::getJsonOkResult(['redirectUrl' => $transactionResponse->getRedirectUrl()]);
+        } catch (\Throwable $exception) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()
-                ->logError('payment/create-new', 'Paymo: ' . $exception->getMessage(), true);
+                ->logError('payment/create-new', 'Exception: ' . $exception->getMessage(), true);
+
             return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
         }
     }
@@ -460,10 +462,10 @@ class PaymentController extends Controller
         } elseif ($contractId = Yii::$app->request->get('payment')) {
             $contract = Contract::findOne($contractId);
             if ($contract) {
-                $params['success'] = $contract->status == Contract::STATUS_PAID;
+                $params['success'] = (Contract::STATUS_PAID === $contract->status);
                 $params['amount'] = $contract->amount;
                 $params['group'] = $contract->group->legal_name;
-                $params['discount'] = $contract->discount == Contract::STATUS_ACTIVE;
+                $params['discount'] = (Contract::STATUS_ACTIVE === $contract->discount);
                 $params['lessons'] = intval(round($contract->amount / ($contract->discount ? $contract->group->lesson_price_discount : $contract->group->lesson_price)));
             }
         }

@@ -51,4 +51,7 @@ return [
     'apelsin-cashId' => 'test',
     'apelsin-login' => 'test',
     'apelsin-password' => 'test',
+
+    'paybox-merchantId' => 'test',
+    'paybox-secretKey' => 'test',
 ];
