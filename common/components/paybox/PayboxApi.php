@@ -130,7 +130,7 @@ class PayboxApi extends BaseObject implements PaymentApiInterface
         throw new PayboxApiException('Wrong response: ' . print_r($response, true));
     }
 
-    public function signParams(array $params, ?string $scriptName = null): array
+    public function signParams(array $params, string $scriptName): array
     {
         if (!isset($params['pg_salt'])) {
             $params['pg_salt'] = StringGenerator::generate(mt_rand(5, 15), true, true, true);
@@ -141,9 +141,7 @@ class PayboxApi extends BaseObject implements PaymentApiInterface
 
 // Генерация подписи
         ksort($requestForSignature); // Сортировка по ключю
-        if ($scriptName) {
-            array_unshift($requestForSignature, $scriptName); // Добавление в начало имени скрипта
-        }
+        array_unshift($requestForSignature, $scriptName); // Добавление в начало имени скрипта
         $requestForSignature[] = $this->secretKey; // Добавление в конец секретного ключа
 
         $params['pg_sig'] = md5(implode(';', $requestForSignature)); // Полученная подпись
