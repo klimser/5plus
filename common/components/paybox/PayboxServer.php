@@ -65,7 +65,7 @@ class PayboxServer extends AbstractPaymentServer
         try {
             switch ($this->getTypeById($requestData['pg_order_id'])) {
                 case Contract::class:
-                    $contract = $this->getContractById($requestData['pg_order_id'], (int) $requestData['pg_amount']);
+                    $contract = $this->getContractById($requestData['pg_order_id'], (int) $requestData['pg_amount'] * 100);
                     if ($contract->status != Contract::STATUS_PAID) {
                         MoneyComponent::payContract(
                             $contract,
@@ -84,7 +84,7 @@ class PayboxServer extends AbstractPaymentServer
 
                     return $response;
                 case GiftCard::class:
-                    $giftCard = $this->getGiftCardById($requestData['pg_order_id'], (int) $requestData['pg_amount']);
+                    $giftCard = $this->getGiftCardById($requestData['pg_order_id'], (int) $requestData['pg_amount'] * 100);
                     if (!in_array($giftCard->status, [GiftCard::STATUS_PAID, GiftCard::STATUS_USED])) {
                         $giftCard->status = GiftCard::STATUS_PAID;
                         $giftCard->paid_at = date('Y-m-d H:i:s');
