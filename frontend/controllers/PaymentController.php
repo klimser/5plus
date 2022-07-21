@@ -332,7 +332,7 @@ class PaymentController extends Controller
             $group
         );
 
-        $returnUrl = urlencode(Url::to(['payment/complete', 'payment' => $contract->id], true));
+        $returnUrl = Url::to(['payment/complete', 'payment' => $contract->id], true);
         $details = [
             'description' => sprintf(
                 'Оплата занятий в группе %s: %d занятий',
