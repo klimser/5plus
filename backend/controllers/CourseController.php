@@ -3,17 +3,15 @@
 namespace backend\controllers;
 
 use backend\components\EventComponent;
-use backend\models\GroupNote;
+use backend\models\CourseNote;
 use common\components\Action;
 use common\components\ComponentContainer;
-use common\components\GroupComponent;
+use common\components\CourseComponent;
 use common\components\MoneyComponent;
-use common\models\Group;
-use common\models\GroupConfig;
-use common\models\GroupParam;
-use common\models\GroupPupil;
-use common\models\GroupSearch;
-use common\models\GroupType;
+use common\models\Course;
+use common\models\CourseConfig;
+use common\models\CourseStudent;
+use common\models\CourseSearch;
 use common\models\Payment;
 use common\models\Subject;
 use common\models\Teacher;
@@ -29,24 +27,19 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
- * GroupController implements the CRUD actions for Teacher model.
+ * CourseController implements the CRUD actions for Course model.
  */
-class GroupController extends AdminController
+class CourseController extends AdminController
 {
     /**
-     * Lists all Group models.
+     * Lists all Course models.
      * @return mixed
      */
     public function actionIndex()
     {
-        if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('viewGroups');
 
         if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
-
-            $group = Group::findOne(403);
-            $groupConfig = GroupConfig::findByDate($group, new DateTimeImmutable('2022-05-07'));
-            var_dump($groupConfig);
-            
 //        $user = User::findOne(7227);
 //        foreach ($user->groupPupils as $groupPupil) {
 //            EventComponent::fillSchedule($groupPupil->group);
@@ -72,13 +65,14 @@ class GroupController extends AdminController
         }
 
 
-        return $this->renderList(['active' => Group::STATUS_ACTIVE]);
+        return $this->renderList(['active' => Course::STATUS_ACTIVE]);
     }
 
     public function actionInactive()
     {
-        if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
-        return $this->renderList(['active' => Group::STATUS_INACTIVE]);
+        $this->checkAccess('viewGroups');
+
+        return $this->renderList(['active' => Course::STATUS_INACTIVE]);
     }
 
     private function renderList(array $filter)
@@ -86,12 +80,12 @@ class GroupController extends AdminController
         /** @var User $currentUser */
         $currentUser = Yii::$app->user->identity;
         
-        $searchModel = new GroupSearch();
-        $searchParams = array_key_exists('GroupSearch', Yii::$app->request->queryParams) ? Yii::$app->request->queryParams['GroupSearch'] : [];
+        $searchModel = new CourseSearch();
+        $searchParams = array_key_exists('CourseSearch', Yii::$app->request->queryParams) ? Yii::$app->request->queryParams['CourseSearch'] : [];
         if ($currentUser->isTeacher()) {
             $filter['teacher_id'] = $currentUser->teacher_id;
         }
-        $dataProvider = $searchModel->search(['GroupSearch' => array_merge($searchParams, $filter)]);
+        $dataProvider = $searchModel->search(['CourseSearch' => array_merge($searchParams, $filter)]);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -123,7 +117,7 @@ class GroupController extends AdminController
     {
         if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
 
-        $group = new Group();
+        $group = new Course();
         $group->loadDefaultValues();
 
         return $this->processGroupData($group);
@@ -160,15 +154,16 @@ class GroupController extends AdminController
     }
 
     /**
-     * @param Group $group
+     * @param Course $group
+     *
      * @return string|Response
      * @throws yii\db\Exception
      */
-    private function processGroupData(Group $group)
+    private function processGroupData(Course $group)
     {
         if (Yii::$app->request->isPost) {
             if (empty($group->groupPupils)) {
-                $group->scenario = Group::SCENARIO_EMPTY;
+                $group->scenario = Course::SCENARIO_EMPTY;
             }
             $group->load(Yii::$app->request->post());
             $groupVal = Yii::$app->request->post('Group', []);
@@ -191,7 +186,7 @@ class GroupController extends AdminController
                 $error = true;
             }
             if (!$group->date_end || $group->endDateObject > new \DateTime()) {
-                $group->active = Group::STATUS_ACTIVE;
+                $group->active = Course::STATUS_ACTIVE;
             }
 
             $groupConfigData = Yii::$app->request->post('GroupConfig');
@@ -201,7 +196,7 @@ class GroupController extends AdminController
                     Yii::$app->session->addFlash('error', 'Не указано время занятий');
                     $error = true;
                 } else {
-                    $groupConfig = new GroupConfig();
+                    $groupConfig = new CourseConfig();
                     $groupConfig->load($groupConfigData, '');
                     $groupConfig->schedule = $weektime;
                     if ($group->isNewRecord) {
@@ -248,10 +243,10 @@ class GroupController extends AdminController
                         }
                         if (!$error) {
                             $this->saveGroupPupils($group, $newPupils);
-                            /** @var Group $group */
-                            $group = Group::find()->with(['groupPupils', 'events.members.payments'])->andWhere(['id' => $group->id])->one();
+                            /** @var Course $group */
+                            $group = Course::find()->with(['groupPupils', 'events.members.payments'])->andWhere(['id' => $group->id])->one();
                             EventComponent::fillSchedule($group);
-                            GroupComponent::calculateTeacherSalary($group);
+                            CourseComponent::calculateTeacherSalary($group);
                             foreach ($group->groupPupils as $groupPupil) {
                                 MoneyComponent::setUserChargeDates($groupPupil->user, $group);
                             }
@@ -283,26 +278,28 @@ class GroupController extends AdminController
     }
 
     /**
-     * @param Group $group
+     * @param Course $group
+     *
      * @throws \Exception
      */
-    private function fillGroupParams(Group $group) {
+    private function fillGroupParams(Course $group) {
         $currMonth = clone $group->startDateObject;
         $currMonth->modify('first day of this month midnight');
         $nextMonth = new \DateTime('first day of next month midnight');
         $monthInterval = new \DateInterval('P1M');
         while ($currMonth < $nextMonth) {
-            GroupComponent::getGroupParam($group, $currMonth);
+            CourseComponent::getGroupParam($group, $currMonth);
             $currMonth->add($monthInterval);
         }
     }
 
     /**
-     * @param Group $group
-     * @param array $newPupils
+     * @param Course $group
+     * @param array  $newPupils
+     *
      * @throws \Exception
      */
-    private function saveGroupPupils(Group $group, array $newPupils) {
+    private function saveGroupPupils(Course $group, array $newPupils) {
         /** @var \DateTime[][] $pupilsMap */
         $pupilsMap = [];
         $salaryRecalcDate = null;
@@ -318,7 +315,7 @@ class GroupController extends AdminController
             foreach ($newPupils as $key => $pupilId) {
                 $startDate = new \DateTime($pupilStartDates[$key] . ' midnight');
                 $pupil = User::findOne($pupilId);
-                if ($pupil === null || $pupil->role != User::ROLE_PUPIL) throw new \Exception('Студент не найден');
+                if ($pupil === null || $pupil->role != User::ROLE_STUDENT) throw new \Exception('Студент не найден');
                 elseif (!$startDate) throw new \Exception('Введите корректную дату начала занятий студента ' . $pupil->name);
                 if ($startDate < $group->startDateObject) $startDate = clone $group->startDateObject;
 
@@ -334,7 +331,7 @@ class GroupController extends AdminController
                 if (array_key_exists($groupPupil->user_id, $pupilsMap)
                     && ($groupPupil->startDateObject != $pupilsMap[$groupPupil->user_id]['startDate']
                         || $groupPupil->endDateObject != $pupilsMap[$groupPupil->user_id]['endDate'])) {
-                    GroupComponent::checkPupilDates($groupPupil, $pupilsMap[$groupPupil->user_id]['startDate'], $pupilsMap[$groupPupil->user_id]['endDate']);
+                    CourseComponent::checkPupilDates($groupPupil, $pupilsMap[$groupPupil->user_id]['startDate'], $pupilsMap[$groupPupil->user_id]['endDate']);
                     $groupPupil->date_start = $pupilsMap[$groupPupil->user_id]['startDate']->format('Y-m-d');
                     $groupPupil->date_end = $pupilsMap[$groupPupil->user_id]['endDate'] ? $pupilsMap[$groupPupil->user_id]['endDate']->format('Y-m-d') : null;
 
@@ -360,7 +357,7 @@ class GroupController extends AdminController
         }
 
         foreach ($pupilsMap as $pupilId => $pupilData) {
-            GroupComponent::addPupilToGroup(User::findOne($pupilId), $group, $pupilData['startDate'], $pupilData['endDate'], false);
+            CourseComponent::addPupilToGroup(User::findOne($pupilId), $group, $pupilData['startDate'], $pupilData['endDate'], false);
         }
     }
 
@@ -375,12 +372,12 @@ class GroupController extends AdminController
 
         $groupPupil = null;
         if ($groupPupilId) {
-            $groupPupil = GroupPupil::findOne(['id' => $groupPupilId, 'active' => GroupPupil::STATUS_ACTIVE]);
+            $groupPupil = CourseStudent::findOne(['id' => $groupPupilId, 'active' => CourseStudent::STATUS_ACTIVE]);
         }
         
         return $this->render('move_pupil', [
             'groupPupil' => $groupPupil,
-            'groupList' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy('name')->all(),
+            'groupList' => Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy('name')->all(),
         ]);
     }
 
@@ -395,13 +392,13 @@ class GroupController extends AdminController
             return self::getJsonErrorResult('Wrong request');
         }
 
-        $groupPupil = GroupPupil::findOne($formData['id']);
-        $groupTo = Group::findOne($formData['group_id']);
+        $courseStudent = CourseStudent::findOne($formData['id']);
+        $groupTo = Course::findOne($formData['group_id']);
 
-        if (!$groupPupil || $groupPupil->active !== GroupPupil::STATUS_ACTIVE) {
+        if (!$courseStudent || $courseStudent->active !== CourseStudent::STATUS_ACTIVE) {
             return self::getJsonErrorResult('Студент не найден');
         }
-        if (!$groupTo || $groupTo->active !== Group::STATUS_ACTIVE) {
+        if (!$groupTo || $groupTo->active !== Course::STATUS_ACTIVE) {
             return self::getJsonErrorResult('Группа В не найдена');
         }
         
@@ -409,12 +406,12 @@ class GroupController extends AdminController
         $dateTo =  new DateTimeImmutable($formData['date_to'] . ' midnight');
         if (!$dateFrom
             || !$dateTo
-            || ($groupPupil->group->date_end && $dateFrom > $groupPupil->group->endDateObject)
+            || ($courseStudent->group->date_end && $dateFrom > $courseStudent->group->endDateObject)
             || $dateTo < $groupTo->startDateObject
         ) {
             self::getJsonErrorResult('Неверная дата перевода');
         }
-        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $dateFrom);
+        $unknownEvent = EventComponent::getUncheckedEvent($courseStudent->group, $dateFrom);
         if ($unknownEvent !== null) {
             return self::getJsonErrorResult(
                 'В группе ИЗ остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: '
@@ -426,7 +423,7 @@ class GroupController extends AdminController
         }
 
         $moneyLeft = Payment::find()
-            ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
+            ->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id])
             ->andWhere(['or',
                 ['>', 'amount', 0],
                 ['and', ['<', 'amount', 0], ['<', 'created_at', $dateFrom->format('Y-m-d H:i:s')]]
@@ -436,23 +433,23 @@ class GroupController extends AdminController
             return self::getJsonErrorResult('Студент не может быть переведён пока не погасит долг - ' . (0 - $moneyLeft));
         }
 
-        $transaction = GroupPupil::getDb()->beginTransaction();
+        $transaction = CourseStudent::getDb()->beginTransaction();
         try {
-            if (!$groupPupil->endDateObject || $groupPupil->endDateObject > $dateFrom) {
-                $groupPupil->date_end = $dateFrom->format('Y-m-d');
-                $groupPupil->moved = GroupPupil::STATUS_ACTIVE;
-                $groupPupil->active = GroupPupil::STATUS_INACTIVE;
-                if (!$groupPupil->save()) {
-                    throw new \Exception($groupPupil->getErrorsAsString());
+            if (!$courseStudent->endDateObject || $courseStudent->endDateObject > $dateFrom) {
+                $courseStudent->date_end = $dateFrom->format('Y-m-d');
+                $courseStudent->moved = CourseStudent::STATUS_ACTIVE;
+                $courseStudent->active = CourseStudent::STATUS_INACTIVE;
+                if (!$courseStudent->save()) {
+                    throw new \Exception($courseStudent->getErrorsAsString());
                 }
-                EventComponent::fillSchedule($groupPupil->group);
-                GroupComponent::calculateTeacherSalary($groupPupil->group);
+                EventComponent::fillSchedule($courseStudent->group);
+                CourseComponent::calculateTeacherSalary($courseStudent->group);
             }
-            GroupComponent::addPupilToGroup($groupPupil->user, $groupTo, $dateTo, null, false);
-            GroupComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user, $dateTo);
+            CourseComponent::addPupilToGroup($courseStudent->user, $groupTo, $dateTo, null, false);
+            CourseComponent::moveMoney($courseStudent->group, $groupTo, $courseStudent->user, $dateTo);
 
             $transaction->commit();
-            return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
+            return self::getJsonOkResult(['userId' => $courseStudent->user_id]);
         } catch (\Throwable $ex) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()
@@ -462,32 +459,33 @@ class GroupController extends AdminController
     }
 
     /**
-     * @param int $groupPupilId
+     * @param int $courseStudentId
+     *
      * @return string|Response
      * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
      */
-    public function actionMoveMoney(int $groupPupilId)
+    public function actionMoveMoney(int $courseStudentId)
     {
         $this->checkAccess('moveMoney');
 
-        $groupPupil = GroupPupil::findOne($groupPupilId);
-        if (!$groupPupil) throw new BadRequestHttpException('Pupil not found');
+        $courseStudent = CourseStudent::findOne($courseStudentId);
+        if (!$courseStudent) throw new BadRequestHttpException('Pupil not found');
         
-        if (GroupPupil::findOne(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id, 'active' => GroupPupil::STATUS_ACTIVE, 'date_end' => null])) {
+        if (CourseStudent::findOne(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id, 'active' => CourseStudent::STATUS_ACTIVE, 'date_end' => null])) {
             throw new BadRequestHttpException('Студент ещё занимается в группе');
         }
 
-        $moneyLeft = Payment::find()->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])->select('SUM(amount)')->scalar();
+        $moneyLeft = Payment::find()->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id])->select('SUM(amount)')->scalar();
         if ($moneyLeft <= 0) throw new BadRequestHttpException('Не осталось денег для перевода');
 
-        $dateEnd = GroupPupil::find()->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])->select('MAX(date_end)')->scalar();
+        $dateEnd = CourseStudent::find()->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id])->select('MAX(date_end)')->scalar();
         if (!$dateEnd) throw new BadRequestHttpException('Студент ещё занимается в группе');
         $dateEnd = new DateTimeImmutable($dateEnd);
         
-        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $dateEnd);
+        $unknownEvent = EventComponent::getUncheckedEvent($courseStudent->course, $dateEnd);
         if ($unknownEvent !== null) {
-            throw new BadRequestHttpException("В группе {$groupPupil->group->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
+            throw new BadRequestHttpException("В группе {$courseStudent->course->courseConfig->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
                 . Html::a(
                     $unknownEvent->eventDateTime->format('d.m.Y'),
                     Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
@@ -496,20 +494,20 @@ class GroupController extends AdminController
         }
 
         if (Yii::$app->request->isPost) {
-            $groupToId = Yii::$app->request->post('money-move')['groupId'];
-            if (!$groupToId) throw new BadRequestHttpException('No group selected');
-            $groupTo = Group::findOne($groupToId);
-            if (!$groupTo) throw new BadRequestHttpException('Group not found');
-            $groupPupilsTo = GroupPupil::findAll(['user_id' => $groupPupil->user_id, 'group_id' => $groupTo->id, 'active' => GroupPupil::STATUS_ACTIVE]);
-            if (count($groupPupilsTo) === 0) throw new BadRequestHttpException('Pupil in destination group is not found');
+            $courseToId = Yii::$app->request->post('money-move')['courseId'];
+            if (!$courseToId) throw new BadRequestHttpException('No course selected');
+            $courseTo = Course::findOne($courseToId);
+            if (!$courseTo) throw new BadRequestHttpException('Course not found');
+            $courseStudentsTo = CourseStudent::findAll(['user_id' => $courseStudent->user_id, 'course_id' => $courseTo->id, 'active' => CourseStudent::STATUS_ACTIVE]);
+            if (count($courseStudentsTo) === 0) throw new BadRequestHttpException('Student in destination course is not found');
 
             $transaction = Yii::$app->db->beginTransaction();
             try {
-                GroupComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user);
+                CourseComponent::moveMoney($courseStudent->course, $courseTo, $courseStudent->user);
 
-                foreach (GroupPupil::findAll(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id, 'active' => GroupPupil::STATUS_ACTIVE]) as $groupPupil) {
-                    $groupPupil->active = GroupPupil::STATUS_INACTIVE;
-                    $groupPupil->save();
+                foreach (CourseStudent::findAll(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id, 'active' => CourseStudent::STATUS_ACTIVE]) as $oldCourseStudent) {
+                    $oldCourseStudent->active = CourseStudent::STATUS_INACTIVE;
+                    $oldCourseStudent->save();
                 }
                 $transaction->commit();
                 Yii::$app->session->addFlash('success', 'Средства перенесены');
@@ -520,14 +518,14 @@ class GroupController extends AdminController
         }
 
         return $this->render('move_money', [
-            'groupPupil' => $groupPupil,
+            'courseStudent' => $courseStudent,
             'moneyLeft' => $moneyLeft,
-            'groupList' => Group::find()
-                ->joinWith('groupPupils')
-                ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE, GroupPupil::tableName() . '.user_id' => $groupPupil->user_id])
-                ->andWhere(Group::tableName() . '.id != :groupFrom', ['groupFrom' => $groupPupil->group_id])
+            'courseList' => Course::find()
+                ->joinWith('courseStudents')
+                ->andWhere([CourseStudent::tableName() . '.active' => CourseStudent::STATUS_ACTIVE, CourseStudent::tableName() . '.user_id' => $courseStudent->user_id])
+                ->andWhere(Course::tableName() . '.id != :courseFrom', ['courseFrom' => $courseStudent->course_id])
                 ->distinct(true)
-                ->orderBy(Group::tableName() . '.name')->all(),
+                ->orderBy(Course::tableName() . '.name')->all(),
         ]);
     }
     
@@ -541,18 +539,18 @@ class GroupController extends AdminController
         if (!isset($formData['id'], $formData['groupId'])) {
             return self::getJsonErrorResult('Wrong request');
         }
-        /** @var GroupPupil $groupPupil */
-        $groupPupil = GroupPupil::find()->andWhere(['id' => $formData['id'], 'active' => GroupPupil::STATUS_INACTIVE])->one();
+        /** @var CourseStudent $groupPupil */
+        $groupPupil = CourseStudent::find()->andWhere(['id' => $formData['id'], 'active' => CourseStudent::STATUS_INACTIVE])->one();
         if (!$groupPupil) {
             return self::getJsonErrorResult('Pupil not found');
         }
-        /** @var Group $groupTo */
-        $groupTo = Group::findOne($formData['groupId']);
+        /** @var Course $groupTo */
+        $groupTo = Course::findOne($formData['groupId']);
         if (!$groupTo) {
             return self::getJsonErrorResult('Group not found');
         }
         
-        $groupPupilsTo = GroupPupil::find()->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupTo->id, 'active' => GroupPupil::STATUS_ACTIVE])->all();
+        $groupPupilsTo = CourseStudent::find()->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupTo->id, 'active' => CourseStudent::STATUS_ACTIVE])->all();
         if (count($groupPupilsTo) == 0) {
             return self::getJsonErrorResult('Pupil in destination group is not found');
         }
@@ -569,7 +567,7 @@ class GroupController extends AdminController
 
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            GroupComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user);
+            CourseComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user);
             $transaction->commit();
             return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
         } catch (\Throwable $exception) {
@@ -588,8 +586,8 @@ class GroupController extends AdminController
         if (!isset($formData['id'], $formData['date'], $formData['reasonId'])) {
             return self::getJsonErrorResult('Wrong request');
         }
-        /** @var GroupPupil $groupPupil */
-        $groupPupil = GroupPupil::findOne(['id' => $formData['id'], 'active' => GroupPupil::STATUS_ACTIVE]);
+        /** @var CourseStudent $groupPupil */
+        $groupPupil = CourseStudent::findOne(['id' => $formData['id'], 'active' => CourseStudent::STATUS_ACTIVE]);
         if (!$groupPupil) {
             return self::getJsonErrorResult('Pupil not found');
         }
@@ -615,7 +613,7 @@ class GroupController extends AdminController
         $groupPupil->comment = $formData['reasonComment'];
 
         if ($endDate <= new DateTimeImmutable('tomorrow midnight')) {
-            $groupPupil->active = GroupPupil::STATUS_INACTIVE;
+            $groupPupil->active = CourseStudent::STATUS_INACTIVE;
         }
 
         ComponentContainer::getActionLogger()->log(
@@ -630,47 +628,41 @@ class GroupController extends AdminController
             return self::getJsonErrorResult($groupPupil->getErrorsAsString());
         }
         EventComponent::fillSchedule($groupPupil->group);
-        GroupComponent::calculateTeacherSalary($groupPupil->group);
+        CourseComponent::calculateTeacherSalary($groupPupil->group);
         
         return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
     }
 
     /**
-     * @param int|null $pupilId
      * @return Response
      * @throws BadRequestHttpException
      */
-    public function actionListJson($pupilId = null)
+    public function actionListJson(?int $studentId = null)
     {
         $this->checkRequestIsAjax();
+
         $jsonData = [];
-        if ($pupilId) {
-            $pupil = User::findOne($pupilId);
-            if ($pupil) {
-                foreach ($pupil->activeGroupPupils as $groupPupil) {
-                    $groupData = [
-                        'id' => $groupPupil->id,
-                        'group_id' => $groupPupil->group_id,
-                        'date_start' => $groupPupil->startDateObject->format('d.m.Y'),
-                        'date_end' => $groupPupil->date_end ? $groupPupil->endDateObject->format('d.m.Y') : '',
+        if ($studentId) {
+            $student = User::findOne($studentId);
+            if ($student) {
+                foreach ($student->activeCourseStudents as $courseStudent) {
+                    $courseData = [
+                        'id' => $courseStudent->id,
+                        'course_id' => $courseStudent->course_id,
+                        'date_start' => $courseStudent->startDateObject->format('d.m.Y'),
+                        'date_end' => $courseStudent->date_end ? $courseStudent->endDateObject->format('d.m.Y') : '',
                     ];
-                    $jsonData[] = $groupData;
+                    $jsonData[] = $courseData;
                 }
             }
         } else {
-            /** @var Group[] $groups */
-            $groups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->all();
-            foreach ($groups as $group) {
-                $groupData = $group->toArray(['id', 'name', 'lesson_price', 'lesson_price_discount']);
-                $groupParam = GroupParam::findByDate($group, new \DateTime());
-                if (!$groupParam) {
-                    $groupParam = new GroupParam();
-                    $groupParam->lesson_price = $group->lesson_price;
-                    $groupParam->lesson_price_discount = $group->lesson_price_discount;
-                    $groupParam->schedule = $group->schedule;
-                }
-                $groupData['lesson_12_price'] = $groupParam->price12Lesson;
-                $jsonData[] = $groupData;
+            /** @var Course[] $courses */
+            $courses = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->all();
+            foreach ($courses as $course) {
+                $courseConfig = $course->courseConfig;
+                $courseData = $courseConfig->toArray(['course_id', 'name', 'lesson_price', 'lesson_price_discount']);
+                $courseData['lesson_12_price'] = $courseConfig->price12Lesson;
+                $jsonData[] = $courseData;
             }
         }
 
@@ -685,21 +677,20 @@ class GroupController extends AdminController
 
         /** @var User $currentUser */
         $currentUser = Yii::$app->user->identity;
-        $jsonData = [];
-        $groupId = Yii::$app->request->post('group_id');
-        if (!$groupId || !($group = Group::findOne($groupId)) || $group->teacher_id !== $currentUser->teacher_id) {
+        $courseId = Yii::$app->request->post('course_id');
+        if (!$courseId || !($course = Course::findOne($courseId)) || $course->courseConfig->teacher_id !== $currentUser->teacher_id) {
             return self::getJsonErrorResult('Invalid group');
         }
         if (!$note = Yii::$app->request->post('note')) {
-            return self::getJsonErrorResult('Empty note isnot allowed');
+            return self::getJsonErrorResult('Empty note is not allowed');
         }
         
-        $groupNote = new GroupNote();
-        $groupNote->group_id = $groupId;
-        $groupNote->teacher_id = $currentUser->teacher_id;
-        $groupNote->topic = $note;
-        if (!$groupNote->save()) {
-            return self::getJsonErrorResult($groupNote->getErrorsAsString());
+        $courseNote = new CourseNote();
+        $courseNote->course_id = $courseId;
+        $courseNote->teacher_id = $currentUser->teacher_id;
+        $courseNote->topic = $note;
+        if (!$courseNote->save()) {
+            return self::getJsonErrorResult($courseNote->getErrorsAsString());
         }
 
         return self::getJsonOkResult();
@@ -709,9 +700,9 @@ class GroupController extends AdminController
     {
         $this->checkAccess('viewNotes');
 
-        $searchModel = new GroupSearch();
-        $searchParams = array_key_exists('GroupSearch', Yii::$app->request->queryParams) ? Yii::$app->request->queryParams['GroupSearch'] : [];
-        $dataProvider = $searchModel->search(['GroupSearch' => array_merge($searchParams, ['active' => Group::STATUS_ACTIVE])]);
+        $searchModel = new CourseSearch();
+        $searchParams = array_key_exists('CourseSearch', Yii::$app->request->queryParams) ? Yii::$app->request->queryParams['CourseSearch'] : [];
+        $dataProvider = $searchModel->search(['CourseSearch' => array_merge($searchParams, ['active' => Course::STATUS_ACTIVE])]);
 
         return $this->render('notes', [
             'dataProvider' => $dataProvider,
@@ -734,23 +725,25 @@ class GroupController extends AdminController
     
     public function actionNote(int $id)
     {
-        $group = $this->findModel($id);
-        
+        $course = $this->findModel($id);
+
         return $this->render('note_history', [
-            'group' => $group
+            'course' => $course
         ]);
     }
 
     /**
      * Finds the Group model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
+     *
      * @param integer $id
-     * @return Group the loaded model
+     *
+     * @return Course the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Group::findOne($id)) !== null) {
+        if (($model = Course::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

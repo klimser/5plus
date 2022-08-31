@@ -1,7 +1,7 @@
 <?php
 /* @var $this \yii\web\View */
 /* @var $form \yii\bootstrap4\ActiveForm */
-/* @var $groupConfig \common\models\GroupConfig */
+/* @var $groupConfig \common\models\CourseConfig */
 /* @var $teacherList array<\common\models\Teacher> */
 /* @var $visible bool */
 /* @var $dateFromAllowed bool */

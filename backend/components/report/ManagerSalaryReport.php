@@ -119,7 +119,7 @@ class ManagerSalaryReport
 
             $welcomeLessonSheet->setCellValue("A$row", $welcomeLesson->createdAdmin->name);
             $welcomeLessonSheet->setCellValue("B$row", $welcomeLesson->user->name);
-            $welcomeLessonSheet->setCellValue("C$row", $welcomeLesson->group->name);
+            $welcomeLessonSheet->setCellValue("C$row", $welcomeLesson->course->name);
             $welcomeLessonSheet->setCellValue("D$row", Date::PHPToExcel($welcomeLesson->createDate));
             $managerMap[$welcomeLesson->createdAdmin->id]['welcome_lesson']++;
             $row++;
@@ -153,7 +153,7 @@ class ManagerSalaryReport
         $useSet = [];
         $groupData = [];
         foreach ($actions as $action) {
-            $key = "{$action->group_id}|{$action->user_id}";
+            $key = "{$action->course_id}|{$action->user_id}";
             if (array_key_exists($key, $useSet)) continue;
             $useSet[$key] = true;
 

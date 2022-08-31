@@ -64,9 +64,6 @@ trait GroupParam
         return $count;
     }
 
-    /**
-     * @return int
-     */
     public function getClassesPerMonth(): int
     {
         return $this->getClassesPerWeek() * 4;

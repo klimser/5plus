@@ -73,7 +73,7 @@ $this->registerJs('User.init(true);');
             <?php endif; ?>
         </div>
 
-        <?php if ($isAdmin && $user->role == User::ROLE_PUPIL): ?>
+        <?php if ($isAdmin && $user->role == User::ROLE_STUDENT): ?>
             <div class="col-12 col-md-6">
                 <h2>Родители</h2>
                 

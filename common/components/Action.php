@@ -2,7 +2,7 @@
 
 namespace common\components;
 
-use common\models\Group;
+use common\models\Course;
 use common\models\User;
 use yii\base\BaseObject;
 
@@ -42,14 +42,14 @@ class Action extends BaseObject
         self::TYPE_WELCOME_LESSON_STATUS_CHANGED => 'Статус пробного занятия изменён',
     ];
 
-    public function log(int $type, ?User $user = null, ?int $amount = null, ?Group $group = null, ?string $comment = null): bool
+    public function log(int $type, ?User $user = null, ?int $amount = null, ?Course $group = null, ?string $comment = null): bool
     {
         $action = new \backend\models\Action();
         $action->admin_id = \Yii::$app->user->id;
         if ($user) $action->user_id = $user->id;
         $action->type = $type;
         $action->amount = $amount;
-        if ($group) $action->group_id = $group->id;
+        if ($group) $action->course_id = $group->id;
         $action->comment = $comment;
 
         return $action->save();

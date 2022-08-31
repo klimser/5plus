@@ -12,28 +12,27 @@ use yii\db\ActiveQuery;
  *
  * @property int $id
  * @property int $user_id
- * @property int $group_id
+ * @property int $course_id
  * @property int $admin_id
  * @property int $amount
  * @property int $discount Скидочный платёж
- * @property string $comment
- * @property int $contract_id
- * @property int $used_payment_id
- * @property int $event_member_id
- * @property int $cash_received
- * @property int $bitrix_sync_status
- * @property string $created_at
+ * @property string        $comment
+ * @property int           $contract_id
+ * @property int           $used_payment_id
+ * @property int           $event_member_id
+ * @property int           $cash_received
+ * @property string        $created_at
  * @property DateTime|null $createDate
  *
- * @property Contract $contract
- * @property User $user
- * @property Group $group
- * @property User $admin
- * @property Payment $usedPayment
- * @property EventMember $eventMember
- * @property Payment[] $payments
- * @property int $paymentsSum
- * @property int $moneyLeft
+ * @property Contract      $contract
+ * @property User          $user
+ * @property Course        $course
+ * @property User          $admin
+ * @property Payment       $usedPayment
+ * @property EventMember   $eventMember
+ * @property Payment[]     $payments
+ * @property int           $paymentsSum
+ * @property int           $moneyLeft
  */
 class Payment extends ActiveRecord
 {
@@ -46,15 +45,15 @@ class Payment extends ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'group_id', 'amount'], 'required'],
-            [['user_id', 'group_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id', 'cash_received', 'bitrix_sync_status'], 'integer'],
+            [['user_id', 'course_id', 'amount'], 'required'],
+            [['user_id', 'course_id', 'admin_id', 'amount', 'discount', 'used_payment_id', 'event_member_id', 'contract_id', 'cash_received'], 'integer'],
             [['comment'], 'string'],
-            [['discount', 'bitrix_sync_status'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
-            [['discount',  'bitrix_sync_status'], 'default', 'value' => self::STATUS_INACTIVE],
+            [['discount'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
+            [['discount'], 'default', 'value' => self::STATUS_INACTIVE],
             ['cash_received', 'default', 'value' => self::STATUS_ACTIVE],
-            ['user_id', 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
+            ['user_id', 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_STUDENT]],
             ['admin_id', 'exist', 'targetRelation' => 'admin'],
-            ['group_id', 'exist', 'targetRelation' => 'group'],
+            ['course_id', 'exist', 'targetRelation' => 'course'],
             ['contract_id', 'exist', 'targetRelation' => 'contract'],
             ['used_payment_id', 'exist', 'targetRelation' => 'usedPayment'],
             ['event_member_id', 'exist', 'targetRelation' => 'eventMember'],
@@ -68,7 +67,7 @@ class Payment extends ActiveRecord
             'id' => 'ID записи',
             'user_id' => 'Студент',
             'admin_id' => 'Админ',
-            'group_id' => 'Группа',
+            'course_id' => 'Группа',
             'amount' => 'Сумма',
             'comment' => 'Комментарий',
             'used_payment_id' => 'Использованный при списании платёж',
@@ -91,76 +90,49 @@ class Payment extends ActiveRecord
         return false;
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getUser()
+    public function getUser(): ActiveQuery
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getContract()
+    public function getContract(): ActiveQuery
     {
         return $this->hasOne(Contract::class, ['id' => 'contract_id'])->inverseOf('payments');
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getGroup()
+    public function getCourse(): ActiveQuery
     {
-        return $this->hasOne(Group::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'group_id']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getAdmin()
+    public function getAdmin(): ActiveQuery
     {
         return $this->hasOne(User::class, ['id' => 'admin_id']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getUsedPayment()
+    public function getUsedPayment(): ActiveQuery
     {
         return $this->hasOne(Payment::class, ['id' => 'used_payment_id'])->inverseOf('payments');
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getEventMember()
+    public function getEventMember(): ActiveQuery
     {
         return $this->hasOne(EventMember::class, ['id' => 'event_member_id'])->inverseOf('payments');
     }
 
-	/**
-     * @return ActiveQuery
-     */
-    public function getPayments()
+    public function getPayments(): ActiveQuery
     {
         return $this->hasMany(Payment::class, ['used_payment_id' => 'id'])->inverseOf('usedPayment');
     }
 
-    /**
-     * @return int
-     */
-    public function getPaymentsSum()
+    public function getPaymentsSum(): int
     {
         return (int)(Payment::find()->andWhere(['used_payment_id' => $this->id])->select('SUM(amount)')->scalar() * (-1));
     }
 
-    /**
-     * @return int
-     */
-    public function getMoneyLeft()
+    public function getMoneyLeft(): int
     {
-        return (int)($this->amount - $this->paymentsSum);
+        return $this->amount - $this->paymentsSum;
     }
 
     /**

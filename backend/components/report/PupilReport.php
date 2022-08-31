@@ -2,7 +2,7 @@
 
 namespace backend\components\report;
 
-use common\models\Group;
+use common\models\Course;
 use common\models\Payment;
 use common\models\User;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
@@ -16,7 +16,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class PupilReport
 {
-    public static function create(User $pupil, Group $group): Spreadsheet
+    public static function create(User $pupil, Course $group): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);

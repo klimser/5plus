@@ -2,7 +2,7 @@ let Main = {
     datepickerDefaultSettings: $.extend({}, $.datepicker.regional['ru-RU'], {"firstDay":1,"dateFormat":"dd.mm.yy"}),
     throwFlashMessage: function (blockSelector, message, additionalClass, append) {
         if (typeof append !== 'boolean') append = false;
-        var blockContent = '<div class="alert alert-dismissible fade show ' + additionalClass + '"><button type="button" class="close" data-dismiss="alert" aria-label="Закрыть"><span aria-hidden="true">&times;</span></button>' + message + '</div>';
+        let blockContent = '<div class="alert alert-dismissible fade show ' + additionalClass + '"><button type="button" class="close" data-dismiss="alert" aria-label="Закрыть"><span aria-hidden="true">&times;</span></button>' + message + '</div>';
         if (append) $(blockSelector).append(blockContent);
         else $(blockSelector).html(blockContent);
     },
@@ -10,7 +10,7 @@ let Main = {
         $('html, body').animate({ scrollTop: 0 }, 'fast');
     },
     changeEntityActive: function (entityType, entityId, e, activeValue) {
-        var activityState = 0;
+        let activityState;
         if (activeValue !== undefined) {
             activityState = activeValue ? 1 : 0;
         } else {
@@ -158,11 +158,11 @@ let Main = {
         Main.throwFlashMessage(messagePlaceSelector, 'Server error, details in console log', 'alert-danger');
     },
 
-    groupList: [],
-    groupActiveList: [],
-    groupMap: {},
-    loadGroups: function(onlyActive = true) {
-        let list = onlyActive ? this.groupActiveList : this.groupList;
+    courseList: [],
+    courseActiveList: [],
+    courseMap: {},
+    loadCourses: function(onlyActive = true) {
+        let list = onlyActive ? this.courseActiveList : this.courseList;
         if (Object.keys(list).length > 0) {
             let defer = $.Deferred();
             defer.resolve(list);
@@ -180,20 +180,20 @@ let Main = {
                     if (data.find(function(group) {
                         return !group.active;
                     })) {
-                        Main.groupList = [];
+                        Main.courseList = [];
                         listFlushed = true;
                     }
-                    Main.groupActiveList = [];
+                    Main.courseActiveList = [];
                     data.forEach(function (group) {
                         if (group.active) {
-                            Main.groupActiveList.push(group.id);
+                            Main.courseActiveList.push(group.id);
                         }
                         if (listFlushed) {
-                            Main.groupList.push(group.id);
+                            Main.courseList.push(group.id);
                         }
-                        Main.groupMap[group.id] = group;
+                        Main.courseMap[group.id] = group;
                     });
-                    defer.resolve(listFlushed ? Main.groupList : Main.groupActiveList);
+                    defer.resolve(listFlushed ? Main.courseList : Main.courseActiveList);
                 })
                 .fail(defer.reject);
         });

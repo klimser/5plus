@@ -2,6 +2,7 @@
 
 namespace common\models\traits;
 
+use DateTimeImmutable;
 use yii\behaviors\TimestampBehavior;
 
 /**
@@ -9,15 +10,12 @@ use yii\behaviors\TimestampBehavior;
  * @package common\models\traits
  * @property string $created_at
  * @property string $updated_at
- * @property \DateTime|null $createDate
- * @property \DateTime|null $updateDate
+ * @property DateTimeImmutable|null $createDate
+ * @property DateTimeImmutable|null $updateDate
  */
 trait InsertedUpdated
 {
-    /**
-     * @return array
-     */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             [
@@ -31,19 +29,13 @@ trait InsertedUpdated
         ];
     }
 
-    /**
-     * @return \DateTime|null
-     */
-    public function getCreateDate(): ?\DateTime
+    public function getCreateDate(): ?DateTimeImmutable
     {
-        return empty($this->created_at) ? null : new \DateTime($this->created_at);
+        return empty($this->created_at) ? null : new DateTimeImmutable($this->created_at);
     }
 
-    /**
-     * @return \DateTime|null
-     */
-    public function getUpdateDate(): ?\DateTime
+    public function getUpdateDate(): ?DateTimeImmutable
     {
-        return empty($this->updated_at) ? null : new \DateTime($this->updated_at);
+        return empty($this->updated_at) ? null : new DateTimeImmutable($this->updated_at);
     }
 }

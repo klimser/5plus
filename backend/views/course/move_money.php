@@ -3,9 +3,9 @@
 use yii\bootstrap4\Html;
 
 /* @var $this yii\web\View */
-/* @var $groupPupil \common\models\GroupPupil */
+/* @var $groupPupil \common\models\CourseStudent */
 /* @var $moneyLeft int */
-/* @var $groupList \common\models\Group[] */
+/* @var $groupList \common\models\Course[] */
 
 $this->title = 'Перенести деньги студента в другую группу';
 $this->params['breadcrumbs'][] = $this->title;

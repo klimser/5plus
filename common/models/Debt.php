@@ -2,19 +2,20 @@
 
 namespace common\models;
 
-use \common\components\extended\ActiveRecord;
+use common\components\extended\ActiveRecord;
 use common\models\traits\Inserted;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "{{%debt}}".
  *
- * @property int $user_id
- * @property int $group_id
+ * @property int    $user_id
+ * @property int    $course_id
  * @property double $amount
  * @property string $comment
  *
- * @property User $user
- * @property Group $group
+ * @property User   $user
+ * @property Course $course
  */
 class Debt extends ActiveRecord
 {
@@ -29,12 +30,12 @@ class Debt extends ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'group_id', 'amount'], 'required'],
-            [['user_id', 'group_id'], 'integer'],
+            [['user_id', 'course_id', 'amount'], 'required'],
+            [['user_id', 'course_id'], 'integer'],
             [['amount'], 'number'],
-            [['user_id', 'group_id'], 'unique', 'targetAttribute' => ['user_id', 'group_id'], 'message' => 'Debt already exists.'],
+            [['user_id', 'course_id'], 'unique', 'targetAttribute' => ['user_id', 'course_id'], 'message' => 'Debt already exists.'],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
-            [['group_id'], 'exist', 'targetRelation' => 'group'],
+            [['course_id'], 'exist', 'targetRelation' => 'course'],
         ];
     }
 
@@ -43,25 +44,19 @@ class Debt extends ActiveRecord
     {
         return [
             'user_id' => 'Должник',
-            'group_id' => 'группа',
+            'course_id' => 'группа',
             'amount' => 'Сумма задолженности',
             'created_at' => 'Когда появилась задолженость',
         ];
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getUser()
+    public function getUser(): ActiveQuery
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getGroup()
+    public function getCourse(): ActiveQuery
     {
-        return $this->hasOne(Group::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'course_id']);
     }
 }

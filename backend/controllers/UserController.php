@@ -6,15 +6,15 @@ use backend\components\EventComponent;
 use backend\models\Consultation;
 use backend\models\WelcomeLesson;
 use common\components\ComponentContainer;
-use common\components\GroupComponent;
+use common\components\CourseComponent;
 use common\components\MoneyComponent;
 use backend\components\UserComponent;
 use common\models\Company;
 use common\models\Contract;
 use backend\models\EventMember;
-use common\models\Group;
+use common\models\Course;
 use common\models\GroupParam;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\models\Payment;
 use common\models\Subject;
 use common\models\Teacher;
@@ -104,8 +104,8 @@ class UserController extends AdminController
 
         foreach ($groupData as $groupInfo) {
             try {
-                /** @var Group $group */
-                $group = Group::find()->andWhere(['id' => $groupInfo['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
+                /** @var Course $group */
+                $group = Course::find()->andWhere(['id' => $groupInfo['groupId'], 'active' => Course::STATUS_ACTIVE])->one();
                 if (!$group) throw new Exception('Группа не найдена');
 
                 if ($groupInfo['dateDefined']) {
@@ -155,11 +155,11 @@ class UserController extends AdminController
 
         if (Yii::$app->request->isPost) {
             User::loadMultiple(['parent' => $parent, 'company' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post(), Yii::$app->request->isAjax ? '' : null);
-            $pupil->role = User::ROLE_PUPIL;
+            $pupil->role = User::ROLE_STUDENT;
 
             $transaction = User::getDb()->beginTransaction();
             try {
-                if (UserComponent::isPhoneUsed(User::ROLE_PUPIL, $pupil->phone, $pupil->phone2)) {
+                if (UserComponent::isPhoneUsed(User::ROLE_STUDENT, $pupil->phone, $pupil->phone2)) {
                     throw new Exception('Студент с таким номером телефона уже существует!');
                 }
 
@@ -249,7 +249,7 @@ class UserController extends AdminController
             'consultationData' => $consultationData,
             'welcomeLessonData' => $welcomeLessonData,
             'groupData' => $groupData,
-            'pupilLimitDate' => GroupComponent::getPupilLimitDate(),
+            'pupilLimitDate' => CourseComponent::getPupilLimitDate(),
             'incomeAllowed' => $incomeAllowed,
             'contractAllowed' => $contractAllowed,
         ]);
@@ -290,18 +290,19 @@ class UserController extends AdminController
     /**
      * @param User $pupil
      * @param array $groupData
-     * @return GroupPupil
+     *
+     * @return CourseStudent
      * @throws Exception
      */
-    private function addPupilToGroup(User $pupil, array $groupData): GroupPupil
+    private function addPupilToGroup(User $pupil, array $groupData): CourseStudent
     {
-        /** @var Group $group */
-        $group = Group::find()->andWhere(['id' => $groupData['groupId'], 'active' => Group::STATUS_ACTIVE])->one();
+        /** @var Course $group */
+        $group = Course::find()->andWhere(['id' => $groupData['groupId'], 'active' => Course::STATUS_ACTIVE])->one();
         if (!$group) throw new Exception('Группа не найдена');
         $startDate = new \DateTime($groupData['date']);
         if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
-        return GroupComponent::addPupilToGroup($pupil, $group, $startDate);
+        return CourseComponent::addPupilToGroup($pupil, $group, $startDate);
     }
 
     /**
@@ -314,10 +315,10 @@ class UserController extends AdminController
     {
         $welcomeLesson = new WelcomeLesson();
 
-        /** @var Group $group */
-        $group = Group::find()->andWhere(['id' => $welcomeLessonData['groupId'], 'active' => Subject::STATUS_ACTIVE])->one();
+        /** @var Course $group */
+        $group = Course::find()->andWhere(['id' => $welcomeLessonData['groupId'], 'active' => Subject::STATUS_ACTIVE])->one();
         if (!$group) throw new Exception('Группа не найдена');
-        $welcomeLesson->group_id = $group->id;
+        $welcomeLesson->course_id = $group->id;
         
         $startDate = new \DateTime($welcomeLessonData['date']);
         if (!$startDate) throw new Exception('Неверная дата пробного урока');
@@ -345,7 +346,7 @@ class UserController extends AdminController
 
         /** @var User $pupil */
         $pupil = User::find()
-            ->andWhere(['id' => $userId, 'role' => User::ROLE_PUPIL])
+            ->andWhere(['id' => $userId, 'role' => User::ROLE_STUDENT])
             ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
             ->one();
         if (!$pupil) {
@@ -370,7 +371,7 @@ class UserController extends AdminController
 
         return $this->render('add-to-group', [
             'pupil' => $pupil,
-            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
+            'groups' => Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
             'groupData' => $groupData,
         ]);
     }
@@ -464,7 +465,7 @@ class UserController extends AdminController
 
         /** @var User $pupil */
         $pupil = User::find()
-            ->andWhere(['id' => $pupilData['id'], 'role' => User::ROLE_PUPIL])
+            ->andWhere(['id' => $pupilData['id'], 'role' => User::ROLE_STUDENT])
             ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
             ->one();
         if (!$pupil) {
@@ -473,7 +474,7 @@ class UserController extends AdminController
         $pupil->setScenario(User::SCENARIO_USER);
         $pupil->load($pupilData, '');
 
-        if (UserComponent::isPhoneUsed(User::ROLE_PUPIL, $pupil->phone, $pupil->phone2, $pupil)) {
+        if (UserComponent::isPhoneUsed(User::ROLE_STUDENT, $pupil->phone, $pupil->phone2, $pupil)) {
             return self::getJsonErrorResult('Студент с таким номером телефона уже существует!');
         }
         
@@ -558,7 +559,7 @@ class UserController extends AdminController
         $isAdmin = Yii::$app->user->can('manageUsers');
         $user = $this->findModel($userToEdit);
         $user->setScenario(
-            in_array($user->role, [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY])
+            in_array($user->role, [User::ROLE_STUDENT, User::ROLE_PARENTS, User::ROLE_COMPANY])
                 ? ($isAdmin ? User::SCENARIO_USER : User::SCENARIO_CUSTOMER)
                 : User::SCENARIO_ADMIN
         );
@@ -577,11 +578,9 @@ class UserController extends AdminController
                 $fields = null;
                 if (!$isAdmin) {
                     $fields = ['username', 'password'];
-                } else {
-                    $user->bitrix_sync_status = 0;
                 }
 
-                if ($user->role == User::ROLE_PUPIL && UserComponent::isPhoneUsed(User::ROLE_PUPIL, $user->phone, $user->phone2, $user)) {
+                if ($user->role == User::ROLE_STUDENT && UserComponent::isPhoneUsed(User::ROLE_STUDENT, $user->phone, $user->phone2, $user)) {
                     throw new Exception('Студент с таким номером телефона уже существует!');
                 }
                 
@@ -589,7 +588,7 @@ class UserController extends AdminController
                     $transaction->rollBack();
                     $user->moveErrorsToFlash();
                 } else {
-                    if ($user->role == User::ROLE_PUPIL && !$user->parent_id) {
+                    if ($user->role == User::ROLE_STUDENT && !$user->parent_id) {
                         $usersData = Yii::$app->request->post('User', []);
                         $parent->load($usersData, 'parent');
                         $parentType = Yii::$app->request->post('parent_type', 'new');
@@ -638,7 +637,7 @@ class UserController extends AdminController
         $pupil = $this->findModel($id);
 
         if (!$tab) {
-            if (!empty($pupil->activeGroupPupils)) {
+            if (!empty($pupil->activeCourseStudents)) {
                 $tab = 'group';
             } elseif (!empty($pupil->welcomeLessons)) {
                 $tab = 'welcome_lesson';
@@ -659,7 +658,7 @@ class UserController extends AdminController
         ]);
     }
     
-    public function actionFind(string $term, int $role = User::ROLE_PUPIL)
+    public function actionFind(string $term, int $role = User::ROLE_STUDENT)
     {
         $this->checkRequestIsAjax();
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -704,37 +703,37 @@ class UserController extends AdminController
 
         if (!empty($phone) && strlen($phone) === 9) {
             $searchString = "+998$phone";
-            $pupils = [];
+            $students = [];
             $searchResult = User::find()
-                ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS]])
+                ->andWhere(['role' => [User::ROLE_STUDENT, User::ROLE_PARENTS]])
                 ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                 ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $searchString])
-                ->with(['activeGroupPupils.group', 'children.activeGroupPupils.group'])
+                ->with(['activeCourseStudents.course', 'children.activeCourseStudents.course'])
                 ->all();
             if ($searchResult) {
                 /** @var User $user */
                 foreach ($searchResult as $user) {
-                    if ($user->role == User::ROLE_PUPIL) $pupils[] = $user;
-                    else $pupils = array_merge($pupils, $user->children);
+                    if ($user->role == User::ROLE_STUDENT) $students[] = $user;
+                    else $students = array_merge($students, $user->children);
                 }
             }
 
-            if (!empty($pupils)) {
-                $jsonData['pupils'] = [];
-                /** @var User $pupil */
-                foreach ($pupils as $pupil) {
-                    $data = $pupil->toArray(['id', 'name']);
-                    $data['groups'] = [];
-                    foreach ($pupil->activeGroupPupils as $groupPupil) {
-                        $groupData = [
-                            'id' => $groupPupil->group_id,
-                            'date_start' => $groupPupil->startDateObject->format('d.m.Y'),
-                            'date_charge_till' => $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '',
+            if (!empty($students)) {
+                $jsonData['students'] = [];
+                /** @var User $student */
+                foreach ($students as $student) {
+                    $data = $student->toArray(['id', 'name']);
+                    $data['courses'] = [];
+                    foreach ($student->activeCourseStudents as $courseStudent) {
+                        $courseData = [
+                            'id' => $courseStudent->course_id,
+                            'date_start' => $courseStudent->startDateObject->format('d.m.Y'),
+                            'date_charge_till' => $courseStudent->chargeDateObject ? $courseStudent->chargeDateObject->format('d.m.Y') : '',
                         ];
 
-                        $data['groups'][] = $groupData;
+                        $data['courses'][] = $courseData;
                     }
-                    $jsonData['pupils'][] = $data;
+                    $jsonData['students'][] = $data;
                 }
             }
         }
@@ -763,13 +762,13 @@ class UserController extends AdminController
             if (!isset($eventMap[$day])) $eventMap[$day] = [];
             $eventMap[$day][$eventMember->event->eventTime] = $eventMember;
 
-            if (!array_key_exists($eventMember->event->group_id, $groupMap)) {
-                $groupMap[$eventMember->event->group_id] = [
-                    'group' => Group::findOne($eventMember->event->group_id),
+            if (!array_key_exists($eventMember->event->course_id, $groupMap)) {
+                $groupMap[$eventMember->event->course_id] = [
+                    'group' => Course::findOne($eventMember->event->course_id),
                     'payments' => Payment::find()
                         ->andWhere('created_at >= :from', ['from' => $eventMonth->format('Y-m-d H:i:s')])
                         ->andWhere('created_at < :to', ['to' => $endDate->format('Y-m-d H:i:s')])
-                        ->andWhere(['group_id' => $eventMember->event->group_id, 'user_id' => $pupil->id])
+                        ->andWhere(['group_id' => $eventMember->event->course_id, 'user_id' => $pupil->id])
                         ->all(),
                 ];
             }
@@ -796,7 +795,7 @@ class UserController extends AdminController
         if (!Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
 
         $user = $this->findModel($userToWatch);
-        if ($user->role === User::ROLE_PUPIL) {
+        if ($user->role === User::ROLE_STUDENT) {
             return $this->renderSingleSchedule($user, $month);
         }
 
@@ -806,7 +805,7 @@ class UserController extends AdminController
                 return $this->renderSingleSchedule(reset($pupilCollection), $month);
             }
         } else {
-            $pupilCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_PUPIL])->orderBy('name')->all();
+            $pupilCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_STUDENT])->orderBy('name')->all();
         }
 
         return $this->render('select_pupil_schedule', [
@@ -828,9 +827,9 @@ class UserController extends AdminController
         if (!Yii::$app->user->can('viewSchedule', ['user' => $userToWatch])) throw new ForbiddenHttpException('Access denied!');
         $user = $this->findModel($userToWatch);
 
-        if ($user->role != User::ROLE_PUPIL) {
+        if ($user->role != User::ROLE_STUDENT) {
             if ($user->role == User::ROLE_PARENTS) $pupilCollection = $user->children;
-            else $pupilCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_PUPIL])->orderBy('name')->all();
+            else $pupilCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_STUDENT])->orderBy('name')->all();
 
             if ($pupilCollection && count($pupilCollection) == 1) {
                 $user = reset($pupilCollection);
@@ -859,7 +858,7 @@ class UserController extends AdminController
         $jsonData = [];
         if (Yii::$app->request->isAjax) {
             $jsonData = User::find()
-                ->andWhere(['role' => User::ROLE_PUPIL])
+                ->andWhere(['role' => User::ROLE_STUDENT])
                 ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
                 ->orderBy('name')->select(['id', 'name'])
                 ->asArray()->all();

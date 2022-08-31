@@ -2,8 +2,8 @@
 
 namespace backend\components\report;
 
-use common\models\Group;
-use common\models\GroupPupil;
+use common\models\Course;
+use common\models\CourseStudent;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -33,16 +33,16 @@ class RestMoneyReport
             ->setCellValue('C3', 'Остаток');
 
         $row = 5;
-        $data = Group::find()->alias('g')
-            ->andWhere(['g.active' => Group::STATUS_ACTIVE])
-            ->leftJoin(['gp1' => GroupPupil::tableName()], 'gp1.group_id = g.id')
+        $data = Course::find()->alias('g')
+            ->andWhere(['g.active' => Course::STATUS_ACTIVE])
+            ->leftJoin(['gp1' => CourseStudent::tableName()], 'gp1.group_id = g.id')
             ->leftJoin(
-                ['gp2' => GroupPupil::tableName()],
+                ['gp2' => CourseStudent::tableName()],
                 'gp2.group_id = gp1.group_id AND gp2.user_id = gp1.user_id AND gp2.id != gp1.id '
-                . 'AND gp2.active = ' . GroupPupil::STATUS_ACTIVE
+                . 'AND gp2.active = ' . CourseStudent::STATUS_ACTIVE
             )
             ->andWhere([
-                'gp1.active' => GroupPupil::STATUS_INACTIVE,
+                'gp1.active' => CourseStudent::STATUS_INACTIVE,
                 'gp2.id' => null,
             ])
             ->orderBy(['gp1.date_end' => SORT_DESC])
@@ -59,9 +59,9 @@ class RestMoneyReport
             }
             $groupMap[$record['group_id']]['pupils'][] = $record['group_pupil_id'];
         }
-        $groups = Group::find()->andWhere(['id' => array_keys($groupMap)])->all();
+        $groups = Course::find()->andWhere(['id' => array_keys($groupMap)])->all();
         foreach ($groups as $group) $groupMap[$group->id]['entity'] = $group;
-        $groupPupils = GroupPupil::find()->andWhere(['id' => $groupPupilIds])->all();
+        $groupPupils = CourseStudent::find()->andWhere(['id' => $groupPupilIds])->all();
         foreach ($groupPupils as $groupPupil) $groupPupilMap[$groupPupil->id] = $groupPupil;
         $totalSum = 0;
         foreach ($groupMap as $groupData) {

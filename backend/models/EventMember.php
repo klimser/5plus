@@ -3,32 +3,34 @@
 namespace backend\models;
 
 use common\components\extended\ActiveRecord;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\models\Payment;
-use yii;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "{{%event_member}}".
  *
- * @property int $id
- * @property int $group_pupil_id
- * @property int $event_id
- * @property int $status
- * @property int $mark
- * @property int $mark_homework
- * @property int $attendance_notification_sent
- * @property int $mark_notification_sent
+ * @property int           $id
+ * @property int           $course_student_id
+ * @property int           $event_id
+ * @property int           $status
+ * @property array         $mark
+ * @property int           $attendance_notification_sent
+ * @property int           $mark_notification_sent
  *
- * @property Event $event
- * @property GroupPupil $groupPupil
- * @property Payment[] $payments
+ * @property Event         $event
+ * @property CourseStudent $courseStudent
+ * @property Payment[]     $payments
  */
 class EventMember extends ActiveRecord
 {
-    const STATUS_UNKNOWN = 0;
-    const STATUS_ATTEND = 1;
-    const STATUS_MISS = 2;
+    public const STATUS_UNKNOWN = 0;
+    public const STATUS_ATTEND = 1;
+    public const STATUS_MISS = 2;
 
+    public const MARK_LESSON = 'lesson';
+    public const MARK_HOMEWORK = 'homework';
+    public const MARK_TEST = 'test';
 
     public static function tableName()
     {
@@ -39,10 +41,10 @@ class EventMember extends ActiveRecord
     public function rules()
     {
         return [
-            [['group_pupil_id', 'event_id'], 'required'],
-            [['group_pupil_id', 'event_id', 'status', 'mark', 'mark_homework'], 'integer'],
+            [['course_student_id', 'event_id'], 'required'],
+            [['course_student_id', 'event_id', 'status', 'mark', 'mark_homework'], 'integer'],
             [['event_id'], 'exist', 'targetRelation' => 'event'],
-            [['group_pupil_id'], 'exist', 'targetRelation' => 'groupPupil'],
+            [['course_student_id'], 'exist', 'targetRelation' => 'courseStudent'],
             [['status'], 'in', 'range' => [self::STATUS_UNKNOWN, self::STATUS_ATTEND, self::STATUS_MISS]],
         ];
     }
@@ -54,31 +56,21 @@ class EventMember extends ActiveRecord
             'id' => 'ID',
             'event_id' => 'Занятие',
             'status' => 'Статус',
-            'mark' => 'Оценка в классе',
-            'mark_homework' => 'Оценка ДЗ',
+            'mark' => 'Оценки',
         ];
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getEvent()
+    public function getEvent(): ActiveQuery
     {
         return $this->hasOne(Event::class, ['id' => 'event_id']);
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getGroupPupil()
+    public function getCourseStudent(): ActiveQuery
     {
-        return $this->hasOne(GroupPupil::class, ['id' => 'group_pupil_id'])->inverseOf('eventMembers');
+        return $this->hasOne(CourseStudent::class, ['id' => 'course_student_id'])->inverseOf('eventMembers');
     }
 
-    /**
-     * @return yii\db\ActiveQuery
-     */
-    public function getPayments()
+    public function getPayments(): ActiveQuery
     {
         return $this->hasMany(Payment::class, ['event_member_id' => 'id'])->inverseOf('eventMember');
     }

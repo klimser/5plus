@@ -96,10 +96,10 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'money',
                 'contentOptions' => function ($model, $key, $index, $column) {
-                    return ($model->role == User::ROLE_PUPIL && $model->money < 0) ? ['class' => 'table-danger'] : [];
+                    return ($model->role == User::ROLE_STUDENT && $model->money < 0) ? ['class' => 'table-danger'] : [];
                 },
                 'content' => function ($model, $key, $index, $column) {
-                    if ($model->role != User::ROLE_PUPIL) return '';
+                    if ($model->role != User::ROLE_STUDENT) return '';
                     return $model->money < 0 ? 'Долг ' . ($model->money * (-1)) : $model->money;
                 },
             ],
@@ -130,11 +130,11 @@ $this->params['breadcrumbs'][] = $this->title;
                             : Html::button(Html::tag('span', '', ['class' => 'fas fa-lock-open']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 1);', 'class' => 'btn btn-outline-dark ml-2', 'type' => 'button', 'title' => 'Разблокировать']);
                     },
                     'money_income' => function ($url, $model, $key) {
-                        if ($model->role != User::ROLE_PUPIL) return '';
+                        if ($model->role != User::ROLE_STUDENT) return '';
                         return Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), Url::to(['money/income', 'user' => $model->id]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'Внести деньги']);
                     },
                     'payment_history' => function ($url, $model, $key) {
-                        if ($model->role != User::ROLE_PUPIL) return '';
+                        if ($model->role != User::ROLE_STUDENT) return '';
                         return Html::a(Html::tag('span', '', ['class' => 'fas fa-list-alt']), Url::to(['money/payment', 'PaymentSearch' => ['user_id' => $model->id]]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'История платежей']);
                     },
                 ],

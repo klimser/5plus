@@ -1,4 +1,4 @@
-let Group = {
+let Course = {
     increment: 1,
     isNew: true,
     startDate: null,
@@ -12,7 +12,7 @@ let Group = {
         if (Main.teacherActiveList[subjectId] !== undefined) {
             Main.teacherActiveList[subjectId].forEach(function (teacherId) {
                 listHtml += '<option value="' + teacherId + '"' +
-                    (teacherId === Group.activeTeacher ? ' selected ' : '') + '>' + Main.teacherMap[teacherId].name + '</option>';
+                    (teacherId === Course.activeTeacher ? ' selected ' : '') + '>' + Main.teacherMap[teacherId].name + '</option>';
             });
         }
         
@@ -27,7 +27,7 @@ let Group = {
             '<div class="row form-group">' +
                 '<div class="col-9 col-sm-10 col-md-6 col-lg-4">' + pupilSelect + '</div>' +
                 '<div class="col-3 col-sm-2 col-md-auto">' +
-                    '<button type="button" class="btn btn-outline-dark" onclick="return Group.removePupil(this);" title="Удалить">' +
+                    '<button type="button" class="btn btn-outline-dark" onclick="return Course.removePupil(this);" title="Удалить">' +
                     '<span class="fas fa-user-minus"></span></button>' +
                 '</div>' +
             '</div>';
@@ -35,17 +35,17 @@ let Group = {
             formHtml += '<div class="row form-group group-pupil-block">' +
                 '<div class="col-6 col-sm-auto form-inline align-items-start">' +
                     '<label class="mr-2 mt-2">C</label>' +
-                    '<input type="text" class="form-control pupil-date-start" name="pupil_start[]" id="group-pupil-new-date-start-' + Group.increment + '" ' +
+                    '<input type="text" class="form-control pupil-date-start" name="pupil_start[]" id="group-pupil-new-date-start-' + Course.increment + '" ' +
                     'required autocomplete="off" onchange="Main.handleDateRangeFrom(this);" data-target-to-closest=".row-pupil" data-target-to-selector=".pupil-date-end">' +
                 '</div>';
             formHtml +=
                 '<div class="col-6 col-sm-auto form-inline align-items-start">' +
                     '<label class="mr-2 mt-2">ДО</label>' +
-                    '<input type="text" class="form-control pupil-date-end" name="pupil_end[]" id="group-pupil-new-date-end-' + Group.increment + '" ' +
+                    '<input type="text" class="form-control pupil-date-end" name="pupil_end[]" id="group-pupil-new-date-end-' + Course.increment + '" ' +
                     'autocomplete="off" onchange="Main.handleDateRangeTo(this);" data-target-from-closest=".row-pupil" data-target-from-selector=".pupil-date-start">' +
                 '</div>' +
             '</div>';
-            Group.increment++;
+            Course.increment++;
         }
         formHtml += '</div></div><hr>';
         $("#group_pupils").append(formHtml);
@@ -133,7 +133,7 @@ let Group = {
             $(".pupil-date-start").each(function () {
                 startString = $(this).val();
                 endString = $(this).closest(".group-pupil-block").find('.pupil-date-end').val();
-                if (!startString.length || !Group.dateRegexp.test(startString) || (endString.length && !Group.dateRegexp.test(endString))) {
+                if (!startString.length || !Course.dateRegexp.test(startString) || (endString.length && !Course.dateRegexp.test(endString))) {
                     $(this).addClass('is-invalid');
                     validForm = false;
                 } else {
@@ -197,8 +197,8 @@ let Group = {
        }
     },
     toggleNoteUpdate: function(e) {
-        $(e).parent().append('<form onsubmit="return Group.updateNote(this);">' +
-            '<input type="hidden" name="group_id" value="' + $(e).data('groupId') + '">' +
+        $(e).parent().append('<form onsubmit="return Course.updateNote(this);">' +
+            '<input type="hidden" name="course_id" value="' + $(e).data('courseId') + '">' +
             '<div class="input-group">' +
             '<input name="note" class="form-control" placeholder="Тема" title="Тема" required>' +
             '<div class="input-group-append">' +
@@ -209,7 +209,7 @@ let Group = {
     updateNote: function(form) {
         $(form).find('button').prop('disabled', true);
         $.ajax({
-            'url': '/group/note-add',
+            'url': '/course/note-add',
             'type': 'post',
             'dataType': 'json',
             data: $(form).serialize()

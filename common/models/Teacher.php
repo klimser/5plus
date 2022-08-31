@@ -8,6 +8,8 @@ use common\components\ComponentContainer;
 use common\components\extended\ActiveRecord;
 use common\models\traits\UploadImage;
 use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use yii;
 use yii\db\ActiveQuery;
 
@@ -19,7 +21,7 @@ use yii\db\ActiveQuery;
  * @property string $phone
  * @property string $birthday
  * @property DateTime $birthdayDate
- * @property string|null $contract_data
+ * @property array|null $contract_data
  * @property string $title
  * @property string $description
  * @property string|null $photo
@@ -29,19 +31,18 @@ use yii\db\ActiveQuery;
  * @property string $officialName
  * @property string $webpage_id
  * @property string $descriptionForEdit
- * @property int $page_order
- * @property string $noPhotoUrl
- * @property-read bool $deleteAllowed
- * @property array $contractDetails
- * @property string $contractNumber
- * @property \DateTimeImmutable|null $contractDate
+ * @property int                     $page_order
+ * @property string                  $noPhotoUrl
+ * @property-read bool               $deleteAllowed
+ * @property string                  $contractNumber
+ * @property DateTimeImmutable|null $contractDate
  *
- * @property Event[] $events
- * @property TeacherSubjectLink[] $teacherSubjects
- * @property Subject[] $subjects
- * @property Group[] $groups
- * @property Webpage $webpage
- * @property User $user
+ * @property Event[]                 $events
+ * @property TeacherSubjectLink[]    $teacherSubjects
+ * @property Subject[]               $subjects
+ * @property Course[]                $groups
+ * @property Webpage                 $webpage
+ * @property User                    $user
  */
 class Teacher extends ActiveRecord
 {
@@ -201,7 +202,7 @@ class Teacher extends ActiveRecord
      */
     public function getGroups()
     {
-       return $this->hasMany(Group::class, ['teacher_id' => 'id']);
+       return $this->hasMany(Course::class, ['teacher_id' => 'id']);
     }
 
 //    /**
@@ -347,47 +348,34 @@ class Teacher extends ActiveRecord
         return self::getVisibleListQuery()->all();
     }
 
-    /**
-     * @return bool
-     */
     public function getDeleteAllowed(): bool
     {
-        $groupParams = GroupParam::find()->andWhere(['teacher_id' => $this->id])->all();
-        return empty($groupParams);
-    }
-
-    public function getContractDetails(): array
-    {
-        return json_decode($this->getAttribute('contract_data'), true) ?: [];
-    }
-
-    public function setContractDetails(array $value)
-    {
-        $this->setAttribute('contract_data', json_encode($value));
+        $courseConfigs = CourseConfig::find()->andWhere(['teacher_id' => $this->id])->all();
+        return empty($courseConfigs);
     }
     
     public function getContractNumber(): string
     {
-        return $this->contractDetails['number'] ?? '';
+        return $this->contract_data['number'] ?? '';
     }
     
     public function setContractNumber(string $number)
     {
-        $details = $this->contractDetails;
+        $details = $this->contract_data;
         $details['number'] = $number;
-        $this->contractDetails = $details;
+        $this->contract_data = $details;
     }
     
-    public function getContractDate(): ?\DateTimeImmutable
+    public function getContractDate(): ?DateTimeImmutable
     {
-        return !empty($this->contractDetails['date']) ? new \DateTimeImmutable($this->contractDetails['date']) : null;
+        return !empty($this->contract_data['date']) ? new DateTimeImmutable($this->contract_data['date']) : null;
     }
 
-    public function setContractDate(?\DateTimeImmutable $date)
+    public function setContractDate(?DateTimeInterface $date)
     {
-        $details = $this->contractDetails;
-        $details['date'] = $date ? $date->format('Y-m-d') : null;
-        $this->contractDetails = $details;
+        $details = $this->contract_data;
+        $details['date'] = $date?->format('Y-m-d');
+        $this->contract_data = $details;
     }
 
     public function beforeValidate()

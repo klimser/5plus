@@ -21,8 +21,8 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use common\components\ComponentContainer;
 use common\models\Contract;
-use common\models\Group;
-use common\models\GroupPupil;
+use common\models\Course;
+use common\models\CourseStudent;
 use common\models\User;
 use JsonException;
 use Longman\TelegramBot\Commands\SystemCommand;
@@ -61,10 +61,10 @@ class PrecheckoutqueryCommand extends SystemCommand
             $payloadData = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
             if (!empty($payloadData['user_id']) && !empty($payloadData['group_id'])) {
                 $user = User::findOne($payloadData['user_id']);
-                $group = Group::findOne($payloadData['group_id']);
+                $group = Course::findOne($payloadData['group_id']);
                 if ($user && $group) {
-                    if (!empty(GroupPupil::find()
-                        ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])
+                    if (!empty(CourseStudent::find()
+                        ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])
                         ->one())) {
                         return $this->getPreCheckoutQuery()->answer(true);
                     }

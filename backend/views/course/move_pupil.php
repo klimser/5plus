@@ -7,8 +7,8 @@ use \yii\jui\DatePicker;
 use \common\components\DefaultValuesComponent;
 
 /* @var $this yii\web\View */
-/* @var $groupPupil \common\models\GroupPupil */
-/* @var $groupList \common\models\Group[] */
+/* @var $groupPupil \common\models\CourseStudent */
+/* @var $groupList \common\models\Course[] */
 
 $this->registerJs(<<<SCRIPT
     GroupMove.init();
@@ -23,7 +23,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <h1><?= Html::encode($this->title) ?></h1>
 
 <div id="messages_place"></div>
-<form id="move-pupil-form" onsubmit="GroupMove.movePupil(); return false;">
+<form id="move-pupil-form" onsubmit="CourseMove.movePupil(); return false;">
     <div class="form-group">
         <label for="pupil">Студент</label>
         <?php if ($groupPupil): ?>
@@ -32,8 +32,8 @@ $this->params['breadcrumbs'][] = $this->title;
         <?php else: ?>
             <div>
                 <input type="hidden" id="group-move-id">
-                <input type="hidden" class="autocomplete-user-id" id="pupil-id" onchange="GroupMove.loadGroups();">
-                <input class="autocomplete-user form-control" id="pupil-to-move" placeholder="начните печатать фамилию или имя" data-role="<?= User::ROLE_PUPIL; ?>" required>
+                <input type="hidden" class="autocomplete-user-id" id="pupil-id" onchange="CourseMove.loadCourses();">
+                <input class="autocomplete-user form-control" id="pupil-to-move" placeholder="начните печатать фамилию или имя" data-role="<?= User::ROLE_STUDENT; ?>" required>
             </div>
         <?php endif; ?>
     </div>
@@ -45,7 +45,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     <input type="hidden" id="group_from" value="<?= $groupPupil->group_id; ?>">
                     <input readonly class="form-control-plaintext" value="<?= $groupPupil->group->name; ?>">
                 <?php else: ?>
-                    <select id="group_from" class="form-control" onchange="GroupMove.selectGroup(this);" required></select>
+                    <select id="group_from" class="form-control" onchange="CourseMove.selectGroup(this);" required></select>
                 <?php endif; ?>
             </div>
             <div class="form-group">
@@ -62,7 +62,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="col-12 col-md-6">
             <div class="form-group">
                 <label for="group_to">В группу</label>
-                <select id="group_to" class="form-control" onchange="GroupMove.setGroupToDateInterval(this);" required></select>
+                <select id="group_to" class="form-control" onchange="CourseMove.setGroupToDateInterval(this);" required></select>
             </div>
             <div class="form-group">
                 <label for="move_date">Первый день в новой группе</label>

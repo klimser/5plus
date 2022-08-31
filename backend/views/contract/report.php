@@ -82,7 +82,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <tr>
                 <td><?= $contract->paidDate->format('d.m.Y H:i:s'); ?></td>
                 <td><?= $contract->user->name; ?></td>
-                <td><?= $contract->group->name; ?></td>
+                <td><?= $contract->course->name; ?></td>
                 <td class="text-right"><?= MoneyHelper::formatThousands($contract->amount); ?></td>
             </tr>
         <?php endforeach; ?>

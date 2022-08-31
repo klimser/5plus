@@ -3,7 +3,7 @@
 namespace backend\components\report;
 
 use backend\models\WelcomeLesson;
-use common\components\GroupComponent;
+use common\components\CourseComponent;
 use common\models\GroupParam;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -90,12 +90,12 @@ class WelcomeLessonReport
         /** @var GroupParam[] $groupParamMap */
         $groupParamMap = [];
         foreach ($lessons as $lesson) {
-            if (!isset($groupParamMap[$lesson->group_id])) {
-                $groupParamMap[$lesson->group_id] = GroupComponent::getGroupParam($lesson->group, $lesson->lessonDateTime);
+            if (!isset($groupParamMap[$lesson->course_id])) {
+                $groupParamMap[$lesson->course_id] = CourseComponent::getGroupParam($lesson->course, $lesson->lessonDateTime);
             }
-            $spreadsheet->getActiveSheet()->setCellValue("A$row", $lesson->group->name);
+            $spreadsheet->getActiveSheet()->setCellValue("A$row", $lesson->course->name);
             $spreadsheet->getActiveSheet()->setCellValue("B$row", Date::PHPToExcel($lesson->lessonDateTime));
-            $spreadsheet->getActiveSheet()->setCellValue("C$row", $groupParamMap[$lesson->group_id]->teacher->name);
+            $spreadsheet->getActiveSheet()->setCellValue("C$row", $groupParamMap[$lesson->course_id]->teacher->name);
             $spreadsheet->getActiveSheet()->setCellValue(
                 "D$row",
                 $lesson->user->name . "\n" . $lesson->user->phoneInternational

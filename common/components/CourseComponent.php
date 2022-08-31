@@ -3,25 +3,57 @@
 namespace common\components;
 
 use backend\components\EventComponent;
-use common\models\Group;
-use common\models\GroupConfig;
+use common\models\Course;
+use common\models\CourseConfig;
 use common\models\GroupParam;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\models\Payment;
 use common\models\User;
+use DateInterval;
+use DateTimeImmutable;
 use DateTimeInterface;
 use Yii;
 use yii\base\Component;
 
-class GroupComponent extends Component
+class CourseComponent extends Component
 {
     /**
-     * @param Group $group
+     * @return array<Course>
+     */
+    public static function getAllSortedByActiveAndName(): array
+    {
+        /** @var Course[] $courses */
+        $courses = Course::findAll([]);
+        usort(
+            $courses,
+            static fn (Course $a, Course $b) => (0 === ($res = $a->active <=> $b->active) ? $a->courseConfig->name <=> $b->courseConfig->name : $res)
+        );
+
+        return $courses;
+    }
+
+    /**
+     * @return array<Course>
+     */
+    public static function getActiveSortedByName(): array
+    {
+        /** @var Course[] $courses */
+        $courses = Course::findAll(['active' => Course::STATUS_ACTIVE]);
+        usort(
+            $courses,
+            static fn (Course $a, Course $b) => $a->courseConfig->name <=> $b->courseConfig->name
+        );
+
+        return $courses;
+    }
+    /**
+     * @param Course    $group
      * @param \DateTime $date
+     *
      * @return GroupParam
      * @throws \Exception
      */
-    public static function getGroupParam(Group $group, DateTimeInterface $date): GroupParam
+    public static function getGroupParam(Course $group, DateTimeInterface $date): GroupParam
     {
         $groupParam = GroupParam::findByDate($group, $date);
         if (!$groupParam) {
@@ -39,36 +71,33 @@ class GroupComponent extends Component
         return $groupParam;
     }
 
-    public static function getGroupConfig(Group $group, DateTimeInterface $date): GroupConfig
+    public static function getCourseConfig(Course $course, DateTimeInterface $date): CourseConfig
     {
-        $groupConfig = GroupConfig::findByDate($group, $date);
-        if (!$groupConfig) {
-            throw new \Exception(sprintf('No group config: Group %s, date %s ', $group->name, $date->format('d.m.Y')));
+        $courseConfig = CourseConfig::findByDate($course, $date);
+        if (!$courseConfig) {
+            throw new \Exception(sprintf('No course config: Course ID %s, date %s ', $course->id, $date->format('d.m.Y')));
         }
-        return $groupConfig;
+        return $courseConfig;
     }
 
     /**
-     * @param Group $group
+     * @param Course $group
+     *
      * @throws \Exception
      */
-    public static function calculateTeacherSalary(Group $group)
+    public static function calculateTeacherSalary(Course $group)
     {
-        $monthInterval = new \DateInterval('P1M');
-        $limit = new \DateTime('first day of next month midnight');
+        $monthInterval = new DateInterval('P1M');
+        $limit = new DateTimeImmutable('first day of next month midnight');
         $to = $group->endDateObject;
         if ($to) {
-            $to = clone($to);
-            $to->modify('first day of this month midnight');
-            $to->add($monthInterval);
+            $to = $to->modify('first day of this month midnight')->add($monthInterval);
         }
         if (!$to || $to > $limit) $to = $limit;
 
         if ($group->groupPupils) {
-            $dateStart = clone $group->startDateObject;
-            $dateStart->modify('first day of this month midnight');
-            $dateEnd = clone $dateStart;
-            $dateEnd->add($monthInterval);
+            $dateStart = $group->startDateObject->modify('first day of this month midnight');
+            $dateEnd = $dateStart->add($monthInterval);
 
             while ($dateEnd <= $to) {
                 $groupParam = self::getGroupParam($group, $dateStart);
@@ -84,8 +113,8 @@ class GroupComponent extends Component
                 $groupParam->teacher_salary = round($paymentSum * (-1) * $groupParam->teacher_rate / 100);
                 if (!$groupParam->save()) throw new \Exception($groupParam->getErrorsAsString());
 
-                $dateStart->add($monthInterval);
-                $dateEnd->add($monthInterval);
+                $dateStart = $dateStart->add($monthInterval);
+                $dateEnd = $dateEnd->add($monthInterval);
             }
         }
         /** @var GroupParam $minGroupParam */
@@ -97,15 +126,16 @@ class GroupComponent extends Component
     }
 
     /**
-     * @param User $pupil
-     * @param Group $group
-     * @param \DateTime $startDate
+     * @param User           $pupil
+     * @param Course         $group
+     * @param \DateTime      $startDate
      * @param \DateTime|null $endDate
-     * @param bool $fillSchedule
-     * @return GroupPupil
+     * @param bool           $fillSchedule
+     *
+     * @return CourseStudent
      * @throws \Exception
      */
-    public static function addPupilToGroup(User $pupil, Group $group, DateTimeInterface $startDate, ?DateTimeInterface $endDate = null, bool $fillSchedule = true): GroupPupil
+    public static function addPupilToGroup(User $pupil, Course $group, DateTimeInterface $startDate, ?DateTimeInterface $endDate = null, bool $fillSchedule = true): CourseStudent
     {
         $startDate = (clone $startDate)->modify('midnight');
         if (!$group || !$startDate || ($endDate && $endDate < $startDate)) {
@@ -115,7 +145,7 @@ class GroupComponent extends Component
             throw new \Exception('Студент не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
         }
         self::checkPupilDates(null, $startDate, $endDate);
-        $existingGroupPupil = GroupPupil::find()
+        $existingGroupPupil = CourseStudent::find()
             ->andWhere(['group_id' => $group->id, 'user_id' => $pupil->id])
             ->andWhere(['OR',
                 ['AND',
@@ -131,7 +161,7 @@ class GroupComponent extends Component
             throw new \Exception('Студент уже был добавлен в группу в выбранном промежутке времени, не добавляйте его дважды, так нельзя!');
         }
 
-        $groupPupil = new GroupPupil();
+        $groupPupil = new CourseStudent();
         $groupPupil->user_id = $pupil->id;
         $groupPupil->group_id = $group->id;
         $groupPupil->date_start = $startDate < $group->startDateObject ? $group->date_start : $startDate->format('Y-m-d');
@@ -148,7 +178,6 @@ class GroupComponent extends Component
             throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
         }
 
-        $pupil->bitrix_sync_status = 0;
         if (!$pupil->save()) {
             ComponentContainer::getErrorLogger()
                 ->logError('user/pupil-to-group', $pupil->getErrorsAsString(), true);
@@ -160,7 +189,7 @@ class GroupComponent extends Component
 
         if ($fillSchedule) {
             EventComponent::fillSchedule($group);
-            GroupComponent::calculateTeacherSalary($group);
+            CourseComponent::calculateTeacherSalary($group);
         }
 
         ComponentContainer::getActionLogger()->log(
@@ -175,12 +204,12 @@ class GroupComponent extends Component
     }
 
     /**
-     * @param Group $groupFrom
-     * @param Group $groupTo
+     * @param Course $groupFrom
+     * @param Course $groupTo
      * @param User $user
      * @param \DateTime|null $moveDate
      */
-    public static function moveMoney(Group $groupFrom, Group $groupTo, User $user, ?DateTimeInterface $moveDate = null)
+    public static function moveMoney(Course $groupFrom, Course $groupTo, User $user, ?DateTimeInterface $moveDate = null)
     {
         $moneyLeft = Payment::find()
             ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
@@ -195,7 +224,6 @@ class GroupComponent extends Component
                 ->one();
             if ($lastPayment->amount <= $moneyLeft) {
                 $lastPayment->group_id = $groupTo->id;
-                $lastPayment->bitrix_sync_status = Payment::STATUS_INACTIVE;
                 $lastPayment->save();
                 $moneyLeft -= $lastPayment->amount;
             } else {
@@ -217,7 +245,7 @@ class GroupComponent extends Component
         }
         EventComponent::fillSchedule($groupTo);
         MoneyComponent::rechargePupil($user, $groupTo);
-        GroupComponent::calculateTeacherSalary($groupTo);
+        CourseComponent::calculateTeacherSalary($groupTo);
         MoneyComponent::setUserChargeDates($user, $groupFrom);
         MoneyComponent::setUserChargeDates($user, $groupTo);
         MoneyComponent::recalculateDebt($user, $groupTo);
@@ -229,12 +257,13 @@ class GroupComponent extends Component
     }
 
     /**
-     * @param GroupPupil|null $groupPupil
-     * @param DateTimeInterface $startDate
+     * @param CourseStudent|null     $groupPupil
+     * @param DateTimeInterface      $startDate
      * @param DateTimeInterface|null $endDate
+     *
      * @throws \Exception
      */
-    public static function checkPupilDates(?GroupPupil $groupPupil, DateTimeInterface $startDate, ?DateTimeInterface $endDate)
+    public static function checkPupilDates(?CourseStudent $groupPupil, DateTimeInterface $startDate, ?DateTimeInterface $endDate)
     {
         $limitDate = self::getPupilLimitDate();
         if ($limitDate && (($groupPupil && $groupPupil->startDateObject != $startDate && ($groupPupil->startDateObject < $limitDate || $startDate < $limitDate))

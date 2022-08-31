@@ -2,8 +2,8 @@
 
 namespace backend\components\report;
 
-use common\models\Group;
-use common\models\GroupPupil;
+use common\models\Course;
+use common\models\CourseStudent;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
@@ -32,13 +32,13 @@ class DebtReport
         $this->report->getActiveSheet()->getColumnDimension('E')->setWidth(50);
 
         $row = 3;
-        /** @var Group[] $groups */
-        $groups = Group::find()
+        /** @var Course[] $groups */
+        $groups = Course::find()
 //            ->andWhere([Group::tableName() . '.active' => Group::STATUS_ACTIVE])
             ->joinWith('groupPupils')
 //            ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE])
-            ->andWhere(['<', GroupPupil::tableName() . '.paid_lessons', 0])
-            ->addOrderBy([Group::tableName() . '.name' => SORT_ASC])
+            ->andWhere(['<', CourseStudent::tableName() . '.paid_lessons', 0])
+            ->addOrderBy([Course::tableName() . '.name' => SORT_ASC])
             ->all();
         foreach ($groups as $group) {
             $this->report->getActiveSheet()->mergeCells("A$row:D$row");

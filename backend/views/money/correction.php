@@ -4,7 +4,7 @@ use yii\bootstrap4\Html;
 
 /* @var $this yii\web\View */
 /* @var $pupil \common\models\User */
-/* @var $group \common\models\Group */
+/* @var $group \common\models\Course */
 /* @var $debt \common\models\Debt|null */
 
 $this->title = 'Погашение долга';

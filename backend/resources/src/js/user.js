@@ -8,7 +8,7 @@ let User = {
     groupList: [],
 
     init: function(noAdd) {
-        return $.when(Main.loadActiveSubjects(), Main.loadGroups(), Main.loadActiveTeachers())
+        return $.when(Main.loadActiveSubjects(), Main.loadCourses(), Main.loadActiveTeachers())
             .done(function() {
                 let autocompleteInputs = $("input.autocomplete-user");
                 if (autocompleteInputs.length > 0) {
@@ -49,16 +49,16 @@ let User = {
         if (addEmpty) {
             optionsHtml += '<option value="" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестна</option>';
         }
-        Main.groupActiveList.forEach(function(groupId) {
+        Main.courseActiveList.forEach(function(groupId) {
             let allowed = true;
             Object.keys(filter).forEach(function(filterKey) {
-                if (Main.groupMap[groupId][filterKey] !== filter[filterKey]) {
+                if (Main.courseMap[groupId][filterKey] !== filter[filterKey]) {
                     allowed = false;
                 }
             });
             if (allowed) {
                 optionsHtml += '<option value="' + groupId + '" ' + (selectedValue === groupId ? 'selected' : '') + '>'
-                    + Main.groupMap[groupId].name + '</option>';
+                    + Main.courseMap[groupId].name + '</option>';
             }
         });
         return optionsHtml;
@@ -313,7 +313,7 @@ let User = {
     setWelcomeLessonGroup: function(e) {
         let container = $(e).closest('.welcome-lesson-item');
         if ($(e).val() > 0) {
-            let group = Main.groupMap[$(e).val()];
+            let group = Main.courseMap[$(e).val()];
             $(container).find(".subject-select").prop("disabled", true)
                 .find('option[value=' + group.subjectId + ']').prop('selected', true);
             $(container).find(".teacher-select").prop("disabled", true)
@@ -349,7 +349,7 @@ let User = {
         $(groupSelect).html(this.getGroupOptions($(groupSelect).val(), true, filter));
     },
     setGroup: function(e, flushAmount) {
-        let group = Main.groupMap[$(e).val()];
+        let group = Main.courseMap[$(e).val()];
         let container = $(e).closest(".group-item");
         let paymentBlock = $(container).find(".payment-block");
         if (paymentBlock.length > 0) {

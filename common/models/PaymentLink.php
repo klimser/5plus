@@ -8,14 +8,14 @@ use yii\helpers\Url;
 /**
  * This is the model class for table "{{%payment_link}}".
  *
- * @property int $id ID
+ * @property int    $id ID
  * @property string $hash_key ключ
- * @property int $user_id Студент
- * @property int $group_id Группа
+ * @property int    $user_id Студент
+ * @property int    $group_id Группа
  * @property string $url
  *
- * @property User $user
- * @property Group $group
+ * @property User   $user
+ * @property Course $group
  */
 class PaymentLink extends ActiveRecord
 {
@@ -69,7 +69,7 @@ class PaymentLink extends ActiveRecord
      */
     public function getGroup()
     {
-        return $this->hasOne(Group::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'group_id']);
     }
 
     /**

@@ -10,11 +10,11 @@ use common\models\Company;
 use common\models\Contract;
 use common\models\GiftCard;
 use common\models\GroupParam;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\components\Action;
 use common\models\Debt;
 use common\models\DebtSearch;
-use common\models\Group;
+use common\models\Course;
 use common\models\Payment;
 use common\models\PaymentSearch;
 use common\models\User;
@@ -39,7 +39,7 @@ class MoneyController extends AdminController
 
         $params = [
             'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
-            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy('name')->with('teacher')->all(),
+            'groups' => Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy('name')->with('teacher')->all(),
         ];
         $userId = Yii::$app->request->get('user');
         if ($userId) {
@@ -66,7 +66,7 @@ class MoneyController extends AdminController
         }
 
         $user = User::findOne($formData['userId']);
-        $group = Group::findOne(['id' => $formData['groupId'], 'active' => Group::STATUS_ACTIVE]);
+        $group = Course::findOne(['id' => $formData['groupId'], 'active' => Course::STATUS_ACTIVE]);
         $amount = (int)$formData['amount'];
         $paymentType = $formData['payment_type'];
 
@@ -143,11 +143,11 @@ class MoneyController extends AdminController
         $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
         $pupil = null;
         if (isset($formData['pupil']['id'])) {
-            $pupil = User::findOne(['role' => User::ROLE_PUPIL, 'id' => $formData['pupil']['id']]);
+            $pupil = User::findOne(['role' => User::ROLE_STUDENT, 'id' => $formData['pupil']['id']]);
         }
         if (!$pupil) {
             $pupil = new User(['scenario' => User::SCENARIO_USER]);
-            $pupil->role = User::ROLE_PUPIL;
+            $pupil->role = User::ROLE_STUDENT;
             $pupil->individual = $personType === User::ROLE_PARENTS ? 1 : 0;
             $pupil->load($formData, 'pupil');
             if (!$pupil->save()) return self::getJsonErrorResult($pupil->getErrorsAsString());
@@ -164,13 +164,13 @@ class MoneyController extends AdminController
 
         $groupPupil = null;
         if ($formData['group']['existing']) {
-            /** @var GroupPupil $groupPupil */
-            $groupPupil = GroupPupil::findOne(['group_id' => $formData['group']['existing'], 'active' => GroupPupil::STATUS_ACTIVE, 'user_id' => $pupil->id]);
+            /** @var CourseStudent $groupPupil */
+            $groupPupil = CourseStudent::findOne(['group_id' => $formData['group']['existing'], 'active' => CourseStudent::STATUS_ACTIVE, 'user_id' => $pupil->id]);
             if (!$groupPupil) return self::getJsonErrorResult('Группа не найдена');
             $group = $groupPupil->group;
         } else {
-            /** @var Group $group */
-            $group = Group::findOne(['id' => $formData['group']['id'], 'active' => Group::STATUS_ACTIVE]);
+            /** @var Course $group */
+            $group = Course::findOne(['id' => $formData['group']['id'], 'active' => Course::STATUS_ACTIVE]);
             if (!$group) return self::getJsonErrorResult('Группа не найдена');
 
             $startDate = new \DateTime($formData['group']['date']);
@@ -219,8 +219,8 @@ class MoneyController extends AdminController
         $debtorMap = [null => 'Все'];
         foreach ($debtors as $debtor) $debtorMap[$debtor->id] = $debtor->name;
 
-        /** @var Group[] $groups */
-        $groups = Group::find()->orderBy('name')->all();
+        /** @var Course[] $groups */
+        $groups = Course::find()->orderBy('name')->all();
         $groupMap = [null => 'Все'];
         foreach ($groups as $group) $groupMap[$group->id] = $group->name;
 
@@ -245,8 +245,8 @@ class MoneyController extends AdminController
         $adminMap = [null => 'Все', '-1' => 'Online оплата'];
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
-        /** @var Group[] $groups */
-        $groups = Group::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
+        /** @var Course[] $groups */
+        $groups = Course::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
         $groupMap = [null => 'Все'];
         foreach ($groups as $group) $groupMap[$group->id] = $group->name;
 
@@ -270,8 +270,8 @@ class MoneyController extends AdminController
         $adminMap = [null => 'Все'];
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
-        /** @var Group[] $groups */
-        $groups = Group::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
+        /** @var Course[] $groups */
+        $groups = Course::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
         $groupMap = [null => 'Все'];
         foreach ($groups as $group) $groupMap[$group->id] = $group->name;
 
@@ -298,29 +298,29 @@ class MoneyController extends AdminController
     {
         $this->checkAccess('viewSalary');
 
-        if (!$year) $year = intval(date('Y'));
-        if (!$month) $month = intval(date('n'));
+//        if (!$year) $year = intval(date('Y'));
+//        if (!$month) $month = intval(date('n'));
+//
+//        /** @var GroupParam[] $groupParams */
+//        $groupParams = GroupParam::find()
+//            ->andWhere(['year' => $year, 'month' => $month])
+//            ->andWhere(['>', 'teacher_salary', 0])
+//            ->with(['teacher', 'group'])
+//            ->orderBy([GroupParam::tableName() . '.teacher_id' => SORT_ASC])->all();
+//        $salaryMap = [];
+//        foreach ($groupParams as $groupParam) {
+//            if (!array_key_exists($groupParam->teacher_id, $salaryMap)) $salaryMap[$groupParam->teacher_id] = [];
+//            $salaryMap[$groupParam->teacher_id][] = [
+//                'teacher' => $groupParam->teacher->name,
+//                'group_id' => $groupParam->group_id,
+//                'group' => $groupParam->group->name,
+//                'amount' => $groupParam->teacher_salary
+//            ];
+//        }
 
-        /** @var GroupParam[] $groupParams */
-        $groupParams = GroupParam::find()
-            ->andWhere(['year' => $year, 'month' => $month])
-            ->andWhere(['>', 'teacher_salary', 0])
-            ->with(['teacher', 'group'])
-            ->orderBy([GroupParam::tableName() . '.teacher_id' => SORT_ASC])->all();
-        $salaryMap = [];
-        foreach ($groupParams as $groupParam) {
-            if (!array_key_exists($groupParam->teacher_id, $salaryMap)) $salaryMap[$groupParam->teacher_id] = [];
-            $salaryMap[$groupParam->teacher_id][] = [
-                'teacher' => $groupParam->teacher->name,
-                'group_id' => $groupParam->group_id,
-                'group' => $groupParam->group->name,
-                'amount' => $groupParam->teacher_salary
-            ];
-        }
-
+        // TODO salary
         return $this->render('salary', [
             'date' => new \DateTimeImmutable("$year-$month-01 midnight"),
-            'salaryMap' => $salaryMap,
         ]);
     }
 
@@ -338,7 +338,7 @@ class MoneyController extends AdminController
 
         $date = new \DateTime("$year-$month-01 midnight");
         if ($group) {
-            $group = Group::findOne($group);
+            $group = Course::findOne($group);
             if (!$group) throw new yii\web\NotFoundHttpException('Group not found');
             try {
                 $spreadsheet = SalaryComponent::getGroupSalarySpreadsheet($group, $date);
@@ -378,12 +378,12 @@ class MoneyController extends AdminController
     public function actionPupilReport(int $userId, int $groupId)
     {
         $pupil = User::findOne($userId);
-        $group = Group::findOne($groupId);
+        $group = Course::findOne($groupId);
 
-        if (!$pupil || $pupil->role != User::ROLE_PUPIL) throw new yii\web\BadRequestHttpException('Pupil not found');
+        if (!$pupil || $pupil->role != User::ROLE_STUDENT) throw new yii\web\BadRequestHttpException('Pupil not found');
         if (!$group) throw new yii\web\BadRequestHttpException('Group not found');
 
-        $groupPupil = GroupPupil::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
+        $groupPupil = CourseStudent::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])->one();
         if (!$groupPupil) throw new yii\web\BadRequestHttpException('Wrong pupil and group selection');
 
         ob_start();
@@ -396,25 +396,25 @@ class MoneyController extends AdminController
         );
     }
 
-    public function actionCorrection(int $userId, int $groupId)
+    public function actionCorrection(int $userId, int $courseId)
     {
         $this->checkAccess('moneyCorrection');
 
-        $pupil = User::findOne($userId);
-        $group = Group::findOne($groupId);
+        $student = User::findOne($userId);
+        $course = Course::findOne($courseId);
 
-        if (!$pupil || $pupil->role != User::ROLE_PUPIL) throw new yii\web\BadRequestHttpException('Pupil not found');
-        if (!$group) throw new yii\web\BadRequestHttpException('Group not found');
+        if (!$student || $student->role != User::ROLE_STUDENT) throw new yii\web\BadRequestHttpException('Student not found');
+        if (!$course) throw new yii\web\BadRequestHttpException('Course not found');
 
-        $groupPupil = GroupPupil::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id])->one();
-        if (!$groupPupil) throw new yii\web\BadRequestHttpException('Wrong pupil and group selection');
+        $courseStudent = CourseStudent::find()->andWhere(['user_id' => $student->id, 'course_id' => $course->id])->one();
+        if (!$courseStudent) throw new yii\web\BadRequestHttpException('Wrong student and course selection');
 
         if (Yii::$app->request->isPost) {
             $paymentSum = Yii::$app->request->post('payment_sum', 0);
             if ($paymentSum > 0) {
                 $payment = new Payment();
-                $payment->user_id = $pupil->id;
-                $payment->group_id = $group->id;
+                $payment->user_id = $student->id;
+                $payment->course_id = $course->id;
                 $payment->admin_id = Yii::$app->user->getId();
                 $payment->amount = $paymentSum;
                 $payment->created_at = date('Y-m-d H:i:s');
@@ -426,9 +426,9 @@ class MoneyController extends AdminController
         }
 
         return $this->render('correction', [
-            'pupil' => $pupil,
-            'group' => $group,
-            'debt' => Debt::findOne(['user_id' => $pupil->id, 'group_id' => $group->id]),
+            'student' => $student,
+            'course' => $course,
+            'debt' => Debt::findOne(['user_id' => $student->id, 'course_id' => $course->id]),
         ]);
     }
 
@@ -444,29 +444,29 @@ class MoneyController extends AdminController
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $formData = Yii::$app->request->post('debt', []);
-        if (!isset($formData['userId'], $formData['groupId'], $formData['amount'], $formData['comment'])) {
+        if (!isset($formData['userId'], $formData['courseId'], $formData['amount'], $formData['comment'])) {
             return self::getJsonErrorResult('Wrong request');
         }
 
         $user = User::findOne($formData['userId']);
-        $groupPupil = GroupPupil::findOne(['group_id' => $formData['groupId'], 'active' => $formData['refund'] ? GroupPupil::STATUS_INACTIVE : GroupPupil::STATUS_ACTIVE]);
+        $courseStudent = CourseStudent::findOne(['course_id' => $formData['courseId'], 'active' => $formData['refund'] ? CourseStudent::STATUS_INACTIVE : CourseStudent::STATUS_ACTIVE]);
         $amount = (int)$formData['amount'];
 
         if (!$user) return self::getJsonErrorResult('Студент не найден');
         if ($amount <= 0) return self::getJsonErrorResult('Сумма не может быть <= 0');
-        if (!$groupPupil) return self::getJsonErrorResult('Группа не найдена');
+        if (!$courseStudent) return self::getJsonErrorResult('Группа не найдена');
 
         try {
             $payment = new Payment();
             $payment->user_id = $user->id;
-            $payment->group_id = $groupPupil->group_id;
+            $payment->course_id = $courseStudent->course_id;
             $payment->admin_id = Yii::$app->user->getId();
             $payment->amount = 0 - $amount;
             $payment->created_at = date('Y-m-d H:i:s');
             $payment->comment = ($formData['refund'] ? 'Возврат средств: ' : 'Задолженность добавлена вручную: ') . $formData['comment'];
 
             MoneyComponent::registerIncome($payment);
-            MoneyComponent::setUserChargeDates($user, $groupPupil->group);
+            MoneyComponent::setUserChargeDates($user, $courseStudent->course);
             return self::getJsonOkResult(['userId' => $user->id, 'refund' => $formData['refund']]);
         } catch (\Throwable $ex) {
             return self::getJsonErrorResult($ex->getMessage());

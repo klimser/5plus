@@ -12,7 +12,7 @@ use backend\components\report\TeacherTimeReport;
 use backend\components\report\WelcomeLessonReport;
 use backend\models\Event;
 use backend\models\TeacherSubjectLink;
-use common\models\Group;
+use common\models\Course;
 use common\models\GroupParam;
 use common\models\Subject;
 use common\models\Teacher;
@@ -88,7 +88,7 @@ class ReportController extends AdminController
                     $spreadsheet = MoneyReport::createAll($startDate, $endDate);
                 } else {
                     [$devNull, $groupId] = explode('_', $groupId);
-                    $group = Group::findOne($groupId);
+                    $group = Course::findOne($groupId);
                     if (!$group) throw new NotFoundHttpException('Invalid group!');
 
                     $spreadsheet = MoneyReport::createGroup($group, $startDate, $endDate);
@@ -106,7 +106,7 @@ class ReportController extends AdminController
         }
 
         return $this->render('money', [
-            'groups' => Group::find()->orderBy('name')->all(),
+            'groups' => Course::find()->orderBy('name')->all(),
             'allowedTotal' => Yii::$app->user->can('reportMoneyTotal')
         ]);
     }
@@ -215,7 +215,7 @@ class ReportController extends AdminController
 
                     $totalHours = 0;
                     foreach ($eventData as $data) {
-                        $group = Group::findOne($data['group_id']);
+                        $group = Course::findOne($data['group_id']);
                         $totalHours += floor($group->lesson_duration * $data['cnt'] / 40);
                     }
 

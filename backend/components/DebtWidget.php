@@ -13,7 +13,7 @@ class DebtWidget extends Widget
     {
         if ($this->user instanceof User) {
             $debtAmount = $balance = 0;
-            if ($this->user->role != User::ROLE_PARENTS && $this->user->role != User::ROLE_PUPIL) return '';
+            if ($this->user->role != User::ROLE_PARENTS && $this->user->role != User::ROLE_STUDENT) return '';
             
             if ($this->user->role == User::ROLE_PARENTS) {
                 foreach ($this->user->children as $child) {

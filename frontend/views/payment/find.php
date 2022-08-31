@@ -19,7 +19,7 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
         age_confirmed: " . ($pupil->age_confirmed || ($pupil->parent_id && $pupil->parent->age_confirmed) ? 'true' : 'false') . ",
         groups: []
     };\n";
-    foreach ($pupil->activeGroupPupils as $groupPupil) {
+    foreach ($pupil->activeCourseStudents as $groupPupil) {
         $debt = $pupil->getDebt($groupPupil->group);
         $debt = $debt ? $debt->amount : 0;
         $script .= "Payment.users[{$pupil->id}].groups.push({

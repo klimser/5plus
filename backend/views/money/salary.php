@@ -24,7 +24,9 @@ $nextMonth = $date->modify('+1 month');
     ><span class="fas fa-arrow-right"></span></a>
 </h1>
 
-<?php foreach ($salaryMap as $payments): ?>
+<h2>Under construction (push Sergei to get results)</h2>
+
+<?php foreach ($salaryMap ?? [] as $payments): ?>
     <div class="card border-info mb-3">
         <h3 class="card-header text-white bg-info">
             <?= $payments[0]['teacher']; ?>

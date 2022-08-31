@@ -1,7 +1,7 @@
 <?php
 
 use backend\components\DebtWidget;
-use common\models\Group;
+use common\models\Course;
 use common\models\User;
 use yii\bootstrap4\Html;
 use common\components\helpers\Calendar;
@@ -57,13 +57,13 @@ $intervalMonth = new \DateInterval('P1M');
             <div class="col-xs-12">
                 <hr><h4>Занятия в группах:</h4>
                 <?php foreach ($groupMap as $groupId => $groupData):
-                    /** @var Group $groupInfo */
+                    /** @var Course $groupInfo */
                     $groupInfo = $groupData['group'];
                     /** @var \common\models\Payment[] $payments */
                     $payments = $groupData['payments'];
                     ?>
-                    <div class="well well-sm <?= $groupInfo->active == Group::STATUS_INACTIVE ? ' text-muted' : ''; ?>">
-                        <?php if ($groupInfo->active == Group::STATUS_INACTIVE): ?>
+                    <div class="well well-sm <?= $groupInfo->active == Course::STATUS_INACTIVE ? ' text-muted' : ''; ?>">
+                        <?php if ($groupInfo->active == Course::STATUS_INACTIVE): ?>
                             <div class="row">
                                 <div class="col-xs-12"><small>Занятия в этой группе больше не проводятся.</small></div>
                             </div>

@@ -4,7 +4,7 @@ namespace common\components;
 
 use backend\models\EventMember;
 use common\components\telegram\text\PublicMain;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\models\Notify;
 use common\models\User;
 use yii\base\BaseObject;
@@ -78,13 +78,13 @@ class BotPush extends BaseObject
     }
 
     /**
-     * @param GroupPupil $groupPupil
+     * @param CourseStudent $groupPupil
      */
-    public function lowBalance(GroupPupil $groupPupil)
+    public function lowBalance(CourseStudent $groupPupil)
     {
         $user = $groupPupil->user;
         
-        $lessonDebt = GroupPupil::find()
+        $lessonDebt = CourseStudent::find()
             ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
             ->andWhere(['<', 'paid_lessons', 0])
             ->select('SUM(paid_lessons)')

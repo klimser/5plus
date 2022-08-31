@@ -136,7 +136,7 @@ class LoginCommand extends UserCommand
                 }
                 
                 $pupils = User::find()
-                    ->andWhere(['role' => User::ROLE_PUPIL])
+                    ->andWhere(['role' => User::ROLE_STUDENT])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['phone']])
                     ->andWhere(['or', ['tg_chat_id' => null], ['!=', 'tg_chat_id', $message->getChat()->getId()]])
@@ -157,7 +157,7 @@ class LoginCommand extends UserCommand
                     ];
                 }
 
-                $this->addNote($conversation, 'role', User::ROLE_PUPIL);
+                $this->addNote($conversation, 'role', User::ROLE_STUDENT);
                 $data = [
                     'parse_mode' => 'MarkdownV2',
                     'text' => Entity::escapeMarkdownV2(PublicMain::LOGIN_STEP_2_MULTIPLE),
@@ -179,7 +179,7 @@ class LoginCommand extends UserCommand
             case 3:
                 $trusted = !empty($conversation->notes['trusted']);
                 $users = User::find()
-                    ->andWhere(['role' => $conversation->notes['role'] == User::ROLE_PUPIL ? User::ROLE_PUPIL : [User::ROLE_PARENTS, User::ROLE_COMPANY]])
+                    ->andWhere(['role' => $conversation->notes['role'] == User::ROLE_STUDENT ? User::ROLE_STUDENT : [User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['phone']])
                     ->andWhere(['or', ['tg_chat_id' => null], ['!=', 'tg_chat_id', $message->getChat()->getId()]])

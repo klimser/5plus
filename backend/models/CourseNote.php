@@ -3,24 +3,24 @@
 namespace backend\models;
 
 use common\components\extended\ActiveRecord;
-use common\models\Group;
+use common\models\Course;
 use common\models\Teacher;
 use common\models\traits\Inserted;
 use yii\db\ActiveQuery;
 
 /**
- * This is the model class for table "group_note".
+ * This is the model class for table "course_note".
  *
- * @property int $id
- * @property int $group_id
- * @property int $teacher_id
- * @property string $topic
- * @property string $created_at
+ * @property int     $id
+ * @property int     $course_id
+ * @property int     $teacher_id
+ * @property string  $topic
+ * @property string  $created_at
  *
- * @property Group $group
+ * @property Course  $course
  * @property Teacher $teacher
  */
-class GroupNote extends ActiveRecord
+class CourseNote extends ActiveRecord
 {
     use Inserted;
     
@@ -29,7 +29,7 @@ class GroupNote extends ActiveRecord
      */
     public static function tableName()
     {
-        return 'group_note';
+        return '{{%course_note}}';
     }
 
     /**
@@ -38,10 +38,10 @@ class GroupNote extends ActiveRecord
     public function rules()
     {
         return [
-            [['group_id', 'teacher_id', 'topic'], 'required'],
-            [['group_id', 'teacher_id'], 'integer'],
+            [['course_id', 'teacher_id', 'topic'], 'required'],
+            [['course_id', 'teacher_id'], 'integer'],
             [['topic'], 'string', 'max' => 255],
-            [['group_id'], 'exist', 'targetRelation' => 'group'],
+            [['course_id'], 'exist', 'targetRelation' => 'course'],
             [['teacher_id'], 'exist', 'targetRelation' => 'teacher'],
         ];
     }
@@ -60,22 +60,12 @@ class GroupNote extends ActiveRecord
         ];
     }
 
-    /**
-     * Gets query for [[Group]].
-     *
-     * @return ActiveQuery
-     */
-    public function getGroup()
+    public function getGroup(): ActiveQuery
     {
-        return $this->hasOne(Group::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'group_id']);
     }
 
-    /**
-     * Gets query for [[Teacher]].
-     *
-     * @return ActiveQuery
-     */
-    public function getTeacher()
+    public function getTeacher(): ActiveQuery
     {
         return $this->hasOne(Teacher::class, ['id' => 'teacher_id']);
     }

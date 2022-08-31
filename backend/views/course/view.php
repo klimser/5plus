@@ -6,7 +6,7 @@ use yii\helpers\Url;
 use common\components\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $group common\models\Group */
+/* @var $group common\models\Course */
 
 $this->title = 'Группа: ' . $group->name;
 $this->params['breadcrumbs'][] = ['label' => 'Группы', 'url' => ['index']];

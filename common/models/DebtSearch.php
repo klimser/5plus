@@ -70,7 +70,7 @@ class DebtSearch extends Debt
         // grid filtering conditions
         $query->andFilterWhere([
             'user_id' => $this->user_id,
-            'group_id' => $this->group_id,
+            'group_id' => $this->course_id,
         ]);
 
         if ($this->amountFrom) {

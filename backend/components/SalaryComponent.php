@@ -5,9 +5,9 @@ namespace backend\components;
 use backend\models\Event;
 use backend\models\EventMember;
 use common\components\helpers\Calendar;
-use common\models\Group;
+use common\models\Course;
 use common\models\GroupParam;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\models\User;
 use DateTime;
 use Exception;
@@ -21,7 +21,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class SalaryComponent
 {
-    public static function getGroupSalarySpreadsheet(Group $group, DateTime $date): Spreadsheet
+    public static function getGroupSalarySpreadsheet(Course $group, DateTime $date): Spreadsheet
     {
         $groupParam = GroupParam::findByDate($group, $date);
         if (!$groupParam) throw new Exception('There is no salary for this month');
@@ -74,8 +74,8 @@ class SalaryComponent
             $groupPupilMap = [];
             $userMap = [];
             $userChargeMap = [];
-            /** @var GroupPupil[] $groupPupils */
-            $groupPupils = GroupPupil::find()
+            /** @var CourseStudent[] $groupPupils */
+            $groupPupils = CourseStudent::find()
                 ->andWhere(['group_id' => $group->id])
                 ->andWhere(['<', 'date_start', $nextMonth->format('Y-m-d')])
                 ->andWhere(['or', 'date_end IS NULL', ['>=', 'date_end', $date->format('Y-m-d')]])
@@ -127,11 +127,11 @@ class SalaryComponent
                                 }
                             }
                             $spreadsheet->getActiveSheet()
-                                ->setCellValueExplicitByColumnAndRow($column, $groupPupilMap[$member->group_pupil_id], $paymentSum * -1, DataType::TYPE_NUMERIC);
+                                ->setCellValueExplicitByColumnAndRow($column, $groupPupilMap[$member->course_student_id], $paymentSum * -1, DataType::TYPE_NUMERIC);
                         }
 
                         if ($member->status == EventMember::STATUS_MISS) {
-                            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, $groupPupilMap[$member->group_pupil_id])
+                            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, $groupPupilMap[$member->course_student_id])
                                 ->getFill()->setFillType(Fill::FILL_SOLID)
                                 ->getStartColor()->setRGB($redColor);
                         }
@@ -241,8 +241,8 @@ class SalaryComponent
                 $startRow = $row;
                 $row++;
 
-                /** @var GroupPupil[] $groupPupils */
-                $groupPupils = GroupPupil::find()
+                /** @var CourseStudent[] $groupPupils */
+                $groupPupils = CourseStudent::find()
                     ->andWhere(['group_id' => $groupParam->group_id])
                     ->andWhere(['<', 'date_start', $nextMonth->format('Y-m-d')])
                     ->andWhere(['or', 'date_end IS NULL', ['>=', 'date_end', $date->format('Y-m-d')]])
@@ -283,11 +283,11 @@ class SalaryComponent
                                     }
                                 }
                                 $spreadsheet->getActiveSheet()
-                                    ->setCellValueExplicitByColumnAndRow($column, $groupPupilMap[$member->group_pupil_id], $paymentSum * -1, DataType::TYPE_NUMERIC);
+                                    ->setCellValueExplicitByColumnAndRow($column, $groupPupilMap[$member->course_student_id], $paymentSum * -1, DataType::TYPE_NUMERIC);
                             }
 
                             if ($member->status == EventMember::STATUS_MISS) {
-                                $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, $groupPupilMap[$member->group_pupil_id])
+                                $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($column, $groupPupilMap[$member->course_student_id])
                                     ->getFill()->setFillType(Fill::FILL_SOLID)
                                     ->getStartColor()->setRGB($redColor);
                             }

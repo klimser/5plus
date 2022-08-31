@@ -23,10 +23,10 @@ $printable = false;
             ?>
                 <tr class="welcome-row" data-key="<?= $welcomeLesson->id; ?>" data-status="<?= $welcomeLesson->status; ?>" data-deny-reason="<?= $welcomeLesson->deny_reason; ?>" data-date="<?= $welcomeLesson->lessonDateTime->format('d.m.Y'); ?>">
                     <td>
-                        <?php if ($welcomeLesson->group_id): ?>
-                            <?= $welcomeLesson->group->name; ?><br>
-                            <?= $welcomeLesson->group->subject->name; ?><br>
-                            <?= $welcomeLesson->group->teacher->name; ?>
+                        <?php if ($welcomeLesson->course_id): ?>
+                            <?= $welcomeLesson->course->name; ?><br>
+                            <?= $welcomeLesson->course->subject->name; ?><br>
+                            <?= $welcomeLesson->course->teacher->name; ?>
                         <?php endif; ?>
                         
                     </td>

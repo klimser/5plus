@@ -1,7 +1,7 @@
 <?php
 
 /* @var $this yii\web\View */
-/* @var $group common\models\Group */
+/* @var $group common\models\Course */
 
 $this->title = 'Группа: ' . $group->name;
 $this->params['breadcrumbs'][] = ['label' => 'Темы', 'url' => ['notes']];

@@ -5,13 +5,14 @@ namespace backend\controllers;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use common\components\ComponentContainer;
+use common\components\CourseComponent;
 use common\components\MoneyComponent;
 use common\models\Company;
 use common\models\Contract;
 use common\models\ContractSearch;
-use common\models\Group;
+use common\models\Course;
 use common\models\GroupParam;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\models\User;
 use common\components\Action;
 use DateTimeImmutable;
@@ -71,30 +72,28 @@ class ContractController extends AdminController
         );
     }
 
-    /**
-     * Monitor all Contracts.
-     * @return string
-     */
     public function actionIndex()
     {
         $searchModel = new ContractSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         /** @var User[] $students */
-        $students = User::find()->where(['role' => User::ROLE_PUPIL])->orderBy(['name' => SORT_ASC])->all();
+        $students = User::find()->where(['role' => User::ROLE_STUDENT])->orderBy(['name' => SORT_ASC])->all();
         $studentMap = [null => 'Все'];
-        foreach ($students as $student) $studentMap[$student->id] = $student->name;
+        foreach ($students as $student) {
+            $studentMap[$student->id] = $student->name;
+        }
 
-        /** @var Group[] $groups */
-        $groups = Group::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
-        $groupMap = [null => 'Все'];
-        foreach ($groups as $group) $groupMap[$group->id] = $group->name;
+        $courseMap = [null => 'Все'];
+        foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
+            $courseMap[$course->id] = $course->courseConfig->name;
+        }
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
             'studentMap' => $studentMap,
-            'groupMap' => $groupMap,
+            'courseMap' => $courseMap,
         ]);
     }
 
@@ -123,7 +122,7 @@ class ContractController extends AdminController
         $jsonData = self::getJsonOkResult([
             'id' => $contract->id,
             'user_name' => $contract->user->name,
-            'group_name' => $contract->group->name,
+            'group_name' => $contract->course->name,
             'amount' => number_format($contract->amount, 0, '.', ' '),
             'discount' => $contract->discount,
             'create_date' => $contract->createDate->format('d.m.Y'),
@@ -131,8 +130,8 @@ class ContractController extends AdminController
             'group_pupil_id' => 0,
         ]);
 
-        /** @var GroupPupil $groupPupil */
-        if ($groupPupil = GroupPupil::find()->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])->one()) {
+        /** @var CourseStudent $groupPupil */
+        if ($groupPupil = CourseStudent::find()->andWhere(['user_id' => $contract->user_id, 'course_id' => $contract->course_id, 'active' => CourseStudent::STATUS_ACTIVE])->one()) {
             $jsonData['group_pupil_id'] = $groupPupil->id;
             $jsonData['date_start'] = $groupPupil->startDateObject->format('d.m.Y');
             $jsonData['date_charge_till'] = $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '';
@@ -159,16 +158,16 @@ class ContractController extends AdminController
             elseif ($amount <= 0) \Yii::$app->session->addFlash('error', 'Wrong amount');
             else {
                 $user = User::findOne($userId);
-                $group = Group::findOne($groupId);
+                $group = Course::findOne($groupId);
                 $company = Company::findOne(Company::COMPANY_EXCLUSIVE_ID);
-                if (!$user || $user->role != User::ROLE_PUPIL) \Yii::$app->session->addFlash('error', 'Wrong pupil');
-                elseif (!$group || $group->active != Group::STATUS_ACTIVE) \Yii::$app->session->addFlash('error', 'Wrong group');
+                if (!$user || $user->role != User::ROLE_STUDENT) \Yii::$app->session->addFlash('error', 'Wrong pupil');
+                elseif (!$group || $group->active != Course::STATUS_ACTIVE) \Yii::$app->session->addFlash('error', 'Wrong group');
                 elseif (!$company) \Yii::$app->session->addFlash('error', 'Не выбран учебный центр');
                 else {
                     $contract = new Contract();
                     $contract->created_admin_id = Yii::$app->user->id;
                     $contract->user_id = $user->id;
-                    $contract->group_id = $group->id;
+                    $contract->course_id = $group->id;
                     $contract->company_id = $company->id;
                     $contract->amount = $amount;
                     $contract->discount = $discount ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
@@ -224,11 +223,11 @@ class ContractController extends AdminController
         }
 
         $pupil = User::findOne($formData['userId']);
-        $group = Group::findOne($formData['groupId']);
-        if (!$pupil || $pupil->role !== User::ROLE_PUPIL) {
+        $group = Course::findOne($formData['groupId']);
+        if (!$pupil || $pupil->role !== User::ROLE_STUDENT) {
             return self::getJsonErrorResult('Wrong pupil');
         }
-        if (!$group || $group->active !== Group::STATUS_ACTIVE) {
+        if (!$group || $group->active !== Course::STATUS_ACTIVE) {
             return self::getJsonErrorResult('Wrong group');
         }
         if ($formData['amount'] <= 0) {

@@ -7,11 +7,11 @@ use backend\models\WelcomeLesson;
 use backend\models\WelcomeLessonSearch;
 use common\components\Action;
 use common\components\ComponentContainer;
-use common\components\GroupComponent;
+use common\components\CourseComponent;
 use common\components\MoneyComponent;
-use common\models\Group;
+use common\models\Course;
 use common\models\GroupParam;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
@@ -54,8 +54,8 @@ class WelcomeLessonController extends AdminController
         $studentMap = [null => 'Все'];
         foreach ($users as $user) $studentMap[$user->id] = $user->name;
 
-        /** @var Group[] $groups */
-        $groups = Group::find()->where(['id' => WelcomeLesson::find()->select(['group_id'])->distinct()->asArray()->column()])->orderBy(['name' => SORT_ASC])->all();
+        /** @var Course[] $groups */
+        $groups = Course::find()->where(['id' => WelcomeLesson::find()->select(['group_id'])->distinct()->asArray()->column()])->orderBy(['name' => SORT_ASC])->all();
         $groupMap = [null => 'Все'];
         foreach ($groups as $group) $groupMap[$group->id] = $group->name;
 
@@ -88,7 +88,7 @@ class WelcomeLessonController extends AdminController
             'groupMap' => $groupMap,
             'statusMap' => $statusMap,
             'reasonsMap' => $reasonsMap,
-            'groups' => Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->with('teacher')->orderBy(['name' => 'ASC'])->all(),
+            'groups' => Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->with('teacher')->orderBy(['name' => 'ASC'])->all(),
         ]);
     }
 
@@ -125,13 +125,12 @@ class WelcomeLessonController extends AdminController
             );
         }
         $welcomeLesson->status = $newStatus;
-        $welcomeLesson->bitrix_sync_status = WelcomeLesson::STATUS_INACTIVE;
 
         if (!$welcomeLesson->save()) {
             return self::getJsonErrorResult($welcomeLesson->getErrorsAsString('status'));
         }
         ComponentContainer::getActionLogger()
-            ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->group, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
+            ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->course, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
 
         return $this->getAjaxInfoResult($welcomeLesson);
     }
@@ -164,51 +163,52 @@ class WelcomeLessonController extends AdminController
 
         $lessonId = Yii::$app->request->post('id');
         if (!$lessonId) return self::getJsonErrorResult('Wrong request');
-        
+
+        /** @var WelcomeLesson $welcomeLesson */
         $welcomeLesson = WelcomeLesson::findOne($lessonId);
         if (!$welcomeLesson) return self::getJsonErrorResult('Welcome lesson is not found');
         
-        $resultGroupIds = $excludeGroupIds = [];
-        if ($welcomeLesson->group_id) {
-            $resultGroupIds[] = $welcomeLesson->group_id;
+        $resultCourseIds = $excludeCourseIds = [];
+        if ($welcomeLesson->course_id) {
+            $resultCourseIds[] = $welcomeLesson->course_id;
         } else {
-            /** @var Group[] $groups */
-            $groups = Group::find()
+            /** @var Course[] $courses */
+            $courses = Course::find()
                 ->andWhere([
-                    'active' => Group::STATUS_ACTIVE,
+                    'active' => Course::STATUS_ACTIVE,
                     'subject_id' => $welcomeLesson->subject_id,
                     'teacher_id' => $welcomeLesson->teacher_id,
                 ])
                 ->limit(self::PROPOSE_GROUP_LIMIT)
                 ->all();
-            foreach ($groups as $group) {
-                $resultGroupIds[] = $group->id;
+            foreach ($courses as $group) {
+                $resultCourseIds[] = $group->id;
             }
         }
         
-        if (empty($resultGroupIds)) {
-            /** @var Group[] $groups */
-            $groups = Group::find()
+        if (empty($resultCourseIds)) {
+            /** @var Course[] $courses */
+            $courses = Course::find()
                 ->andWhere([
-                    'active' => Group::STATUS_ACTIVE,
+                    'active' => Course::STATUS_ACTIVE,
                     'subject_id' => $welcomeLesson->subject_id,
                 ])
                 ->limit(self::PROPOSE_GROUP_LIMIT)
                 ->with('teacher')
                 ->all();
-            foreach ($groups as $group) {
-                $resultGroupIds[] = $group->id;
+            foreach ($courses as $course) {
+                $resultCourseIds[] = $course->id;
             }
         }
         
-        foreach ($welcomeLesson->user->activeGroupPupils as $groupPupil) {
-            $excludeGroupIds[] = $groupPupil->group_id;
+        foreach ($welcomeLesson->user->activeCourseStudents as $courseStudent) {
+            $excludeCourseIds[] = $courseStudent->course_id;
         }
         
         return self::getJsonOkResult([
             'id' => $welcomeLesson->id,
-            'groupIds' => $resultGroupIds,
-            'excludeGroupIds' => $excludeGroupIds,
+            'groupIds' => $resultCourseIds,
+            'excludeGroupIds' => $excludeCourseIds,
             'pupilName' => $welcomeLesson->user->name,
             'lessonDate' => $welcomeLesson->lessonDateTime->format('d.m.Y'),
         ]);
@@ -233,9 +233,9 @@ class WelcomeLessonController extends AdminController
             return self::getJsonErrorResult('Empty lesson date');
         }
 
-        $groupParam = GroupParam::findByDate($welcomeLesson->group, $startDate);
+        $groupParam = GroupParam::findByDate($welcomeLesson->course, $startDate);
         if (!$groupParam) {
-            $groupParam = $welcomeLesson->group;
+            $groupParam = $welcomeLesson->course;
         }
         if (!$groupParam->hasLesson($startDate)) {
             return self::getJsonErrorResult('Неверная дата пробного урока');
@@ -247,7 +247,7 @@ class WelcomeLessonController extends AdminController
             $welcomeLesson->save();
 
             $newWelcomeLesson = new WelcomeLesson();
-            $newWelcomeLesson->group_id = $welcomeLesson->group_id;
+            $newWelcomeLesson->course_id = $welcomeLesson->course_id;
             $newWelcomeLesson->user_id = $welcomeLesson->user_id;
             $newWelcomeLesson->lesson_date = $groupParam->getLessonDateTime($startDate);
 
@@ -255,7 +255,7 @@ class WelcomeLessonController extends AdminController
                 throw new \Exception('Server error: ' . $newWelcomeLesson->getErrorsAsString());
             }
             ComponentContainer::getActionLogger()
-                ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->group, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
+                ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->course, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
 
             $transaction->commit();
             return $this->getAjaxInfoResult($welcomeLesson);
@@ -281,19 +281,19 @@ class WelcomeLessonController extends AdminController
         }
         
         if (!empty($welcomeLessonData['group_proposal'])) {
-            $group = Group::findOne($welcomeLessonData['group_proposal']);
+            $group = Course::findOne($welcomeLessonData['group_proposal']);
         } else {
-            $group = Group::findOne($welcomeLessonData['group_id']);
+            $group = Course::findOne($welcomeLessonData['group_id']);
         }
 
-        if (!$group || $group->active != Group::STATUS_ACTIVE) {
+        if (!$group || $group->active != Course::STATUS_ACTIVE) {
             return self::getJsonErrorResult('Group not found');
         }
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            /** @var GroupPupil $groupPupil */
-            $groupPupil = GroupPupil::find()
+            /** @var CourseStudent $groupPupil */
+            $groupPupil = CourseStudent::find()
                 ->andWhere(['user_id' => $welcomeLesson->user_id, 'group_id' => $group->id])
                 ->andWhere(['>=', 'date_start', $welcomeLesson->lessonDateTime->format('Y-m-d')])
                 ->addOrderBy(['date_start' => SORT_ASC])
@@ -307,7 +307,7 @@ class WelcomeLessonController extends AdminController
                     throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
                 }
                 EventComponent::fillSchedule($group);
-                GroupComponent::calculateTeacherSalary($group);
+                CourseComponent::calculateTeacherSalary($group);
                 ComponentContainer::getActionLogger()->log(
                     Action::TYPE_GROUP_PUPIL_UPDATED,
                     $groupPupil->user,
@@ -316,13 +316,13 @@ class WelcomeLessonController extends AdminController
                     json_encode($dataForLog, JSON_UNESCAPED_UNICODE)
                 );
             } else {
-                GroupComponent::addPupilToGroup($welcomeLesson->user, $group, $welcomeLesson->lessonDateTime);
+                CourseComponent::addPupilToGroup($welcomeLesson->user, $group, $welcomeLesson->lessonDateTime);
             }
             MoneyComponent::setUserChargeDates($welcomeLesson->user, $group);
             $welcomeLesson->status = WelcomeLesson::STATUS_SUCCESS;
             $welcomeLesson->save();
             ComponentContainer::getActionLogger()
-                ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->group, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
+                ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->course, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
             $transaction->commit();
             return $this->getAjaxInfoResult($welcomeLesson);
         } catch (\Throwable $exception) {

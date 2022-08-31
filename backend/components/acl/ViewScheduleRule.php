@@ -19,7 +19,7 @@ class ViewScheduleRule extends Rule
         if (isset($params['user']) && $params['user'] && !Yii::$app->user->isGuest) {
             $group = Yii::$app->user->identity->role;
             switch ($group) {
-                case User::ROLE_PUPIL: return $params['user'] === $user; break;
+                case User::ROLE_STUDENT: return $params['user'] === $user; break;
                 case User::ROLE_PARENTS: {
                     if ($params['user'] === $user) return true;
                     /** @var User $pupil */

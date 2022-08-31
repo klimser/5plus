@@ -15,7 +15,7 @@ use yii\jui\DatePicker;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $searchModel \common\models\ContractSearch */
 /* @var $studentMap \common\models\User[] */
-/* @var $groupMap \common\models\User[] */
+/* @var $courseMap \common\models\Course[] */
 
 $this->title = 'Договоры';
 $this->params['breadcrumbs'][] = $this->title;
@@ -55,15 +55,15 @@ $this->params['breadcrumbs'][] = $this->title;
                 )
             ],
             [
-                'attribute' => 'group_id',
+                'attribute' => 'course_id',
                 'label' => 'Группа',
-                'content' => function ($model, $key, $index, $column) {
-                    return $model->group_id ? Html::a($model->group->name, Url::to(['group/view', 'id' => $model->group_id])) : null;
+                'content' => function (Contract $model, $key, $index, $column) {
+                    return $model->course_id ? Html::a($model->course->courseConfig->name, Url::to(['group/view', 'id' => $model->course_id])) : null;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
-                    'group_id',
-                    $groupMap,
+                    'course_id',
+                    $courseMap,
                     ['class' => 'form-control']
                 )
             ],

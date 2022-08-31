@@ -6,7 +6,7 @@ let Money = {
     groupId: null,
     paymentType: null,
     init: function() {
-        Main.loadGroups();
+        Main.loadCourses();
     },
     findContract: function () {
         $('#messages_place').html('');
@@ -150,7 +150,7 @@ let Money = {
         let pupil = this.pupils[this.pupilId];
         let blockHtml = '';
         pupil.groups.forEach(function(group) {
-            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + group.id + '" onclick="Money.setGroup(' + group.id + ', \'' + group.date_start + '\', \'' + group.date_charge_till + '\');">' + Main.groupMap[group.id].name + '</button>';
+            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + group.id + '" onclick="Money.setGroup(' + group.id + ', \'' + group.date_start + '\', \'' + group.date_charge_till + '\');">' + Main.courseMap[group.id].name + '</button>';
         });
         blockHtml += '<a href="/user/add-to-group?userId=' + this.pupilId + '" target="_blank" class="btn btn-outline-dark btn-lg">Добавить в новую группу <span class="fas fa-external-link-alt"></span></a>';
         $("#groups_result").html(blockHtml);
@@ -162,7 +162,7 @@ let Money = {
         $(".group-result-button").removeClass("btn-primary").addClass('btn-outline-dark');
         $("#group-" + groupId).addClass('btn-primary').removeClass('btn-outline-dark');
 
-        let group = Main.groupMap[this.groupId];
+        let group = Main.courseMap[this.groupId];
         $("#payment-0").find(".price").text(group.priceLesson);
         $("#payment-1").find(".price").text(group.price12Lesson);
         if (dateStart !== undefined) {
@@ -180,9 +180,9 @@ let Money = {
 
         let amountInput = $("#amount");
         if (this.paymentType === 1) {
-            $(amountInput).val(Main.groupMap[this.groupId].price12Lesson);
+            $(amountInput).val(Main.courseMap[this.groupId].price12Lesson);
         } else {
-            $(amountInput).val(Main.groupMap[this.groupId].priceLesson);
+            $(amountInput).val(Main.courseMap[this.groupId].priceLesson);
         }
         $("#income_form").collapse('show');
     },

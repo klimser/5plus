@@ -5,31 +5,33 @@ namespace common\models;
 use backend\models\Event;
 use backend\models\EventMember;
 use common\components\extended\ActiveRecord;
+use DateTimeImmutable;
+use yii\db\ActiveQuery;
 
 /**
- * This is the model class for table "{{%group_pupil}}".
+ * This is the model class for table "{{%course_student}}".
  *
- * @property string $id
+ * @property int $id
  * @property int $user_id
- * @property int $group_id
+ * @property int $course_id
  * @property int $active
  * @property string $date_start
  * @property string $date_end
  * @property int $moved
- * @property int $end_reason
- * @property string $comment
- * @property string $date_charge_till
- * @property int $paid_lessons
- * @property \DateTime $startDateObject
+ * @property int            $end_reason
+ * @property string         $comment
+ * @property string         $date_charge_till
+ * @property int            $paid_lessons
+ * @property \DateTime      $startDateObject
  * @property \DateTime|null $endDateObject
- * @property \DateTime $chargeDateObject
- * @property int $moneyLeft
- * @property Payment[] $payments
- * @property User $user
- * @property Group $group
- * @property EventMember[] $eventMembers
+ * @property \DateTime      $chargeDateObject
+ * @property int            $moneyLeft
+ * @property Payment[]      $payments
+ * @property User           $user
+ * @property Course         $course
+ * @property EventMember[]  $eventMembers
  */
-class GroupPupil extends ActiveRecord
+class CourseStudent extends ActiveRecord
 {
     public const END_REASON_FINISH = 1;
     public const END_REASON_TEACHER = 2;
@@ -67,19 +69,18 @@ class GroupPupil extends ActiveRecord
 
     public static function tableName()
     {
-        return '{{%group_pupil}}';
+        return '{{%course_student}}';
     }
-
 
     public function rules()
     {
         return [
-            [['user_id', 'group_id', 'date_start'], 'required'],
-            [['user_id', 'group_id', 'active', 'moved', 'end_reason', 'paid_lessons'], 'integer'],
+            [['user_id', 'course_id', 'date_start'], 'required'],
+            [['user_id', 'course_id', 'active', 'moved', 'end_reason', 'paid_lessons'], 'integer'],
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
             [['comment'], 'string'],
-            [['user_id'], 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_PUPIL]],
-            [['group_id'], 'exist', 'targetRelation' => 'group'],
+            [['user_id'], 'exist', 'targetRelation' => 'user', 'filter' => ['role' => User::ROLE_STUDENT]],
+            [['course_id'], 'exist', 'targetRelation' => 'course'],
             [['active', 'moved'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
             [['active'], 'default', 'value' => self::STATUS_ACTIVE],
             [['moved'], 'default', 'value' => self::STATUS_INACTIVE],
@@ -93,7 +94,7 @@ class GroupPupil extends ActiveRecord
         return [
             'id' => 'ID записи',
             'user_id' => 'ID ученика',
-            'group_id' => 'ID группы',
+            'course_id' => 'ID группы',
             'active' => 'Активен ли студент',
             'moved' => 'Студент перешел в другую группу',
             'end_reason' => 'Причина ухода',
@@ -104,70 +105,46 @@ class GroupPupil extends ActiveRecord
         ];
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getUser()
+    public function getUser(): ActiveQuery
     {
         return $this->hasOne(User::class, ['id' => 'user_id'])->inverseOf('groupPupils');
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getGroup()
+    public function getCourse(): ActiveQuery
     {
-        return $this->hasOne(Group::class, ['id' => 'group_id'])->inverseOf('groupPupils');
+        return $this->hasOne(Course::class, ['id' => 'course_id'])->inverseOf('courseStudents');
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getPayments()
+    public function getPayments(): ActiveQuery
     {
-        return $this->hasMany(Payment::class, ['group_pupil_id' => 'id'])->orderBy([Payment::tableName() . '.created_at' => SORT_ASC]);
+        return $this->hasMany(Payment::class, ['course_student_id' => 'id'])->orderBy([Payment::tableName() . '.created_at' => SORT_ASC]);
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getEventMembers()
+    public function getEventMembers(): ActiveQuery
     {
-        return $this->hasMany(EventMember::class, ['group_pupil_id' => 'id'])
+        return $this->hasMany(EventMember::class, ['course_student_id' => 'id'])
             ->joinWith('event')
             ->orderBy([Event::tableName() . '.event_date' => SORT_ASC])
-            ->inverseOf('groupPupil');
+            ->inverseOf('courseStudents');
     }
 
-    /**
-     * @return \DateTime
-     */
-    public function getStartDateObject()
+    public function getStartDateObject(): DateTimeImmutable
     {
-        return new \DateTime($this->date_start . ' midnight');
+        return new DateTimeImmutable($this->date_start . ' midnight');
     }
 
-    /**
-     * @return \DateTime|null
-     */
-    public function getEndDateObject()
+    public function getEndDateObject(): ?DateTimeImmutable
     {
-        if (!empty($this->date_end)) return new \DateTime($this->date_end . ' midnight');
-        if ($this->group->active == Group::STATUS_INACTIVE && $this->group->date_end) return $this->group->endDateObject;
+        if (!empty($this->date_end)) return new DateTimeImmutable($this->date_end . ' midnight');
+        if ($this->group->active == Course::STATUS_INACTIVE && $this->group->date_end) return $this->group->endDateObject;
         return null;
     }
 
-    /**
-     * @return \DateTime|null
-     */
-    public function getChargeDateObject()
+    public function getChargeDateObject(): ?DateTimeImmutable
     {
-        return empty($this->date_charge_till) ? null : new \DateTime($this->date_charge_till);
+        return empty($this->date_charge_till) ? null : new DateTimeImmutable($this->date_charge_till);
     }
 
-    /**
-     * @return int
-     */
     public function getMoneyLeft(): int
     {
         return Payment::find()

@@ -62,7 +62,7 @@ $this->title = 'Панель управления';
             <div class="row">
                 <?php if ($admin->can('viewGroups')): ?>
                     <div class="col-6 col-md mb-3">
-                        <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('group/index'); ?>">
+                        <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('course/index'); ?>">
                             <span class="fas fa-users fa-2x"></span><br>
                             Группы
                         </a>
@@ -70,7 +70,7 @@ $this->title = 'Панель управления';
                 <?php endif; ?>
                 <?php if ($admin->can('viewNotes')): ?>
                     <div class="col-6 col-md mb-3">
-                        <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('group/notes'); ?>">
+                        <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('course/notes'); ?>">
                             <span class="fas fa-users fa-2x"></span><br>
                             Темы в группах
                         </a>

@@ -2,7 +2,7 @@
 
 namespace backend\components\report;
 
-use common\models\Group;
+use common\models\Course;
 use common\models\Payment;
 use DateTime;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
@@ -12,7 +12,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class MoneyReport
 {
-    public static function createGroup(Group $group, DateTime $startDate, DateTime $endDate): Spreadsheet
+    public static function createGroup(Course $group, DateTime $startDate, DateTime $endDate): Spreadsheet
     {
         $startDateString = $startDate->format('Y-m-d');
         $endDateString = $endDate->format('Y-m-d');
@@ -120,8 +120,8 @@ class MoneyReport
             ->select('group_id')
             ->distinct(true)
             ->column();
-        /** @var Group[] $groups */
-        $groups = Group::find()
+        /** @var Course[] $groups */
+        $groups = Course::find()
             ->andWhere(['id' => $groupIds])
             ->orderBy('name')
             ->all();

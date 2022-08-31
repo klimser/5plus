@@ -15,8 +15,8 @@ use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
 use common\models\Company;
 use common\models\Contract;
-use common\models\Group;
-use common\models\GroupPupil;
+use common\models\Course;
+use common\models\CourseStudent;
 use JsonException;
 use Longman\TelegramBot\Entities\Entity;
 use Longman\TelegramBot\Entities\Payments\LabeledPrice;
@@ -184,7 +184,7 @@ class AccountCommand extends UserCommand
         $pupils = [];
         foreach ($users as $user) {
             $trusted = $user->telegramSettings['trusted'];
-            if ($user->role === User::ROLE_PUPIL) {
+            if ($user->role === User::ROLE_STUDENT) {
                 $pupils[] = ['name' => $trusted ? $user->name : $user->nameHidden, 'entity' => $user];
             } else {
                 foreach ($user->children as $child) {
@@ -261,9 +261,9 @@ class AccountCommand extends UserCommand
             $rows[] = Entity::escapeMarkdownV2(sprintf(PublicMain::ATTEND_HAS_MISSED, count($eventMembers)));
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
-                if ($eventMember->event->group_id != $groupId) {
+                if ($eventMember->event->course_id != $groupId) {
                     $rows[] = '*' . Entity::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
-                    $groupId = $eventMember->event->group_id;
+                    $groupId = $eventMember->event->course_id;
                 }
                 $rows[] = Entity::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i'));
             }
@@ -317,9 +317,9 @@ class AccountCommand extends UserCommand
             $rows[] = Entity::escapeMarkdownV2(PublicMain::MARKS_TEXT);
             $groupId = null;
             foreach ($eventMembers as $eventMember) {
-                if ($eventMember->event->group_id != $groupId) {
+                if ($eventMember->event->course_id != $groupId) {
                     $rows[] = '*' . Entity::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
-                    $groupId = $eventMember->event->group_id;
+                    $groupId = $eventMember->event->course_id;
                 }
                 $rows[] = Entity::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - ')
                     . "*{$eventMember->mark}*" . ($eventMember->mark_homework > 0 ? " \/ *{$eventMember->mark_homework}*" : '');
@@ -350,7 +350,7 @@ class AccountCommand extends UserCommand
         }
 
         $rows = $groupSet = [];
-        foreach ($userResult->groupPupils as $groupPupil) {
+        foreach ($userResult->courseStudents as $groupPupil) {
             if (!array_key_exists($groupPupil->group_id, $groupSet)) {
                 $balance = $groupPupil->moneyLeft;
                 if ($groupPupil->active || $balance < 0) {
@@ -449,7 +449,7 @@ class AccountCommand extends UserCommand
 
                 $pupils = [];
                 foreach ($users as $user) {
-                    if ($user->role === User::ROLE_PUPIL || count($user->children) > 0) {
+                    if ($user->role === User::ROLE_STUDENT || count($user->children) > 0) {
                         $pupils[] = $user;
                     }
                 }
@@ -482,7 +482,7 @@ class AccountCommand extends UserCommand
             foreach ($users as $user) {
                 $trusted = $user->telegramSettings['trusted'];
                 $name = null;
-                if ($user->role === User::ROLE_PUPIL) {
+                if ($user->role === User::ROLE_STUDENT) {
                     $name = $trusted ? $user->name : $user->nameHidden;
                 } else {
                     if (count($user->children) > 0) {
@@ -581,7 +581,7 @@ class AccountCommand extends UserCommand
         $users = User::find()
             ->andWhere([
                 'status' => User::STATUS_ACTIVE,
-                'role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY],
+                'role' => [User::ROLE_STUDENT, User::ROLE_PARENTS, User::ROLE_COMPANY],
                 'tg_chat_id' => $message->getChat()->getId(),
             ])
             ->all();
@@ -617,7 +617,7 @@ class AccountCommand extends UserCommand
 
                     /** @var User[] $users */
                     $users = User::find()
-                        ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]])
+                        ->andWhere(['role' => [User::ROLE_STUDENT, User::ROLE_PARENTS, User::ROLE_COMPANY]])
                         ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                         ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $phoneFull])
                         ->all();
@@ -654,7 +654,7 @@ class AccountCommand extends UserCommand
                 $phoneFull = '+' . preg_replace('#\D#', '', $message->getText());
                 /** @var User[] $users */
                 $users = User::find()
-                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]])
+                    ->andWhere(['role' => [User::ROLE_STUDENT, User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $phoneFull])
                     ->all();
@@ -749,7 +749,7 @@ class AccountCommand extends UserCommand
 
                 /** @var User[] $users */
                 $users = User::find()
-                    ->andWhere(['role' => [User::ROLE_PUPIL, User::ROLE_PARENTS, User::ROLE_COMPANY]])
+                    ->andWhere(['role' => [User::ROLE_STUDENT, User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['sms_confirm_phone']])
                     ->all();
@@ -913,7 +913,7 @@ class AccountCommand extends UserCommand
 
         
         $buttons = $groupMap = [];
-        foreach ($userResult->groupPupils as $groupPupil) {
+        foreach ($userResult->courseStudents as $groupPupil) {
             if (!array_key_exists($groupPupil->group_id, $groupMap) && ($groupPupil->active || $groupPupil->moneyLeft < 0)) {
                 $groupMap[$groupPupil->group_id] = $groupPupil->group->legal_name;
                 $buttons[] = Entity::escapeMarkdownV2($groupPupil->group->legal_name);
@@ -947,7 +947,7 @@ class AccountCommand extends UserCommand
         }
         
         $this->addNote($conversation, 'groupId', $groupId);
-        $group = Group::findOne($groupId);
+        $group = Course::findOne($groupId);
 
         $amount = match ($this->getMessage()->getText()) {
             PublicMain::PAY_ONE_LESSON => $group->lesson_price,
@@ -1077,7 +1077,7 @@ class AccountCommand extends UserCommand
                     ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Payment is not applied, contract does not exists: ' . $payload, true);
                 } else {
                     try {
-                        $newContract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $contract->user, (int) ($payment->getTotalAmount() / 100), $contract->group);
+                        $newContract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $contract->user, (int) ($payment->getTotalAmount() / 100), $contract->course);
                         MoneyComponent::payContract($newContract, null, Contract::PAYMENT_TYPE_TELEGRAM_PAYME, $payment->getTelegramPaymentChargeId());
                         $newContract->external_id = $payment->getProviderPaymentChargeId();
                         $newContract->save();
@@ -1094,11 +1094,11 @@ class AccountCommand extends UserCommand
                 $payloadData = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
                 if (!empty($payloadData['user_id']) && !empty($payloadData['group_id'])) {
                     $user = User::findOne($payloadData['user_id']);
-                    $group = Group::findOne($payloadData['group_id']);
+                    $group = Course::findOne($payloadData['group_id']);
                     if ($user && $group) {
-                        /** @var GroupPupil $groupPupil */
-                        $groupPupil = GroupPupil::find()
-                            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])
+                        /** @var CourseStudent $groupPupil */
+                        $groupPupil = CourseStudent::find()
+                            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])
                             ->one();
                         if ($groupPupil) {
                             $newContract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, (int) ($payment->getTotalAmount() / 100), $group);

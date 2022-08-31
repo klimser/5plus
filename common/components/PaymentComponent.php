@@ -2,7 +2,7 @@
 
 namespace common\components;
 
-use common\models\Group;
+use common\models\Course;
 use common\models\PaymentLink;
 use common\models\User;
 
@@ -20,8 +20,8 @@ class PaymentComponent
         if ($paymentLink) return $paymentLink;
 
         $pupil = User::findOne($userId);
-        $group = Group::findOne($groupId);
-        if (!$pupil || !$group || $pupil->role != User::ROLE_PUPIL) throw new \Exception('Unable to create payment link');
+        $group = Course::findOne($groupId);
+        if (!$pupil || !$group || $pupil->role != User::ROLE_STUDENT) throw new \Exception('Unable to create payment link');
 
         $str = $pupil->name . $pupil->id . $group->id;
         $len = 6;

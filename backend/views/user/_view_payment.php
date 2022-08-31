@@ -7,7 +7,7 @@ use common\components\helpers\MoneyHelper;
 
 /** @var \common\models\Payment[] $payments */
 $payments = $pupil->getPayments()->with('group')->all();
-/** @var \common\models\Group[] $groupMap */
+/** @var \common\models\Course[] $groupMap */
 $groupMap = [];
 foreach ($payments as $payment) {
     if (!array_key_exists($payment->group_id, $groupMap)) {

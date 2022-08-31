@@ -3,91 +3,84 @@
 namespace backend\components;
 
 use backend\models\Event;
-use common\components\GroupComponent;
+use common\components\CourseComponent;
 use common\components\MoneyComponent;
-use common\models\Group;
+use common\models\Course;
 use DateInterval;
 use DateTime;
 use Exception;
 use Throwable;
 use yii\base\Component;
-use yii\db\StaleObjectException;
 
 class EventComponent extends Component
 {
     /**
-     * @param Group $group
+     * @param Course   $group
      * @param DateTime $date
+     *
      * @return Event|null
      * @throws Exception
      * @throws Throwable
      */
-    public static function addEvent(Group $group, DateTime $date): ?Event
+    public static function addEvent(Course $group, DateTime $date): ?Event
     {
-        $groupParam = GroupComponent::getGroupParam($group, $date);
-        if ($groupParam->hasLesson($date)) {
-            $event = $group->hasEvent($date);
-            if (!$event) {
+        $groupConfig = CourseComponent::getCourseConfig($group, $date);
+        if ($groupConfig->hasLesson($date)) {
+            if (!$event = $group->getEventByDate($date)) {
                 $event = new Event();
-                $event->event_date = $groupParam->getLessonDateTime($date);
-                $event->group_id = $group->id;
+                $event->event_date = $groupConfig->getLessonDateTime($date);
+                $event->course_id = $group->id;
                 $event->status = Event::STATUS_UNKNOWN;
 
-                if (!$event->save()) throw new Exception('Schedule save error: ' . $event->getErrorsAsString());
+                if (!$event->save()) {
+                    throw new Exception('Schedule save error: ' . $event->getErrorsAsString());
+                }
             }
 
-            foreach ($group->groupPupils as $groupPupil) {
-                if ($groupPupil->startDateObject <= $event->eventDateTime && ($groupPupil->date_end == null || $groupPupil->endDateObject >= $event->eventDateTime)) {
-                    $event->addGroupPupil($groupPupil);
-                } elseif ($eventMember = $event->hasGroupPupil($groupPupil)) {
-                    if ($eventMember->payments) {
-                        foreach ($eventMember->payments as $payment) MoneyComponent::cancelPayment($payment);
+            foreach ($group->courseStudents as $courseStudent) {
+                if ($courseStudent->startDateObject <= $event->eventDateTime && ($courseStudent->date_end == null || $courseStudent->endDateObject > $event->eventDateTime)) {
+                    $event->addCourseStudent($courseStudent);
+                } elseif ($eventMember = $event->findByCourseStudent($courseStudent)) {
+                    foreach ($eventMember->payments as $payment) {
+                        MoneyComponent::cancelPayment($payment);
                     }
-                    $event->removeGroupPupil($groupPupil);
+                    $event->removeCourseStudent($courseStudent);
                 }
             }
+
             return $event;
-        } elseif ($event = $group->hasEvent($date)) {
+        } elseif ($group->hasEvent($date)) {
+            $event = $group->getEventByDate($date);
             foreach ($event->membersWithPayments as $member) {
-                if ($member->payments) {
-                    foreach ($member->payments as $payment) MoneyComponent::cancelPayment($payment);
+                foreach ($member->payments as $payment) {
+                    MoneyComponent::cancelPayment($payment);
                 }
-                $event->removeGroupPupil($member->groupPupil);
+                $event->removeCourseStudent($member->groupPupil);
             }
             $event->delete();
         }
+
         return null;
     }
 
     /**
-     * @param Event $event
-     * @return bool
-     * @throws Throwable
-     * @throws StaleObjectException
-     */
-    private static function deleteEvent(Event $event): bool
-    {
-        foreach ($event->members as $eventMember) if (!$eventMember->delete()) return false;
-        return boolval($event->delete());
-    }
-
-    /**
-     * @param Group $group
+     * @param Course $group
+     *
      * @throws Throwable
      */
-    public static function fillSchedule(Group $group)
+    public static function fillSchedule(Course $group)
     {
-        $limitDate = new DateTime('+1 day midnight');
-        $lookupDate = clone $group->startDateObject;
-        $lookupDate->modify('midnight');
-        $endDate = $group->endDateObject ? clone $group->endDateObject : null;
+        $limitDate = new \DateTimeImmutable('+1 day midnight');
+        $lookupDate = DateTime::createFromImmutable($group->startDateObject);
+        $endDate = $group->endDateObject;
         if (!$endDate || $endDate > $limitDate) $endDate = $limitDate;
-        $endDate->modify('midnight');
         $intervalDay = new DateInterval('P1D');
-        while ($lookupDate <= $endDate) {
+        while ($lookupDate < $endDate) {
             if ($group->groupPupils || $group->hasWelcomeLessons($lookupDate)) {
                 $event = self::addEvent($group, $lookupDate);
-                if ($event) MoneyComponent::chargeByEvent($event);
+                if ($event) {
+                    MoneyComponent::chargeByEvent($event);
+                }
             }
             $lookupDate->add($intervalDay);
         }
@@ -100,16 +93,17 @@ class EventComponent extends Component
         foreach ($overEvents as $event) {
             $event->status = Event::STATUS_CANCELED;
             MoneyComponent::chargeByEvent($event);
-            if (!self::deleteEvent($event)) throw new Exception('Unable to delete event');
+            if (!$event->delete()) throw new Exception('Unable to delete event');
         }
     }
 
     /**
-     * @param Group $group
+     * @param Course             $group
      * @param \DateTimeInterface $limitDate
+     *
      * @return Event|null
      */
-    public static function getUncheckedEvent(Group $group, \DateTimeInterface $limitDate): ?Event
+    public static function getUncheckedEvent(Course $group, \DateTimeInterface $limitDate): ?Event
     {
         /** @var Event|null $event */
         $event = Event::find()

@@ -6,6 +6,7 @@ use backend\controllers\traits\Active;
 use common\models\GiftCard;
 use common\models\GiftCardSearch;
 use common\models\User;
+use Yii;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -27,7 +28,7 @@ class GiftCardController extends AdminController
     public function actionIndex($status = null)
     {
         $searchModel = new GiftCardSearch();
-        $dataProvider = $searchModel->search(\Yii::$app->request->queryParams);
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
         if ($status !== null) {
             $status = intval($status);
             $dataProvider->query->andFilterWhere([ 'status' => $status ]);
@@ -41,57 +42,57 @@ class GiftCardController extends AdminController
     }
 
     /**
-     * @return Response
+     * @return mixed
      * @throws BadRequestHttpException
      */
     public function actionFind()
     {
-        if (!\Yii::$app->request->isAjax) throw new BadRequestHttpException('Request is not AJAX');
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $jsonData = self::getJsonOkResult();
-        $giftCardCode = \Yii::$app->request->post('code', '');
+        $giftCardCode = Yii::$app->request->post('code', '');
 
-        if (empty($giftCardCode)) $jsonData = self::getJsonErrorResult('Неверный номер карты');
-        else {
-            $giftCard = GiftCard::findOne(['code' => $giftCardCode]);
-            if (!$giftCard) $jsonData = self::getJsonErrorResult('Карта не найдена');
-            elseif ($giftCard->status == GiftCard::STATUS_NEW) $jsonData = self::getJsonErrorResult('Карта не оплачена!');
-            elseif ($giftCard->status == GiftCard::STATUS_USED) $jsonData = self::getJsonErrorResult('Карта уже использована!');
-            else {
-                $jsonData['id'] = $giftCard->id;
-                $jsonData['pupil_name'] = $giftCard->customer_name;
-                $jsonData['pupil_phone'] = $giftCard->phoneFormatted;
-                $jsonData['parents_name'] = array_key_exists('parents_name', $giftCard->additionalData) ? $giftCard->additionalData['parents_name'] : '';
-                $jsonData['parents_phone'] = array_key_exists('parents_phone', $giftCard->additionalData) ? $giftCard->additionalData['parents_phone'] : '';
-                $jsonData['type'] = $giftCard->name;
-                $jsonData['amount'] = $giftCard->amount;
-                /** @var User $pupil */
-                $pupil = User::find()
-                    ->andWhere(['role' => [User::ROLE_PUPIL]])
-                    ->andWhere(['!=', 'status', User::STATUS_LOCKED])
-                    ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $giftCard->customer_phone])
-                    ->with(['activeGroupPupils.group'])
-                    ->one();
-                if ($pupil && count($pupil->activeGroupPupils) > 0) {
-                    $existingPupil = [
-                        'id' => $pupil->id,
-                        'name' => $pupil->name,
-                        'phone' => $pupil->phoneFormatted,
-                        'parents_name' => $pupil->parent_id ? $pupil->parent->name : '',
-                        'parents_phone' => $pupil->parent_id ? $pupil->parent->phoneFormatted : '',
-                        'group_pupils' => [],
-                    ];
-                    foreach ($pupil->activeGroupPupils as $groupPupil) {
-                        $existingPupil['group_pupils'][] = [
-                            'id' => $groupPupil->id,
-                            'group_id' => $groupPupil->group_id,
-                            'group' => $groupPupil->group->name,
-                            'from' => $groupPupil->startDateObject->format('d.m.Y'),
-                        ];
-                    }
-                    $jsonData['existing_pupil'] = $existingPupil;
-                }
+        if (empty($giftCardCode)) {
+            return self::getJsonErrorResult('Неверный номер карты');
+        }
+
+        $giftCard = GiftCard::findOne(['code' => $giftCardCode]);
+        if (!$giftCard) return self::getJsonErrorResult('Карта не найдена');
+        if ($giftCard->status == GiftCard::STATUS_NEW) return self::getJsonErrorResult('Карта не оплачена!');
+        if ($giftCard->status == GiftCard::STATUS_USED) return self::getJsonErrorResult('Карта уже использована!');
+
+        $jsonData['id'] = $giftCard->id;
+        $jsonData['pupil_name'] = $giftCard->customer_name;
+        $jsonData['pupil_phone'] = $giftCard->phoneFormatted;
+        $jsonData['parents_name'] = array_key_exists('parents_name', $giftCard->additionalData) ? $giftCard->additionalData['parents_name'] : '';
+        $jsonData['parents_phone'] = array_key_exists('parents_phone', $giftCard->additionalData) ? $giftCard->additionalData['parents_phone'] : '';
+        $jsonData['type'] = $giftCard->name;
+        $jsonData['amount'] = $giftCard->amount;
+        /** @var User $student */
+        $student = User::find()
+            ->andWhere(['role' => [User::ROLE_STUDENT]])
+            ->andWhere(['!=', 'status', User::STATUS_LOCKED])
+            ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $giftCard->customer_phone])
+            ->with(['activeCourseStudents.course'])
+            ->one();
+        if ($student && count($student->activeCourseStudents) > 0) {
+            $existingStudent = [
+                'id' => $student->id,
+                'name' => $student->name,
+                'phone' => $student->phoneFormatted,
+                'parents_name' => $student->parent_id ? $student->parent->name : '',
+                'parents_phone' => $student->parent_id ? $student->parent->phoneFormatted : '',
+                'course_students' => [],
+            ];
+            foreach ($student->activeCourseStudents as $courseStudent) {
+                $existingStudent['course_students'][] = [
+                    'id' => $courseStudent->id,
+                    'group_id' => $courseStudent->course_id,
+                    'group' => $courseStudent->course->courseConfig->name,
+                    'from' => $courseStudent->startDateObject->format('d.m.Y'),
+                ];
             }
+            $jsonData['existing_student'] = $existingStudent;
         }
 
         return $this->asJson($jsonData);

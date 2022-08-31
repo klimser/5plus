@@ -1,7 +1,6 @@
 <?php
 
 use common\components\DefaultValuesComponent;
-use common\components\bitrix\Bitrix;
 use dosamigos\tinymce\TinyMce;
 use yii\helpers\ArrayHelper;
 use yii\bootstrap4\Html;
@@ -15,9 +14,6 @@ $this->title = $subject->isNewRecord ? 'Новый курс' : $subject->name;
 $this->params['breadcrumbs'][] = ['label' => 'Курсы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $subject->name;
 
-$bitrixSubjects = array_unique(array_merge(array_keys(Bitrix::DEAL_SUBJECT_LIST), array_keys(Bitrix::USER_SUBJECT_LIST)));
-sort($bitrixSubjects);
-
 ?>
 <div class="subject-update">
 
@@ -29,8 +25,6 @@ sort($bitrixSubjects);
         <?= $form->field($subject, 'name')->textInput(['required' => true, 'maxlength' => true]); ?>
 
         <?= $form->field($subject, 'category_id')->dropDownList(ArrayHelper::map($subjectCategories, 'id', 'name')); ?>
-
-        <?= $form->field($subject, 'bitrix_name')->dropDownList(ArrayHelper::map($bitrixSubjects, function($val) { return $val; }, function($val) { return $val; }), ['required' => true]); ?>
 
         <div class="row">
             <?=

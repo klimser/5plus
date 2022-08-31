@@ -2,7 +2,7 @@
 
 namespace common\components;
 
-use common\models\Group;
+use common\models\Course;
 use common\models\Notify;
 use common\models\User;
 use yii\base\BaseObject;
@@ -10,13 +10,14 @@ use yii\base\BaseObject;
 class NotifyQueue extends BaseObject
 {
     /**
-     * @param User $recipient
-     * @param int $templateId
-     * @param array $params
-     * @param Group|null $group
+     * @param User        $recipient
+     * @param int         $templateId
+     * @param array       $params
+     * @param Course|null $group
+     *
      * @return bool
      */
-    public function add(User $recipient, int $templateId, array $params, ?Group $group = null)
+    public function add(User $recipient, int $templateId, array $params, ?Course $group = null)
     {
         $notification = new Notify();
         $notification->user_id = $recipient->id;

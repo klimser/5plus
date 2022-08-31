@@ -11,8 +11,8 @@ use yii\helpers\Url;
 /* @var $eventMap Event[] */
 /* @var $date \DateTimeImmutable */
 /* @var $daysCount int */
-/* @var $group \common\models\Group|null */
-/* @var $groups \common\models\Group[] */
+/* @var $group \common\models\Course|null */
+/* @var $groups \common\models\Course[] */
 
 $this->title = 'Посещаемость';
 $this->params['breadcrumbs'][] = $this->title;

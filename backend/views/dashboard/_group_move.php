@@ -32,7 +32,7 @@
                     <div class="form-group row">
                         <label class="col-12 col-sm-3 control-label" for="group-move-new-group">В группу</label>
                         <div class="col-12 col-sm-9">
-                            <select id="group-move-new-group" name="group-move[group_id]" class="form-control" required autocomplete="off" onchange="GroupMove.setGroupToDateInterval(this);"></select>
+                            <select id="group-move-new-group" name="group-move[group_id]" class="form-control" required autocomplete="off" onchange="CourseMove.setGroupToDateInterval(this);"></select>
                         </div>
                     </div>
                     <div class="form-group row">

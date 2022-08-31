@@ -16,7 +16,7 @@ let WelcomeLesson = {
     denyReasonOther: 7,
 
     init: function(tableSelector = 'table') {
-        return Main.loadGroups()
+        return Main.loadCourses()
             .done(function() {
                 WelcomeLesson.fillTableButtons($(tableSelector).find("tr.welcome-row"));
             })
@@ -126,15 +126,15 @@ let WelcomeLesson = {
                             '<label class="form-check-label">' +
                             '<input class="form-check-input" type="radio" name="welcome_lesson[group_proposal]" ' +
                             'value="' + groupId + '" onchange="WelcomeLesson.groupChange(this);" ' + (checkProposal ? ' checked' : '') + ' required>' +
-                            Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')' +
+                            Main.courseMap[groupId].name + ' (' + Main.courseMap[groupId].teacher + ')' +
                             '</label>' +
                             '</div>';
                     });
                     $(form).find(".group-proposal").html(proposals);
                     let groupList = '';
-                    Main.groupActiveList.forEach(function(groupId) {
+                    Main.courseActiveList.forEach(function(groupId) {
                         if (data.groupIds.indexOf(groupId) < 0 && data.excludeGroupIds.indexOf(groupId) < 0) {
-                            groupList += '<option value="' + groupId + '">' + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>';
+                            groupList += '<option value="' + groupId + '">' + Main.courseMap[groupId].name + ' (' + Main.courseMap[groupId].teacher + ')</option>';
                         }
                     });
                     $(form).find(".other-group").html(groupList);

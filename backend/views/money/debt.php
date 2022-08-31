@@ -11,7 +11,7 @@ use yii\helpers\Url;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $searchModel \common\models\DebtSearch */
 /* @var $debtorMap \common\models\User[] */
-/* @var $groupMap \common\models\Group[] */
+/* @var $groupMap \common\models\Course[] */
 
 $this->title = 'Задолженности';
 $this->params['breadcrumbs'][] = $this->title;

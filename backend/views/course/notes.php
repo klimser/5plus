@@ -1,7 +1,7 @@
 <?php
 
-use common\models\Group;
-use common\models\GroupSearch;
+use common\models\Course;
+use common\models\CourseSearch;
 use common\models\Subject;
 use common\models\Teacher;
 use yii\bootstrap4\LinkPager;
@@ -13,7 +13,7 @@ use yii\data\ActiveDataProvider;
 use yii\web\View;
 
 /* @var $this View */
-/* @var $searchModel GroupSearch */
+/* @var $searchModel CourseSearch */
 /* @var $dataProvider ActiveDataProvider */
 /* @var $subjectMap Subject[] */
 /* @var $teacherMap Teacher[] */
@@ -32,16 +32,14 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'options' => ['class' => 'grid-view table-responsive'],
         'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
-        'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == Group::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [];},
+        'rowOptions' => static fn (Course $model, $key, $index, $grid) => ($model->active == Course::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             'name',
             [
                 'attribute' => 'subject_id',
                 'format' => 'text',
-                'content' => function ($model, $key, $index, $column) use ($subjectMap) {
-                    return $subjectMap[$model->subject_id];
-                },
+                'content' => static fn (Course $model, $key, $index, $column) => $subjectMap[$model->subject_id],
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'subject_id',
@@ -52,9 +50,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'teacher_id',
                 'format' => 'text',
-                'content' => function ($model, $key, $index, $column) use ($teacherMap) {
-                    return $model->teacher_id ? $model->teacher->name : '<span class="not-set">(не задано)</span>';
-                },
+                'content' => static fn (Course $model, $key, $index, $column) => $model->courseConfig->teacher->name,
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'teacher_id',

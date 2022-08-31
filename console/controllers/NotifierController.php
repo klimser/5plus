@@ -9,7 +9,7 @@ use common\components\PaymentComponent;
 use common\components\SmsBroker\SmsBrokerApiException;
 use common\components\telegram\text\PublicMain;
 use common\models\BotPush;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\models\Notify;
 use common\models\User;
 use DateTime;
@@ -172,11 +172,11 @@ class NotifierController extends Controller
     {
         $monthLimit = new DateTime('-30 days');
 
-        /** @var GroupPupil[] $groupPupils */
-        $groupPupils = GroupPupil::find()
+        /** @var CourseStudent[] $groupPupils */
+        $groupPupils = CourseStudent::find()
             ->joinWith('user')
-            ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE])
-            ->andWhere(['<', GroupPupil::tableName() . '.paid_lessons', 0])
+            ->andWhere([CourseStudent::tableName() . '.active' => CourseStudent::STATUS_ACTIVE])
+            ->andWhere(['<', CourseStudent::tableName() . '.paid_lessons', 0])
             ->andWhere(['!=', User::tableName() . '.status', User::STATUS_LOCKED])
             ->with('group')
             ->all();
@@ -203,7 +203,7 @@ class NotifierController extends Controller
                 }
 
                 if ($needSent) {
-                    $lessonDebt = GroupPupil::find()
+                    $lessonDebt = CourseStudent::find()
                         ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
                         ->andWhere(['<', 'paid_lessons', 0])
                         ->select('SUM(paid_lessons)')
@@ -252,7 +252,7 @@ class NotifierController extends Controller
                     }
 
                     if ($needSent) {
-                        $lessonDebt = GroupPupil::find()
+                        $lessonDebt = CourseStudent::find()
                             ->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupPupil->group_id])
                             ->andWhere(['<', 'paid_lessons', 0])
                             ->select('SUM(paid_lessons)')
@@ -270,16 +270,16 @@ class NotifierController extends Controller
         }
 
         $nextWeek = new DateTime('+7 days');
-        /** @var GroupPupil[] $groupPupils */
-        $groupPupils = GroupPupil::find()
+        /** @var CourseStudent[] $groupPupils */
+        $groupPupils = CourseStudent::find()
             ->joinWith('user')
-            ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE])
-            ->andWhere(['BETWEEN', GroupPupil::tableName() . '.paid_lessons', 0, 2])
+            ->andWhere([CourseStudent::tableName() . '.active' => CourseStudent::STATUS_ACTIVE])
+            ->andWhere(['BETWEEN', CourseStudent::tableName() . '.paid_lessons', 0, 2])
             ->andWhere(['!=', User::tableName() . '.status', User::STATUS_LOCKED])
             ->andWhere([
                 'or',
-                [GroupPupil::tableName() . '.date_end' => null],
-                ['>', GroupPupil::tableName() . '.date_end', $nextWeek->format('Y-m-d')]
+                [CourseStudent::tableName() . '.date_end' => null],
+                ['>', CourseStudent::tableName() . '.date_end', $nextWeek->format('Y-m-d')]
             ])
             ->with('group')
             ->all();

@@ -85,7 +85,7 @@ class ActionSearch extends Action
             'type' => $this->type,
             'admin_id' => $this->admin_id,
             'user_id' => $this->user_id,
-            'group_id' => $this->group_id,
+            'group_id' => $this->course_id,
         ]);
 
         if ($this->created_at) {

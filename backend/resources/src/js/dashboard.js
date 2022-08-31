@@ -56,7 +56,7 @@ let Dashboard = {
         Main.initPhoneFormatted();
         $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
         let groupSelect = $(form).find("#new-group");
-        Main.loadGroups()
+        Main.loadCourses()
             .done(function(groupIds) {
                 let groupBlackList = [];
                 $(form).find(".gift-card-existing-group").each(function(){
@@ -65,7 +65,7 @@ let Dashboard = {
                 $(groupSelect).html('');
                 groupIds.forEach(function(groupId) {
                     if (groupBlackList.indexOf(groupId) === -1) {
-                        groupSelect.append('<option value="' + groupId + '">' + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>');
+                        groupSelect.append('<option value="' + groupId + '">' + Main.courseMap[groupId].name + ' (' + Main.courseMap[groupId].teacher + ')</option>');
                     }
                 });
                 $(groupSelect).change();
@@ -89,7 +89,7 @@ let Dashboard = {
         }
     },
     selectGiftGroup: function(e) {
-        let group = Main.groupMap[$(e).val()];
+        let group = Main.courseMap[$(e).val()];
         let limitDate = this.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
         $(e).closest("#gift-card-form").find(".datepicker").datepicker("option", "minDate", new Date(limitDate));
     },
@@ -222,7 +222,7 @@ let Dashboard = {
     },
     showMoneyIncomeForm: function(e) {
         let groupId = $(e).data('group');
-        let group = Main.groupMap[groupId];
+        let group = Main.courseMap[groupId];
         
         $('#income-messages-place').html('');
         let form = $("#income-form");
@@ -286,7 +286,7 @@ let Dashboard = {
     },
     showMoneyDebtForm: function(e, isRefund = false) {
         let groupId = $(e).data('group');
-        let group = Main.groupMap[groupId];
+        let group = Main.courseMap[groupId];
 
         $('#debt-messages-place').html('');
         let form = $("#debt-form");
@@ -341,7 +341,7 @@ let Dashboard = {
     },
     showNewContractForm: function(e) {
         let groupId = $(e).data('group');
-        let group = Main.groupMap[groupId];
+        let group = Main.courseMap[groupId];
         
         $('#new-contract-messages-place').html('');
         let form = $("#new-contract-form");
@@ -386,16 +386,16 @@ let Dashboard = {
     showMovePupilForm: function(e) {
         let groupPupilId = $(e).data('id');
         let groupId = parseInt($(e).data('group'));
-        let group = Main.groupMap[groupId];
+        let group = Main.courseMap[groupId];
         $('#group-move-messages-place').html('');
         let form = $("#group-move-form");
         $(form).find("#group-move-id").val(groupPupilId);
         $(form).find("#group-move-group").val(group.name);
         $(form).find("#group-move-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
         let optionsHtml = '';
-        Main.groupActiveList.forEach(function(id) {
+        Main.courseActiveList.forEach(function(id) {
             if (id !== groupId) {
-                optionsHtml += '<option value="' + id + '">' + Main.groupMap[id].name + '</option>';
+                optionsHtml += '<option value="' + id + '">' + Main.courseMap[id].name + '</option>';
             }
         });
         $(form).find("#group-move-new-group").html(optionsHtml);
@@ -434,7 +434,7 @@ let Dashboard = {
     showMoveMoneyForm: function(e) {
         let groupPupilId = $(e).data('id');
         let groupId = parseInt($(e).data('group'));
-        let group = Main.groupMap[groupId];
+        let group = Main.courseMap[groupId];
         $('#money-move-messages-place').html('');
         let form = $("#money-move-form");
         $(form).find("#money-move-id").val(groupPupilId);
@@ -452,7 +452,7 @@ let Dashboard = {
         }
         if (allowedGroupIds.length > 0) {
             allowedGroupIds.forEach(function (groupId) {
-                optionsHtml += '<option value="' + groupId + '">' + Main.groupMap[groupId].name + '</option>';
+                optionsHtml += '<option value="' + groupId + '">' + Main.courseMap[groupId].name + '</option>';
             });
         }
         $(form).find("#money-move-new-group").html(optionsHtml);
@@ -488,7 +488,7 @@ let Dashboard = {
     showEndPupilForm: function(e) {
         let groupPupilId = $(e).data('id');
         let groupId = parseInt($(e).data('group'));
-        let group = Main.groupMap[groupId];
+        let group = Main.courseMap[groupId];
         $('#end-pupil-messages-place').html('');
         let form = $("#end-pupil-form");
         $(form).find("#end-pupil-id").val(groupPupilId);

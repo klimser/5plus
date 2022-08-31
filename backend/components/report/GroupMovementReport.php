@@ -2,9 +2,9 @@
 
 namespace backend\components\report;
 
-use common\components\GroupComponent;
-use common\models\Group;
-use common\models\GroupPupil;
+use common\components\CourseComponent;
+use common\models\Course;
+use common\models\CourseStudent;
 use DateTime;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -20,8 +20,8 @@ class GroupMovementReport
         $startDateString = $startDate->format('Y-m-d');
         $endDateString = $endDate->format('Y-m-d');
 
-        /** @var Group[] $groups */
-        $groups = Group::find()
+        /** @var Course[] $groups */
+        $groups = Course::find()
             ->andWhere([
                 'AND',
                 ['<=', 'date_start', $endDateString],
@@ -32,7 +32,7 @@ class GroupMovementReport
 
         $groupPupilCount = function($condition): array {
             return ArrayHelper::map(
-                GroupPupil::find()
+                CourseStudent::find()
                     ->andWhere($condition)
                     ->select(['group_id', 'COUNT(DISTINCT user_id) as cnt'])
                     ->groupBy(['group_id'])
@@ -90,7 +90,7 @@ class GroupMovementReport
         $groupCollections = [];
         foreach ($groups as $group) {
             if ($group->groupPupils) {
-                $teacher = GroupComponent::getGroupParam($group, $startDate)->teacher;
+                $teacher = CourseComponent::getGroupParam($group, $startDate)->teacher;
             } else {
                 $teacher = $group->teacher;
             }
@@ -126,71 +126,71 @@ class GroupMovementReport
             ]);
             $row += 2;
 
-            $inUsers = GroupPupil::find()
+            $inUsers = CourseStudent::find()
                 ->andWhere(['BETWEEN', 'date_start', $startDateString, $endDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->select('user_id')
                 ->distinct(true)
                 ->column();
-            $excludeUsersCount = GroupPupil::find()
+            $excludeUsersCount = CourseStudent::find()
                 ->andWhere(['<', 'date_start', $startDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->andWhere(['user_id' => $inUsers])
                 ->count('DISTINCT user_id');
             $totalIn = count($inUsers) - $excludeUsersCount;
             
-            $totalNewGroupPupil = GroupPupil::find()
+            $totalNewGroupPupil = CourseStudent::find()
                 ->alias('gp1')
-                ->leftJoin(['gp2' => GroupPupil::tableName()], "gp1.id != gp2.id AND gp2.user_id = gp1.user_id AND gp2.group_id = gp1.group_id AND gp2.date_start < '$startDateString'")
+                ->leftJoin(['gp2' => CourseStudent::tableName()], "gp1.id != gp2.id AND gp2.user_id = gp1.user_id AND gp2.group_id = gp1.group_id AND gp2.date_start < '$startDateString'")
                 ->andWhere(['BETWEEN', 'gp1.date_start', $startDateString, $endDateString])
                 ->andWhere(['gp1.group_id' => $groupIds])
                 ->andWhere(['gp2.id' => null])
                 ->count('DISTINCT gp1.id');
 
-            $outUsers = GroupPupil::find()
+            $outUsers = CourseStudent::find()
                 ->andWhere(['BETWEEN', 'date_end', $startDateString, $endDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->select('user_id')
                 ->distinct(true)
                 ->column();
-            $excludeUsersCount = GroupPupil::find()
+            $excludeUsersCount = CourseStudent::find()
                 ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
                 ->andWhere(['group_id' => $groupIds])
                 ->andWhere(['user_id' => $outUsers])
                 ->count('DISTINCT user_id');
             $totalOut = count($outUsers) - $excludeUsersCount;
 
-            $startPupils = GroupPupil::find()
+            $startPupils = CourseStudent::find()
                 ->andWhere(['<', 'date_start', $startDateString])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
                 ->andWhere(['group_id' => $groupIds])
                 ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
                 ->scalar();
-            $startUsers = GroupPupil::find()
+            $startUsers = CourseStudent::find()
                 ->andWhere(['<', 'date_start', $startDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
                 ->select('COUNT(DISTINCT user_id)')
                 ->scalar();
-            $totalPupils = GroupPupil::find()
+            $totalPupils = CourseStudent::find()
                 ->andWhere(['<=', 'date_start', $endDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
                 ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
                 ->scalar();
-            $totalUsers = GroupPupil::find()
+            $totalUsers = CourseStudent::find()
                 ->andWhere(['<=', 'date_start', $endDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
                 ->select('COUNT(DISTINCT user_id)')
                 ->scalar();
-            $finalPupils = GroupPupil::find()
+            $finalPupils = CourseStudent::find()
                 ->andWhere(['<=', 'date_start', $endDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
                 ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
                 ->scalar();
-            $finalUsers = GroupPupil::find()
+            $finalUsers = CourseStudent::find()
                 ->andWhere(['<=', 'date_start', $endDateString])
                 ->andWhere(['group_id' => $groupIds])
                 ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])

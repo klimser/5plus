@@ -14,7 +14,7 @@ class WordForm
         return 'занятий';
     }
     
-    public static function getPupilsForm(int $num): string
+    public static function getStudentsForm(int $num): string
     {
         $teen = $num % 100;
         if ($teen < 10 || $teen > 20) {

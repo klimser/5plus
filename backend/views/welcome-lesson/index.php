@@ -3,7 +3,7 @@
 use backend\models\WelcomeLesson;
 use backend\models\WelcomeLessonSearch;
 use common\components\DefaultValuesComponent;
-use common\models\Group;
+use common\models\Course;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
@@ -22,10 +22,10 @@ use yii\web\View;
 /* @var $studentMap User[] */
 /* @var $subjectMap Subject[] */
 /* @var $teacherMap Teacher[] */
-/* @var $groupMap Group[] */
+/* @var $groupMap Course[] */
 /* @var $statusMap string[] */
 /* @var $reasonsMap string[] */
-/* @var $groups Group[] */
+/* @var $groups Course[] */
 
 $this->title = 'Пробные уроки';
 $this->params['breadcrumbs'][] = $this->title;

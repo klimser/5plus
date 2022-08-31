@@ -8,7 +8,7 @@ use yii\jui\DatePicker;
 /* @var $this yii\web\View */
 /* @var $user \common\models\User */
 /* @var $companies \common\models\Company[] */
-/* @var $groups \common\models\Group[] */
+/* @var $groups \common\models\Course[] */
 
 $searchValue = '';
 $this->registerJs(<<<SCRIPT

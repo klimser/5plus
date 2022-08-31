@@ -4,12 +4,15 @@ namespace common\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveQuery;
 
 /**
- * GroupSearch represents the model behind the search form about `\backend\models\Group`.
+ * CourseSearch represents the model behind the search form about `\backend\models\Course`.
  */
-class GroupSearch extends Group
+class CourseSearch extends Course
 {
+    public $name = null;
+    public $teacher_id = null;
 
     public function rules()
     {
@@ -35,7 +38,15 @@ class GroupSearch extends Group
      */
     public function search($params)
     {
-        $query = Group::find()->with(['pupils', 'teacher']);
+        $query = Course::find()
+            ->with(['students', 'note'])
+            ->joinWith([
+                'courseConfigs c_c' => function (ActiveQuery $query) {
+                    $query->andWhere(['<=', 'date_from', date('Y-m-d')])
+                        ->andWhere(['or', ['date_to' => null], ['>', 'date_to', date('Y-m-d')]])
+                        ->orderBy(['name' => SORT_ASC]);
+                }
+            ]);
 
         $providerParams = [
             'query' => $query,
@@ -67,11 +78,11 @@ class GroupSearch extends Group
         // grid filtering conditions
         $query->andFilterWhere([
             'subject_id' => $this->subject_id,
-            'teacher_id' => $this->teacher_id,
+            'c_c.teacher_id' => $this->teacher_id,
             'active' => $this->active,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name]);
+        $query->andFilterWhere(['like', 'c_c.name', $this->name]);
 
         return $dataProvider;
     }

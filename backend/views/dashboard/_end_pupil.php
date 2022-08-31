@@ -1,5 +1,5 @@
 <?php
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 ?>
 <div id="modal-end-pupil" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
@@ -35,7 +35,7 @@ use common\models\GroupPupil;
                     <div class="form-group row">
                         <label class="col-12 col-sm-4 col-form-label">Причина</label>
                         <div class="col-12 col-sm-8">
-                            <?php foreach (GroupPupil::END_REASON_LABELS as $id => $label): ?>
+                            <?php foreach (CourseStudent::END_REASON_LABELS as $id => $label): ?>
                                 <div class="form-check">
                                     <label class="form-check-label">
                                         <input class="form-check-input" type="radio" name="end-pupil[reasonId]" value="<?= $id; ?>" required autocomplete="off">

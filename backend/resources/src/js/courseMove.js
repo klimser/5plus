@@ -1,42 +1,42 @@
-let GroupMove = {
+let CourseMove = {
     init: function() {
         Main.initAutocompleteUser($("#pupil-to-move"));
-        Main.loadGroups()
-            .done(function(groupIds) {
+        Main.loadCourses()
+            .done(function(courseIds) {
                 let elem = $("#group_to");
                 $(elem).html('');
-                groupIds.forEach(function(groupId) {
-                    $(elem).append('<option value="' + groupId + '">' + Main.groupMap[groupId].name + ' (' + Main.groupMap[groupId].teacher + ')</option>');
+                courseIds.forEach(function(courseId) {
+                    $(elem).append('<option value="' + courseId + '">' + Main.courseMap[courseId].name + ' (' + Main.courseMap[courseId].teacher + ')</option>');
                 });
             });
     },
-    loadGroups: function () {
-        let pupilId = $("#pupil-id").val();
-        let groupFrom = $("#group_from");
-        $(groupFrom).html('');
-        if (pupilId > 0 && $(groupFrom).data("pupil") !== pupilId) {
-            $(groupFrom).html('<option>загрузка...</option>');
-            $(groupFrom).prop('disabled', true);
+    loadCourses: function () {
+        let studentId = $("#student-id").val();
+        let courseFrom = $("#course_from");
+        $(courseFrom).html('');
+        if (studentId > 0 && $(courseFrom).data("student") !== studentId) {
+            $(courseFrom).html('<option>загрузка...</option>');
+            $(courseFrom).prop('disabled', true);
             $.ajax({
                 url: '/group/list-json',
                 data: {
-                    pupilId: pupilId
+                    pupilId: studentId
                 },
                 dataType: 'json'
             })
                 .done(function (data) {
-                    let groupFrom = $("#group_from");
+                    let courseFrom = $("#course_from");
                     let htmlAddon = '';
-                    let activeGroupPupil = $(groupFrom).data('groupPupil');
-                    data.forEach(function(groupData) {
-                        let group = Main.groupMap[groupData.group_id];
-                        htmlAddon += '<option value="' + groupData.id + '" data-start="' + groupData.date_start + '" ' +
-                            'data-end="' + groupData.date_end + '" ' + (groupData.id === activeGroupPupil ? ' selected ' : '') + '>' +
+                    let activeCourseStudent = $(courseFrom).data('courseStudent');
+                    data.forEach(function(courseData) {
+                        let group = Main.courseMap[courseData.course_id];
+                        htmlAddon += '<option value="' + courseData.id + '" data-start="' + courseData.date_start + '" ' +
+                            'data-end="' + courseData.date_end + '" ' + (courseData.id === activeCourseStudent ? ' selected ' : '') + '>' +
                             group.name + '</option>';
                     });
-                    $(groupFrom).html(htmlAddon);
-                    $(groupFrom).data("pupil", $("#pupil-id").val());
-                    $(groupFrom).change();
+                    $(courseFrom).html(htmlAddon);
+                    $(courseFrom).data("student", $("#student-id").val());
+                    $(courseFrom).change();
                 })
                 .fail(Main.logAndFlashAjaxError)
                 .always(function() {
@@ -44,13 +44,13 @@ let GroupMove = {
                 });
         }
     },
-    selectGroup: function(e) {
-        $("#group-move-id").val($(e).val());
-        return this.setGroupFromDateInterval(e);
+    selectCourse: function(e) {
+        $("#course-move-id").val($(e).val());
+        return this.setCourseFromDateInterval(e);
     },
-    setGroupFromDateInterval: function (elem) {
+    setCourseFromDateInterval: function (elem) {
         let chosenOption = $(elem).find("option:selected");
-        $(elem).data('groupPupil', $(elem).val());
+        $(elem).data('courseStudent', $(elem).val());
         let dateFromElem = $("#date_from");
         $(dateFromElem).datepicker("option", "minDate", $(chosenOption).data("start"));
         $(dateFromElem).datepicker("option", "maxDate", $(chosenOption).data("end"));
@@ -62,11 +62,11 @@ let GroupMove = {
             $(dateFromElem).datepicker("setDate", null);
         }
     },
-    setGroupToDateInterval: function (elem) {
-        let groupId = $(elem).val();
-        let dateToElem = $("#group-move-date-to");
-        $(dateToElem).datepicker("option", "minDate", new Date(Main.groupMap[groupId].dateStart));
-        let endDate = Main.groupMap[groupId].dateEnd;
+    setCourseToDateInterval: function (elem) {
+        let courseId = $(elem).val();
+        let dateToElem = $("#course-move-date-to");
+        $(dateToElem).datepicker("option", "minDate", new Date(Main.courseMap[courseId].dateStart));
+        let endDate = Main.courseMap[courseId].dateEnd;
         if (endDate !== null) {
             endDate = new Date(endDate);
         }
@@ -79,42 +79,42 @@ let GroupMove = {
             $(dateToElem).datepicker("setDate", null);
         }
     },
-    movePupil: function () {
-        let groupFromElem = $("#group_from");
-        let groupToElem = $("#group_to");
-        if ($(groupFromElem).val() === $(groupToElem).val()) {
+    moveStudent: function () {
+        let courseFromElem = $("#course_from");
+        let courseToElem = $("#course_to");
+        if ($(courseFromElem).val() === $(courseToElem).val()) {
             Main.throwFlashMessage("#messages_place", 'Невозможно перевести в ту же группу', 'alert-danger');
             return;
         }
         this.lockMoveButton();
         $.ajax({
-            url: "/group/process-move-pupil",
+            url: "/group/process-move-student",
             type: 'post',
             dataType: 'json',
             data: {
-                "group-move": {
-                    id: $("#group-move-id").val(),
-                    group_id: $(groupToElem).val(),
-                    date_from: $("#group-move-date-from").val(),
-                    date_to: $("#group-move-date-to").val()
+                "course-move": {
+                    id: $("#course-move-id").val(),
+                    course_id: $(courseToElem).val(),
+                    date_from: $("#course-move-date-from").val(),
+                    date_to: $("#course-move-date-to").val()
                 }
             }
         })
             .done(function (data) {
                 if (data.status === 'ok') {
                     Main.throwFlashMessage('#messages_place', 'Студент переведён', 'alert-success');
-                    $("#move-pupil-form").collapse('hide');
+                    $("#move-student-form").collapse('hide');
                 } else {
                     Main.throwFlashMessage('#messages_place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
             })
             .fail(Main.logAndFlashAjaxError)
-            .always(GroupMove.unlockMoveButton);
+            .always(CourseMove.unlockMoveButton);
     },
     lockMoveButton: function () {
-        $("#move_pupil_button").prop('disabled', true);
+        $("#move_student_button").prop('disabled', true);
     },
     unlockMoveButton: function () {
-        $("#move_pupil_button").prop('disabled', false);
+        $("#move_student_button").prop('disabled', false);
     },
 };

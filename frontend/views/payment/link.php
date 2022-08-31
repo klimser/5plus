@@ -5,7 +5,7 @@ use yii\web\View;
 
 /* @var $this \frontend\components\extended\View */
 /* @var $paymentLink \common\models\PaymentLink|null */
-/* @var $groupPupils \common\models\GroupPupil[] */
+/* @var $groupPupils \common\models\CourseStudent[] */
 
 $this->params['breadcrumbs'][] = ['url' => Url::to(['payment/index']), 'label' => 'Онлайн оплата'];
 $this->params['breadcrumbs'][] = $paymentLink !== null ? $paymentLink->user->nameHidden : 'Не найден';

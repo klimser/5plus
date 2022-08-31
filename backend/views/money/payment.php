@@ -69,7 +69,7 @@ $this->registerJs('Main.initAutocompleteUser("#search-student");');
                     return $model->user->name;
                 },
                 'filter' => '<div><input type="hidden" class="autocomplete-user-id" name="PaymentSearch[user_id]" value="' . $searchModel->user_id . '">
-                            <input id="search-student" class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" data-role="' . User::ROLE_PUPIL . '"
+                            <input id="search-student" class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" data-role="' . User::ROLE_STUDENT . '"
                             value="' . ($searchModel->user_id ? $searchModel->user->name : '') . '"></div>',
             ],
             [

@@ -7,25 +7,29 @@ use common\models\Contract;
 use common\models\Debt;
 use backend\models\Event;
 use backend\models\EventMember;
-use common\models\Group;
+use common\models\Course;
+use common\models\CourseConfig;
 use common\models\GroupParam;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use common\models\Payment;
 use common\models\User;
+use DateTime;
+use Yii;
 use yii\base\Component;
 use yii\db\ActiveQuery;
 
 class MoneyComponent extends Component
 {
     /**
-     * @param User $pupil
-     * @param int $amount
-     * @param Group $group
+     * @param User   $pupil
+     * @param int    $amount
+     * @param Course $group
+     *
      * @throws \Exception
      */
-    protected static function addPupilMoney(User $pupil, int $amount, Group $group)
+    protected static function addPupilMoney(User $pupil, int $amount, Course $group)
     {
-        if ($pupil->role != User::ROLE_PUPIL) throw new \Exception('Money can be changed only for pupils');
+        if ($pupil->role != User::ROLE_STUDENT) throw new \Exception('Money can be changed only for pupils');
 
         $pupil->money += $amount;
         if (!$pupil->save(true, ['money'])) throw new \Exception($pupil->getErrorsAsString());
@@ -39,9 +43,9 @@ class MoneyComponent extends Component
      */
     public static function registerIncome(Payment $payment)
     {
-        $transaction = \Yii::$app->getDb()->beginTransaction();
+        $transaction = Yii::$app->getDb()->beginTransaction();
         try {
-            self::savePayment($payment, Action::TYPE_INCOME, !empty(\Yii::$app->user->id));
+            self::savePayment($payment, Action::TYPE_INCOME, !empty(Yii::$app->user->id));
             self::rechargePupil($payment->user, $payment->group);
             $transaction->commit();
             return $payment->id;
@@ -55,44 +59,45 @@ class MoneyComponent extends Component
 
     /**
      * @param Company $company
-     * @param User $pupil
-     * @param int $amount
-     * @param Group $group
+     * @param User    $pupil
+     * @param int     $amount
+     * @param Course  $group
+     *
      * @return Contract
      * @throws \Exception
      */
-    public static function addPupilContract(Company $company, User $pupil, int $amount, Group $group): Contract
+    public static function addPupilContract(Company $company, User $pupil, int $amount, Course $group): Contract
     {
         if ($amount <= 0) throw new \Exception('Сумма договора не может быть отрицательной');
-        if ($pupil->role != User::ROLE_PUPIL) throw new \Exception('Договор может быть создан только для студента');
+        if ($pupil->role != User::ROLE_STUDENT) throw new \Exception('Договор может быть создан только для студента');
 
         $contract = new Contract();
-        if (!\Yii::$app->user->isGuest && \Yii::$app->user->id) {
-            $contract->created_admin_id = \Yii::$app->user->id;
+        if (!Yii::$app->user->isGuest && Yii::$app->user->id) {
+            $contract->created_admin_id = Yii::$app->user->id;
         }
         $contract->user_id = $pupil->id;
         $contract->company_id = $company->id;
-        $contract->group_id = $group->id;
+        $contract->course_id = $group->id;
         $contract->amount = $amount;
         $contract->created_at = date('Y-m-d H:i:s');
 
         $contract->discount = $group->lesson_price_discount && $amount >= $group->price12Lesson
             ? Contract::STATUS_ACTIVE
             : Contract::STATUS_INACTIVE;
-        /** @var GroupPupil $groupPupil */
-        $groupPupil = GroupPupil::find()
-            ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])
+        /** @var CourseStudent $groupPupil */
+        $groupPupil = CourseStudent::find()
+            ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])
             ->one();
         if ($groupPupil) {
-            if ($groupPupil->startDateObject->format('Y-m') == date('Y-m')) {
-                $groupParam = GroupComponent::getGroupParam($groupPupil->group, $groupPupil->startDateObject);
+            if ($groupPupil->startDateObject->format('Y-m') === date('Y-m')) {
+                $groupConfig = CourseComponent::getCourseConfig($groupPupil->group, $groupPupil->startDateObject);
             } elseif ($groupPupil->startDateObject->format('Y-m') < date('Y-m')) {
-                $groupParam1 = GroupComponent::getGroupParam($groupPupil->group, new \DateTime('-1 month'));
-                $groupParam2 = GroupComponent::getGroupParam($groupPupil->group, new \DateTime());
-                $groupParam = $groupParam1->price12Lesson < $groupParam2->price12Lesson ? $groupParam1 : $groupParam2;
+                $groupConfig1 = CourseComponent::getCourseConfig($groupPupil->group, new DateTime('-1 month'));
+                $groupConfig2 = CourseComponent::getCourseConfig($groupPupil->group, new DateTime());
+                $groupConfig = $groupConfig1->price12Lesson < $groupConfig2->price12Lesson ? $groupConfig1 : $groupConfig2;
             }
-            if (isset($groupParam)) {
-                $contract->discount = $groupParam->lesson_price_discount && $amount >= $groupParam->price12Lesson
+            if (isset($groupConfig)) {
+                $contract->discount = $groupConfig->lesson_price_discount && $amount >= $groupConfig->price12Lesson
                     ? Contract::STATUS_ACTIVE
                     : Contract::STATUS_INACTIVE;
             }
@@ -103,7 +108,7 @@ class MoneyComponent extends Component
             Action::TYPE_CONTRACT_ADDED,
             $pupil,
             $contract->amount,
-            $contract->group
+            $contract->course
         );
 
         return $contract;
@@ -111,20 +116,20 @@ class MoneyComponent extends Component
 
     /**
      * @param Contract $contract
-     * @param \DateTime|null $pupilStartDate
+     * @param DateTime|null $pupilStartDate
      * @param int $payType
      * @param null|string $paymentComment
      * @return int
      * @throws \Exception
      */
-    public static function payContract(Contract $contract, ?\DateTime $pupilStartDate, int $payType, ?string $paymentComment = null): int
+    public static function payContract(Contract $contract, ?DateTime $pupilStartDate, int $payType, ?string $paymentComment = null): int
     {
         if ($contract->status == Contract::STATUS_PAID) throw new \Exception('Договор уже оплачен!');
 
         $payment = new Payment();
-        $payment->admin_id = \Yii::$app->user->id;
+        $payment->admin_id = Yii::$app->user->id;
         $payment->user_id = $contract->user_id;
-        $payment->group_id = $contract->group_id;
+        $payment->group_id = $contract->course_id;
         $payment->amount = $contract->amount;
         $payment->discount = $contract->discount;
         $payment->contract_id = $contract->id;
@@ -133,16 +138,16 @@ class MoneyComponent extends Component
 
         $contract->status = Contract::STATUS_PAID;
         $contract->payment_type = $payType;
-        $contract->paid_admin_id = \Yii::$app->user->id;
+        $contract->paid_admin_id = Yii::$app->user->id;
         $contract->paid_at = date('Y-m-d H:i:s');
 
         if (!$contract->save()) throw new \Exception('Contract save error: ' . $contract->getErrorsAsString());
 
-        $groupPupil = GroupPupil::find()
-            ->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->group_id, 'active' => GroupPupil::STATUS_ACTIVE])
+        $groupPupil = CourseStudent::find()
+            ->andWhere(['user_id' => $contract->user_id, 'group_id' => $contract->course_id, 'active' => CourseStudent::STATUS_ACTIVE])
             ->one();
         if (!$groupPupil && $pupilStartDate) {
-            GroupComponent::addPupilToGroup($contract->user, $contract->group, $pupilStartDate);
+            CourseComponent::addPupilToGroup($contract->user, $contract->course, $pupilStartDate);
         }
 
         $paymentId = self::registerIncome($payment);
@@ -151,20 +156,21 @@ class MoneyComponent extends Component
             Action::TYPE_CONTRACT_PAID,
             $contract->user,
             $contract->amount,
-            $contract->group
+            $contract->course
         );
-        self::setUserChargeDates($contract->user, $contract->group);
-        GroupComponent::calculateTeacherSalary($contract->group);
+        self::setUserChargeDates($contract->user, $contract->course);
+        CourseComponent::calculateTeacherSalary($contract->course);
 
         return $paymentId;
     }
 
     /**
-     * @param User $user
-     * @param Group $group
+     * @param User   $user
+     * @param Course $group
+     *
      * @return bool
      */
-    public static function recalculateDebt(User $user, Group $group): bool
+    public static function recalculateDebt(User $user, Course $group): bool
     {
         $balance = Payment::find()
             ->andWhere(['user_id' => $user->id, 'group_id' => $group->id])
@@ -182,34 +188,30 @@ class MoneyComponent extends Component
         } elseif ($newDebt > 0) {
             $debt = new Debt();
             $debt->user_id = $user->id;
-            $debt->group_id = $group->id;
+            $debt->course_id = $group->id;
             $debt->amount = $newDebt;
             return $debt->save();
         }
         return true;
     }
 
-    /**
-     * @param Event $event
-     * @throws \Exception
-     */
-    public static function chargeByEvent(Event $event)
+    public static function chargeByEvent(Event $event): void
     {
         switch ($event->status) {
             case Event::STATUS_UNKNOWN:
                 return;
             case Event::STATUS_PASSED:
                 $paymentStub = new Payment();
-                $paymentStub->admin_id = \Yii::$app->user->id;
-                $paymentStub->group_id = $event->group_id;
+                $paymentStub->admin_id = Yii::$app->user->id;
+                $paymentStub->group_id = $event->course_id;
                 $paymentStub->created_at = $event->event_date;
 
                 foreach ($event->membersWithPayments as $eventMember) {
                     if (!$eventMember->payments) {
-                        $rate = 1;
-                        $groupParam = GroupComponent::getGroupParam($event->group, $event->eventDateTime);
+                        $rate = '1';
+                        $groupConfig = CourseComponent::getCourseConfig($event->group, $event->eventDateTime);
 
-                        while ($rate > 0) {
+                        while (bccomp($rate, '0', 8) > 0) {
                             $payment = clone $paymentStub;
                             $payment->user_id = $eventMember->groupPupil->user_id;
                             $payment->event_member_id = $eventMember->id;
@@ -217,7 +219,7 @@ class MoneyComponent extends Component
                             /** @var Payment $parentPayment */
                             $parentPayment = Payment::find()
                                 ->alias('p')
-                                ->andWhere(['p.user_id' => $eventMember->groupPupil->user_id, 'p.group_id' => $event->group_id])
+                                ->andWhere(['p.user_id' => $eventMember->groupPupil->user_id, 'p.group_id' => $event->course_id])
                                 ->andWhere(['>', 'p.amount', 0])
                                 ->joinWith('payments ch')
                                 ->select(['p.id', 'p.amount', 'p.discount', 'SUM(ch.amount) as spent'])
@@ -227,25 +229,25 @@ class MoneyComponent extends Component
                                 ->one();
 
                             if ($parentPayment) {
-                                $isDiscount = $groupParam->lesson_price_discount && $parentPayment->discount;
-                                $lessonPrice = $isDiscount ? $groupParam->lesson_price_discount : $groupParam->lesson_price;
-                                $toPay = (int)round($rate * $lessonPrice);
+                                $isDiscount = $groupConfig->lesson_price_discount && $parentPayment->discount;
+                                $lessonPrice = $isDiscount ? $groupConfig->lesson_price_discount : $groupConfig->lesson_price;
+                                $toPay = (int) bcmul($rate, (string) $lessonPrice, 0);
 
                                 if ($parentPayment->moneyLeft >= $toPay) {
                                     $payment->amount = $toPay * (-1);
                                     $payment->discount = $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
-                                    $rate = 0;
+                                    $rate = '0';
                                 } else {
                                     $payment->amount = $parentPayment->moneyLeft * (-1);
                                     $payment->discount = $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
-                                    $rate -= ($payment->amount * (-1)) / $lessonPrice;
+                                    $rate = bcsub($rate, number_format($payment->amount * (-1) / $lessonPrice, 8, '.', ''));
                                 }
                                 $payment->used_payment_id = $parentPayment->id;
                             } else {
-                                $toPay = round($rate * $groupParam->lesson_price);
+                                $toPay = (int) bcmul($rate, (string) $groupConfig->lesson_price, 0);
                                 $payment->amount = $toPay * (-1);
                                 $payment->discount = Payment::STATUS_INACTIVE;
-                                $rate = 0;
+                                $rate = '0';
                             }
                             self::savePayment($payment);
                             $eventMember->link('payments', $payment);
@@ -274,7 +276,6 @@ class MoneyComponent extends Component
         if ($payment->amount <= 0) throw new \Exception('Wrong payment! You are not able to decrease negative payments: ' . $payment->id);
         $diff = $newAmount - $payment->amount;
         $payment->amount = $newAmount;
-        $payment->bitrix_sync_status = Payment::STATUS_INACTIVE;
         if (!$payment->save()) throw new \Exception('Error decreasing payment: ' . $payment->getErrorsAsString());
         self::addPupilMoney($payment->user, $diff, $payment->group);
     }
@@ -320,15 +321,11 @@ class MoneyComponent extends Component
         )) throw new \Exception('Error logging payment: ' . $payment->id);
     }
 
-    /**
-     * @param User $user
-     * @param Group $group
-     */
-    public static function setUserChargeDates(User $user, Group $group)
+    public static function setUserChargeDates(User $user, Course $group)
     {
-        /** @var GroupPupil[] $groupPupils */
-        $groupPupils = GroupPupil::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id])->all();
-        if (count($groupPupils) == 0) return;
+        /** @var CourseStudent[] $groupPupils */
+        $groupPupils = CourseStudent::find()->andWhere(['user_id' => $user->id, 'group_id' => $group->id])->all();
+        if (count($groupPupils) === 0) return;
 
         /*    Собираем информацию обо всех внесенных средствах    */
         $money = (int) Payment::find()
@@ -367,19 +364,19 @@ class MoneyComponent extends Component
         foreach ($events as $event) {
             foreach ($event->members as $member) {
                 foreach ($member->payments as $payment) {
-                    $groupParam = GroupComponent::getGroupParam($group, $event->eventDateTime);
-                    if ($moneyDiscount > 0 && ($payment->discount || !$groupParam->lesson_price_discount)) {
+                    $groupConfig = CourseComponent::getCourseConfig($group, $event->eventDateTime);
+                    if ($moneyDiscount > 0 && ($payment->discount || !$groupConfig->lesson_price_discount)) {
                         $moneyDiscount += $payment->amount;
                     } else {
                         $money += $payment->amount;
                     }
                 }
                 if ($moneyDiscount <= 0 && $money < 0) {
-                    if (!$groupPupilMap[$member->group_pupil_id]['state']) {
-                        $groupPupilMap[$member->group_pupil_id]['entity']->date_charge_till = $event->event_date;
-                        $groupPupilMap[$member->group_pupil_id]['state'] = true;
+                    if (!$groupPupilMap[$member->course_student_id]['state']) {
+                        $groupPupilMap[$member->course_student_id]['entity']->date_charge_till = $event->event_date;
+                        $groupPupilMap[$member->course_student_id]['state'] = true;
                     }
-                    $groupPupilMap[$member->group_pupil_id]['entity']->paid_lessons--;
+                    $groupPupilMap[$member->course_student_id]['entity']->paid_lessons--;
                 }
             }
         }
@@ -392,17 +389,17 @@ class MoneyComponent extends Component
 
         /* Если не всем, то двигаемся в будущее */
         if ($continue > 0) {
-            $nowDate = new \DateTime('midnight');
+            $nowDate = new DateTime('midnight');
 
             foreach ($groupPupilMap as $id => $item) {
                 if (!$item['state'] && (!$item['entity']->date_end || $item['entity']->endDateObject >= $nowDate)
                     && (!$item['entity']->group->date_end || $item['entity']->group->endDateObject >= $nowDate)) {
                     $item['entity']->paid_lessons = 0;
-                    $groupPupilMap[$id]['param'] = GroupComponent::getGroupParam($item['entity']->group, $nowDate);
+                    $groupPupilMap[$id]['config'] = CourseComponent::getCourseConfig($item['entity']->group, $nowDate);
                 }
             }
 
-            $currentDate = new \DateTime('midnight');
+            $currentDate = new DateTime('midnight');
             $checkParam = true;
             while ($continue > 0) {
                 if ($checkParam && $nowDate->format('Y-m') != $currentDate->format('Y-m')) {
@@ -473,14 +470,10 @@ class MoneyComponent extends Component
         }
     }
 
-    /**
-     * @param User $pupil
-     * @param Group $group
-     */
-    public static function rechargePupil(User $pupil, Group $group)
+    public static function rechargePupil(User $pupil, Course $group)
     {
-        /** @var GroupPupil[] $groupPupils */
-        $groupPupils = GroupPupil::find()
+        /** @var CourseStudent[] $groupPupils */
+        $groupPupils = CourseStudent::find()
             ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id])
             ->orderBy(['active' => SORT_ASC, 'date_start' => SORT_ASC])
             ->with(['eventMembers' => function (ActiveQuery $query) {
@@ -501,13 +494,8 @@ class MoneyComponent extends Component
             ->asArray()
             ->all();
 
-        /** @var GroupParam[] $groupParams */
-        $groupParams = GroupParam::find()->andWhere(['group_id' => $group->id])->all();
-        /** @var GroupParam[] $groupParamMap */
-        $groupParamMap = [];
-        foreach ($groupParams as $groupParam) {
-            $groupParamMap["{$groupParam->year}-{$groupParam->month}"] = $groupParam;
-        }
+        /** @var CourseConfig[] $groupConfigs */
+        $groupConfigs = CourseConfig::find()->andWhere(['group_id' => $group->id])->orderBy(['date_from' => SORT_ASC])->all();
 
         $sortPayments = function($a, $b) {
             if ($a['id'] > $b['id']) return -1;
@@ -516,36 +504,35 @@ class MoneyComponent extends Component
         };
 
         foreach ($groupPupils as $groupPupil) {
+            $key = 0;
             foreach ($groupPupil->eventMembers as $eventMember) {
-                $key = $eventMember->event->eventDateTime->format('Y') . '-' . $eventMember->event->eventDateTime->format('n');
-                if (!array_key_exists($key, $groupParamMap)) {
-                    $groupParamMap[$key] = GroupComponent::getGroupParam($group, $eventMember->event->eventDateTime);
+                while (count($groupConfigs) > $key + 1 && $groupConfigs[$key + 1]->date_from <= $eventMember->event->eventDateTime->format('Y-m-d')) {
+                    ++$key;
                 }
-
-                $rate = 1;
+                $rate = '1';
                 $toCharge = [];
-                while ($rate > 0) {
+                while (bccomp($rate, '0', 8) > 0) {
                     if (!empty($payments)) {
-                        $isDiscount = $payments[0]['discount'] && $groupParamMap[$key]->lesson_price_discount;
-                        $lessonPrice = $isDiscount ? $groupParamMap[$key]->lesson_price_discount : $groupParamMap[$key]->lesson_price;
+                        $isDiscount = $payments[0]['discount'] && $groupConfigs[$key]->lesson_price_discount;
+                        $lessonPrice = $isDiscount ? $groupConfigs[$key]->lesson_price_discount : $groupConfigs[$key]->lesson_price;
 
-                        $toPay = intval(round($rate * $lessonPrice));
+                        $toPay = (int) bcmul($rate, (string) $lessonPrice, 0);
                         $toChargeItem = ['id' => $payments[0]['id'], 'discount' => $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE];
                         if ($payments[0]['amount'] >= $toPay) {
                             $toChargeItem['amount'] = $toPay;
                             $payments[0]['amount'] -= $toPay;
-                            $rate = 0;
+                            $rate = '0';
                         } else {
                             $toChargeItem['amount'] = $payments[0]['amount'];
-                            $rate -= $payments[0]['amount'] / $lessonPrice;
+                            $rate = bcsub($rate, number_format($payments[0]['amount'] * (-1) / $lessonPrice, 8, '.', ''));
                             $payments[0]['amount'] = 0;
                         }
                         $toCharge[] = $toChargeItem;
 
                         if ($payments[0]['amount'] <= 0) array_shift($payments);
                     } else {
-                        $toCharge[] = ['id' => null, 'discount' => 0, 'amount' => round($rate * $groupParamMap[$key]->lesson_price)];
-                        $rate = 0;
+                        $toCharge[] = ['id' => null, 'discount' => 0, 'amount' => (int) bcmul($rate, (string) $groupConfigs[$key]->lesson_price, 0)];
+                        $rate = '0';
                     }
                 }
 
@@ -555,14 +542,14 @@ class MoneyComponent extends Component
                     $charged[] = ['id' => $payment->used_payment_id, 'discount' => $payment->discount, 'amount' => $payment->amount * (-1)];
                 }
                 usort($charged, $sortPayments);
-                if ($toCharge != $charged) {
+                if ($toCharge !== $charged) {
                     foreach ($eventMember->payments as $payment) {
                         self::cancelPayment($payment);
                     }
                     foreach ($toCharge as $paymentData) {
                         $payment = new Payment();
                         $payment->user_id = $pupil->id;
-                        $payment->admin_id = \Yii::$app->user->id;
+                        $payment->admin_id = Yii::$app->user->id;
                         $payment->group_id = $group->id;
                         $payment->event_member_id = $eventMember->id;
                         $payment->created_at = $eventMember->event->event_date;

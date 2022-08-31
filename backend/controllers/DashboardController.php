@@ -2,7 +2,7 @@
 
 namespace backend\controllers;
 
-use common\components\GroupComponent;
+use common\components\CourseComponent;
 use common\models\Contract;
 use common\models\GiftCard;
 use common\models\User;
@@ -18,7 +18,7 @@ class DashboardController extends AdminController
     public function actionIndex()
     {
         return $this->render('index', [
-            'pupilLimitDate' => GroupComponent::getPupilLimitDate(),
+            'pupilLimitDate' => CourseComponent::getPupilLimitDate(),
             'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
             'contractAllowed' => Yii::$app->user->can('contractManagement'),
         ]);
@@ -43,7 +43,7 @@ class DashboardController extends AdminController
             if ($giftCard) {
                 /** @var User $existingPupil */
                 $existingPupil = User::find()
-                    ->andWhere(['role' => [User::ROLE_PUPIL]])
+                    ->andWhere(['role' => [User::ROLE_STUDENT]])
                     ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $giftCard->customer_phone])
                     ->with(['activeGroupPupils.group'])
@@ -63,7 +63,7 @@ class DashboardController extends AdminController
             $pupilIdSet = [];
             $pupilQuery = clone $query;
             /** @var User[] $users */
-            $users = $pupilQuery->andWhere(['role' => User::ROLE_PUPIL])->all();
+            $users = $pupilQuery->andWhere(['role' => User::ROLE_STUDENT])->all();
             foreach ($users as $user) {
                 $pupils[] = $user;
                 $pupilIdSet[$user->id] = true;

@@ -3,7 +3,7 @@
 namespace backend\controllers;
 
 use common\models\Company;
-use common\models\Group;
+use common\models\Course;
 use common\models\Teacher;
 use yii;
 use common\models\Subject;
@@ -70,44 +70,46 @@ class AjaxInfoController extends AdminController
         return $this->asJson($resultArray);
     }
     
-    public function actionGroups()
+    public function actionCourses()
     {
         $where = [];
         $params = [];
         $whitelist = ['name', 'active', 'subject_id', 'teacher_id'];
         foreach ($this->getFilter() as $key => $value) {
             if (in_array($key, $whitelist)) {
-                $where[] = Group::tableName() . ".$key = :$key";
+                $where[] = Course::tableName() . ".$key = :$key";
                 $params[":$key"] = $value;
             }
         }
-        $query = Group::find();
+        $query = Course::find();
         foreach ($where as $condition) {
             $query->andWhere($condition);
         }
-        /** @var Group[] $groups */
-        $groups = $query->addParams($params)
+        /** @var Course[] $courses */
+        $courses = $query->addParams($params)
             ->orderBy($this->getOrder('name'))
             ->with('subject', 'teacher')
             ->all();
         $resultArray = [];
-        foreach ($groups as $group) {
+        foreach ($courses as $course) {
+            $courseConfig = $course->courseConfig;
             $resultArray[] = [
-                'id' => $group->id,
-                'name' => $group->name,
-                'active' => $group->active === Group::STATUS_ACTIVE,
-                'subjectId' => $group->subject_id,
-                'subject' => $group->subject->name,
-                'teacherId' => $group->teacher_id,
-                'teacher' => $group->teacher->name,
-                'priceLesson' => $group->lesson_price,
-                'priceMonth' => $group->priceMonth,
-                'price12Lesson' => $group->price12Lesson,
-                'dateStart' => $group->date_start,
-                'dateEnd' => $group->date_end,
-                'weekDays' => array_map(function($val) { return ($val + 1) % 7; }, array_keys(array_filter($group->scheduleData))),
+                'id' => $course->id,
+                'name' => $courseConfig->name,
+                'active' => $course->active === Course::STATUS_ACTIVE,
+                'subjectId' => $course->subject_id,
+                'subject' => $course->subject->name,
+                'teacherId' => $courseConfig->teacher_id,
+                'teacher' => $courseConfig->teacher->name,
+                'priceLesson' => $courseConfig->lesson_price,
+                'priceMonth' => $courseConfig->priceMonth,
+                'price12Lesson' => $courseConfig->price12Lesson,
+                'dateStart' => $course->date_start,
+                'dateEnd' => $course->date_end,
+                'weekDays' => array_map(static fn (int $val) => ($val + 1) % 7, array_keys(array_filter($courseConfig->schedule))),
             ];
         }
+        usort($resultArray, static fn (array $a, array $b) => $a['name'] <=> $b['name']);
 
         return $this->asJson($resultArray);
     }

@@ -16,7 +16,7 @@ class ContractSearch extends Contract
     public function rules()
     {
         return [
-            [['user_id', 'group_id', 'amount'], 'integer'],
+            [['user_id', 'course_id', 'amount'], 'integer'],
             [['created_at', 'paid_at', 'number'], 'string'],
             [['amountFrom', 'amountTo'], 'safe'],
         ];
@@ -42,7 +42,7 @@ class ContractSearch extends Contract
      */
     public function search($params)
     {
-        $query = Contract::find()->with(['user', 'group']);
+        $query = Contract::find()->with(['user', 'course']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -93,7 +93,7 @@ class ContractSearch extends Contract
         // grid filtering conditions
         $query->andFilterWhere([
             'user_id' => $this->user_id,
-            'group_id' => $this->group_id,
+            'course_id' => $this->course_id,
         ]);
 
         if (isset($params['ContractSearch'], $params['ContractSearch']['created_at'])) {

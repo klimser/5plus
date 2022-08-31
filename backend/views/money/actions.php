@@ -80,7 +80,7 @@ $renderTable = function(array $arr)
                     return $model->user_id ? $model->user->name : null;
                 },
                 'filter' => '<div><input type="hidden" class="autocomplete-user-id" name="ActionSearch[user_id]" value="' . $searchModel->user_id . '">
-                            <input id="search-student" class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" data-role="' . User::ROLE_PUPIL . '"
+                            <input id="search-student" class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" data-role="' . User::ROLE_STUDENT . '"
                             value="' . ($searchModel->user_id ? $searchModel->user->name : '') . '"></div>',
             ],
             [

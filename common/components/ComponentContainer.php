@@ -3,7 +3,6 @@
 namespace common\components;
 
 use common\components\apelsin\ApelsinApi;
-use common\components\bitrix\Bitrix;
 use common\components\click\ClickApi;
 use common\components\paygram\PaygramApi;
 use common\components\payme\PaymeApi;
@@ -48,10 +47,6 @@ class ComponentContainer
     public static function getTelegramPublic(): Telegram
     {
         return Yii::$app->telegramPublic;
-    }
-    public static function getBitrix(): Bitrix
-    {
-        return Yii::$app->bitrix;
     }
     public static function getBotPush(): BotPush
     {

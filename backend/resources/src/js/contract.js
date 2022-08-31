@@ -14,13 +14,13 @@ let Contract = {
         let pupil = Money.pupils[Money.pupilId];
         let blockHtml = '<div class="panel panel-default"><div class="panel-body">';
         pupil.groups.forEach(function(group) {
-            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + group.id + '" onclick="Contract.setGroup(' + group.id + ', \'' + group.date_start + '\', \'' + group.date_charge_till + '\');">' + Main.groupMap[group.id].name + '</button>';
+            blockHtml += '<button class="btn btn-outline-dark btn-lg mr-3 mb-2 group-result-button" type="button" id="group-' + group.id + '" onclick="Contract.setGroup(' + group.id + ', \'' + group.date_start + '\', \'' + group.date_charge_till + '\');">' + Main.courseMap[group.id].name + '</button>';
         });
         blockHtml += '<div class="card group-result-button" id="group_new_block"><div class="card-body"><div class="form-inline"><label for="new_group" class="mr-sm-2">Ещё не занимается, просто выдать договор:</label>' +
             '<select id="new_group" class="form-control mr-sm-2">';
-        Main.groupActiveList.forEach(function(groupId) {
+        Main.courseActiveList.forEach(function(groupId) {
             if (pupil.groups.indexOf(groupId) < 0) {
-                blockHtml += '<option value="' + groupId + '">' + Main.groupMap[groupId].name + '</option>';
+                blockHtml += '<option value="' + groupId + '">' + Main.courseMap[groupId].name + '</option>';
             }
         });
         blockHtml += '</select>' +
@@ -34,7 +34,7 @@ let Contract = {
             return Money.groups[groupId];
         }
         
-        return Main.groupMap[groupId];
+        return Main.courseMap[groupId];
     },
     setGroup: function (groupId, dateStart, dateChargeTill) {
         Money.groupId = groupId;
@@ -53,8 +53,8 @@ let Contract = {
         } else {
             $("#group_dates").collapse("hide");
         }
-        $("#payment-0").find(".price").text(Main.groupMap[groupId].priceLesson);
-        $("#payment-1").find(".price").text(Main.groupMap[groupId].price12Lesson);
+        $("#payment-0").find(".price").text(Main.courseMap[groupId].priceLesson);
+        $("#payment-1").find(".price").text(Main.courseMap[groupId].price12Lesson);
         $("#payment_type_block").collapse("show").find("button").removeClass("btn-primary").addClass('btn-outline-dark');
         $("#income_form").collapse('hide');
     },
@@ -64,7 +64,7 @@ let Contract = {
         this.paymentType = paymentType;
 
         let amountInput = $("#amount");
-        let group = Main.groupMap[Money.groupId];
+        let group = Main.courseMap[Money.groupId];
         if (this.paymentType === 1) {
             $(amountInput).val(group.price12Lesson).attr("min", group.price12Lesson);
         } else {

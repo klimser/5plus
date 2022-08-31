@@ -13,7 +13,7 @@ class UserComponent extends Component
         User::ROLE_MANAGER => 'Офис-менеджер',
         User::ROLE_COMPANY => 'Компания',
         User::ROLE_PARENTS => 'Родители',
-        User::ROLE_PUPIL   => 'Студент',
+        User::ROLE_STUDENT   => 'Студент',
         User::ROLE_TEACHER   => 'Учитель',
     ];
 

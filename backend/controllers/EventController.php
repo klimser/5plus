@@ -6,7 +6,7 @@ use backend\components\EventComponent;
 use backend\models\WelcomeLesson;
 use common\components\Action;
 use common\components\ComponentContainer;
-use common\components\GroupComponent;
+use common\components\CourseComponent;
 use common\components\helpers\WordForm;
 use common\components\MoneyComponent;
 use backend\models\Event;
@@ -39,7 +39,7 @@ class EventController extends AdminController
     private function isTeacherHasAccess(Event $event): bool
     {
         if (Yii::$app->user->can('teacher')) {
-            $groupParam = GroupComponent::getGroupParam($event->group, new DateTime());
+            $groupParam = CourseComponent::getGroupParam($event->group, new DateTime());
             return $groupParam->teacher_id == Yii::$app->user->identity->teacher_id;
         }
         return true;
@@ -144,7 +144,6 @@ class EventController extends AdminController
             switch ($status) {
                 case Event::STATUS_PASSED:
                     MoneyComponent::chargeByEvent($event);
-                    GroupComponent::calculateTeacherSalary($event->group);
 
                     foreach ($event->members as $member) {
                         MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
@@ -179,9 +178,6 @@ class EventController extends AdminController
                     foreach ($event->welcomeMembers as $welcomeMember) {
                         $welcomeMember->status = WelcomeLesson::STATUS_CANCELED;
                         $welcomeMember->save();
-                    }
-                    if ($recalculateCharges) {
-                        GroupComponent::calculateTeacherSalary($event->group);
                     }
                     ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_CANCELLED, null, null, $event->group);
                     break;
@@ -218,7 +214,7 @@ class EventController extends AdminController
             return self::getJsonErrorResult();
         }
         ComponentContainer::getActionLogger()
-            ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->group, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
+            ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->course, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
 
         return self::getJsonOkResult(['member' => $this->prepareWelcomeMemberData($welcomeLesson)]);
     }

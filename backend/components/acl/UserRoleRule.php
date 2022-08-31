@@ -34,7 +34,7 @@ class UserRoleRule extends Rule
             } elseif ($item->name === 'parents') {
                 return $role == User::ROLE_PARENTS || $role == User::ROLE_COMPANY || $role == User::ROLE_MANAGER || $role == User::ROLE_ROOT;
             } elseif ($item->name === 'pupil') {
-                return $role == User::ROLE_PUPIL || $role == User::ROLE_PARENTS || $role == User::ROLE_COMPANY || $role == User::ROLE_MANAGER || $role == User::ROLE_ROOT;
+                return $role == User::ROLE_STUDENT || $role == User::ROLE_PARENTS || $role == User::ROLE_COMPANY || $role == User::ROLE_MANAGER || $role == User::ROLE_ROOT;
             }
         }
         return false;

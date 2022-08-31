@@ -3,7 +3,7 @@
 
 use common\components\helpers\MoneyHelper;
 use common\components\helpers\WordForm;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 
 /* @var $pupil \common\models\User */
 /* @var $contractAllowed bool */
@@ -12,9 +12,9 @@ use common\models\GroupPupil;
 /* @var $groupManagementAllowed bool */
 /* @var $moveMoneyAllowed bool */
 $activeGroupIdSet = [];
-foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
+foreach ($pupil->courseStudentsAggregated as $groupId => $groupPupils) {
     foreach ($groupPupils as $groupPupil) {
-        if ($groupPupil->active === GroupPupil::STATUS_ACTIVE) {
+        if ($groupPupil->active === CourseStudent::STATUS_ACTIVE) {
             $activeGroupIdSet[$groupId] = true;
         }
     }
@@ -31,16 +31,16 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
     <?php endif; ?>
     <div class="groups-table">
         <?php
-        /** @var GroupPupil[] $groupPupils */
-        foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils):
+        /** @var CourseStudent[] $groupPupils */
+        foreach ($pupil->courseStudentsAggregated as $groupId => $groupPupils):
             $groupNameRendered = false;
             $isActive = false;
             foreach ($groupPupils as $groupPupil):
-                if ($groupPupil->active === GroupPupil::STATUS_ACTIVE) {
+                if ($groupPupil->active === CourseStudent::STATUS_ACTIVE) {
                     $isActive = true;
                 }
             ?>
-                <div class="row justify-content-between align-items-start border-bottom pb-3 mb-3 collapse group-item <?= $groupPupil->active === GroupPupil::STATUS_INACTIVE ? ' inactive table-secondary ' : ' show '; ?>">
+                <div class="row justify-content-between align-items-start border-bottom pb-3 mb-3 collapse group-item <?= $groupPupil->active === CourseStudent::STATUS_INACTIVE ? ' inactive table-secondary ' : ' show '; ?>">
                     <div class="col-8 col-md-9">
                         <div class="row">
                             <div class="col-12 col-md-4 col-lg-6">
@@ -69,7 +69,7 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                         </div>
                     </div>
                     <div class="col-4 col-md-3 text-right">
-                        <?php if ($groupPupil->active === GroupPupil::STATUS_ACTIVE): ?>
+                        <?php if ($groupPupil->active === CourseStudent::STATUS_ACTIVE): ?>
                             <?php if ($incomeAllowed): ?>
                                 <?php if ($pupil->isAgeConfirmed()): ?>
                                     <button type="button" title="принять оплату" class="btn btn-primary mb-2" onclick="Dashboard.showMoneyIncomeForm(this);"
@@ -136,7 +136,7 @@ foreach ($pupil->groupPupilsAggregated as $groupId => $groupPupils) {
                     </div>
                 </div>
             <?php
-                if ($groupPupil->active === GroupPupil::STATUS_ACTIVE) {
+                if ($groupPupil->active === CourseStudent::STATUS_ACTIVE) {
                     $groupNameRendered = true;
                 }
             endforeach;

@@ -34,33 +34,31 @@ use yii\web\IdentityInterface;
  * @property int $teacher_id
  * @property int $tg_chat_id
  * @property-read string $tg_params
- * @property array $telegramSettings
- * @property int $bitrix_id
- * @property int $bitrix_sync_status
- * @property int $age_confirmed
- * @property int $created_by
- * @property string $password write-only password
- * @property array $nameParts
- * @property array $firstName
- * @property User $parent
- * @property Teacher $teacher
- * @property User[] $children
- * @property User[] $notLockedChildren
- * @property GroupPupil[] $groupPupils
- * @property GroupPupil[] $groupPupilsAggregated
- * @property Group[] $groups
- * @property GroupPupil[] $activeGroupPupils
- * @property Group[] $activeGroups
- * @property Action[] $actions
- * @property Action[] $actionsAsAdmin
- * @property Payment[] $payments
- * @property Payment[] $paymentsAsAdmin
- * @property Debt[] $debts
- * @property Consultation[] $consultations
+ * @property array           $telegramSettings
+ * @property int             $age_confirmed
+ * @property int             $created_by
+ * @property string          $password write-only password
+ * @property array           $nameParts
+ * @property array           $firstName
+ * @property User            $parent
+ * @property Teacher         $teacher
+ * @property User[]          $children
+ * @property User[]          $notLockedChildren
+ * @property CourseStudent[] $courseStudents
+ * @property CourseStudent[] $courseStudentsAggregated
+ * @property Course[]        $courses
+ * @property CourseStudent[] $activeCourseStudents
+ * @property Course[]        $activeCourses
+ * @property Action[]        $actions
+ * @property Action[]        $actionsAsAdmin
+ * @property Payment[]       $payments
+ * @property Payment[]       $paymentsAsAdmin
+ * @property Debt[]          $debts
+ * @property Consultation[]  $consultations
  * @property WelcomeLesson[] $welcomeLessons
- * @property Contract[] $contracts
- * @property string $nameHidden
- * @property User $createdAdmin
+ * @property Contract[]      $contracts
+ * @property string          $nameHidden
+ * @property User            $createdAdmin
  */
 class User extends ActiveRecord implements IdentityInterface
 {
@@ -74,7 +72,7 @@ class User extends ActiveRecord implements IdentityInterface
 
     const ROLE_ROOT    = 1;
     const ROLE_PARENTS = 2;
-    const ROLE_PUPIL   = 3;
+    const ROLE_STUDENT = 3;
     const ROLE_COMPANY = 4;
     const ROLE_MANAGER = 10;
     const ROLE_TEACHER = 20;
@@ -109,8 +107,7 @@ class User extends ActiveRecord implements IdentityInterface
             ['status', 'default', 'value' => self::STATUS_INACTIVE, 'on' => self::SCENARIO_USER],
             ['status', 'default', 'value' => self::STATUS_ACTIVE, 'on' => self::SCENARIO_ADMIN],
             ['individual', 'default', 'value' => 1],
-            ['role', 'default', 'value' => self::ROLE_PUPIL],
-            ['bitrix_sync_status', 'default', 'value' => 0],
+            ['role', 'default', 'value' => self::ROLE_STUDENT],
             [['password_hash'], 'default', 'value' => ''],
             [['username', 'note', 'password_reset_token', 'phone2'], 'default', 'value' => null],
 
@@ -132,7 +129,7 @@ class User extends ActiveRecord implements IdentityInterface
             }"
             ],
             [['created_by'], 'required'],
-            [['status', 'money', 'role', 'parent_id', 'teacher_id', 'bitrix_id', 'tg_chat_id'], 'integer'],
+            [['status', 'money', 'role', 'parent_id', 'teacher_id', 'tg_chat_id'], 'integer'],
             [['username', 'note', 'password_hash', 'password_reset_token'], 'string', 'max' => 255],
             [['name'], 'string', 'max' => 127],
             [['name'], 'match', 'pattern' => '#^[a-zа-яё -]+$#iu'],
@@ -157,8 +154,7 @@ class User extends ActiveRecord implements IdentityInterface
             ],
 
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_LOCKED]],
-            ['role', 'in', 'range' => [self::ROLE_PUPIL, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER, self::ROLE_TEACHER]],
-            ['bitrix_sync_status', 'in', 'range' => [0, 1]],
+            ['role', 'in', 'range' => [self::ROLE_STUDENT, self::ROLE_PARENTS, self::ROLE_COMPANY, self::ROLE_ROOT, self::ROLE_MANAGER, self::ROLE_TEACHER]],
             ['teacher_id', 'exist', 'targetRelation' => 'teacher'],
             ['created_by', 'exist', 'targetRelation' => 'createdAdmin'],
         ];
@@ -222,145 +218,82 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->hasOne(Teacher::class, ['id' => 'teacher_id'])->inverseOf('user');
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getGroupPupils()
+    public function getCourseStudents(): ActiveQuery
     {
-        return $this->hasMany(GroupPupil::class, ['user_id' => 'id'])->inverseOf('user');
+        return $this->hasMany(CourseStudent::class, ['user_id' => 'id'])->inverseOf('user');
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getGroups()
+    public function getCourses(): ActiveQuery
     {
-        return $this->hasMany(Group::class, ['id' => 'group_id'])
-            ->via('groupPupils');
+        return $this->hasMany(Course::class, ['id' => 'course_id'])
+            ->via('courseStudents');
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getActiveGroupPupils()
+    public function getActiveCourseStudents(): ActiveQuery
     {
-        return $this->hasMany(GroupPupil::class, ['user_id' => 'id'])->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE]);
+        return $this->hasMany(CourseStudent::class, ['user_id' => 'id'])->andWhere([CourseStudent::tableName() . '.active' => CourseStudent::STATUS_ACTIVE]);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getActiveGroups()
+    public function getActiveCourses(): ActiveQuery
     {
-        return $this->hasMany(Group::class, ['id' => 'group_id'])
-            ->via('activeGroupPupils');
+        return $this->hasMany(Course::class, ['id' => 'course_id'])
+            ->via('activeCourseStudents');
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getActions()
+    public function getActions(): ActiveQuery
     {
         return $this->hasMany(Action::class, ['user_id' => 'id']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getActionsAsAdmin()
+    public function getActionsAsAdmin(): ActiveQuery
     {
         return $this->hasMany(Action::class, ['admin_id' => 'id']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getDebts()
+    public function getDebts(): ActiveQuery
     {
         return $this->hasMany(Debt::class, ['user_id' => 'id']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getEventMembers()
+    public function getEventMembers(): ActiveQuery
     {
         return $this->hasMany(EventMember::class, ['user_id' => 'id']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getContracts()
+    public function getContracts(): ActiveQuery
     {
         return $this->hasMany(Contract::class, ['user_id' => 'id'])->orderBy(['created_at' => SORT_DESC]);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getPayments()
+    public function getPayments(): ActiveQuery
     {
         return $this->hasMany(Payment::class, ['user_id' => 'id'])->orderBy(['created_at' => SORT_DESC]);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getPaymentsAsAdmin()
+    public function getPaymentsAsAdmin(): ActiveQuery
     {
         return $this->hasMany(Payment::class, ['admin_id' => 'id']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getCreatedAdmin()
+    public function getCreatedAdmin(): ActiveQuery
     {
         return $this->hasOne(User::class, ['id' => 'created_by']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getConsultations()
+    public function getConsultations(): ActiveQuery
     {
         return $this->hasMany(Consultation::class, ['user_id' => 'id'])->with('subject')->addOrderBy(['created_at' => SORT_DESC]);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getWelcomeLessons()
+    public function getWelcomeLessons(): ActiveQuery
     {
-        return $this->hasMany(WelcomeLesson::class, ['user_id' => 'id'])->with(['group'])->addOrderBy(['lesson_date' => SORT_DESC]);
+        return $this->hasMany(WelcomeLesson::class, ['user_id' => 'id'])->with(['course'])->addOrderBy(['lesson_date' => SORT_DESC]);
     }
 
-    /**
-     * @return string[]
-     */
-    public function getTelegramSettings(): array
-    {
-        return json_decode($this->getAttribute('tg_params'), true) ?: [];
-    }
-
-    /**
-     * @param string[] $value
-     */
-    public function setTelegramSettings(array $value)
-    {
-        $this->setAttribute('tg_params', json_encode($value));
-    }
-
-    /**
-     * @param Group $group
-     *
-     * @return Debt|null
-     */
-    public function getDebt(Group $group): ?Debt
+    public function getDebt(Course $course): ?Debt
     {
         foreach ($this->debts as $debt) {
-            if ($debt->group_id == $group->id) {
+            if ($debt->course_id == $course->id) {
                 return $debt;
             }
         }
@@ -402,15 +335,15 @@ class User extends ActiveRecord implements IdentityInterface
         return $userName;
     }
 
-    public function getGroupPupilsAggregated(): array
+    public function getCourseStudentsAggregated(): array
     {
         $result = [];
-        /** @var GroupPupil $groupPupil */
-        foreach ($this->getGroupPupils()->orderBy(['date_start' => SORT_DESC])->with('group')->all() as $groupPupil) {
-            if (!array_key_exists($groupPupil->group_id, $result)) {
-                $result[$groupPupil->group_id] = [];
+        /** @var CourseStudent $courseStudent */
+        foreach ($this->getCourseStudents()->orderBy(['date_start' => SORT_DESC])->with('course')->all() as $courseStudent) {
+            if (!array_key_exists($courseStudent->course_id, $result)) {
+                $result[$courseStudent->course_id] = [];
             }
-            $result[$groupPupil->group_id][] = $groupPupil;
+            $result[$courseStudent->course_id][] = $courseStudent;
         }
 
         return $result;
@@ -444,7 +377,6 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
     }
-
 
     public static function findIdentityByAccessToken($token, $type = null)
     {
@@ -584,7 +516,7 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return self::find()
             ->andWhere(['or', ['phone' => $phoneFull], ['phone2' => $phoneFull]])
-            ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY, User::ROLE_PUPIL]])
+            ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY, User::ROLE_STUDENT]])
             ->andWhere(['!=', 'status', User::STATUS_LOCKED])
             ->all();
     }

@@ -17,7 +17,7 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
         name: '{$pupil->nameHidden}',
         groups: []
     };\n";
-    foreach ($pupil->activeGroupPupils as $groupPupil) {
+    foreach ($pupil->activeCourseStudents as $groupPupil) {
         $debt = $pupil->getDebt($groupPupil->group);
         $debt = $debt ? $debt->amount : 0;
         $script .= "Payment.users[{$pupil->id}].groups.push({
@@ -42,7 +42,7 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
     <div class="content-box">
         <div class="row">
             <div id="user_select" class="col-12">
-                <?php if (User::ROLE_PUPIL === $user->role): ?>
+                <?php if (User::ROLE_STUDENT === $user->role): ?>
                     <?= $getPupilButton($user, true); ?>
                 <?php
                     $script .= "Payment.user = {$user->id};

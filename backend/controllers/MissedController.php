@@ -5,9 +5,9 @@ use backend\models\Event;
 use backend\models\EventMember;
 use backend\models\UserCall;
 use common\components\ComponentContainer;
-use common\models\Group;
+use common\models\Course;
 use common\models\GroupParam;
-use common\models\GroupPupil;
+use common\models\CourseStudent;
 use Exception;
 use Yii;
 use yii\web\BadRequestHttpException;
@@ -25,63 +25,62 @@ class MissedController extends AdminController
     {
         $this->checkAccess('callMissed');
 
-        /** @var Group[] $groups */
-        $groups = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all();
-        $groupMap = [];
-        foreach ($groups as $group) {
-            $groupMap[$group->id] = [
-                'entity' => $group,
-                'pupils' => [],
+        /** @var Course[] $courses */
+        $courses = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all();
+        $courseMap = [];
+        foreach ($courses as $course) {
+            $courseMap[$course->id] = [
+                'entity' => $course,
+                'students' => [],
             ];
             /** @var Event[] $lastEvents */
             $lastEvents = Event::find()
-                ->andWhere(['group_id' => $group->id, 'status' => Event::STATUS_PASSED])
-                ->with('members.groupPupil')
+                ->andWhere(['group_id' => $course->id, 'status' => Event::STATUS_PASSED])
+                ->with('members.courseStudent')
                 ->orderBy(['event_date' => SORT_DESC])
                 ->limit(self::MISS_LIMIT)
                 ->all();
             $missedMap = [];
-            /** @var GroupPupil[] $groupPupilMap */
-            $groupPupilMap = [];
+            /** @var CourseStudent[] $courseStudentMap */
+            $courseStudentMap = [];
             foreach ($lastEvents as $event) {
                 foreach ($event->members as $eventMember) {
                     if ($eventMember->status == EventMember::STATUS_MISS) {
-                        $missedMap[$eventMember->group_pupil_id] = ($missedMap[$eventMember->group_pupil_id] ?? 0) + 1;
-                        $groupPupilMap[$eventMember->group_pupil_id] = $eventMember->groupPupil;
+                        $missedMap[$eventMember->course_student_id] = ($missedMap[$eventMember->course_student_id] ?? 0) + 1;
+                        $courseStudentMap[$eventMember->course_student_id] = $eventMember->courseStudent;
                     }
                 }
             }
-            foreach ($missedMap as $groupPupilId => $missedCount) {
+            foreach ($missedMap as $courseStudentId => $missedCount) {
                 if ($missedCount == self::MISS_LIMIT) {
-                    $pupilData = [
-                        'groupPupil' => $groupPupilMap[$groupPupilId],
-                        'calls' => [],
+                    $studentData = [
+                        'courseStudent' => $courseStudentMap[$courseStudentId],
                     ];
                     /** @var Event $lastVisit */
                     $lastVisit = Event::find()->alias('e')
                         ->joinWith(['members em'], false)
                         ->andWhere([
-                            'e.group_id' => $groupPupilMap[$groupPupilId]->group_id,
+                            'e.course_id' => $courseStudentMap[$courseStudentId]->course_id,
                             'e.status' => Event::STATUS_PASSED,
-                            'em.group_pupil_id' => $groupPupilId,
+                            'em.course_student_id' => $courseStudentId,
                             'em.status' => EventMember::STATUS_ATTEND,
                         ])
                         ->orderBy(['e.event_date' => SORT_DESC])
                         ->one();
                     $callDateFrom = $lastVisit
                         ? $lastVisit->eventDateTime
-                        : $groupPupilMap[$groupPupilId]->startDateObject;
-                    $pupilData['calls'] = UserCall::find()
-                        ->andWhere(['user_id' => $groupPupilMap[$groupPupilId]->user_id])
+                        : $courseStudentMap[$courseStudentId]->startDateObject;
+                    $studentData['calls'] = UserCall::find()
+                        ->andWhere(['user_id' => $courseStudentMap[$courseStudentId]->user_id])
                         ->andWhere(['>', 'created_at', $callDateFrom->format('Y-m-d H:i:s')])
                         ->orderBy(['created_at' => SORT_ASC])
                         ->all();
-                    $groupMap[$group->id]['pupils'][] = $pupilData;
+                    $courseMap[$course->id]['students'][] = $studentData;
                 }
             }
         }
 
-        return $this->render('list', ['groupMap' => $groupMap]);
+        return $this->render('list', ['courseMap' => $courseMap]);
     }
 
     /**
@@ -96,7 +95,7 @@ class MissedController extends AdminController
 
         $groupPupilId = Yii::$app->request->post('groupPupil');
         if (!$groupPupilId) throw new BadRequestHttpException('Wrong request');
-        $groupPupil = GroupPupil::findOne($groupPupilId);
+        $groupPupil = CourseStudent::findOne($groupPupilId);
         if (!$groupPupil) throw new BadRequestHttpException('Wrong request');
         $callResult = Yii::$app->request->post('callResult')[$groupPupilId];
         $comment = Yii::$app->request->post('callComment')[$groupPupilId];
@@ -144,7 +143,7 @@ class MissedController extends AdminController
         $dataMap = [];
         $group = null;
         if ($groupId) {
-            $group = Group::findOne($groupId);
+            $group = Course::findOne($groupId);
             if (!$group) throw new BadRequestHttpException('Group not found');
             if ($teacherId) {
                 $groupParam = GroupParam::findByDate($group, $dateStart);
@@ -162,16 +161,16 @@ class MissedController extends AdminController
             foreach ($events as $event) {
                 $eventMap[(int)$event->eventDateTime->format('j')] = $event;
                 foreach ($event->members as $eventMember) {
-                    if (!array_key_exists($eventMember->group_pupil_id, $dataMap)) {
-                        $dataMap[$eventMember->group_pupil_id] = [0 => $eventMember->groupPupil->user->name];
+                    if (!array_key_exists($eventMember->course_student_id, $dataMap)) {
+                        $dataMap[$eventMember->course_student_id] = [0 => $eventMember->groupPupil->user->name];
                     }
-                    $dataMap[$eventMember->group_pupil_id][(int)$event->eventDateTime->format('j')] = $eventMember->toArray();
+                    $dataMap[$eventMember->course_student_id][(int)$event->eventDateTime->format('j')] = $eventMember->toArray();
                 }
             }
             usort($dataMap, function($a, $b) { return $a[0] <=> $b[0]; });
         }
 
-        $groupQuery = Group::find()->andWhere(['active' => Group::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC]);
+        $groupQuery = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC]);
         if ($teacherId) {
             $ids = GroupParam::find()->andWhere(['teacher_id' => $teacherId])->select('group_id')->distinct(true)->column();
             $groupQuery->andWhere(['id' => $ids]);

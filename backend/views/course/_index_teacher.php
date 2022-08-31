@@ -1,22 +1,20 @@
 <?php
 
-use common\components\helpers\Calendar;
 use common\components\helpers\WordForm;
-use common\models\Group;
-use common\models\GroupSearch;
+use common\models\Course;
+use common\models\CourseSearch;
 use common\models\Subject;
 use common\models\Teacher;
-use yii\bootstrap4\LinkPager;
-use yii\grid\ActionColumn;
-use yii\helpers\ArrayHelper;
 use yii\bootstrap4\Html;
-use yii\grid\GridView;
-use yii\helpers\Url;
+use yii\bootstrap4\LinkPager;
 use yii\data\ActiveDataProvider;
+use yii\grid\ActionColumn;
+use yii\grid\GridView;
+use yii\helpers\ArrayHelper;
 use yii\web\View;
 
 /* @var $this View */
-/* @var $searchModel GroupSearch */
+/* @var $searchModel CourseSearch */
 /* @var $dataProvider ActiveDataProvider */
 /* @var $subjectMap Subject[] */
 /* @var $teacherMap Teacher[] */
@@ -28,16 +26,14 @@ use yii\web\View;
     'filterModel' => $searchModel,
     'options' => ['class' => 'grid-view table-responsive'],
     'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
-    'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == Group::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [];},
+    'rowOptions' => static fn (Course $model, $key, $index, $grid) => ($model->active == Course::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [],
     'columns' => [
         ['class' => 'yii\grid\SerialColumn'],
         'name',
         [
             'attribute' => 'subject_id',
             'format' => 'text',
-            'content' => function ($model, $key, $index, $column) use ($subjectMap) {
-                return $subjectMap[$model->subject_id];
-            },
+            'content' => static fn (Course $model, $key, $index, $column) => $subjectMap[$model->subject_id],
             'filter' => Html::activeDropDownList(
                 $searchModel,
                 'subject_id',
@@ -48,20 +44,20 @@ use yii\web\View;
         [
             'format' => 'text',
             'header' => 'Студенты',
-            'content' => function ($model, $key, $index, $column) {
-                return '<div class="pupils"><span class="text-nowrap">' . count($model->activeGroupPupils) . ' ' . WordForm::getPupilsForm(count($model->activeGroupPupils)) . ' '
-                    . '<button type="button" class="btn btn-link" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').collapse(\'toggle\');">'
+            'content' => function (Course $model, $key, $index, $column) {
+                return '<div class="students"><span class="text-nowrap">' . count($model->activeCourseStudents) . ' ' . WordForm::getStudentsForm(count($model->activeCourseStudents)) . ' '
+                    . '<button type="button" class="btn btn-link" onclick="$(this).closest(\'.students\').find(\'.student_list\').collapse(\'toggle\');">'
                     . '<span class="fas fa-chevron-down"></span>'
                     . '</button></span>'
-                    . '<ul class="list-group pupil_list collapse"><li class="list-group-item p-1">'
-                    . implode('</li><li class="list-group-item p-1">', ArrayHelper::getColumn($model->activeGroupPupils, 'user.name'))
+                    . '<ul class="list-group student_list collapse"><li class="list-group-item p-1">'
+                    . implode('</li><li class="list-group-item p-1">', ArrayHelper::getColumn($model->activeCourseStudents, 'user.name'))
                     . '</li></ul></div>';
             },
         ],
         [
             'format' => 'text',
             'header' => 'Тема',
-            'content' => (fn($model, $key, $index, $column) => ($model->note ? $model->note->topic : '')),
+            'content' => static fn(Course $model, $key, $index, $column) => ($model->note ? $model->note->topic : ''),
         ],
         [
             'class' => ActionColumn::class,
@@ -71,7 +67,7 @@ use yii\web\View;
                     return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
                         'title' => Yii::t('yii', 'Update'),
                         'class' => 'btn btn-outline-dark collapse show',
-                        'onclick' => 'Group.toggleNoteUpdate(this); return false;',
+                        'onclick' => 'Course.toggleNoteUpdate(this); return false;',
                         'data-group-id' => $model->id,
                     ]);
                 },

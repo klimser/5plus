@@ -1,8 +1,8 @@
 <?php
 
 use common\components\DefaultValuesComponent;
-use common\models\GroupConfig;
-use common\models\GroupPupil;
+use common\models\CourseConfig;
+use common\models\CourseStudent;
 use yii\helpers\ArrayHelper;
 use yii\bootstrap4\ActiveForm;
 use common\components\helpers\Html;
@@ -10,7 +10,7 @@ use yii\helpers\Url;
 use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
-/* @var $group common\models\Group */
+/* @var $group common\models\Course */
 /* @var $groupTypes \common\models\GroupType[] */
 /* @var $subjects \common\models\Subject[] */
 /* @var $canMoveMoney bool */
@@ -76,7 +76,7 @@ if ($group->teacher_id) {
             <?= $this->render(
                     '_config_form',
                     [
-                        'groupConfig' => new GroupConfig(),
+                        'groupConfig' => new CourseConfig(),
                         'teacherList' => $teacherList,
                         'form' => $form,
                         'visible' => $group->isNewRecord,
@@ -84,7 +84,7 @@ if ($group->teacher_id) {
                     ]);
             ?>
             <?php if (!$group->isNewRecord): ?>
-                <button type="button" class="btn btn-info" onclick="Group.addConfig(this);">
+                <button type="button" class="btn btn-info" onclick="Course.addConfig(this);">
                     <span class="fas fa-plus"></span> Добавить
                 </button>
             <?php endif; ?>
@@ -264,7 +264,7 @@ if ($group->teacher_id) {
             endforeach;
             $this->registerJs($script); ?>
         </div>
-        <button class="btn btn-outline-success btn-sm" onclick="return Group.renderPupilForm();"><span class="fas fa-user-plus"></span> Добавить студента</button>
+        <button class="btn btn-outline-success btn-sm" onclick="return Course.renderPupilForm();"><span class="fas fa-user-plus"></span> Добавить студента</button>
         <hr class="mb-4">
 
         <?php if (count($group->movedGroupPupils)): ?>
@@ -288,7 +288,7 @@ if ($group->teacher_id) {
                         <td>
                             <?= $groupPupil->user->name; ?>
                             <?php if ($groupPupil->end_reason): ?>
-                                <span class="fas fa-info-circle text-info" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= GroupPupil::END_REASON_LABELS[$groupPupil->end_reason] . '<br>' . nl2br($groupPupil->comment); ?>"></span>
+                                <span class="fas fa-info-circle text-info" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= CourseStudent::END_REASON_LABELS[$groupPupil->end_reason] . '<br>' . nl2br($groupPupil->comment); ?>"></span>
                             <?php endif; ?>
                         </td>
                         <td class="text-right">
@@ -321,7 +321,7 @@ if ($group->teacher_id) {
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="group_pupil_id" value="0">
-                        <?php foreach (GroupPupil::END_REASON_LABELS as $id => $label): ?>
+                        <?php foreach (CourseStudent::END_REASON_LABELS as $id => $label): ?>
                             <div class="radio">
                                 <label>
                                     <input type="radio" name="reason_id" value="<?= $id; ?>" required> <?= $label; ?>

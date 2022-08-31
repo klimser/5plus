@@ -14,8 +14,8 @@ use common\models\Company;
 use common\models\Contract;
 use common\models\GiftCard;
 use common\models\GiftCardType;
-use common\models\Group;
-use common\models\GroupPupil;
+use common\models\Course;
+use common\models\CourseStudent;
 use common\models\Module;
 use common\models\PaymentLink;
 use common\models\User;
@@ -283,7 +283,7 @@ class PaymentController extends Controller
         $paymentLink = PaymentLink::findOne(['hash_key' => $key]);
         $groupPupils = [];
         if ($paymentLink) {
-            $groupPupils = GroupPupil::findAll(['group_id' => $paymentLink->group_id, 'user_id' => $paymentLink->user_id]);
+            $groupPupils = CourseStudent::findAll(['group_id' => $paymentLink->group_id, 'user_id' => $paymentLink->user_id]);
         }
         $params = $this->getPageParams('pupil');
         $params['paymentLink'] = $paymentLink;
@@ -307,14 +307,14 @@ class PaymentController extends Controller
         if ($amount < 1000) return self::getJsonErrorResult('Wrong payment amount');
 
         /** @var User $pupil */
-        $pupil = User::find()->andWhere(['id' => $pupilId, 'role' => User::ROLE_PUPIL, 'status' => User::STATUS_ACTIVE])->one();
-        /** @var Group $group */
-        $group = Group::find()->andWhere(['id' => $groupId, 'active' => Group::STATUS_ACTIVE])->one();
+        $pupil = User::find()->andWhere(['id' => $pupilId, 'role' => User::ROLE_STUDENT, 'status' => User::STATUS_ACTIVE])->one();
+        /** @var Course $group */
+        $group = Course::find()->andWhere(['id' => $groupId, 'active' => Course::STATUS_ACTIVE])->one();
 
         if (!$pupil) return self::getJsonErrorResult('Pupil not found');
         if (!$group) return self::getJsonErrorResult('Group not found');
 
-        $groupPupil = GroupPupil::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => GroupPupil::STATUS_ACTIVE])->one();
+        $groupPupil = CourseStudent::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])->one();
         if (!$groupPupil) return self::getJsonErrorResult('Для этого студента внесение оплаты невозможно');
 
         try {
@@ -462,9 +462,9 @@ class PaymentController extends Controller
             if ($contract) {
                 $params['success'] = $contract->status == Contract::STATUS_PAID;
                 $params['amount'] = $contract->amount;
-                $params['group'] = $contract->group->legal_name;
+                $params['group'] = $contract->course->legal_name;
                 $params['discount'] = $contract->discount == Contract::STATUS_ACTIVE;
-                $params['lessons'] = intval(round($contract->amount / ($contract->discount ? $contract->group->lesson_price_discount : $contract->group->lesson_price)));
+                $params['lessons'] = intval(round($contract->amount / ($contract->discount ? $contract->course->lesson_price_discount : $contract->course->lesson_price)));
             }
         }
         return $this->render('complete', $params);

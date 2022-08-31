@@ -2,8 +2,8 @@
 
 use common\components\helpers\Calendar;
 use common\components\helpers\WordForm;
-use common\models\Group;
-use common\models\GroupSearch;
+use common\models\Course;
+use common\models\CourseSearch;
 use common\models\Subject;
 use common\models\Teacher;
 use yii\bootstrap4\LinkPager;
@@ -16,7 +16,7 @@ use yii\data\ActiveDataProvider;
 use yii\web\View;
 
 /* @var $this View */
-/* @var $searchModel GroupSearch */
+/* @var $searchModel CourseSearch */
 /* @var $dataProvider ActiveDataProvider */
 /* @var $subjectMap Subject[] */
 /* @var $teacherMap Teacher[] */
@@ -30,23 +30,21 @@ use yii\web\View;
     'filterModel' => $searchModel,
     'options' => ['class' => 'grid-view table-responsive'],
     'pager' => ['class' => LinkPager::class, 'listOptions' => ['class' => 'pagination justify-content-center']],
-    'rowOptions' => function ($model, $key, $index, $grid) {return ($model->active == Group::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [];},
+    'rowOptions' => static fn (Course $model, $key, $index, $grid) => ($model->active == Course::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [],
     'columns' => [
         ['class' => 'yii\grid\SerialColumn'],
         [
-            'attribute' => 'name',
             'format' => 'html',
-            'content' => function ($model, $key, $index, $column) use ($subjectMap) {
-                return Html::a($model->name, Url::to(['group/view', 'id' => $model->id]))
-                    . '<br><i>' . ($model->note ? $model->note->topic : '') . '</i>';
+            'content' => function (Course $model, $key, $index, $column) use ($subjectMap) {
+                return Html::a($model->courseConfig->name, Url::to(['course/view', 'id' => $model->id]))
+                    . ($model->note ? '<br><i>' . $model->note->topic . '</i>' : '');
             },
+            'filter' => Html::activeTextInput($searchModel, 'name')
         ],
         [
             'attribute' => 'subject_id',
             'format' => 'text',
-            'content' => function ($model, $key, $index, $column) use ($subjectMap) {
-                return $subjectMap[$model->subject_id];
-            },
+            'content' => static fn (Course $model, $key, $index, $column) => $subjectMap[$model->subject_id],
             'filter' => Html::activeDropDownList(
                 $searchModel,
                 'subject_id',
@@ -55,11 +53,8 @@ use yii\web\View;
             )
         ],
         [
-            'attribute' => 'teacher_id',
             'format' => 'text',
-            'content' => function ($model, $key, $index, $column) use ($teacherMap) {
-                return $model->teacher_id ? $model->teacher->name : '<span class="not-set">(не задано)</span>';
-            },
+            'content' => static fn (Course $model, $key, $index, $column) => $model->courseConfig->teacher->name,
             'filter' => Html::activeDropDownList(
                 $searchModel,
                 'teacher_id',
@@ -71,12 +66,11 @@ use yii\web\View;
             'attribute' => 'schedule',
             'format' => 'text',
             'header' => 'Расписание',
-            'content' => function ($model, $key, $index, $column) {
-                /* @var $model Group */
+            'content' => function (Course $model, $key, $index, $column) {
                 $data = [];
                 for ($i = 0; $i < 7; $i++) {
-                    if (!empty($model->scheduleData[$i])) {
-                        $data[] = '<span class="text-nowrap">' . Calendar::$weekDaysShort[($i + 1) % 7] . ": {$model->scheduleData[$i]}</span>";
+                    if (!empty($model->courseConfig->schedule[$i])) {
+                        $data[] = '<span class="text-nowrap">' . Calendar::$weekDaysShort[($i + 1) % 7] . ": {$model->courseConfig->schedule[$i]}</span>";
                     }
                 }
                 return implode('<br>', $data);
@@ -85,13 +79,13 @@ use yii\web\View;
         [
             'format' => 'text',
             'header' => 'Студенты',
-            'content' => function ($model, $key, $index, $column) {
-                return '<div class="pupils"><span class="text-nowrap">' . count($model->activeGroupPupils) . ' ' . WordForm::getPupilsForm(count($model->activeGroupPupils)) . ' '
-                    . '<button type="button" class="btn btn-link" onclick="$(this).closest(\'.pupils\').find(\'.pupil_list\').collapse(\'toggle\');">'
+            'content' => function (Course $model, $key, $index, $column) {
+                return '<div class="students"><span class="text-nowrap">' . count($model->activeCourseStudents) . ' ' . WordForm::getStudentsForm(count($model->activeCourseStudents)) . ' '
+                    . '<button type="button" class="btn btn-link" onclick="$(this).closest(\'.students\').find(\'.student_list\').collapse(\'toggle\');">'
                     . '<span class="fas fa-chevron-down"></span>'
                     . '</button></span>'
-                    . '<ul class="list-group pupil_list collapse"><li class="list-group-item p-1">'
-                    . implode('</li><li class="list-group-item p-1">', ArrayHelper::getColumn($model->activeGroupPupils, 'user.name'))
+                    . '<ul class="list-group student_list collapse"><li class="list-group-item p-1">'
+                    . implode('</li><li class="list-group-item p-1">', ArrayHelper::getColumn($model->activeCourseStudents, 'user.name'))
                     . '</li></ul></div>';
             },
         ],

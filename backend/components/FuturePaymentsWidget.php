@@ -15,7 +15,7 @@ class FuturePaymentsWidget extends Widget
     {
         $htmlData = '';
         if ($this->user instanceof User) {
-            if ($this->user->role == User::ROLE_PUPIL) {
+            if ($this->user->role == User::ROLE_STUDENT) {
                 $currentPayments = $this->user->thisMonthPayments;
                 if ($currentPayments['total'] > 0) {
                     $htmlData = '<div class="alert alert-warning"><b>Ожидаемые списания:</b><br>';

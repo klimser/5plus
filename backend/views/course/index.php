@@ -2,8 +2,8 @@
 
 use common\components\helpers\Calendar;
 use common\components\helpers\WordForm;
-use common\models\Group;
-use common\models\GroupSearch;
+use common\models\Course;
+use common\models\CourseSearch;
 use common\models\Subject;
 use common\models\Teacher;
 use yii\bootstrap4\LinkPager;
@@ -16,7 +16,7 @@ use yii\data\ActiveDataProvider;
 use yii\web\View;
 
 /* @var $this View */
-/* @var $searchModel GroupSearch */
+/* @var $searchModel CourseSearch */
 /* @var $dataProvider ActiveDataProvider */
 /* @var $subjectMap Subject[] */
 /* @var $teacherMap Teacher[] */

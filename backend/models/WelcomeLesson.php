@@ -3,31 +3,34 @@
 namespace backend\models;
 
 use common\components\extended\ActiveRecord;
-use common\models\Group;
+use common\models\Course;
 use common\models\traits\Inserted;
 use common\models\User;
 use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Yii;
 use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "{{%welcome_lesson}}".
  *
- * @property int $id
- * @property int $user_id
- * @property int $group_id
- * @property string $lesson_date
- * @property int $status
- * @property int $deny_reason
- * @property string $comment
- * @property array $comments
- * @property int $bitrix_sync_status
- * @property int $created_by
- * @property-read User $user
- * @property-read Group $group
- * @property DateTime $lessonDateTime
+ * @property int         $id
+ * @property int         $user_id
+ * @property int         $course_id
+ * @property int         $teacher_id Учитель
+ * @property int         $subject_id
+ * @property string      $lesson_date
+ * @property int         $status
+ * @property int         $deny_reason
+ * @property string      $comment
+ * @property array       $comments
+ * @property int         $created_by
+ * @property-read User   $user
+ * @property-read Course $course
+ * @property DateTimeImmutable $lessonDateTime
  * @property-read string $lessonDateString
- * @property User $createdAdmin
+ * @property User        $createdAdmin
  */
 class WelcomeLesson extends ActiveRecord
 {
@@ -104,19 +107,17 @@ class WelcomeLesson extends ActiveRecord
     {
         return [
             [['comment'], 'trim'],
-            [['user_id', 'group_id', 'status', 'deny_reason', 'bitrix_sync_status', 'created_by'], 'integer'],
+            [['user_id', 'group_id', 'status', 'deny_reason', 'created_by'], 'integer'],
             [['user_id', 'lesson_date'], 'required'],
             [['comment'], 'string'],
             [['deny_reason', 'comment'], 'default', 'value' => null],
-            [['group_id'], 'required'],
+            [['course_id'], 'required'],
             ['lesson_date', 'date', 'format' => 'yyyy-MM-dd HH:mm:ss'],
             ['status', 'in', 'range' => self::STATUS_LIST],
             ['status', 'default', 'value' => self::STATUS_UNKNOWN],
-            [['bitrix_sync_status'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
-            [['bitrix_sync_status'], 'default', 'value' => self::STATUS_INACTIVE],
             ['deny_reason', 'in', 'range' => self::DENY_REASON_LIST],
             ['user_id', 'exist', 'targetRelation' => 'user'],
-            ['group_id', 'exist', 'targetRelation' => 'group'],
+            ['course_id', 'exist', 'targetRelation' => 'course'],
             ['created_by', 'exist', 'targetRelation' => 'createdAdmin'],
         ];
     }
@@ -130,56 +131,41 @@ class WelcomeLesson extends ActiveRecord
             'id' => 'ID',
             'user_id' => 'Студент',
             'lesson_date' => 'Дата',
-            'group_id' => 'Группа',
+            'course_id' => 'Группа',
             'deny_reason' => 'Причина отказа',
             'comment' => 'Комментарий',
             'status' => 'Статус занятия',
         ];
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getUser()
+    public function getUser(): ActiveQuery
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getGroup()
+    public function getCourse(): ActiveQuery
     {
-        return $this->hasOne(Group::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'course_id']);
     }
 
-    /**
-     * @return DateTime|null
-     */
-    public function getLessonDateTime()
+    public function getLessonDateTime(): ?DateTimeImmutable
     {
-        return $this->lesson_date ? new DateTime($this->lesson_date) : null;
+        return $this->lesson_date ? new DateTimeImmutable($this->lesson_date) : null;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getLessonDateString()
+    public function getLessonDateString(): ?string
     {
-        return $this->lessonDateTime ? $this->lessonDateTime->format('Y-m-d') : null;
+        return $this->lessonDateTime?->format('Y-m-d');
     }
 
-    public function setLessonDateTime(DateTime $newDate)
+    public function setLessonDateTime(DateTimeInterface $newDate)
     {
         $this->lesson_date = $newDate->format('Y-m-d H:i:s');
 
         return $this;
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getCreatedAdmin()
+    public function getCreatedAdmin(): ActiveQuery
     {
         return $this->hasOne(User::class, ['id' => 'created_by']);
     }

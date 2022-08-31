@@ -7,7 +7,7 @@ use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
 /* @var $pupil \common\models\User */
-/* @var $groups \common\models\Group[] */
+/* @var $groups \common\models\Course[] */
 /* @var $groupData array */
 
 $this->title = 'Добавить студента в группу';

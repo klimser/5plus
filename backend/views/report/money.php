@@ -6,7 +6,7 @@ use yii\helpers\ArrayHelper;
 use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
-/* @var $groups \common\models\Group[] */
+/* @var $groups \common\models\Course[] */
 /* @var $allowedTotal bool */
 
 $this->title = 'Финансовый отчёт';

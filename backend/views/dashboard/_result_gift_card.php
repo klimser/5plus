@@ -84,7 +84,7 @@ use yii\bootstrap4\Html;
                 <hr>
                 <?php if ($existingPupil): ?>
                     <h4>Оплатить занятия в группе</h4>
-                    <?php foreach ($existingPupil->activeGroupPupils as $groupPupil): ?>
+                    <?php foreach ($existingPupil->activeCourseStudents as $groupPupil): ?>
                         <button class="btn btn-outline-secondary btn-lg mr-2 gift-card-existing-group" type="button"
                                 data-group="<?= $groupPupil->group_id; ?>" onclick="Dashboard.setGiftGroup(this);">
                             <?= $groupPupil->group->name; ?> с <?= $groupPupil->startDateObject->format('d.m.Y'); ?>

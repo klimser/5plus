@@ -10,17 +10,17 @@ use yii\db\ActiveRecord;
  *
  * @property int $id ID
  * @property int $user_id ID студента
- * @property int $group_id Группа
- * @property int $template_id ID шаблона
- * @property array|null $parameters Параметры для сообщения
- * @property int $status Статус отправки сообщения
- * @property string $created_at Дата создания
- * @property string $sent_at Дата успешной отправки
- * @property int $attempts Попыток отправки
+ * @property int            $group_id Группа
+ * @property int            $template_id ID шаблона
+ * @property array|null     $parameters Параметры для сообщения
+ * @property int            $status Статус отправки сообщения
+ * @property string         $created_at Дата создания
+ * @property string         $sent_at Дата успешной отправки
+ * @property int            $attempts Попыток отправки
  * @property \DateTime|null $sentDate
  *
- * @property User $user
- * @property Group $group
+ * @property User           $user
+ * @property Course         $group
  */
 class Notify extends ActiveRecord
 {
@@ -92,7 +92,7 @@ class Notify extends ActiveRecord
      */
     public function getGroup()
     {
-        return $this->hasOne(Group::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'group_id']);
     }
 
     /**
