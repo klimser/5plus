@@ -47,11 +47,11 @@ class DefaultValuesComponent extends Component
             'clientOptions' => [
                 'element_format' => 'html',
                 'plugins' => [
-                    'advlist autolink lists link charmap preview anchor',
-                    'searchreplace visualblocks code fullscreen',
-                    'insertdatetime media table contextmenu paste',
-                    'image imagetools',
-                    'textcolor responsivefilemanager'
+                    'advlist', 'autolink', 'lists', 'link', 'charmap', 'preview', 'anchor',
+                    'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table',
+                    'image',
+                    'responsivefilemanager'
                 ],
                 'block_formats' => 'Paragraph=p;Heading 2=h2;Heading 3=h3;Heading 4=h4;Heading 5=h5;Heading 6=h6;Preformatted=pre',
                 'style_formats_autohide' => true,
