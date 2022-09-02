@@ -8,9 +8,9 @@ use yii\db\ActiveRecord;
 /**
  * This is the model class for table "{{%notify}}".
  *
- * @property int $id ID
- * @property int $user_id ID студента
- * @property int            $group_id Группа
+ * @property int            $id ID
+ * @property int            $user_id ID студента
+ * @property int            $course_id Группа
  * @property int            $template_id ID шаблона
  * @property array|null     $parameters Параметры для сообщения
  * @property int            $status Статус отправки сообщения
@@ -20,7 +20,7 @@ use yii\db\ActiveRecord;
  * @property \DateTime|null $sentDate
  *
  * @property User           $user
- * @property Course         $group
+ * @property Course         $course
  */
 class Notify extends ActiveRecord
 {
@@ -51,13 +51,13 @@ class Notify extends ActiveRecord
     {
         return [
             [['user_id', 'template_id', 'params'], 'required'],
-            [['user_id', 'group_id' , 'template_id', 'status', 'attempts'], 'integer'],
+            [['user_id', 'course_id' , 'template_id', 'status', 'attempts'], 'integer'],
             [['params'], 'string'],
             ['status', 'in', 'range' => [self::STATUS_NEW, self::STATUS_SENDING, self::STATUS_SENT, self::STATUS_ERROR]],
             ['status', 'default', 'value' => self::STATUS_NEW],
             [['created_at', 'sent_at'], 'safe'],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
-            [['group_id'], 'exist', 'targetRelation' => 'group'],
+            [['course_id'], 'exist', 'targetRelation' => 'course'],
         ];
     }
 
@@ -69,7 +69,7 @@ class Notify extends ActiveRecord
         return [
             'id' => 'ID',
             'user_id' => 'ID студента',
-            'group_id' => 'Группа',
+            'course_id' => 'Группа',
             'template_id' => 'ID шаблона',
             'params' => 'Параметры для сообщения',
             'status' => 'Статус отправки сообщения',
@@ -90,9 +90,9 @@ class Notify extends ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getGroup()
+    public function getCourse()
     {
-        return $this->hasOne(Course::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'course_id']);
     }
 
     /**

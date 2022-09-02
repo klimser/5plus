@@ -1,11 +1,11 @@
 let User = {
     contractAllowed: false,
     incomeAllowed: false,
-    pupilLimitDate: null,
+    studentLimitDate: null,
     iterator: 1,
     consultationList: [],
     welcomeLessonList: [],
-    groupList: [],
+    courseList: [],
 
     init: function(noAdd) {
         return $.when(Main.loadActiveSubjects(), Main.loadCourses(), Main.loadActiveTeachers())
@@ -31,14 +31,14 @@ let User = {
                     User.addWelcomeLesson(welcomeLessonData);
                 });
 
-                User.groupList.forEach(function(groupData) {
-                    User.addGroup(groupData);
+                User.courseList.forEach(function(courseData) {
+                    User.addCourse(courseData);
                 });
             })
             .fail(Main.logAndFlashAjaxError);
     },
     
-    getGroupOptions: function(selectedValue, addEmpty, filter) {
+    getCourseOptions: function(selectedValue, addEmpty, filter) {
         if (typeof addEmpty !== 'boolean') {
             addEmpty = false;
         }
@@ -49,16 +49,16 @@ let User = {
         if (addEmpty) {
             optionsHtml += '<option value="" ' + (selectedValue > 0 ? '' : 'selected') + '>Неизвестна</option>';
         }
-        Main.courseActiveList.forEach(function(groupId) {
+        Main.courseActiveList.forEach(function(courseId) {
             let allowed = true;
             Object.keys(filter).forEach(function(filterKey) {
-                if (Main.courseMap[groupId][filterKey] !== filter[filterKey]) {
+                if (Main.courseMap[courseId][filterKey] !== filter[filterKey]) {
                     allowed = false;
                 }
             });
             if (allowed) {
-                optionsHtml += '<option value="' + groupId + '" ' + (selectedValue === groupId ? 'selected' : '') + '>'
-                    + Main.courseMap[groupId].name + '</option>';
+                optionsHtml += '<option value="' + courseId + '" ' + (selectedValue === courseId ? 'selected' : '') + '>'
+                    + Main.courseMap[courseId].name + '</option>';
             }
         });
         return optionsHtml;
@@ -107,11 +107,11 @@ let User = {
     },
     removeWelcomeLesson: function(e) {
         this.removeItem(e, 'welcome-lesson-item');
-        this.checkPupilPhoneRequired();
+        this.checkStudentPhoneRequired();
     },
-    removeGroup: function(e) {
-        this.removeItem(e, 'group-item');
-        this.checkPupilPhoneRequired();
+    removeCourse: function(e) {
+        this.removeItem(e, 'course-item');
+        this.checkStudentPhoneRequired();
     },
     addConsultation: function(subjectId, parentContainer) {
         if (subjectId === undefined) {
@@ -130,7 +130,7 @@ let User = {
         $(container).append(blockHtml);
     },
     addWelcomeLesson: function (data, parentContainer) {
-        this.setPupilPhoneRequired(true);
+        this.setStudentPhoneRequired(true);
         if (data === undefined) {
             data = {groupId: 0, subjectId: 0, teacherId: 0, date: ''};
         }
@@ -158,7 +158,7 @@ let User = {
             '<div class="col-12"><div class="form-group">' +
             '<label>Группа</label>' +
             '<select class="form-control group-select" name="welcome_lesson[groupId][' + this.iterator + ']" autocomplete="off" required onchange="User.setWelcomeLessonGroup(this);">' +
-            this.getGroupOptions(parseInt(data.groupId), true) +
+            this.getCourseOptions(parseInt(data.groupId), true) +
             '</select>' +
             '</div>' +
             '</div>';
@@ -177,10 +177,10 @@ let User = {
         $(container).find(".welcome-lesson-item:last .datepicker").datepicker(Main.datepickerDefaultSettings);
         this.setWelcomeLessonSubject($(container).find(".welcome-lesson-item:last select.subject-select"));
     },
-    addGroup: function(data, parentContainer) {
-        this.setPupilPhoneRequired(true);
+    addCourse: function(data, parentContainer) {
+        this.setStudentPhoneRequired(true);
         if (data === undefined) {
-            data = {groupId: 0, date: '', amount: 0, paymentComment: ''};
+            data = {courseId: 0, date: '', amount: 0, paymentComment: ''};
         }
         if (parentContainer === undefined) {
             parentContainer = document;
@@ -189,27 +189,27 @@ let User = {
             data.date = '';
         }
         
-        let blockHtml = '<div class="group-item card mb-3"><div class="card-body p-3">';
-        blockHtml += '<button type="button" class="close" aria-label="Close" onclick="User.removeGroup(this);"><span aria-hidden="true">&times;</span></button>';
+        let blockHtml = '<div class="course-item card mb-3"><div class="card-body p-3">';
+        blockHtml += '<button type="button" class="close" aria-label="Close" onclick="User.removeCourse(this);"><span aria-hidden="true">&times;</span></button>';
         blockHtml += '<div class="form-group">' +
             '<label>Группа</label>' +
-            '<select class="form-control group-select" name="group[groupId][' + this.iterator + ']" autocomplete="off" onchange="User.setGroup(this, true);" required>' +
-            this.getGroupOptions(parseInt(data.groupId)) +
+            '<select class="form-control course-select" name="course[courseId][' + this.iterator + ']" autocomplete="off" onchange="User.setCourse(this, true);" required>' +
+            this.getCourseOptions(parseInt(data.groupId)) +
             '</select>' +
             '</div>';
         blockHtml += '<div class="form-group">' +
             '<label>Начало занятий</label>' +
             '<div class="form-check">' +
-            '<input class="form-check-input" type="radio" name="group[dateDefined][' + this.iterator + ']" id="group-date-defined-0-' + this.iterator + '"' +
-            ' value="0"' + (data.date.length > 0 ? '' : ' checked ') + ' onchange="User.setGroupDateType(this);" required>' +
-            '<label class="form-check-label" for="group-date-defined-0-' + this.iterator + '">ещё не решил (не добавлять в группу)</label>' +
+            '<input class="form-check-input" type="radio" name="course[dateDefined][' + this.iterator + ']" id="course-date-defined-0-' + this.iterator + '"' +
+            ' value="0"' + (data.date.length > 0 ? '' : ' checked ') + ' onchange="User.setCourseDateType(this);" required>' +
+            '<label class="form-check-label" for="course-date-defined-0-' + this.iterator + '">ещё не решил (не добавлять в группу)</label>' +
             '</div>' +
             '<div class="form-check">' +
-            '<input class="form-check-input" type="radio" name="group[dateDefined][' + this.iterator + ']" id="group-date-defined-1-' + this.iterator + '"' +
-            ' value="1"' + (data.date.length > 0 ? ' checked ' : '') + ' onchange="User.setGroupDateType(this);" required>' +
-            '<label class="form-check-label d-flex" for="group-date-defined-1-' + this.iterator + '">' +
+            '<input class="form-check-input" type="radio" name="course[dateDefined][' + this.iterator + ']" id="course-date-defined-1-' + this.iterator + '"' +
+            ' value="1"' + (data.date.length > 0 ? ' checked ' : '') + ' onchange="User.setCourseDateType(this);" required>' +
+            '<label class="form-check-label d-flex" for="course-date-defined-1-' + this.iterator + '">' +
             '<div class="row w-100"><div class="col-3 col-lg-auto"> дата</div><div class="col-9 col-lg-auto">' +
-            '<input type="text" class="form-control date-select datepicker" name="group[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
+            '<input type="text" class="form-control date-select datepicker" name="course[date][' + this.iterator + ']" autocomplete="off" value="' + data.date + '" required>' +
             '</div></div>' +
             '</label>' +
             '</div>' +
@@ -239,20 +239,20 @@ let User = {
         //         '</div>';
         // }
         blockHtml += '</div></div>';
-        let container = $(parentContainer).find(".groups");
+        let container = $(parentContainer).find(".courses");
         $(container).append(blockHtml);
 
         this.iterator++;
         let datepickerOptions = Main.datepickerDefaultSettings;
-        if (this.pupilLimitDate !== null) {
-            datepickerOptions.minDate = this.pupilLimitDate;
+        if (this.studentLimitDate !== null) {
+            datepickerOptions.minDate = this.studentLimitDate;
         }
-        let currentGroupItem = $(container).find('.group-item:last');
-        $(currentGroupItem).find(".datepicker").datepicker(datepickerOptions);
+        let currentCourseItem = $(container).find('.course-item:last');
+        $(currentCourseItem).find(".datepicker").datepicker(datepickerOptions);
         if (data.date.length === 0) {
-            $(currentGroupItem).find(".date-select").prop('disabled', true);
+            $(currentCourseItem).find(".date-select").prop('disabled', true);
         }
-        User.setGroup($(currentGroupItem).find(".group-select"), false);
+        User.setCourse($(currentCourseItem).find(".course-select"), false);
     },
     
     findByPhone: function(phoneString) {
@@ -298,14 +298,14 @@ let User = {
                 break;
         }
     },
-    checkPupilPhoneRequired: function() {
-        let requiredBlocksCount = $(".welcome-lesson-item").length + $(".group-item").length;
+    checkStudentPhoneRequired: function() {
+        let requiredBlocksCount = $(".welcome-lesson-item").length + $(".course-item").length;
         if (requiredBlocksCount === 0) {
-            this.setPupilPhoneRequired(false);
+            this.setStudentPhoneRequired(false);
         }
     },
-    setPupilPhoneRequired: function(isRequired) {
-        let phoneInput = $("#user-pupil-phoneformatted");
+    setStudentPhoneRequired: function(isRequired) {
+        let phoneInput = $("#user-student-phoneformatted");
         if (phoneInput.length > 0) {
             $(phoneInput).prop('required', isRequired);
         }
@@ -332,12 +332,12 @@ let User = {
     setWelcomeLessonSubject: function(e) {
         $(e).closest('.welcome-lesson-item').find(".teacher-select")
             .html(this.getTeacherOptions($(e).val()));
-        this.filterGroupSelect($(e).closest('.welcome-lesson-item'));
+        this.filterCourseSelect($(e).closest('.welcome-lesson-item'));
     },
     setWelcomeLessonTeacher: function(e) {
-        this.filterGroupSelect($(e).closest('.welcome-lesson-item'));
+        this.filterCourseSelect($(e).closest('.welcome-lesson-item'));
     },
-    filterGroupSelect: function(welcomeLessonItem) {
+    filterCourseSelect: function(welcomeLessonItem) {
         let filter = {};
         if ($(welcomeLessonItem).find(".subject-select").val() > 0) {
             filter.subjectId = parseInt($(welcomeLessonItem).find(".subject-select").val());
@@ -345,26 +345,26 @@ let User = {
         if ($(welcomeLessonItem).find(".teacher-select").val() > 0) {
             filter.teacherId = parseInt($(welcomeLessonItem).find(".teacher-select").val());
         }
-        let groupSelect = $(welcomeLessonItem).find(".group-select");
-        $(groupSelect).html(this.getGroupOptions($(groupSelect).val(), true, filter));
+        let courseSelect = $(welcomeLessonItem).find(".course-select");
+        $(courseSelect).html(this.getCourseOptions($(courseSelect).val(), true, filter));
     },
-    setGroup: function(e, flushAmount) {
-        let group = Main.courseMap[$(e).val()];
-        let container = $(e).closest(".group-item");
+    setCourse: function(e, flushAmount) {
+        let course = Main.courseMap[$(e).val()];
+        let container = $(e).closest(".course-item");
         let paymentBlock = $(container).find(".payment-block");
         if (paymentBlock.length > 0) {
             let helperButtonsBlock = $(paymentBlock).find(".amount-helper-buttons");
-            $(helperButtonsBlock).find("button.price-lesson").data({price: group.priceLesson});
-            $(helperButtonsBlock).find("button.price-month").data({price: group.priceMonth});
+            $(helperButtonsBlock).find("button.price-lesson").data({price: course.priceLesson});
+            $(helperButtonsBlock).find("button.price-month").data({price: course.priceMonth});
             if (flushAmount) {
                 $(paymentBlock).find("input.amount").val('');
             }
         }
-        let limitDate = group.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
+        let limitDate = course.studentLimitDate !== null && this.studentLimitDate > course.dateStart ? this.studentLimitDate : course.dateStart;
         $(container).find(".datepicker").datepicker("option", "minDate", new Date(limitDate));
     },
-    setGroupDateType: function(e) {
-        $(e).closest(".group-item").find(".date-select").prop("disabled", $(e).val() <= 0);
+    setCourseDateType: function(e) {
+        $(e).closest(".course-item").find(".date-select").prop("disabled", $(e).val() <= 0);
     },
     checkAddPayment: function(e) {
         let contatiner = $(e).closest(".group-item");

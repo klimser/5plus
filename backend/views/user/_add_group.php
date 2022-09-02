@@ -48,6 +48,6 @@ $this->registerJs($initialJs);
     </div>
     <div role="tabpanel" class="tab-pane fade" id="group-tab">
         <div class="groups"></div>
-        <button type="button" class="btn btn-success" onclick="User.addGroup();"><span class="fas fa-plus"></span> добавить</button>
+        <button type="button" class="btn btn-success" onclick="User.addCourse();"><span class="fas fa-plus"></span> добавить</button>
     </div>
 </div>

@@ -73,14 +73,14 @@ $this->registerJs('Main.initAutocompleteUser("#search-student");');
                             value="' . ($searchModel->user_id ? $searchModel->user->name : '') . '"></div>',
             ],
             [
-                'attribute' => 'group_id',
+                'attribute' => 'course_id',
                 'label' => 'Группа',
-                'content' => function ($model, $key, $index, $column) {
-                    return Html::a($model->group->name, Url::to(['group/update', 'id' => $model->group_id]));
+                'content' => function (Payment $model, $key, $index, $column) {
+                    return Html::a($model->course->courseConfig->name, Url::to(['course/update', 'id' => $model->course_id]));
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
-                    'group_id',
+                    'course_id',
                     $groupMap,
                     ['class' => 'form-control']
                 )

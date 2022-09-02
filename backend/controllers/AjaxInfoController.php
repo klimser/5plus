@@ -74,7 +74,7 @@ class AjaxInfoController extends AdminController
     {
         $where = [];
         $params = [];
-        $whitelist = ['name', 'active', 'subject_id', 'teacher_id'];
+        $whitelist = ['active', 'subject_id'];
         foreach ($this->getFilter() as $key => $value) {
             if (in_array($key, $whitelist)) {
                 $where[] = Course::tableName() . ".$key = :$key";
@@ -87,8 +87,7 @@ class AjaxInfoController extends AdminController
         }
         /** @var Course[] $courses */
         $courses = $query->addParams($params)
-            ->orderBy($this->getOrder('name'))
-            ->with('subject', 'teacher')
+            ->with('subject')
             ->all();
         $resultArray = [];
         foreach ($courses as $course) {

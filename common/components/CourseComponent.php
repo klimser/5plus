@@ -81,30 +81,30 @@ class CourseComponent extends Component
     }
 
     /**
-     * @param Course $group
+     * @param Course $course
      *
      * @throws \Exception
      */
-    public static function calculateTeacherSalary(Course $group)
+    public static function calculateTeacherSalary(Course $course)
     {
         $monthInterval = new DateInterval('P1M');
         $limit = new DateTimeImmutable('first day of next month midnight');
-        $to = $group->endDateObject;
+        $to = $course->endDateObject;
         if ($to) {
             $to = $to->modify('first day of this month midnight')->add($monthInterval);
         }
         if (!$to || $to > $limit) $to = $limit;
 
-        if ($group->groupPupils) {
-            $dateStart = $group->startDateObject->modify('first day of this month midnight');
+        if ($course->groupPupils) {
+            $dateStart = $course->startDateObject->modify('first day of this month midnight');
             $dateEnd = $dateStart->add($monthInterval);
 
             while ($dateEnd <= $to) {
-                $groupParam = self::getGroupParam($group, $dateStart);
+                $groupParam = self::getGroupParam($course, $dateStart);
 
                 $paymentSum = Payment::find()
                     ->andWhere(['<', 'amount', 0])
-                    ->andWhere(['group_id' => $group->id])
+                    ->andWhere(['group_id' => $course->id])
                     ->andWhere(['>=', 'created_at', $dateStart->format('Y-m-d H:i:s')])
                     ->andWhere(['<', 'created_at', $dateEnd->format('Y-m-d H:i:s')])
                     ->andWhere('used_payment_id IS NOT NULL')
@@ -119,34 +119,24 @@ class CourseComponent extends Component
         }
         /** @var GroupParam $minGroupParam */
         $overGroupParams = GroupParam::find()
-            ->andWhere(['group_id' => $group->id])
+            ->andWhere(['group_id' => $course->id])
             ->andWhere(['or', ['>', 'year', $to->format('Y')], ['and', ['year' => $to->format('Y')], ['>=', 'month', $to->format('n')]]])
             ->all();
         foreach ($overGroupParams as $overGroupParam) $overGroupParam->delete();
     }
 
-    /**
-     * @param User           $pupil
-     * @param Course         $group
-     * @param \DateTime      $startDate
-     * @param \DateTime|null $endDate
-     * @param bool           $fillSchedule
-     *
-     * @return CourseStudent
-     * @throws \Exception
-     */
-    public static function addPupilToGroup(User $pupil, Course $group, DateTimeInterface $startDate, ?DateTimeInterface $endDate = null, bool $fillSchedule = true): CourseStudent
+    public static function addStudentToCourse(User $student, Course $course, DateTimeInterface $startDate, ?DateTimeInterface $endDate = null, bool $fillSchedule = true): CourseStudent
     {
         $startDate = (clone $startDate)->modify('midnight');
-        if (!$group || !$startDate || ($endDate && $endDate < $startDate)) {
+        if (!$startDate || ($endDate && $endDate < $startDate)) {
             throw new \Exception('Студент не добавлен в группу, введены некорректные значения даты начала и завершения занятий!');
         }
-        if ($group->endDateObject && $startDate > $group->endDateObject) {
+        if ($course->endDateObject && $startDate > $course->endDateObject) {
             throw new \Exception('Студент не добавлен в группу, выбрана дата начала занятий позже завершения занятий группы!');
         }
-        self::checkPupilDates(null, $startDate, $endDate);
-        $existingGroupPupil = CourseStudent::find()
-            ->andWhere(['group_id' => $group->id, 'user_id' => $pupil->id])
+        self::checkStudentDates(null, $startDate, $endDate);
+        $existingCourseStudent = CourseStudent::find()
+            ->andWhere(['course_id' => $course->id, 'user_id' => $student->id])
             ->andWhere(['OR',
                 ['AND',
                     ['<', 'date_start', $startDate->format('Y-m-d')],
@@ -157,73 +147,66 @@ class CourseComponent extends Component
                 ]
             ])
             ->one();
-        if ($existingGroupPupil) {
+        if ($existingCourseStudent) {
             throw new \Exception('Студент уже был добавлен в группу в выбранном промежутке времени, не добавляйте его дважды, так нельзя!');
         }
 
-        $groupPupil = new CourseStudent();
-        $groupPupil->user_id = $pupil->id;
-        $groupPupil->group_id = $group->id;
-        $groupPupil->date_start = $startDate < $group->startDateObject ? $group->date_start : $startDate->format('Y-m-d');
+        $courseStudent = new CourseStudent();
+        $courseStudent->user_id = $student->id;
+        $courseStudent->course_id = $course->id;
+        $courseStudent->date_start = $startDate < $course->startDateObject ? $course->date_start : $startDate->format('Y-m-d');
         if (null !== $endDate) {
             $endDate = (clone $endDate)->modify('midnight');
-            if ($group->endDateObject && $endDate > $group->endDateObject) $endDate = $group->endDateObject;
-            if ($endDate < $group->startDateObject) $endDate = $group->startDateObject;
-            $groupPupil->date_end = $endDate->format('Y-m-d');
+            if ($course->endDateObject && $endDate > $course->endDateObject) $endDate = $course->endDateObject;
+            if ($endDate < $course->startDateObject) $endDate = $course->startDateObject;
+            $courseStudent->date_end = $endDate->format('Y-m-d');
         }
-        $dataForLog = $groupPupil->getDiffMap();
-        if (!$groupPupil->save()) {
+        $dataForLog = $courseStudent->getDiffMap();
+        if (!$courseStudent->save()) {
             ComponentContainer::getErrorLogger()
-                ->logError('user/pupil-to-group', $groupPupil->getErrorsAsString(), true);
-            throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
+                ->logError('user/student-to-course', $courseStudent->getErrorsAsString(), true);
+            throw new \Exception('Внутренняя ошибка сервера: ' . $courseStudent->getErrorsAsString());
         }
 
-        if (!$pupil->save()) {
+        if (!$student->save()) {
             ComponentContainer::getErrorLogger()
-                ->logError('user/pupil-to-group', $pupil->getErrorsAsString(), true);
-            throw new \Exception('Внутренняя ошибка сервера: ' . $pupil->getErrorsAsString());
+                ->logError('user/student-to-course', $student->getErrorsAsString(), true);
+            throw new \Exception('Внутренняя ошибка сервера: ' . $student->getErrorsAsString());
         }
 
-        $pupil->link('groupPupils', $groupPupil);
-        $group->link('groupPupils', $groupPupil);
+        $student->link('courseStudents', $courseStudent);
+        $course->link('courseStudents', $courseStudent);
 
         if ($fillSchedule) {
-            EventComponent::fillSchedule($group);
-            CourseComponent::calculateTeacherSalary($group);
+            EventComponent::fillSchedule($course);
         }
 
         ComponentContainer::getActionLogger()->log(
-            Action::TYPE_GROUP_PUPIL_ADDED,
-            $groupPupil->user,
+            Action::TYPE_COURSE_STUDENT_ADDED,
+            $courseStudent->user,
             null,
-            $group,
+            $course,
             json_encode($dataForLog, JSON_UNESCAPED_UNICODE)
         );
 
-        return $groupPupil;
+        return $courseStudent;
     }
 
-    /**
-     * @param Course $groupFrom
-     * @param Course $groupTo
-     * @param User $user
-     * @param \DateTime|null $moveDate
-     */
-    public static function moveMoney(Course $groupFrom, Course $groupTo, User $user, ?DateTimeInterface $moveDate = null)
+    public static function moveMoney(Course $courseFrom, Course $courseTo, User $user, ?DateTimeInterface $moveDate = null)
     {
         $moneyLeft = Payment::find()
-            ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
+            ->andWhere(['user_id' => $user->id, 'course_id' => $courseFrom->id])
             ->select('SUM(amount)')
             ->scalar();
         while ($moneyLeft > 0) {
             /** @var Payment $lastPayment */
             $lastPayment = Payment::find()
-                ->andWhere(['user_id' => $user->id, 'group_id' => $groupFrom->id])
+                ->andWhere(['user_id' => $user->id, 'course_id' => $courseFrom->id])
                 ->andWhere(['>', 'amount', 0])
                 ->orderBy(['created_at' => SORT_DESC])
                 ->one();
             if ($lastPayment->amount <= $moneyLeft) {
-                $lastPayment->group_id = $groupTo->id;
+                $lastPayment->course_id = $courseTo->id;
                 $lastPayment->save();
                 $moneyLeft -= $lastPayment->amount;
             } else {
@@ -233,46 +216,48 @@ class CourseComponent extends Component
                 $newPayment = new Payment();
                 $newPayment->user_id = $lastPayment->user_id;
                 $newPayment->admin_id = Yii::$app->user->id;
-                $newPayment->group_id = $groupTo->id;
+                $newPayment->course_id = $courseTo->id;
                 $newPayment->contract_id = $lastPayment->contract_id;
                 $newPayment->amount = $moneyLeft;
                 $newPayment->discount = $lastPayment->discount;
                 $newPayment->created_at = $moveDate ? $moveDate->format('Y-m-d H:i:s') : $lastPayment->created_at;
-                $newPayment->comment = 'Перевод оставшихся средств студента из группы ' . $groupFrom->name . ' в группу ' . $groupTo->name;
+                $newPayment->comment = 'Перевод оставшихся средств студента из группы ' . $courseFrom->courseConfig->name . ' в группу ' . $courseTo->courseConfig->name;
                 MoneyComponent::registerIncome($newPayment);
                 $moneyLeft = 0;
             }
         }
-        EventComponent::fillSchedule($groupTo);
-        MoneyComponent::rechargePupil($user, $groupTo);
-        CourseComponent::calculateTeacherSalary($groupTo);
-        MoneyComponent::setUserChargeDates($user, $groupFrom);
-        MoneyComponent::setUserChargeDates($user, $groupTo);
-        MoneyComponent::recalculateDebt($user, $groupTo);
+        EventComponent::fillSchedule($courseTo);
+        MoneyComponent::rechargeStudent($user, $courseTo);
+        MoneyComponent::setUserChargeDates($user, $courseFrom);
+        MoneyComponent::setUserChargeDates($user, $courseTo);
+        MoneyComponent::recalculateDebt($user, $courseTo);
     }
 
-    public static function getPupilLimitDate(): ?\DateTime
+    public static function getStudentLimitDate(): ?DateTimeImmutable
     {
-        return Yii::$app->user->can('pupilChangePast') ? null : new \DateTime('-7 days');
+        return Yii::$app->user->can('pupilChangePast') ? null : new DateTimeImmutable('-7 days');
     }
 
     /**
-     * @param CourseStudent|null     $groupPupil
+     * @param CourseStudent|null     $courseStudent
      * @param DateTimeInterface      $startDate
      * @param DateTimeInterface|null $endDate
      *
      * @throws \Exception
      */
-    public static function checkPupilDates(?CourseStudent $groupPupil, DateTimeInterface $startDate, ?DateTimeInterface $endDate)
+    public static function checkStudentDates(?CourseStudent $courseStudent, DateTimeInterface $startDate, ?DateTimeInterface $endDate)
     {
-        $limitDate = self::getPupilLimitDate();
-        if ($limitDate && (($groupPupil && $groupPupil->startDateObject != $startDate && ($groupPupil->startDateObject < $limitDate || $startDate < $limitDate))
-            || (!$groupPupil && $startDate < $limitDate)
-            || ($groupPupil && $groupPupil->endDateObject != $endDate
-                && ($groupPupil->endDateObject && $groupPupil->endDateObject < $limitDate)
-                || ($endDate && $endDate < $limitDate))
-            || (!$groupPupil && $endDate && $endDate < $limitDate))) {
-            throw new \Exception('Дата занятий студента ' . ($groupPupil ? $groupPupil->user->name : '') . ' может быть изменена только Александром Сергеевичем, обратитесь к нему.');
+        $limitDate = self::getStudentLimitDate();
+        if ($limitDate && (($courseStudent && $courseStudent->startDateObject !== $startDate && ($courseStudent->startDateObject < $limitDate || $startDate < $limitDate))
+            || (!$courseStudent && $startDate < $limitDate)
+            || (!$courseStudent && $endDate && $endDate < $limitDate)
+            || ($courseStudent && $courseStudent->endDateObject !== $endDate
+                && (
+                    ($courseStudent->endDateObject && $courseStudent->endDateObject < $limitDate)
+                    || ($endDate && $endDate < $limitDate)
+                )
+            ))) {
+            throw new \Exception('Дата занятий студента ' . ($courseStudent ? $courseStudent->user->name : '') . ' может быть изменена только Александром Сергеевичем, обратитесь к нему.');
         }
     }
 }

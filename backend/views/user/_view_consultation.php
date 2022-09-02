@@ -1,16 +1,16 @@
 <?php
 /* @var $this yii\web\View */
-/* @var $pupil \common\models\User */
+/* @var $student \common\models\User */
 ?>
 <div class="consultations mt-2" data-multistep-item-list-selector=".consultation-item">
-    <?php if (count($pupil->consultations) > 0): ?>
+    <?php if (count($student->consultations) > 0): ?>
         <table class="table table-bordered table-sm">
             <tr>
                 <th>Предмет</th>
                 <th>Дата</th>
                 <th>Кто проводил</th>
             </tr>
-            <?php foreach ($pupil->consultations as $consultation): ?>
+            <?php foreach ($student->consultations as $consultation): ?>
                 <tr>
                     <td><?= $consultation->subject->name; ?></td>
                     <td><?= $consultation->createDate->format('d.m.Y H:i'); ?></td>

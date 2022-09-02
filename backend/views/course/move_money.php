@@ -3,9 +3,9 @@
 use yii\bootstrap4\Html;
 
 /* @var $this yii\web\View */
-/* @var $groupPupil \common\models\CourseStudent */
+/* @var $courseStudent \common\models\CourseStudent */
 /* @var $moneyLeft int */
-/* @var $groupList \common\models\Course[] */
+/* @var $courseList \common\models\Course[] */
 
 $this->title = 'Перенести деньги студента в другую группу';
 $this->params['breadcrumbs'][] = $this->title;
@@ -19,13 +19,13 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="form-group row">
         <label class="col-12 col-sm-3 control-label">Студент</label>
         <div class="col-12 col-sm-9">
-            <input readonly class="form-control-plaintext" value="<?= $groupPupil->user->name; ?> (<?= $groupPupil->user->phoneFull; ?>)">
+            <input readonly class="form-control-plaintext" value="<?= $courseStudent->user->name; ?> (<?= $courseStudent->user->phoneFull; ?>)">
         </div>
     </div>
     <div class="form-group row">
         <label class="col-12 col-sm-3 control-label">Из группы</label>
         <div class="col-12 col-sm-9">
-            <input readonly class="form-control-plaintext" value="<?= $groupPupil->group->name; ?>">
+            <input readonly class="form-control-plaintext" value="<?= $courseStudent->course->courseConfig->name; ?>">
         </div>
     </div>
     <div class="form-group row">
@@ -37,9 +37,9 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="form-group row">
         <label class="col-12 col-sm-3 control-label">В группу</label>
         <div class="col-12 col-sm-9">
-            <select name="money-move[groupId]" class="form-control" required autocomplete="off">
-                <?php foreach ($groupList as $group): ?>
-                    <option value="<?= $group->id; ?>"><?= $group->name; ?></option>
+            <select name="money-move[courseId]" class="form-control" required autocomplete="off">
+                <?php foreach ($courseList as $course): ?>
+                    <option value="<?= $course->id; ?>"><?= $course->courseConfig->name; ?></option>
                 <?php endforeach; ?>
             </select>
         </div>

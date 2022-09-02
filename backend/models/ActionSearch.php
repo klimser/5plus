@@ -14,7 +14,7 @@ class ActionSearch extends Action
     public function rules()
     {
         return [
-            [['id', 'type', 'admin_id', 'user_id', 'group_id', 'amount'], 'integer'],
+            [['id', 'type', 'admin_id', 'user_id', 'course_id', 'amount'], 'integer'],
             [['created_at'], 'string'],
             [['comment', 'createDateString'], 'safe'],
         ];
@@ -85,7 +85,7 @@ class ActionSearch extends Action
             'type' => $this->type,
             'admin_id' => $this->admin_id,
             'user_id' => $this->user_id,
-            'group_id' => $this->course_id,
+            'course_id' => $this->course_id,
         ]);
 
         if ($this->created_at) {

@@ -17,7 +17,7 @@ class DebtSearch extends Debt
     public function rules()
     {
         return [
-            [['user_id', 'group_id', 'amount'], 'integer'],
+            [['user_id', 'course_id', 'amount'], 'integer'],
             [['amountFrom', 'amountTo'], 'safe'],
         ];
     }
@@ -70,7 +70,7 @@ class DebtSearch extends Debt
         // grid filtering conditions
         $query->andFilterWhere([
             'user_id' => $this->user_id,
-            'group_id' => $this->course_id,
+            'course_id' => $this->course_id,
         ]);
 
         if ($this->amountFrom) {

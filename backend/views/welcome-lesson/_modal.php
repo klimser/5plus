@@ -1,7 +1,7 @@
 <div class="modal fade" id="welcome-lesson-moving-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <form id="welcome-lesson-moving-form" onsubmit="WelcomeLesson.movePupil(this); return false;">
+            <form id="welcome-lesson-moving-form" onsubmit="WelcomeLesson.moveStudent(this); return false;">
                 <div class="modal-header">
                     <h4 class="modal-title">В группу!</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">

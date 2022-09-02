@@ -4,9 +4,9 @@ use common\models\Contract;
 use yii\helpers\Url;
 
 /* @var $this \yii\web\View */
-/* @var $pupil \common\models\User */
-/** @var \common\models\Contract[] $payments */
-$contracts = $pupil->getContracts()->with('group')->all();
+/* @var $student \common\models\User */
+/** @var \common\models\Contract[] $contracts */
+$contracts = $student->getContracts()->with('course')->all();
 ?>
 
 <div class="view-contracts">
@@ -21,7 +21,7 @@ $contracts = $pupil->getContracts()->with('group')->all();
         </tr>
         <?php foreach ($contracts as $contract): ?>
             <tr <?php if ($contract->status === Contract::STATUS_PAID): ?> class="table-success"<?php endif; ?> >
-                <td><?= $contract->course->name; ?></td>
+                <td><?= $contract->course->courseConfig->name; ?></td>
                 <td class="text-right"><?= MoneyHelper::formatThousands($contract->amount); ?></td>
                 <td><?= $contract->createDate->format('d.m.Y'); ?></td>
                 <td>

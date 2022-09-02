@@ -1,7 +1,7 @@
 <?php
 
 /* @var $this yii\web\View */
-/* @var $pupilLimitDate \DateTime */
+/* @var $studentLimitDate \DateTimeImmutable */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
 
@@ -10,10 +10,10 @@ $this->title = 'Панель управления';
 $initialJs = "
     User.contractAllowed = " . ($contractAllowed ? 'true' : 'false') . ";
     User.incomeAllowed = " . ($incomeAllowed ? 'true' : 'false') . ";
-    Main.loadGroups(false);
+    Main.loadCourses(false);
 "; 
-if ($pupilLimitDate !== null) {
-    $initialJs .= "Dashboard.pupilLimitDate = '{$pupilLimitDate->format('Y-m-d')}';";
+if ($studentLimitDate !== null) {
+    $initialJs .= "Dashboard.studentLimitDate = '{$studentLimitDate->format('Y-m-d')}';";
 }
 $this->registerJs($initialJs);
 
@@ -35,8 +35,8 @@ $this->registerJs($initialJs);
 <?= $this->render('_age_confirmation'); ?>
 <?= $this->render('_debt'); ?>
 <?= $this->render('/welcome-lesson/_modal'); ?>
-<?= $this->render('_group_move'); ?>
+<?= $this->render('_course_move'); ?>
 <?= $this->render('_money_move'); ?>
 <?= $this->render('_new_contract'); ?>
-<?= $this->render('_end_pupil'); ?>
-<?= $this->render('_create_pupil'); ?>
+<?= $this->render('_end_student'); ?>
+<?= $this->render('_create_student'); ?>

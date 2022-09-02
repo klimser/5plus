@@ -16,6 +16,7 @@ use yii\helpers\ArrayHelper;
  * This is the model class for table "{{%course}}".
  *
  * @property int $id
+ * @property int $type_id Тип группы
  * @property int $subject_id
  * @property int               $active
  * @property string            $date_start
@@ -57,8 +58,8 @@ class Course extends ActiveRecord
     public function scenarios()
     {
         return [
-            self::SCENARIO_EMPTY => ['subject_id', 'date_start', 'date_end'],
-            self::SCENARIO_DEFAULT => ['subject_id', 'date_end'],
+            self::SCENARIO_EMPTY => ['type_id', 'subject_id', 'date_start', 'date_end'],
+            self::SCENARIO_DEFAULT => ['type_id', 'subject_id', 'date_end'],
         ];
     }
 
@@ -68,8 +69,8 @@ class Course extends ActiveRecord
     public function rules()
     {
         return [
-            [['subject_id', 'date_start'], 'required'],
-            [['subject_id', 'active'], 'integer'],
+            [['type_id', 'subject_id', 'date_start'], 'required'],
+            [['type_id', 'subject_id', 'active'], 'integer'],
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
             [['date_start'], 'safe', 'on' => self::SCENARIO_EMPTY],
             [['date_end'], 'safe'],
@@ -84,6 +85,7 @@ class Course extends ActiveRecord
     {
         return [
             'id' => 'ID группы',
+            'type_id' => 'Тип группы',
             'subject_id' => 'Предмет',
             'active' => 'Занимается',
             'date_start' => 'Дата начала занятий',
@@ -98,6 +100,11 @@ class Course extends ActiveRecord
         $this->eventIdByDateMap = null;
     }
 
+    public function getType(): ActiveQuery
+    {
+        return $this->hasOne(CourseType::class, ['id' => 'type_id']);
+    }
+
     public function getSubject(): ActiveQuery
     {
         return $this->hasOne(Subject::class, ['id' => 'subject_id']);
@@ -110,7 +117,7 @@ class Course extends ActiveRecord
 
     public function getEvents(): ActiveQuery
     {
-        return $this->hasMany(Event::class, ['group_id' => 'id'])->inverseOf('course');
+        return $this->hasMany(Event::class, ['course_id' => 'id'])->inverseOf('course');
     }
 
     /**

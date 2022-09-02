@@ -53,16 +53,16 @@ class CourseNote extends ActiveRecord
     {
         return [
             'id' => 'ID',
-            'group_id' => 'Group ID',
+            'course_id' => 'Group ID',
             'teacher_id' => 'Teacher ID',
             'topic' => 'Topic',
             'created_at' => 'Created At',
         ];
     }
 
-    public function getGroup(): ActiveQuery
+    public function getCourse(): ActiveQuery
     {
-        return $this->hasOne(Course::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'course_id']);
     }
 
     public function getTeacher(): ActiveQuery

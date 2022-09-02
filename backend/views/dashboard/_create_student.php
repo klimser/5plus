@@ -2,10 +2,10 @@
 /* @var $this \yii\web\View */
 
 use common\models\User; ?>
-<div id="modal-create-pupil" class="modal fade" tabindex="-1" role="dialog">
+<div id="modal-create-student" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <form id="create-pupil-form" class="multistep_form user-view" method="post" onsubmit="Dashboard.createPupil(this); return false;" novalidate>
+            <form id="create-student-form" class="multistep_form user-view" method="post" onsubmit="Dashboard.createStudent(this); return false;" novalidate>
                 <div class="modal-header">
                     <h4 class="modal-title">Добавить студента</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -13,7 +13,7 @@ use common\models\User; ?>
                     </button>
                 </div>
                 <div class="modal-body ui-front">
-                    <div id="create_pupil_messages_place"></div>
+                    <div id="create_student_messages_place"></div>
                     <nav>
                         <div class="nav step-line row justify-content-between" role="tablist">
                             <?php $tab_item = function($stepNum, $title, $targetId, $active) {
@@ -24,11 +24,11 @@ use common\models\User; ?>
                                 };
                             ?>
 
-                            <?= $tab_item(1, 'Студент', 'step-pupil', true); ?>
+                            <?= $tab_item(1, 'Студент', 'step-student', true); ?>
                             <?= $tab_item(2, 'Родители', 'step-parent', false); ?>
                             <?= $tab_item(3, 'Консультация', 'step-consultation', false); ?>
                             <?= $tab_item(4, 'Пробный урок', 'step-welcome', false); ?>
-                            <?= $tab_item(5, 'Группа', 'step-group', false); ?>
+                            <?= $tab_item(5, 'Группа', 'step-course', false); ?>
                         </div>
                     </nav>
                     <div class="tab-content" id="nav-tabContent">
@@ -46,11 +46,11 @@ use common\models\User; ?>
                         };
                         ?>
 
-                        <?= $tab_content(1, 'step-pupil', true, false, "/user/_pupil", []); ?>
+                        <?= $tab_content(1, 'step-student', true, false, "/user/_student", []); ?>
                         <?= $tab_content(2, 'step-parent', false, false, "/user/_parent", []); ?>
-                        <?= $tab_content(3, 'step-consultation', false, false, "/user/_view_consultation", ['pupil' => (new User())]); ?>
-                        <?= $tab_content(4, 'step-welcome', false, false, "/user/_view_welcome_lesson", ['pupil' => (new User())]); ?>
-                        <?= $tab_content(5, 'step-group', false, true, "/user/_view_group", ['pupil' => (new User())]); ?>
+                        <?= $tab_content(3, 'step-consultation', false, false, "/user/_view_consultation", ['student' => (new User())]); ?>
+                        <?= $tab_content(4, 'step-welcome', false, false, "/user/_view_welcome_lesson", ['student' => (new User())]); ?>
+                        <?= $tab_content(5, 'step-group', false, true, "/user/_view_course", ['student' => (new User())]); ?>
                         
                     </div>
                 </div>

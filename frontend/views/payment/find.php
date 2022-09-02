@@ -13,29 +13,29 @@ $this->params['breadcrumbs'][] = ['url' => Url::to(['webpage', 'id' => $webpage-
 $this->params['breadcrumbs'][] = $user !== null ? $user->name : 'Выбрать студента';
 
 $script = '';
-$getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
-    $script .= "Payment.users[{$pupil->id}] = {
-        name: '{$pupil->nameHidden}',
-        age_confirmed: " . ($pupil->age_confirmed || ($pupil->parent_id && $pupil->parent->age_confirmed) ? 'true' : 'false') . ",
-        groups: []
+$getPupilButton = function(User $student, bool $label = false) use (&$script) {
+    $script .= "Payment.users[{$student->id}] = {
+        name: '{$student->nameHidden}',
+        age_confirmed: " . ($student->age_confirmed || ($student->parent_id && $student->parent->age_confirmed) ? 'true' : 'false') . ",
+        courses: []
     };\n";
-    foreach ($pupil->activeCourseStudents as $groupPupil) {
-        $debt = $pupil->getDebt($groupPupil->group);
+    foreach ($student->activeCourseStudents as $courseStudent) {
+        $debt = $student->getDebt($courseStudent->course);
         $debt = $debt ? $debt->amount : 0;
-        $script .= "Payment.users[{$pupil->id}].groups.push({
-                id: {$groupPupil->group_id},
-                name: '{$groupPupil->group->legal_name}',
-                priceLesson: {$groupPupil->group->lesson_price},
-                priceMonth: {$groupPupil->group->priceMonth},
-                priceDiscountLimit: {$groupPupil->group->price12Lesson},
+        $script .= "Payment.users[{$student->id}].courses.push({
+                id: {$courseStudent->course_id},
+                name: '{$courseStudent->course->courseConfig->legal_name}',
+                priceLesson: {$courseStudent->course->courseConfig->lesson_price},
+                priceMonth: {$courseStudent->course->courseConfig->priceMonth},
+                priceDiscountLimit: {$courseStudent->course->courseConfig->price12Lesson},
                 debt: {$debt},
-                paid: '" . ($groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '') . "'
+                paid: '" . ($courseStudent->chargeDateObject ? $courseStudent->chargeDateObject->format('d.m.Y') : '') . "'
             });\n";
     }
     if ($label) {
-        return '<h4>' . $pupil->nameHidden . '</h4>';
+        return '<h4>' . $student->nameHidden . '</h4>';
     } else {
-        return '<button type="button" class="btn btn-lg btn-outline-dark pupil-button" data-pupil="' . $pupil->id . '" onclick="Payment.selectPupil(this);">' . $pupil->name . '</button>';
+        return '<button type="button" class="btn btn-lg btn-outline-dark student-button" data-student="' . $student->id . '" onclick="Payment.selectStudent(this);">' . $student->name . '</button>';
     }
 };
 ?>
@@ -48,7 +48,7 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
                     <?= $getPupilButton($user, true); ?>
                 <?php
                     $script .= "Payment.user = {$user->id};
-                        Payment.renderGroupSelect();\n";
+                        Payment.renderCourseSelect();\n";
                 else:
                     foreach ($users as $user): ?>
                         <?= $getPupilButton($user); ?>
@@ -58,7 +58,7 @@ $getPupilButton = function(User $pupil, bool $label = false) use (&$script) {
         </div>
         
         <div class="row">
-            <div id="group_select" class="col-12"></div>
+            <div id="course_select" class="col-12"></div>
         </div>
     </div>
 </div>

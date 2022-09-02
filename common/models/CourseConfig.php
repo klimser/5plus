@@ -59,7 +59,7 @@ class CourseConfig extends ActiveRecord
     {
         return [
             [['name', 'legal_name', 'room_number'], 'trim'],
-            [['name', 'legal_name', 'course_id', 'date_from', 'lesson_price', 'lesson_duration', 'schedule', 'teacher_id', 'teacher_rate'], 'required'],
+            [['name', 'legal_name', 'course_id', 'date_from', 'lesson_price', 'lesson_duration', 'schedule', 'teacher_id'], 'required'],
             [['course_id', 'lesson_price', 'lesson_price_discount', 'lesson_duration', 'teacher_id', 'teacher_lesson_pay'], 'integer'],
             [['date_from', 'date_to', 'schedule'], 'safe'],
             [['date_from', 'date_to'], 'date', 'format' => 'yyyy-MM-dd'],
@@ -90,7 +90,7 @@ class CourseConfig extends ActiveRecord
             'schedule' => 'График занятий группы ',
             'teacher_id' => 'Учитель',
             'teacher_rate' => 'Процент учителю',
-            'teacher_lesson_pay' => 'Фиксированная оплата учителю за урок',
+            'teacher_lesson_pay' => 'Фиксированная оплата учителю за занятие',
             'room_number' => 'Номер кабинета',
         ];
     }

@@ -75,7 +75,7 @@ class Event extends ActiveRecord
 
     public function getCourse(): ActiveQuery
     {
-        return $this->hasOne(Course::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'course_id']);
     }
 
     public function getMembers(): ActiveQuery

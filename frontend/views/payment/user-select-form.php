@@ -21,7 +21,7 @@ $this->params['breadcrumbs'][] = 'Выбрать пользователя';
             <div id="user_select" class="col-12 col-auto mb-3">
                 <?= $form = Html::beginForm(Url::to(['payment/select-user'])); ?>
                     <?php foreach ($users as $user): ?>
-                        <button name="user-<?= $user->id; ?>" class="btn btn-lg btn-outline-dark pupil-button mb-2"><?= $user->nameHidden; ?></button><br>
+                        <button name="user-<?= $user->id; ?>" class="btn btn-lg btn-outline-dark student-button mb-2"><?= $user->nameHidden; ?></button><br>
                     <?php endforeach; ?>
                 <?= Html::endForm(); ?>
             </div>

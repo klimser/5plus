@@ -9,14 +9,14 @@ use yii\helpers\ArrayHelper;
 /* @var $this yii\web\View */
 /* @var $parent User */
 /* @var $parentCompany User */
-/* @var $pupil User */
+/* @var $student User */
 /* @var $personType int */
 /* @var $parentData array */
 /* @var $companyData array */
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
-/* @var $groupData array */
-/* @var $pupilLimitDate DateTime|null */
+/* @var $courseData array */
+/* @var $studentLimitDate DateTime|null */
 /* @var $incomeAllowed bool */
 /* @var $contractAllowed bool */
 
@@ -43,14 +43,14 @@ $this->params['breadcrumbs'][] = $this->title;
                     ['itemOptions' => ['onchange' => 'User.changePersonType();', 'class' => 'person_type']]
                 ); ?>
 
-                <?= $form->field($pupil, '[pupil]name')->textInput(['maxlength' => true, 'required' => true]); ?>
+                <?= $form->field($student, '[pupil]name')->textInput(['maxlength' => true, 'required' => true]); ?>
 
-                <?= $form->field($pupil, '[pupil]note')->textarea(['maxlength' => true, 'htmlOptions' => ['rows' => 3]]); ?>
+                <?= $form->field($student, '[pupil]note')->textarea(['maxlength' => true, 'htmlOptions' => ['rows' => 3]]); ?>
 
-                <?= $form->field($pupil, '[pupil]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
+                <?= $form->field($student, '[pupil]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
 
-                <?= $form->field($pupil, '[pupil]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
+                <?= $form->field($student, '[pupil]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
             </div>
 
@@ -129,8 +129,8 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $this->render('_add_group', [
             'consultationData' => $consultationData,
             'welcomeLessonData' => $welcomeLessonData,
-            'groupData' => $groupData,
-            'pupilLimitDate' => $pupilLimitDate,
+            'groupData' => $courseData,
+            'pupilLimitDate' => $studentLimitDate,
             'incomeAllowed' => $incomeAllowed,
             'contractAllowed' => $contractAllowed,
         ]) ?>

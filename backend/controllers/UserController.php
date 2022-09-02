@@ -13,6 +13,7 @@ use common\models\Company;
 use common\models\Contract;
 use backend\models\EventMember;
 use common\models\Course;
+use common\models\CourseConfig;
 use common\models\GroupParam;
 use common\models\CourseStudent;
 use common\models\Payment;
@@ -42,7 +43,7 @@ class UserController extends AdminController
      */
     public function actionIndex()
     {
-        if (!Yii::$app->user->can('manageUsers')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('manageUsers');
 
         $searchModel = new UserSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -57,7 +58,7 @@ class UserController extends AdminController
         ]);
     }
 
-    private function saveConsultations(User $pupil)
+    private function saveConsultations(User $student)
     {
         $consultationData = Yii::$app->request->post('consultation', []);
         $errors = [];
@@ -65,7 +66,7 @@ class UserController extends AdminController
         foreach ($consultationData as $subjectId) {
             $consultation = new Consultation();
             $consultation->subject_id = $subjectId;
-            $consultation->user_id = $pupil->id;
+            $consultation->user_id = $student->id;
 
             if (!$consultation->save()) {
                 $errors = array_merge($errors, $consultation->getErrorsAsStringArray());
@@ -75,7 +76,7 @@ class UserController extends AdminController
         return $errors;
     }
 
-    private function saveWelcomeLessons(User $pupil)
+    private function saveWelcomeLessons(User $student)
     {
         $welcomeLessonData = self::remapRequestData(Yii::$app->request->post('welcome_lesson', []));
         $errors = [];
@@ -83,7 +84,7 @@ class UserController extends AdminController
         $ids = [];
         foreach ($welcomeLessonData as $welcomeLessonInfo) {
             try {
-                $welcomeLesson = $this->addPupilToWelcomeLesson($pupil, $welcomeLessonInfo);
+                $welcomeLesson = $this->addStudentToWelcomeLesson($student, $welcomeLessonInfo);
                 $ids[] = $welcomeLesson->id;
             } catch (Throwable $exception) {
                 $errors = array_merge($errors, [$exception->getMessage()]);
@@ -97,29 +98,29 @@ class UserController extends AdminController
         return [$errors, $infoFlashArray];
     }
 
-    private function saveGroups(User $pupil)
+    private function saveCourses(User $student)
     {
-        $groupData = self::remapRequestData(Yii::$app->request->post('group', []));
+        $courseData = self::remapRequestData(Yii::$app->request->post('course', []));
         $errors = $infoFlashArray = [];
 
-        foreach ($groupData as $groupInfo) {
+        foreach ($courseData as $courseInfo) {
             try {
-                /** @var Course $group */
-                $group = Course::find()->andWhere(['id' => $groupInfo['groupId'], 'active' => Course::STATUS_ACTIVE])->one();
-                if (!$group) throw new Exception('Группа не найдена');
+                /** @var Course $course */
+                $course = Course::find()->andWhere(['id' => $courseInfo['courseId'], 'active' => Course::STATUS_ACTIVE])->one();
+                if (!$course) throw new Exception('Группа не найдена');
 
-                if ($groupInfo['dateDefined']) {
-                    $this->addPupilToGroup($pupil, $groupInfo);
-                    MoneyComponent::setUserChargeDates($pupil, $group);
+                if ($courseInfo['dateDefined']) {
+                    $this->addStudentToCourse($student, $courseInfo);
+                    MoneyComponent::setUserChargeDates($student, $course);
                 }
-                if (Yii::$app->user->can('moneyManagement') && !empty($groupInfo['payment'])) {
-                    $contract = MoneyComponent::addPupilContract(
+                if (Yii::$app->user->can('moneyManagement') && !empty($courseInfo['payment'])) {
+                    $contract = MoneyComponent::addStudentContract(
                         Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
-                        $pupil,
-                        $groupInfo['amount'],
-                        $group
+                        $student,
+                        $courseInfo['amount'],
+                        $course
                     );
-                    MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $groupInfo['paymentComment']);
+                    MoneyComponent::payContract($contract, null, Contract::PAYMENT_TYPE_MANUAL, $courseInfo['paymentComment']);
 
                     $infoFlashArray[] = 'Оплата внесена. <a target="_blank" href="' . Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать спецификацию</a>';
                 }
@@ -138,28 +139,28 @@ class UserController extends AdminController
      * @throws ForbiddenHttpException
      * @throws Throwable
      */
-    public function actionCreatePupil()
+    public function actionCreateStudent()
     {
         $this->checkAccess('manageUsers');
 
         $parent = new User(['scenario' => User::SCENARIO_USER]);
         $parentCompany = new User(['scenario' => User::SCENARIO_USER]);
-        $pupil = new User(['scenario' => User::SCENARIO_USER]);
+        $student = new User(['scenario' => User::SCENARIO_USER]);
         $consultationData = [];
         $welcomeLessonData = [];
-        $groupData = [];
+        $courseData = [];
         $incomeAllowed = Yii::$app->user->can('moneyManagement');
         $contractAllowed = Yii::$app->user->can('contractManagement');
         $personType = User::ROLE_PARENTS;
         $parentType = $companyType = 'new';
 
         if (Yii::$app->request->isPost) {
-            User::loadMultiple(['parent' => $parent, 'company' => $parentCompany, 'pupil' => $pupil], Yii::$app->request->post(), Yii::$app->request->isAjax ? '' : null);
-            $pupil->role = User::ROLE_STUDENT;
+            User::loadMultiple(['parent' => $parent, 'company' => $parentCompany, 'student' => $student], Yii::$app->request->post(), Yii::$app->request->isAjax ? '' : null);
+            $student->role = User::ROLE_STUDENT;
 
             $transaction = User::getDb()->beginTransaction();
             try {
-                if (UserComponent::isPhoneUsed(User::ROLE_STUDENT, $pupil->phone, $pupil->phone2)) {
+                if (UserComponent::isPhoneUsed(User::ROLE_STUDENT, $student->phone, $student->phone2)) {
                     throw new Exception('Студент с таким номером телефона уже существует!');
                 }
 
@@ -171,32 +172,32 @@ class UserController extends AdminController
                 
                 switch ($personType) {
                     case User::ROLE_PARENTS:
-                        $pupil->individual = 1;
+                        $student->individual = 1;
                         $parent = $this->processParent($parent, $parentType, $personType, $parentId);
-                        $pupil->parent_id = $parent->id;
+                        $student->parent_id = $parent->id;
                         break;
                     case User::ROLE_COMPANY:
-                        $pupil->individual = 0;
+                        $student->individual = 0;
                         $parentCompany = $this->processParent($parentCompany, $companyType, $personType, $companyId);
-                        $pupil->parent_id = $parentCompany->id;
+                        $student->parent_id = $parentCompany->id;
                         break;
                 }
 
-                if (!$pupil->save()) {
+                if (!$student->save()) {
                     $transaction->rollBack();
 
                     if (Yii::$app->request->isAjax) {
-                        return $this->asJson(self::getJsonErrorResult($pupil->getErrorsAsString()));
+                        return $this->asJson(self::getJsonErrorResult($student->getErrorsAsString()));
                     }
 
-                    $pupil->moveErrorsToFlash();
+                    $student->moveErrorsToFlash();
                 } else {
                     $errors = $infoFlashArray = [];
-                    $errors = array_merge($errors, $this->saveConsultations($pupil));
-                    $welcomeLessonResults = $this->saveWelcomeLessons($pupil);
+                    $errors = array_merge($errors, $this->saveConsultations($student));
+                    $welcomeLessonResults = $this->saveWelcomeLessons($student);
                     $errors = array_merge($errors, $welcomeLessonResults[0]);
                     $infoFlashArray = array_merge($infoFlashArray, $welcomeLessonResults[1]);
-                    $groupResults = $this->saveGroups($pupil);
+                    $groupResults = $this->saveCourses($student);
                     $errors = array_merge($errors, $groupResults[0]);
                     $infoFlashArray = array_merge($infoFlashArray, $groupResults[1]);
 
@@ -205,7 +206,7 @@ class UserController extends AdminController
                         UserComponent::clearSearchCache();
 
                         if (Yii::$app->request->isAjax) {
-                            return $this->asJson(self::getJsonOkResult(['name' => $pupil->name]));
+                            return $this->asJson(self::getJsonOkResult(['name' => $student->name]));
                         }
 
                         Yii::$app->session->addFlash('success', 'Добавлено');
@@ -239,17 +240,17 @@ class UserController extends AdminController
 
         $this->checkAccess('root');
 
-        return $this->render('create-pupil', [
+        return $this->render('create-student', [
             'parent' => $parent,
             'parentCompany' => $parentCompany,
-            'pupil' => $pupil,
+            'student' => $student,
             'personType' => $personType,
             'parentData' => ['type' => $parentType, 'id' => $parentId ?? null],
             'companyData' => ['type' => $companyType, 'id' => $companyId ?? null],
             'consultationData' => $consultationData,
             'welcomeLessonData' => $welcomeLessonData,
-            'groupData' => $groupData,
-            'pupilLimitDate' => CourseComponent::getPupilLimitDate(),
+            'courseData' => $courseData,
+            'studentLimitDate' => CourseComponent::getStudentLimitDate(),
             'incomeAllowed' => $incomeAllowed,
             'contractAllowed' => $contractAllowed,
         ]);
@@ -288,54 +289,55 @@ class UserController extends AdminController
     }
 
     /**
-     * @param User $pupil
-     * @param array $groupData
+     * @param User  $student
+     * @param array $courseData
      *
      * @return CourseStudent
      * @throws Exception
      */
-    private function addPupilToGroup(User $pupil, array $groupData): CourseStudent
+    private function addStudentToCourse(User $student, array $courseData): CourseStudent
     {
-        /** @var Course $group */
-        $group = Course::find()->andWhere(['id' => $groupData['groupId'], 'active' => Course::STATUS_ACTIVE])->one();
-        if (!$group) throw new Exception('Группа не найдена');
-        $startDate = new \DateTime($groupData['date']);
+        /** @var Course $course */
+        $course = Course::find()->andWhere(['id' => $courseData['courseId'], 'active' => Course::STATUS_ACTIVE])->one();
+        if (!$course) throw new Exception('Группа не найдена');
+        $startDate = new \DateTime($courseData['date']);
         if (!$startDate) throw new Exception('Неверная дата начала занятий');
 
-        return CourseComponent::addPupilToGroup($pupil, $group, $startDate);
+        return CourseComponent::addStudentToCourse($student, $course, $startDate);
     }
 
     /**
-     * @param User $pupil
+     * @param User  $student
      * @param array $welcomeLessonData
+     *
      * @return WelcomeLesson
      * @throws Exception
      */
-    private function addPupilToWelcomeLesson(User $pupil, array $welcomeLessonData): WelcomeLesson
+    private function addStudentToWelcomeLesson(User $student, array $welcomeLessonData): WelcomeLesson
     {
         $welcomeLesson = new WelcomeLesson();
 
-        /** @var Course $group */
-        $group = Course::find()->andWhere(['id' => $welcomeLessonData['groupId'], 'active' => Subject::STATUS_ACTIVE])->one();
-        if (!$group) throw new Exception('Группа не найдена');
-        $welcomeLesson->course_id = $group->id;
+        /** @var Course $course */
+        $course = Course::find()->andWhere(['id' => $welcomeLessonData['courseId'], 'active' => Subject::STATUS_ACTIVE])->one();
+        if (!$course) throw new Exception('Группа не найдена');
+        $welcomeLesson->course_id = $course->id;
         
         $startDate = new \DateTime($welcomeLessonData['date']);
         if (!$startDate) throw new Exception('Неверная дата пробного урока');
-        $groupParam = GroupParam::findByDate($group, $startDate);
-        if (!$groupParam) {
-            $groupParam = $group;
+        $courseConfig = CourseConfig::findByDate($course, $startDate);
+        if (!$courseConfig) {
+            throw new \Exception('Course config not found');
         }
-        if (!$groupParam->hasLesson($startDate)) throw new Exception('Неверная дата пробного урока');
+        if (!$courseConfig->hasLesson($startDate)) throw new Exception('Неверная дата пробного урока');
 
-        $welcomeLesson->user_id = $pupil->id;
-        $welcomeLesson->lesson_date = $groupParam->getLessonDateTime($startDate);
+        $welcomeLesson->user_id = $student->id;
+        $welcomeLesson->lesson_date = $courseConfig->getLessonDateTime($startDate);
 
         if (!$welcomeLesson->save()) {
             throw new Exception('Server error: ' . $welcomeLesson->getErrorsAsString());
         }
         
-        EventComponent::fillSchedule($group);
+        EventComponent::fillSchedule($course);
 
         return $welcomeLesson;
     }
@@ -359,7 +361,7 @@ class UserController extends AdminController
 
             $transaction = Yii::$app->db->beginTransaction();
             try {
-                $groupPupil = $this->addPupilToGroup($pupil, $groupData);
+                $groupPupil = $this->addStudentToCourse($pupil, $groupData);
                 MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
                 $transaction->commit();
                 Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
@@ -456,45 +458,45 @@ class UserController extends AdminController
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $usersData = Yii::$app->request->post('User', []);
-        if (!isset($usersData['pupil'], $usersData['pupil']['id'])) {
+        if (!isset($usersData['student'], $usersData['student']['id'])) {
             return self::getJsonErrorResult('Wrong request');
         }
-        $pupilData = $usersData['pupil'];
+        $studentData = $usersData['student'];
         $parentData = $usersData['parent'] ?? [];
         $parentType = Yii::$app->request->post('parent_type', null);
 
-        /** @var User $pupil */
-        $pupil = User::find()
-            ->andWhere(['id' => $pupilData['id'], 'role' => User::ROLE_STUDENT])
+        /** @var User $student */
+        $student = User::find()
+            ->andWhere(['id' => $studentData['id'], 'role' => User::ROLE_STUDENT])
             ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
             ->one();
-        if (!$pupil) {
-            return self::getJsonErrorResult('Pupil not found');
+        if (!$student) {
+            return self::getJsonErrorResult('Student not found');
         }
-        $pupil->setScenario(User::SCENARIO_USER);
-        $pupil->load($pupilData, '');
+        $student->setScenario(User::SCENARIO_USER);
+        $student->load($studentData, '');
 
-        if (UserComponent::isPhoneUsed(User::ROLE_STUDENT, $pupil->phone, $pupil->phone2, $pupil)) {
+        if (UserComponent::isPhoneUsed(User::ROLE_STUDENT, $student->phone, $student->phone2, $student)) {
             return self::getJsonErrorResult('Студент с таким номером телефона уже существует!');
         }
         
         $errors = [];
         $transaction = User::getDb()->beginTransaction();
 
-        if (!$pupil->save()) {
-            $errors = array_merge($errors, $pupil->getErrorsAsStringArray());
+        if (!$student->save()) {
+            $errors = array_merge($errors, $student->getErrorsAsStringArray());
         }
         
-        if ($pupil->parent_id) {
+        if ($student->parent_id) {
             if ($parentData) {
-                $pupil->parent->setScenario(User::SCENARIO_USER);
-                $pupil->parent->load($parentData, '');
-                if (!$pupil->parent->save()) {
-                    $errors = array_merge($errors, $pupil->parent->getErrorsAsStringArray());
+                $student->parent->setScenario(User::SCENARIO_USER);
+                $student->parent->load($parentData, '');
+                if (!$student->parent->save()) {
+                    $errors = array_merge($errors, $student->parent->getErrorsAsStringArray());
                 }
             }
         } elseif ($parentType) {
-            $parentRole = $pupil->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY;
+            $parentRole = $student->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY;
             switch ($parentType) {
                 case 'exist':
                     /** @var User $parent */
@@ -505,8 +507,8 @@ class UserController extends AdminController
                     if (!$parent) {
                         $errors[] = 'Parent not found';
                     } else {
-                        $pupil->parent_id = $parent->id;
-                        $pupil->save(true, ['parent_id']);
+                        $student->parent_id = $parent->id;
+                        $student->save(true, ['parent_id']);
                     }
                     break;
                 case 'new':
@@ -519,19 +521,19 @@ class UserController extends AdminController
                     } elseif (!$parent->save()) {
                         $errors = array_merge($errors, $parent->getErrorsAsStringArray());
                     } else {
-                        $pupil->parent_id = $parent->id;
-                        $pupil->save(true, ['parent_id']);
+                        $student->parent_id = $parent->id;
+                        $student->save(true, ['parent_id']);
                     }
                     break;
             }
         }
 
         $infoFlashArray = [];
-        $errors = array_merge($errors, $this->saveConsultations($pupil));
-        $welcomeLessonResults = $this->saveWelcomeLessons($pupil);
+        $errors = array_merge($errors, $this->saveConsultations($student));
+        $welcomeLessonResults = $this->saveWelcomeLessons($student);
         $errors = array_merge($errors, $welcomeLessonResults[0]);
         $infoFlashArray = array_merge($infoFlashArray, $welcomeLessonResults[1]);
-        $groupResults = $this->saveGroups($pupil);
+        $groupResults = $this->saveCourses($student);
         $errors = array_merge($errors, $groupResults[0]);
         $infoFlashArray = array_merge($infoFlashArray, $groupResults[1]);
 
@@ -634,12 +636,12 @@ class UserController extends AdminController
         $this->checkRequestIsAjax();
         $this->checkAccess('manageUsers');
         
-        $pupil = $this->findModel($id);
+        $student = $this->findModel($id);
 
         if (!$tab) {
-            if (!empty($pupil->activeCourseStudents)) {
-                $tab = 'group';
-            } elseif (!empty($pupil->welcomeLessons)) {
+            if (!empty($student->activeCourseStudents)) {
+                $tab = 'course';
+            } elseif (!empty($student->welcomeLessons)) {
                 $tab = 'welcome_lesson';
             } else {
                 $tab = 'consultation';
@@ -647,12 +649,12 @@ class UserController extends AdminController
         }
         
         return $this->renderPartial('view', [
-            'pupil' => $pupil,
+            'student' => $student,
             'activeTab' => $tab,
             'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
             'debtAllowed' => Yii::$app->user->can('root'),
             'contractAllowed' => Yii::$app->user->can('contractManagement'),
-            'groupManagementAllowed' => Yii::$app->user->can('manageGroups'),
+            'courseManagementAllowed' => Yii::$app->user->can('manageGroups'),
             'moveMoneyAllowed' => Yii::$app->user->can('moveMoney'),
             'welcomeLessonsAllowed' => Yii::$app->user->can('welcomeLessons'),
         ]);

@@ -13,15 +13,15 @@ class NotifyQueue extends BaseObject
      * @param User        $recipient
      * @param int         $templateId
      * @param array       $params
-     * @param Course|null $group
+     * @param Course|null $course
      *
      * @return bool
      */
-    public function add(User $recipient, int $templateId, array $params, ?Course $group = null)
+    public function add(User $recipient, int $templateId, array $params, ?Course $course = null)
     {
         $notification = new Notify();
         $notification->user_id = $recipient->id;
-        $notification->group_id = $group ? $group->id : null;
+        $notification->course_id = $course?->id;
         $notification->template_id = $templateId;
         $notification->parameters = $params;
         $notification->status = Notify::STATUS_NEW;

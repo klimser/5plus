@@ -236,7 +236,7 @@ class ContractController extends AdminController
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            $contract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $pupil, $formData['amount'], $group);
+            $contract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $pupil, $formData['amount'], $group);
             $transaction->commit();
             return self::getJsonOkResult(['userId' => $pupil->id, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
         } catch (\Throwable $ex) {

@@ -11,18 +11,18 @@
                 <div class="modal-body">
                     <div id="debt-messages-place"></div>
                     <input type="hidden" name="debt[userId]" id="debt-user-id" required>
-                    <input type="hidden" name="debt[groupId]" id="debt-group-id" required>
+                    <input type="hidden" name="debt[courseId]" id="debt-course-id" required>
                     <input type="hidden" name="debt[refund]" id="debt-refund" value="0" required>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label" for="debt-pupil-name">Студент</label>
+                        <label class="col-12 col-sm-3 control-label" for="debt-student-name">Студент</label>
                         <div class="col-12 col-sm-9">
-                            <input readonly class="form-control-plaintext" id="debt-pupil-name">
+                            <input readonly class="form-control-plaintext" id="debt-student-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label" for="debt-group-name">Группа</label>
+                        <label class="col-12 col-sm-3 control-label" for="debt-course-name">Группа</label>
                         <div class="col-12 col-sm-9">
-                            <input readonly class="form-control-plaintext" id="debt-group-name">
+                            <input readonly class="form-control-plaintext" id="debt-course-name">
                         </div>
                     </div>
                     <div class="form-group row">

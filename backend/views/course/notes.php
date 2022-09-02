@@ -23,7 +23,7 @@ use yii\web\View;
 $this->title = 'Темы';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="group-index">
+<div class="course-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -61,14 +61,14 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'format' => 'text',
                 'header' => 'Тема',
-                'content' => (fn($model, $key, $index, $column) => ($model->note ? $model->note->topic : '')),
+                'content' => static fn (Course $model, $key, $index, $column) => ($model->note ? $model->note->topic : ''),
             ],
             [
                 'class' => ActionColumn::class,
                 'template' => '{history}',
                 'buttons' => [
                     'history' =>  function($url,$model) {
-                        return Html::a('<span class="fas fa-history"></span>', Url::to(['group/note', 'id' => $model->id]), [
+                        return Html::a('<span class="fas fa-history"></span>', Url::to(['course/note', 'id' => $model->id]), [
                             'title' => 'История изменений',
                             'class' => 'btn btn-outline-dark',
                         ]);

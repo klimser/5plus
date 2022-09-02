@@ -18,7 +18,7 @@ class WelcomeLessonSearch extends WelcomeLesson
     public function rules()
     {
         return [
-            [['group_id', 'user_id', 'status', 'deny_reason'], 'integer'],
+            [['course_id', 'user_id', 'status', 'deny_reason'], 'integer'],
             [['lesson_date'], 'string'],
             [['lessonDateTime', 'subjectId', 'teacherId'], 'safe'],
         ];
@@ -90,7 +90,7 @@ class WelcomeLessonSearch extends WelcomeLesson
         $query->andFilterWhere([
             self::tableName() . '.status' => $this->status,
             self::tableName() . '.deny_reason' => $this->deny_reason,
-            self::tableName() . '.group_id' => $this->course_id,
+            self::tableName() . '.course_id' => $this->course_id,
             self::tableName() . '.user_id' => $this->user_id,
         ]);
         if (!$this->status) {
@@ -105,12 +105,12 @@ class WelcomeLessonSearch extends WelcomeLesson
 
         if ($this->subjectId) {
             $groupIds = Course::find()->andWhere(['subject_id' => $this->subjectId])->select('id')->asArray()->column();
-            $query->andWhere(['group_id' => $groupIds]);
+            $query->andWhere(['course_id' => $groupIds]);
         }
 
         if (isset($params['WelcomeLessonSearch'], $params['WelcomeLessonSearch']['teacherId']) && !empty($params['WelcomeLessonSearch']['teacherId'])) {
             $groupIds = Course::find()->andWhere(['teacher_id' => $params['WelcomeLessonSearch']['teacherId']])->select('id')->asArray()->column();
-            $query->andWhere(['group_id' => $groupIds]);
+            $query->andWhere(['course_id' => $groupIds]);
         }
 
         return $dataProvider;

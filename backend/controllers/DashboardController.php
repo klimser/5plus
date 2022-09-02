@@ -18,7 +18,7 @@ class DashboardController extends AdminController
     public function actionIndex()
     {
         return $this->render('index', [
-            'pupilLimitDate' => CourseComponent::getPupilLimitDate(),
+            'studentLimitDate' => CourseComponent::getStudentLimitDate(),
             'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
             'contractAllowed' => Yii::$app->user->can('contractManagement'),
         ]);
@@ -32,21 +32,21 @@ class DashboardController extends AdminController
     {
         $searchValue = trim(Yii::$app->request->get('value', ''));
 
-        $contract = $giftCard = $existingPupil = null;
-        $pupils = $parents = [];
-        $showAddPupil = false;
+        $contract = $giftCard = $existingStudent = null;
+        $students = $parents = [];
+        $showAddStudent = false;
         if ($searchValue) {
-            $showAddPupil = !preg_match('#\d#', $searchValue);
+            $showAddStudent = !preg_match('#\d#', $searchValue);
             
             $contract = Contract::findOne(['number' => $searchValue]);
             $giftCard = GiftCard::findOne(['code' => $searchValue]);
             if ($giftCard) {
-                /** @var User $existingPupil */
-                $existingPupil = User::find()
+                /** @var User $existingStudent */
+                $existingStudent = User::find()
                     ->andWhere(['role' => [User::ROLE_STUDENT]])
                     ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $giftCard->customer_phone])
-                    ->with(['activeGroupPupils.group'])
+                    ->with(['activeCourseStudents.course.courseConfig'])
                     ->one();
             }
 
@@ -60,13 +60,13 @@ class DashboardController extends AdminController
             }
             $query->andWhere(array_merge(['or'], $searchCondition));
 
-            $pupilIdSet = [];
-            $pupilQuery = clone $query;
+            $studentIdSet = [];
+            $studentQuery = clone $query;
             /** @var User[] $users */
-            $users = $pupilQuery->andWhere(['role' => User::ROLE_STUDENT])->all();
+            $users = $studentQuery->andWhere(['role' => User::ROLE_STUDENT])->all();
             foreach ($users as $user) {
-                $pupils[] = $user;
-                $pupilIdSet[$user->id] = true;
+                $students[] = $user;
+                $studentIdSet[$user->id] = true;
             }
             
             $parentQuery = clone $query;
@@ -77,7 +77,7 @@ class DashboardController extends AdminController
             foreach ($users as $user) {
                 $add = false;
                 foreach ($user->notLockedChildren as $child) {
-                    if (!array_key_exists($child->id, $pupilIdSet)) {
+                    if (!array_key_exists($child->id, $studentIdSet)) {
                         $add = true;
                     }
                 }
@@ -90,10 +90,10 @@ class DashboardController extends AdminController
         return $this->renderPartial('results', [
             'contract' => $contract,
             'giftCard' => $giftCard,
-            'existingPupil' => $existingPupil,
+            'existingStudent' => $existingStudent,
             'parents' => $parents,
-            'pupils' => $pupils,
-            'showAddPupil' => $showAddPupil,
+            'students' => $students,
+            'showAddStudent' => $showAddStudent,
         ]);
     }
 }

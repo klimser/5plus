@@ -84,13 +84,13 @@ $renderTable = function(array $arr)
                             value="' . ($searchModel->user_id ? $searchModel->user->name : '') . '"></div>',
             ],
             [
-                'attribute' => 'group_id',
-                'content' => function ($model, $key, $index, $column) {
-                    return $model->group_id ? $model->group->name : null;
+                'attribute' => 'course_id',
+                'content' => function (\backend\models\Action $model, $key, $index, $column) {
+                    return $model->course_id ? $model->course->courseConfig->name : null;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
-                    'group_id',
+                    'course_id',
                     $groupMap,
                     ['class' => 'form-control']
                 ),

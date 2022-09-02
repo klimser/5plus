@@ -90,7 +90,7 @@ let Dashboard = {
     },
     selectGiftGroup: function(e) {
         let group = Main.courseMap[$(e).val()];
-        let limitDate = this.pupilLimitDate !== null && this.pupilLimitDate > group.dateStart ? this.pupilLimitDate : group.dateStart;
+        let limitDate = this.studentLimitDate !== null && this.studentLimitDate > group.dateStart ? this.studentLimitDate : group.dateStart;
         $(e).closest("#gift-card-form").find(".datepicker").datepicker("option", "minDate", new Date(limitDate));
     },
     completeGiftCard: function(form) {
@@ -105,13 +105,13 @@ let Dashboard = {
         let childrenBlock = $(e).closest(".result-parent").find(".children-list");
         $(childrenBlock).collapse("toggle");
     },
-    refreshPupilInfo: function(e) {
-        let tabId = $(e).closest(".pupil-info").find(".user-view-tabs .tab-pane.active").attr("id");
+    refreshStudentInfo: function(e) {
+        let tabId = $(e).closest(".student-info").find(".user-view-tabs .tab-pane.active").attr("id");
         tabId = tabId.split("-");
-        return this.togglePupilInfo(e, true, tabId[0]);
+        return this.toggleStudentInfo(e, true, tabId[0]);
     },
-    togglePupilInfo: function(e, forceReload, activeTab) {
-        let childrenInfoBlock = $(e).closest(".result-pupil").find(".pupil-info");
+    toggleStudentInfo: function(e, forceReload, activeTab) {
+        let childrenInfoBlock = $(e).closest(".result-student").find(".student-info");
         $(childrenInfoBlock).collapse(forceReload ? 'show' : 'toggle');
 
         if ($(childrenInfoBlock).html().length === 0 || forceReload === true) {
@@ -123,7 +123,7 @@ let Dashboard = {
                 data: {id: $(childrenInfoBlock).data("id"), tab: activeTab}
             })
                 .done(function(data) {
-                    let htmlAddon = '<button type="button" class="btn btn-outline-secondary float-right" onclick="Dashboard.refreshPupilInfo(this);"><span class="fas fa-sync"></span></button>';
+                    let htmlAddon = '<button type="button" class="btn btn-outline-secondary float-right" onclick="Dashboard.refreshStudentInfo(this);"><span class="fas fa-sync"></span></button>';
                     $(childrenInfoBlock).html(htmlAddon + data);
                     Main.initPhoneFormatted();
                     Main.initTooltip($(childrenInfoBlock).find('[data-toggle="tooltip"]'));
@@ -158,8 +158,8 @@ let Dashboard = {
             $(activeBlock).find("input").prop("disabled", false);
         }
     },
-    savePupil: function(form) {
-        this.lockPupilInfoButtons(form);
+    saveStudent: function(form) {
+        this.lockStudentInfoButtons(form);
         let messagesPlace = $(form).find(".user-view-messages-place");
         $.ajax({
             url: '/user/update-ajax',
@@ -169,8 +169,8 @@ let Dashboard = {
         })
             .done(function(data) {
                 if (data.status === 'ok') {
-                    let container = $(form).closest('.pupil-info');
-                    Dashboard.togglePupilInfo(form, true)
+                    let container = $(form).closest('.student-info');
+                    Dashboard.toggleStudentInfo(form, true)
                         .done(function() {
                             let messagesPlace = $(container).find(".user-view-messages-place");
                             data.infoFlash.forEach(function(message) {
@@ -191,19 +191,19 @@ let Dashboard = {
                 Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, messagesPlace);
             })
             .always(function() {
-                Dashboard.unlockPupilInfoButtons(form);
+                Dashboard.unlockStudentInfoButtons(form);
             });
     },
-    lockPupilInfoButtons: function(container)
+    lockStudentInfoButtons: function(container)
     {
         $(container).find("button").prop("disabled", true);
     },
-    unlockPupilInfoButtons: function(container)
+    unlockStudentInfoButtons: function(container)
     {
         $(container).find("button").prop("disabled", false);
     },
     printWelcomeLessonInfo: function(button) {
-        let welcomeTable = $(button).closest('.pupil-info').find('.welcome-table');
+        let welcomeTable = $(button).closest('.student-info').find('.welcome-table');
         let ids = [];
         $(welcomeTable).find('tr.welcome-row').each(function() {
             if ($(this).data("status") === WelcomeLesson.statusUnknown) {
@@ -221,21 +221,21 @@ let Dashboard = {
         }
     },
     showMoneyIncomeForm: function(e) {
-        let groupId = $(e).data('group');
-        let group = Main.courseMap[groupId];
+        let courseId = $(e).data('course');
+        let course = Main.courseMap[courseId];
         
         $('#income-messages-place').html('');
         let form = $("#income-form");
         $(form).find("#income-user-id").val($(e).data("user"));
-        $(form).find("#income-group-id").val(groupId);
-        $(form).find("#income-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
-        $(form).find(".income-amount").val(0).data('discountLimit', group.price12Lesson);
+        $(form).find("#income-course-id").val(courseId);
+        $(form).find("#income-student-name").val($(e).closest(".result-student").find(".student-name").text());
+        $(form).find(".income-amount").val(0).data('discountLimit', course.price12Lesson);
         $(form).find("#amount-notice").collapse('hide');
         $(form).find("#payment_comment").val('');
-        $(form).find("#income-group-name").val(group.name);
+        $(form).find("#income-course-name").val(course.name);
         let amountHelpersBlock = $(form).find(".amount-helper-buttons");
-        $(amountHelpersBlock).find(".price-lesson").data('price', group.priceLesson);
-        $(amountHelpersBlock).find(".price-month").data('price', group.priceMonth);
+        $(amountHelpersBlock).find(".price-lesson").data('price', course.priceLesson);
+        $(amountHelpersBlock).find(".price-month").data('price', course.priceMonth);
         $("#modal-income").modal("show");
     },
     setAmount: function(e) {
@@ -262,8 +262,8 @@ let Dashboard = {
             .done(function(data) {
                 if (data.status === 'ok') {
                     $("#modal-income").modal("hide");
-                    let container = $('#user-view-' + data.userId).closest(".pupil-info");
-                    Dashboard.togglePupilInfo(container, true, 'group')
+                    let container = $('#user-view-' + data.userId).closest(".student-info");
+                    Dashboard.toggleStudentInfo(container, true, 'group')
                         .done(function() {
                             let messagesPlace = $(container).find('.user-view-messages-place');
                             Main.throwFlashMessage(messagesPlace, 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
@@ -285,14 +285,14 @@ let Dashboard = {
         $("#income-button").prop('disabled', false);
     },
     showMoneyDebtForm: function(e, isRefund = false) {
-        let groupId = $(e).data('group');
-        let group = Main.courseMap[groupId];
+        let courseId = $(e).data('course');
+        let course = Main.courseMap[courseId];
 
         $('#debt-messages-place').html('');
         let form = $("#debt-form");
         $(form).find("#debt-user-id").val($(e).data("user"));
-        $(form).find("#debt-group-id").val(groupId);
-        $(form).find("#debt-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#debt-course-id").val(courseId);
+        $(form).find("#debt-student-name").val($(e).closest(".result-student").find(".student-name").text());
         $(form).find("#debt_comment").val('');
         if (isRefund) {
             $(form).find("#debt-amount").val(parseInt($(e).data('amount').replace(/ /g, '')));
@@ -303,7 +303,7 @@ let Dashboard = {
             $(form).find("#debt-amount").prop("readonly", false);
             $(form).find("#debt-refund").val(0);
         }
-        $(form).find("#debt-group-name").val(group.name);
+        $(form).find("#debt-course-name").val(course.name);
         $("#modal-debt .modal-title").text(isRefund ? 'Возврат средств' : 'Добавить долг');
         $("#modal-debt").modal("show");
     },
@@ -318,8 +318,8 @@ let Dashboard = {
             .done(function(data) {
                 if (data.status === 'ok') {
                     $("#modal-debt").modal("hide");
-                    let container = $('#user-view-' + data.userId).closest(".pupil-info");
-                    Dashboard.togglePupilInfo(container, true, 'group')
+                    let container = $('#user-view-' + data.userId).closest(".student-info");
+                    Dashboard.toggleStudentInfo(container, true, 'group')
                         .done(function() {
                             let messagesPlace = $(container).find('.user-view-messages-place');
                             Main.throwFlashMessage(messagesPlace, data.refund > 0 ? 'Возврат зарегистрирован' : 'Долг добавлен', 'alert-success');
@@ -340,19 +340,19 @@ let Dashboard = {
         $("#debt-button").prop('disabled', false);
     },
     showNewContractForm: function(e) {
-        let groupId = $(e).data('group');
-        let group = Main.courseMap[groupId];
+        let courseId = $(e).data('course');
+        let course = Main.courseMap[courseId];
         
         $('#new-contract-messages-place').html('');
         let form = $("#new-contract-form");
         $(form).find("#new-contract-user-id").val($(e).data("user"));
-        $(form).find("#new-contract-group-id").val(groupId);
-        $(form).find("#new-contract-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#new-contract-course-id").val(courseId);
+        $(form).find("#new-contract-student-name").val($(e).closest(".result-student").find(".student-name").text());
         $(form).find(".income-amount").val(0);
-        $(form).find("#new-contract-group-name").val(group.name);
+        $(form).find("#new-contract-course-name").val(course.name);
         let amountHelpersBlock = $(form).find(".amount-helper-buttons");
-        $(amountHelpersBlock).find(".price-lesson").data('price', group.priceLesson);
-        $(amountHelpersBlock).find(".price-month").data('price', group.priceMonth);
+        $(amountHelpersBlock).find(".price-lesson").data('price', course.priceLesson);
+        $(amountHelpersBlock).find(".price-month").data('price', course.priceMonth);
         $("#modal-new-contract").modal("show");
     },
     issueNewContract: function(form) {
@@ -383,31 +383,31 @@ let Dashboard = {
     unlockNewContractButton: function() {
         $("#new-contract-button").prop('disabled', false);
     },
-    showMovePupilForm: function(e) {
-        let groupPupilId = $(e).data('id');
-        let groupId = parseInt($(e).data('group'));
-        let group = Main.courseMap[groupId];
-        $('#group-move-messages-place').html('');
-        let form = $("#group-move-form");
-        $(form).find("#group-move-id").val(groupPupilId);
-        $(form).find("#group-move-group").val(group.name);
-        $(form).find("#group-move-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
+    showMoveStudentForm: function(e) {
+        let courseStudentId = $(e).data('id');
+        let courseId = parseInt($(e).data('course'));
+        let course = Main.courseMap[courseId];
+        $('#course-move-messages-place').html('');
+        let form = $("#course-move-form");
+        $(form).find("#course-move-id").val(courseStudentId);
+        $(form).find("#course-move-course").val(course.name);
+        $(form).find("#course-move-pupil-name").val($(e).closest(".result-student").find(".pupil-name").text());
         let optionsHtml = '';
         Main.courseActiveList.forEach(function(id) {
-            if (id !== groupId) {
+            if (id !== courseId) {
                 optionsHtml += '<option value="' + id + '">' + Main.courseMap[id].name + '</option>';
             }
         });
-        $(form).find("#group-move-new-group").html(optionsHtml);
-        $(form).find("#group-move-date").val('');
+        $(form).find("#course-move-new-course").html(optionsHtml);
+        $(form).find("#course-move-date").val('');
         $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
         $(form).find(".datepicker").datepicker("option", "minDate", $(e).data('date'));
-        $("#modal-group-move").modal("show");
+        $("#modal-course-move").modal("show");
     },
-    moveGroupPupil: function(form) {
-        this.lockMovePupilButton();
+    moveCourseStudent: function(form) {
+        this.lockMoveStudentButton();
         return $.ajax({
-            url: '/group/process-move-pupil',
+            url: '/course/process-move-student',
             type: 'post',
             dataType: 'json',
             data: $(form).serialize()
@@ -415,7 +415,7 @@ let Dashboard = {
             .done(function(data) {
                 if (data.status === 'ok') {
                     $("#modal-group-move").modal("hide");
-                    Dashboard.togglePupilInfo($('#user-view-' + data.userId), true, 'group');
+                    Dashboard.toggleStudentInfo($('#user-view-' + data.userId), true, 'group');
                 } else {
                     Main.throwFlashMessage('#group-move-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
@@ -423,45 +423,45 @@ let Dashboard = {
             .fail(function(jqXHR, textStatus, errorThrown) {
                 Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#group-move-messages-place');
             })
-            .always(Dashboard.unlockMovePupilButton);
+            .always(Dashboard.unlockMoveStudentButton);
     },
-    lockMovePupilButton: function() {
-        $("#group-move-button").prop('disabled', true);
+    lockMoveStudentButton: function() {
+        $("#course-move-button").prop('disabled', true);
     },
-    unlockMovePupilButton: function() {
-        $("#group-move-button").prop('disabled', false);
+    unlockMoveStudentButton: function() {
+        $("#course-move-button").prop('disabled', false);
     },
     showMoveMoneyForm: function(e) {
-        let groupPupilId = $(e).data('id');
-        let groupId = parseInt($(e).data('group'));
-        let group = Main.courseMap[groupId];
+        let courseStudentId = $(e).data('id');
+        let courseId = parseInt($(e).data('course'));
+        let course = Main.courseMap[courseId];
         $('#money-move-messages-place').html('');
         let form = $("#money-move-form");
-        $(form).find("#money-move-id").val(groupPupilId);
+        $(form).find("#money-move-id").val(courseStudentId);
         $(form).find("#money-move-amount").val($(e).data("amount"));
-        $(form).find("#money-move-group").val(group.name);
-        $(form).find("#money-move-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#money-move-course").val(course.name);
+        $(form).find("#money-move-pupil-name").val($(e).closest(".result-student").find(".pupil-name").text());
         let optionsHtml = '';
-        let allowedGroupIds = $(e).data('groups');
-        if (typeof allowedGroupIds === 'number') {
-            allowedGroupIds = [allowedGroupIds];
-        } else if (allowedGroupIds.length > 0) {
-            allowedGroupIds = allowedGroupIds.split(',').map(function (x) {
+        let allowedCourseIds = $(e).data('courses');
+        if (typeof allowedCourseIds === 'number') {
+            allowedCourseIds = [allowedCourseIds];
+        } else if (allowedCourseIds.length > 0) {
+            allowedCourseIds = allowedCourseIds.split(',').map(function (x) {
                 return parseInt(x, 10);
             });
         }
-        if (allowedGroupIds.length > 0) {
-            allowedGroupIds.forEach(function (groupId) {
+        if (allowedCourseIds.length > 0) {
+            allowedCourseIds.forEach(function (groupId) {
                 optionsHtml += '<option value="' + groupId + '">' + Main.courseMap[groupId].name + '</option>';
             });
         }
-        $(form).find("#money-move-new-group").html(optionsHtml);
+        $(form).find("#money-move-new-course").html(optionsHtml);
         $("#modal-money-move").modal("show");
     },
     moveMoney: function(form) {
         this.lockMoveMoneyButton();
         return $.ajax({
-            url: '/group/process-move-money',
+            url: '/course/process-move-money',
             type: 'post',
             dataType: 'json',
             data: $(form).serialize()
@@ -469,7 +469,7 @@ let Dashboard = {
             .done(function(data) {
                 if (data.status === 'ok') {
                     $("#modal-money-move").modal("hide");
-                    Dashboard.togglePupilInfo($('#user-view-' + data.userId), true, 'group');
+                    Dashboard.toggleStudentInfo($('#user-view-' + data.userId), true, 'course');
                 } else {
                     Main.throwFlashMessage('#money-move-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
@@ -485,49 +485,49 @@ let Dashboard = {
     unlockMoveMoneyButton: function() {
         $("#money-move-button").prop('disabled', false);
     },
-    showEndPupilForm: function(e) {
-        let groupPupilId = $(e).data('id');
-        let groupId = parseInt($(e).data('group'));
-        let group = Main.courseMap[groupId];
-        $('#end-pupil-messages-place').html('');
-        let form = $("#end-pupil-form");
-        $(form).find("#end-pupil-id").val(groupPupilId);
-        $(form).find("#end-pupil-group").val(group.name);
-        $(form).find("#end-pupil-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
+    showEndStudentForm: function(e) {
+        let courseStudentId = $(e).data('id');
+        let courseId = parseInt($(e).data('course'));
+        let course = Main.courseMap[courseId];
+        $('#end-student-messages-place').html('');
+        let form = $("#end-student-form");
+        $(form).find("#end-student-id").val(courseStudentId);
+        $(form).find("#end-student-course").val(course.name);
+        $(form).find("#end-student-pupil-name").val($(e).closest(".result-student").find(".student-name").text());
 
-        let groupLimitDate = $(e).data("date");
-        let limitDate = this.pupilLimitDate !== null && this.pupilLimitDate > groupLimitDate ? this.pupilLimitDate : groupLimitDate;
+        let courseLimitDate = $(e).data("date");
+        let limitDate = this.studentLimitDate !== null && this.studentLimitDate > courseLimitDate ? this.studentLimitDate : courseLimitDate;
         $(form).find(".datepicker").datepicker(Main.datepickerDefaultSettings);
         $(form).find(".datepicker").datepicker("option", "minDate", new Date(limitDate));
 
-        $("#modal-end-pupil").modal("show");
+        $("#modal-end-student").modal("show");
     },
-    endPupil: function(form) {
-        this.lockEndPupilButton();
+    endStudent: function(form) {
+        this.lockEndStudentButton();
         return $.ajax({
-            url: '/group/end-pupil',
+            url: '/course/end-student',
             type: 'post',
             dataType: 'json',
             data: $(form).serialize()
         })
             .done(function(data) {
                 if (data.status === 'ok') {
-                    $("#modal-end-pupil").modal("hide");
-                    Dashboard.togglePupilInfo($('#user-view-' + data.userId), true, 'group');
+                    $("#modal-end-student").modal("hide");
+                    Dashboard.toggleStudentInfo($('#user-view-' + data.userId), true, 'group');
                 } else {
-                    Main.throwFlashMessage('#end-pupil-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
+                    Main.throwFlashMessage('#end-student-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
-                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#end-pupil-messages-place');
+                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#end-student-messages-place');
             })
-            .always(Dashboard.unlockEndPupilButton);
+            .always(Dashboard.unlockEndStudentButton);
     },
-    lockEndPupilButton: function() {
-        $("#end-pupil-button").prop('disabled', true);
+    lockEndStudentButton: function() {
+        $("#end-student-button").prop('disabled', true);
     },
-    unlockEndPupilButton: function() {
-        $("#end-pupil-button").prop('disabled', false);
+    unlockEndStudentButton: function() {
+        $("#end-student-button").prop('disabled', false);
     },
     filterPayments: function(e) {
         let container = $(e).closest(".view-payments");
@@ -545,8 +545,8 @@ let Dashboard = {
             $(paymentsTable).find('tr.expense').removeClass('show');
         }
     },
-    filterGroups: function(e) {
-        $(e).closest(".groups").find(".groups-table .group-item.inactive")
+    filterCourses: function(e) {
+        $(e).closest(".courses").find(".courses-table .course-item.inactive")
             .collapse($(e).is(':checked') ? 'show' : 'hide');
     },
     showCreatePupilForm: function() {
@@ -568,7 +568,7 @@ let Dashboard = {
         $(form).find('.consultation-item').remove();
         $(form).find('.welcome-lesson-item').remove();
         $(form).find('.group-item').remove();
-        User.checkPupilPhoneRequired();
+        User.checkStudentPhoneRequired();
     },
     lockCreatePupilButton: function() {
         let button = $("#create-pupil-form").find('button[type=submit]');
@@ -580,11 +580,11 @@ let Dashboard = {
         $(button).prop('disabled', false);
         $(button).find('.button-loading-spinner').addClass('d-none');
     },
-    createPupil: function(form) {
+    createStudent: function(form) {
         if (MultiStepForm.validate(form)) {
             this.lockCreatePupilButton(form);
             $.ajax({
-                url: '/user/create-pupil',
+                url: '/user/create-student',
                 type: 'post',
                 dataType: 'json',
                 data: $(form).serialize()
@@ -592,7 +592,7 @@ let Dashboard = {
                 .done(function(data) {
                     if ('ok' === data.status) {
                         Dashboard.clearCreatePupilForm();
-                        $('#modal-create-pupil').modal('hide');
+                        $('#modal-create-student').modal('hide');
                         let searchForm = $("#search-form");
                         $(searchForm).find('input.search').val(data.name);
                         Dashboard.find(searchForm);
@@ -611,7 +611,7 @@ let Dashboard = {
         $('#age-messages-place').html('');
         let form = $("#modal-age_confirmation");
         $(form).find("#age-user-id").val(userId);
-        $(form).find("#age-pupil-name").val($(e).closest(".result-pupil").find(".pupil-name").text());
+        $(form).find("#age-pupil-name").val($(e).closest(".result-student").find(".pupil-name").text());
 
         let phones = [
             $(e).data('phone1'),

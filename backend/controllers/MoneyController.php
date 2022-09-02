@@ -61,23 +61,23 @@ class MoneyController extends AdminController
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $formData = Yii::$app->request->post('income', []);
-        if (!isset($formData['userId'], $formData['groupId'], $formData['amount'], $formData['payment_type'], $formData['comment'])) {
+        if (!isset($formData['userId'], $formData['courseId'], $formData['amount'], $formData['payment_type'], $formData['comment'])) {
             return self::getJsonErrorResult('Wrong request');
         }
 
         $user = User::findOne($formData['userId']);
-        $group = Course::findOne(['id' => $formData['groupId'], 'active' => Course::STATUS_ACTIVE]);
+        $course = Course::findOne(['id' => $formData['courseId'], 'active' => Course::STATUS_ACTIVE]);
         $amount = (int)$formData['amount'];
         $paymentType = $formData['payment_type'];
 
         if (!$user) return self::getJsonErrorResult('Студент не найден');
         if ($amount <= 0) return self::getJsonErrorResult('Сумма не может быть <= 0');
-        if (!$group) return self::getJsonErrorResult('Группа не найдена');
+        if (!$course) return self::getJsonErrorResult('Группа не найдена');
         if (!in_array($paymentType, Contract::MANUAL_PAYMENT_TYPES)) return self::getJsonErrorResult('Неверный метод оплаты');
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            $contract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, $amount, $group);
+            $contract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, $amount, $course);
             $paymentId = MoneyComponent::payContract($contract, null, $paymentType, $formData['comment']);
 
             $transaction->commit();
@@ -179,7 +179,7 @@ class MoneyController extends AdminController
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            $contract = MoneyComponent::addPupilContract(
+            $contract = MoneyComponent::addStudentContract(
                 Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
                 $pupil,
                 $giftCard->amount,

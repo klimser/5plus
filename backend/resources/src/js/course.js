@@ -16,49 +16,49 @@ let Course = {
             });
         }
         
-        $("#groupconfig-teacher_id").html(listHtml);
+        $("#courseconfig-teacher_id").html(listHtml);
     },
-    pupilsActive: [],
-    renderPupilForm: function () {
-        let pupilSelect = '<input type="hidden" class="autocomplete-user-id pupil-id" name="pupil[]">' +
+    studentsActive: [],
+    renderStudentForm: function () {
+        let studentSelect = '<input type="hidden" class="autocomplete-user-id student-id" name="student[]">' +
             '<input class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" required data-role="3">';
 
-        let formHtml = '<div class="row row-pupil mt-3"><div class="col-12">' +
+        let formHtml = '<div class="row row-student mt-3"><div class="col-12">' +
             '<div class="row form-group">' +
-                '<div class="col-9 col-sm-10 col-md-6 col-lg-4">' + pupilSelect + '</div>' +
+                '<div class="col-9 col-sm-10 col-md-6 col-lg-4">' + studentSelect + '</div>' +
                 '<div class="col-3 col-sm-2 col-md-auto">' +
-                    '<button type="button" class="btn btn-outline-dark" onclick="return Course.removePupil(this);" title="Удалить">' +
+                    '<button type="button" class="btn btn-outline-dark" onclick="return Course.removeStudent(this);" title="Удалить">' +
                     '<span class="fas fa-user-minus"></span></button>' +
                 '</div>' +
             '</div>';
         if (!this.isNew) {
-            formHtml += '<div class="row form-group group-pupil-block">' +
+            formHtml += '<div class="row form-group course-student-block">' +
                 '<div class="col-6 col-sm-auto form-inline align-items-start">' +
                     '<label class="mr-2 mt-2">C</label>' +
-                    '<input type="text" class="form-control pupil-date-start" name="pupil_start[]" id="group-pupil-new-date-start-' + Course.increment + '" ' +
-                    'required autocomplete="off" onchange="Main.handleDateRangeFrom(this);" data-target-to-closest=".row-pupil" data-target-to-selector=".pupil-date-end">' +
+                    '<input type="text" class="form-control student-date-start" name="student_start[]" id="course-student-new-date-start-' + Course.increment + '" ' +
+                    'required autocomplete="off" onchange="Main.handleDateRangeFrom(this);" data-target-to-closest=".row-student" data-target-to-selector=".student-date-end">' +
                 '</div>';
             formHtml +=
                 '<div class="col-6 col-sm-auto form-inline align-items-start">' +
                     '<label class="mr-2 mt-2">ДО</label>' +
-                    '<input type="text" class="form-control pupil-date-end" name="pupil_end[]" id="group-pupil-new-date-end-' + Course.increment + '" ' +
-                    'autocomplete="off" onchange="Main.handleDateRangeTo(this);" data-target-from-closest=".row-pupil" data-target-from-selector=".pupil-date-start">' +
+                    '<input type="text" class="form-control student-date-end" name="student_end[]" id="course-student-new-date-end-' + Course.increment + '" ' +
+                    'autocomplete="off" onchange="Main.handleDateRangeTo(this);" data-target-from-closest=".row-student" data-target-from-selector=".student-date-start">' +
                 '</div>' +
             '</div>';
             Course.increment++;
         }
         formHtml += '</div></div><hr>';
-        $("#group_pupils").append(formHtml);
+        $("#course_students").append(formHtml);
         
-        Main.initAutocompleteUser('#group_pupils .row-pupil:last .autocomplete-user');
+        Main.initAutocompleteUser('#course_students .row-student:last .autocomplete-user');
         if (!this.isNew) {
-            $('#group_pupils .row-pupil:last .pupil-date-start').datepicker({
+            $('#course_students .row-student:last .student-date-start').datepicker({
                 format: "dd.mm.yyyy",
                 firstDay: 1,
                 minDate: this.startDate,
                 maxDate: this.endDate
             });
-            $('#group_pupils .row-pupil:last .pupil-date-end').datepicker({
+            $('#course_students .row-student:last .student-date-end').datepicker({
                 format: "dd.mm.yyyy",
                 firstDay: 1,
                 minDate: this.startDate,
@@ -67,17 +67,17 @@ let Course = {
         }
         return false;
     },
-    removePupil: function (e) {
+    removeStudent: function (e) {
         if (confirm('Вы уверены?')) {
-            $(e).closest("div.row-pupil").remove();
+            $(e).closest("div.row-student").remove();
         }
         return false;
     },
     submitForm: function () {
         let validForm = true;
         let startDate = null, endDate = null;
-        let startDateInput = $("#group-date_start");
-        let endDateInput = $("#group-date_end");
+        let startDateInput = $("#course-date_start");
+        let endDateInput = $("#course-date_end");
         let startString = $(startDateInput).val();
         let endString = $(endDateInput).val();
 
@@ -108,20 +108,38 @@ let Course = {
             $(endDateInput).removeClass('is-invalid');
         }
 
-        validForm = false;
-        let timeInputs = $('input[name^="weektime"]');
-        $(timeInputs).each(function() {
-            if ($(this).val().length > 0) {
-                validForm = true;
+        let teacherRateInput = $('#courseconfig-teacher_rate');
+        let teacherLessonPayInput = $('#courseconfig-teacher_lesson_pay');
+        if ($(teacherRateInput).is(':not([disabled])')) {
+            if (($(teacherRateInput).val().length === 0 && $(teacherLessonPayInput).val().length === 0)
+                || ($(teacherRateInput).val().length !== 0 && $(teacherLessonPayInput).val().length !== 0)) {
+                $(teacherRateInput).addClass('is-invalid');
+                $(teacherLessonPayInput).addClass('is-invalid');
+                validForm = false;
+            } else {
+                $(teacherRateInput).removeClass('is-invalid');
+                $(teacherLessonPayInput).removeClass('is-invalid');
             }
-        });
-        if (validForm) {
-            $(timeInputs).removeClass('is-invalid');
-        } else {
-            $(timeInputs).addClass('is-invalid');
         }
 
-        $("input.pupil-id").each(function () {
+        let timeInputs = $('input[name^="weektime"]:not([disabled])');
+        if (timeInputs.length > 0) {
+            let scheduleValid = false;
+            $(timeInputs).each(function () {
+                if ($(this).val().length > 0) {
+                    scheduleValid = true;
+                }
+            });
+
+            if (scheduleValid) {
+                $(timeInputs).removeClass('is-invalid');
+            } else {
+                $(timeInputs).addClass('is-invalid');
+                validForm = false;
+            }
+        }
+
+        $("input.student-id").each(function () {
             if ($(this).val() > 0) {
                 $(this).removeClass('is-invalid');
             } else {
@@ -130,18 +148,18 @@ let Course = {
             }
         });
         if (validForm) {
-            $(".pupil-date-start").each(function () {
+            $(".student-date-start").each(function () {
                 startString = $(this).val();
-                endString = $(this).closest(".group-pupil-block").find('.pupil-date-end').val();
+                endString = $(this).closest(".course-student-block").find('.student-date-end').val();
                 if (!startString.length || !Course.dateRegexp.test(startString) || (endString.length && !Course.dateRegexp.test(endString))) {
                     $(this).addClass('is-invalid');
                     validForm = false;
                 } else {
                     if (endString.length) {
-                        var pupilStartDate = new Date(parseInt(startString.substr(6)), parseInt(startString.substr(3, 2)), parseInt(startString.substr(0, 2)));
-                        var pupilEndDate = new Date(parseInt(endString.substr(6)), parseInt(endString.substr(3, 2)), parseInt(endString.substr(0, 2)));
+                        let studentStartDate = new Date(parseInt(startString.substr(6)), parseInt(startString.substr(3, 2)), parseInt(startString.substr(0, 2)));
+                        let studentEndDate = new Date(parseInt(endString.substr(6)), parseInt(endString.substr(3, 2)), parseInt(endString.substr(0, 2)));
 
-                        if (pupilStartDate < startDate || (endDate !== null && pupilEndDate > endDate) || pupilEndDate <= pupilStartDate) {
+                        if (studentStartDate < startDate || (endDate !== null && studentEndDate > endDate) || studentEndDate <= studentStartDate) {
                             $(this).addClass('is-invalid');
                             validForm = false;
                         } else $(this).removeClass('is-invalid');
@@ -159,18 +177,18 @@ let Course = {
         $(e).closest('.one_day_block').find("input.weektime").prop('disabled', !$(e).is(':checked'));
     },
     setEndReason: function(form, triggerHide) {
-        let groupPupilId = $(form).find("input[name=group_pupil_id]").val();
-        if (groupPupilId <= 0) return false;
-        let pupilRow = $("#pupil_row_" + groupPupilId);
+        let courseStudentId = $(form).find("input[name=course_student_id]").val();
+        if (courseStudentId <= 0) return false;
+        let studentRow = $("#student_row_" + courseStudentId);
         
-        let reasonIdInput = $(pupilRow).find('input[name="pupil_reason_id[' + groupPupilId + ']"]');
+        let reasonIdInput = $(studentRow).find('input[name="student_reason_id[' + courseStudentId + ']"]');
         if (reasonIdInput.length === 0) {
-            $(pupilRow).append('<input type="hidden" name="pupil_reason_id[' + groupPupilId + ']">');
-            $(pupilRow).append('<input type="hidden" name="pupil_reason_comment[' + groupPupilId + ']">');
-            reasonIdInput = $(pupilRow).find('input[name="pupil_reason_id[' + groupPupilId + ']"]');
+            $(studentRow).append('<input type="hidden" name="student_reason_id[' + courseStudentId + ']">');
+            $(studentRow).append('<input type="hidden" name="student_reason_comment[' + courseStudentId + ']">');
+            reasonIdInput = $(studentRow).find('input[name="student_reason_id[' + courseStudentId + ']"]');
         }
 
-        let reasonCommentInput = $(pupilRow).find('input[name="pupil_reason_comment[' + groupPupilId + ']"]');
+        let reasonCommentInput = $(studentRow).find('input[name="student_reason_comment[' + courseStudentId + ']"]');
         let reasonId = $(form).find("input[name=reason_id]:checked").val();
 
         $(reasonIdInput).val(reasonId);
@@ -178,18 +196,18 @@ let Course = {
         
         return (reasonId > 0);
     },
-    handlePupilEndDate: function(elem) {
+    handleStudentEndDate: function(elem) {
        if ($(elem).val()) {
-           let groupPupilId = $(elem).data('id');
+           let courseStudentId = $(elem).data('id');
            let endReasonForm = $("#end-reason-form");
-           $(endReasonForm).find("input[name=group_pupil_id]").val(groupPupilId);
+           $(endReasonForm).find("input[name=course_student_id]").val(courseStudentId);
            $(endReasonForm).find("input[name=reason_id]").prop("checked", false);
            let commentText = "";
-           let pupilRow = $("#pupil_row_" + groupPupilId);
-           let reasonIdInput = $(pupilRow).find('input[name="pupil_reason_id[' + groupPupilId + ']"]');
+           let studentRow = $("#student_row_" + courseStudentId);
+           let reasonIdInput = $(studentRow).find('input[name="student_reason_id[' + courseStudentId + ']"]');
            if (reasonIdInput.length > 0) {
                $(endReasonForm).find("input[name=reason_id][value=" + $(reasonIdInput).val() + "]").prop("checked", true);
-               let reasonCommentInput = $(pupilRow).find('input[name="pupil_reason_comment[' + groupPupilId + ']"]');
+               let reasonCommentInput = $(studentRow).find('input[name="student_reason_comment[' + courseStudentId + ']"]');
                commentText = $(reasonCommentInput).val();
            }
            $(endReasonForm).find("textarea[name=reason_comment]").val(commentText);
@@ -228,9 +246,7 @@ let Course = {
         return false;
     },
     addConfig: function(e) {
-        let form = $("#form_group_config");
-        $(form).collapse('show');
-        $(e).hide();
-        $(form).find('input,select,textarea').prop('disabled', false);
+        let formContainer = $("#config-new");
+        $(formContainer).find('input,select,textarea').prop('disabled', $(formContainer).hasClass('show'));
     }
 };

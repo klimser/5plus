@@ -144,7 +144,7 @@ class ManagerSalaryReport
         $actions = Action::find()
             ->alias('a')
             ->with(['group', 'user', 'admin'])
-            ->andWhere(['a.type' => \common\components\Action::TYPE_GROUP_PUPIL_ADDED])
+            ->andWhere(['a.type' => \common\components\Action::TYPE_COURSE_STUDENT_ADDED])
             ->andWhere(['between', 'a.created_at', $date->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
             ->orderBy(['a.created_at' => SORT_ASC])
             ->all();

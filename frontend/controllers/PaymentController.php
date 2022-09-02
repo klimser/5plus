@@ -38,7 +38,7 @@ class PaymentController extends Controller
             'h1' => 'Онлайн оплата',
         ];
         switch ($type) {
-            case 'pupil':
+            case 'student':
                 $params['h1'] .= ' для учащихся';
                 break;
             case 'new':
@@ -51,7 +51,7 @@ class PaymentController extends Controller
 
     public function actionIndex($type)
     {
-        if (!in_array($type, ['new', 'pupil'])) {
+        if (!in_array($type, ['new', 'student'])) {
             $type = null;
         }
         return $this->render('index' . ($type ? "-$type" : ''), $this->getPageParams($type));
@@ -63,7 +63,7 @@ class PaymentController extends Controller
             throw new BadRequestHttpException('Only post allowed');
         }
 
-        $pageParams = $this->getPageParams('pupil');
+        $pageParams = $this->getPageParams('student');
         $validator = new ReCaptchaValidator2();
         $reCaptcha = Yii::$app->request->post('reCaptcha');
         try {
@@ -72,7 +72,7 @@ class PaymentController extends Controller
             }
         } catch (\Exception $ex) {
             Yii::$app->session->addFlash('error', 'Проверка на робота не пройдена');
-            return $this->render('index-pupil', $pageParams);
+            return $this->render('index-student', $pageParams);
         }
 
         $phoneFull = '+998' . substr(preg_replace('#\D#', '', Yii::$app->request->post('phoneFormatted')), -9);
@@ -81,11 +81,11 @@ class PaymentController extends Controller
 
     private function processPhone($phoneFull)
     {
-        $pageParams = $this->getPageParams('pupil');
+        $pageParams = $this->getPageParams('student');
         $users = User::findActiveCustomersByPhone($phoneFull);
         if (count($users) == 0) {
             Yii::$app->session->addFlash('error', 'По данному номеру студенты не найдены');
-            return $this->render('index-pupil', $pageParams);
+            return $this->render('index-student', $pageParams);
         } else {
             if (count($users) == 1) {
                 $user = reset($users);
@@ -125,7 +125,7 @@ class PaymentController extends Controller
             return $this->renderPaymentForm($user);
         } else {
             Yii::$app->session->set('userId', $user->id);
-            $pageParams = $this->getPageParams('pupil');
+            $pageParams = $this->getPageParams('student');
             return $this->renderAgeConfirmationForm($user, Yii::$app->session->get('phoneFull'), $pageParams);
         }
     }
@@ -143,7 +143,7 @@ class PaymentController extends Controller
 
     public function actionPay()
     {
-        $pageParams = $this->getPageParams('pupil');
+        $pageParams = $this->getPageParams('student');
         $userId = Yii::$app->session->get('userId');
         $phoneFull = Yii::$app->session->get('phoneFull');
         if (!$userId && $phoneFull) {
@@ -153,12 +153,12 @@ class PaymentController extends Controller
             return $user->isAgeConfirmed() ? $this->renderPaymentForm($user) : $this->renderAgeConfirmationForm($user, $phoneFull, $pageParams);
         }
         
-        return $this->redirect(Url::to(['webpage', 'id' => $pageParams['webpage']->id, 'type' => 'pupil']));
+        return $this->redirect(Url::to(['webpage', 'id' => $pageParams['webpage']->id, 'type' => 'student']));
     }
 
     private function renderPaymentForm(User $user)
     {
-        $pageParams = $this->getPageParams('pupil');
+        $pageParams = $this->getPageParams('student');
         return $this->render('payment-form', array_merge($pageParams, ['user' => $user]));
     }
 
@@ -281,13 +281,13 @@ class PaymentController extends Controller
     public function actionLink($key)
     {
         $paymentLink = PaymentLink::findOne(['hash_key' => $key]);
-        $groupPupils = [];
+        $courseStudents = [];
         if ($paymentLink) {
-            $groupPupils = CourseStudent::findAll(['group_id' => $paymentLink->group_id, 'user_id' => $paymentLink->user_id]);
+            $courseStudents = CourseStudent::findAll(['course_id' => $paymentLink->course_id, 'user_id' => $paymentLink->user_id]);
         }
-        $params = $this->getPageParams('pupil');
+        $params = $this->getPageParams('student');
         $params['paymentLink'] = $paymentLink;
-        $params['groupPupils'] = $groupPupils;
+        $params['courseStudents'] = $courseStudents;
 
         return $this->render('link', $params);
     }
@@ -297,32 +297,32 @@ class PaymentController extends Controller
         $this->checkRequestIsAjax();
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $pupilId = Yii::$app->request->post('pupil');
-        $groupId = Yii::$app->request->post('group');
+        $studentId = Yii::$app->request->post('student');
+        $courseId = Yii::$app->request->post('course');
         $amount = intval(Yii::$app->request->post('amount'));
         $paymentMethodId = intval(Yii::$app->request->post('method', 0));
 
-        if (!$pupilId) return self::getJsonErrorResult('No pupil ID');
-        if (!$groupId) return self::getJsonErrorResult('No pupil ID');
+        if (!$studentId) return self::getJsonErrorResult('No student ID');
+        if (!$courseId) return self::getJsonErrorResult('No course ID');
         if ($amount < 1000) return self::getJsonErrorResult('Wrong payment amount');
 
-        /** @var User $pupil */
-        $pupil = User::find()->andWhere(['id' => $pupilId, 'role' => User::ROLE_STUDENT, 'status' => User::STATUS_ACTIVE])->one();
-        /** @var Course $group */
-        $group = Course::find()->andWhere(['id' => $groupId, 'active' => Course::STATUS_ACTIVE])->one();
+        /** @var User $student */
+        $student = User::find()->andWhere(['id' => $studentId, 'role' => User::ROLE_STUDENT, 'status' => User::STATUS_ACTIVE])->one();
+        /** @var Course $course */
+        $course = Course::find()->andWhere(['id' => $courseId, 'active' => Course::STATUS_ACTIVE])->one();
 
-        if (!$pupil) return self::getJsonErrorResult('Pupil not found');
-        if (!$group) return self::getJsonErrorResult('Group not found');
+        if (!$student) return self::getJsonErrorResult('Student not found');
+        if (!$course) return self::getJsonErrorResult('Course not found');
 
-        $groupPupil = CourseStudent::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])->one();
-        if (!$groupPupil) return self::getJsonErrorResult('Для этого студента внесение оплаты невозможно');
+        $courseStudent = CourseStudent::find()->andWhere(['user_id' => $student->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])->one();
+        if (!$courseStudent) return self::getJsonErrorResult('Для этого студента внесение оплаты невозможно');
 
         try {
-            $contract = MoneyComponent::addPupilContract(
+            $contract = MoneyComponent::addStudentContract(
                 Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
-                $pupil,
+                $student,
                 $amount,
-                $group
+                $course
             );
 
             $redirectUrl = null;
@@ -331,9 +331,9 @@ class PaymentController extends Controller
                 case Contract::PAYMENT_TYPE_ATMOS:
                     $paymoApi = ComponentContainer::getPaymoApi();
                     $paymoId = $paymoApi->payCreate($contract->amount, $contract->number, [
-                        'студент' => $pupil->name,
-                        'группа' => $group->legal_name,
-                        'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price))),
+                        'студент' => $student->name,
+                        'группа' => $course->legal_name,
+                        'занятий' => intval(round($contract->amount / ($contract->discount ? $course->lesson_price_discount : $course->lesson_price))),
                     ]);
                     $contract->payment_type = Contract::PAYMENT_TYPE_ATMOS;
                     $contract->external_id = $paymoId;
@@ -383,8 +383,8 @@ class PaymentController extends Controller
         $giftCardData = Yii::$app->request->post('giftcard', []);
         $paymentMethodId = intval(Yii::$app->request->post('method', 0));
 
-        if (!isset($giftCardData['pupil_name'])) return self::getJsonErrorResult('No pupil name');
-        if (!isset($giftCardData['pupil_phone'])) return self::getJsonErrorResult('No pupil phone');
+        if (!isset($giftCardData['student_name'])) return self::getJsonErrorResult('No student name');
+        if (!isset($giftCardData['student_phone'])) return self::getJsonErrorResult('No student phone');
         if (!isset($giftCardData['type'])) return self::getJsonErrorResult('No payment type selected');
         if (!isset($giftCardData['email'])) return self::getJsonErrorResult('No email');
         $giftCardType = GiftCardType::findOne(['id' => $giftCardData['type'], 'active' => GiftCardType::STATUS_ACTIVE]);
@@ -396,8 +396,8 @@ class PaymentController extends Controller
             $giftCard->name = $giftCardType->name;
             $giftCard->amount = $giftCardType->amount;
             $giftCard->status = GiftCard::STATUS_NEW;
-            $giftCard->customer_name = $giftCardData['pupil_name'];
-            $giftCard->phoneFormatted = $giftCardData['pupil_phone'];
+            $giftCard->customer_name = $giftCardData['student_name'];
+            $giftCard->phoneFormatted = $giftCardData['student_phone'];
             $giftCard->customer_email = $giftCardData['email'];
             $additionalData = ['payment_method' => (int)$paymentMethodId];
             if ($giftCardData['parents_name'] && $giftCardData['parents_phone']) {

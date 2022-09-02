@@ -4,11 +4,11 @@ use backend\models\WelcomeLesson;
 use common\models\User;
 
 /* @var $this yii\web\View */
-/* @var $pupil User */
+/* @var $student User */
 $printable = false;
 ?>
 <div class="welcome_lessons mt-2">
-    <?php if (count($pupil->welcomeLessons) > 0): ?>
+    <?php if (count($student->welcomeLessons) > 0): ?>
         <table class="table table-bordered table-sm welcome-table">
             <tr>
                 <th>Группа, предмет</th>
@@ -16,7 +16,7 @@ $printable = false;
                 <th>Статус</th>
                 <th></th>
             </tr>
-            <?php foreach ($pupil->welcomeLessons as $welcomeLesson):
+            <?php foreach ($student->welcomeLessons as $welcomeLesson):
                 if (WelcomeLesson::STATUS_UNKNOWN == $welcomeLesson->status) {
                     $printable = true;
                 }
@@ -24,7 +24,7 @@ $printable = false;
                 <tr class="welcome-row" data-key="<?= $welcomeLesson->id; ?>" data-status="<?= $welcomeLesson->status; ?>" data-deny-reason="<?= $welcomeLesson->deny_reason; ?>" data-date="<?= $welcomeLesson->lessonDateTime->format('d.m.Y'); ?>">
                     <td>
                         <?php if ($welcomeLesson->course_id): ?>
-                            <?= $welcomeLesson->course->name; ?><br>
+                            <?= $welcomeLesson->course->courseConfig->name; ?><br>
                             <?= $welcomeLesson->course->subject->name; ?><br>
                             <?= $welcomeLesson->course->teacher->name; ?>
                         <?php endif; ?>

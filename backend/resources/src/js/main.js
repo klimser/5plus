@@ -174,24 +174,24 @@ let Main = {
             data.filter = {active: 1};
         }
         return $.Deferred(function (defer) {
-            $.getJSON('/ajax-info/groups', data)
+            $.getJSON('/ajax-info/courses', data)
                 .done(function (data) {
                     let listFlushed = false;
-                    if (data.find(function(group) {
-                        return !group.active;
+                    if (data.find(function(course) {
+                        return !course.active;
                     })) {
                         Main.courseList = [];
                         listFlushed = true;
                     }
                     Main.courseActiveList = [];
-                    data.forEach(function (group) {
-                        if (group.active) {
-                            Main.courseActiveList.push(group.id);
+                    data.forEach(function (course) {
+                        if (course.active) {
+                            Main.courseActiveList.push(course.id);
                         }
                         if (listFlushed) {
-                            Main.courseList.push(group.id);
+                            Main.courseList.push(course.id);
                         }
-                        Main.courseMap[group.id] = group;
+                        Main.courseMap[course.id] = course;
                     });
                     defer.resolve(listFlushed ? Main.courseList : Main.courseActiveList);
                 })

@@ -12,7 +12,7 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата'; ?>
         <div class="row">
             <div class="col-12 col-md-6 text-center">
                 <p>
-                    <a class="btn btn-lg btn-primary" href="<?= Url::to(['webpage', 'id' => $webpage->id, 'type' => 'pupil']); ?>">
+                    <a class="btn btn-lg btn-primary" href="<?= Url::to(['webpage', 'id' => $webpage->id, 'type' => 'student']); ?>">
                         Для учащихся
                     </a>
                 </p>

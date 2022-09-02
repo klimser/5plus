@@ -10,154 +10,148 @@ use yii\helpers\Url;
 use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
-/* @var $group common\models\Course */
-/* @var $groupTypes \common\models\GroupType[] */
+/* @var $course common\models\Course */
+/* @var $courseTypes \common\models\CourseType[] */
 /* @var $subjects \common\models\Subject[] */
 /* @var $canMoveMoney bool */
 
-$this->title = $group->id ? $group->name : 'Добавить группу';
+$this->title = $course->id ? $course->courseConfig->name : 'Добавить группу';
 $this->params['breadcrumbs'][] = ['label' => 'Группы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
 $script = 'Main.loadActiveTeachers()';
-if (!$group->subject_id) {
+if (!$course->subject_id) {
     $script .= '.done(function(teacherIds) {
-            Group.loadTeacherSelect($("#group-subject_id"));
+            Course.loadTeacherSelect($("#course-subject_id"));
         })';
 }
 $script .= ";\n";
-if ($group->teacher_id) {
-    $script .= 'Group.activeTeacher = ' . $group->teacher_id . ";\n";
+if ($course->id) {
+    $script .= 'Course.activeTeacher = ' . $course->courseConfig->teacher_id . ";\n";
 }
 ?>
-<div class="group-update">
+<div class="course-update">
     <h1>
         <?= Html::encode($this->title) ?>
-        <?php if ($group->id): ?>
-            <a class="float-right btn btn-outline-dark" href="<?= Url::to(['view', 'id' => $group->id]); ?>">
+        <?php if ($course->id): ?>
+            <a class="float-right btn btn-outline-dark" href="<?= Url::to(['view', 'id' => $course->id]); ?>">
                 Сводка <span class="fas fa-arrow-right"></span>
             </a>
         <?php endif; ?>
     </h1>
     <div class="clearfix"></div>
 
-    <?php $form = ActiveForm::begin(['options' => ['onsubmit' => 'return Group.submitForm();']]); ?>
+    <?php $form = ActiveForm::begin(['options' => ['onsubmit' => 'return Course.submitForm();']]); ?>
 
     <div class="row">
         <div class="col-12 col-lg-6">
-            <?= $form->field($group, 'name', ['options' => ['class' => 'form-group']])
-                ->textInput(['maxlength' => true, 'required' => true]) ?>
+            <?= $form->field($course, 'type_id', ['options' => ['class' => 'form-group']])
+                ->dropDownList(ArrayHelper::map($courseTypes, 'id', 'name'), ['required' => true]); ?>
 
-            <?= $form->field($group, 'legal_name', ['options' => ['class' => 'form-group']])
-                ->textInput(['maxlength' => true, 'required' => true]) ?>
-
-            <?= $form->field($group, 'type_id', ['options' => ['class' => 'form-group']])
-                ->dropDownList(ArrayHelper::map($groupTypes, 'id', 'name'), ['required' => true]); ?>
-
-            <?= $form->field($group, 'subject_id', ['options' => ['class' => 'form-group']])
+            <?= $form->field($course, 'subject_id', ['options' => ['class' => 'form-group']])
                 ->dropDownList(
                     ArrayHelper::map($subjects, 'id', 'name'),
-                    ['onChange' => 'Group.loadTeacherSelect(this);', 'required' => true, 'disabled' => !$group->isNewRecord]
+                    ['onChange' => 'Course.loadTeacherSelect(this);', 'required' => true, 'disabled' => !$course->isNewRecord]
                 ); ?>
         </div>
         <div class="col-12 col-lg-6">
             <h3>Параметры</h3>
-            <?php
-            $teacherList = $group->subject_id ? ArrayHelper::map($group->subject->teachers, 'id', 'name') : [];
-            foreach ($group->groupConfigs as $groupConfig) {
-                echo $this->render(
-                    '_config_card',
-                    [
-                        'groupConfig' => $groupConfig,
-                        'teacherList' => $teacherList,
-                    ]
-                );
-            } ?>
-            <?= $this->render(
-                    '_config_form',
-                    [
-                        'groupConfig' => new CourseConfig(),
-                        'teacherList' => $teacherList,
-                        'form' => $form,
-                        'visible' => $group->isNewRecord,
-                        'dateFromAllowed' => !$group->isNewRecord,
-                    ]);
-            ?>
-            <?php if (!$group->isNewRecord): ?>
-                <button type="button" class="btn btn-info" onclick="Course.addConfig(this);">
-                    <span class="fas fa-plus"></span> Добавить
-                </button>
-            <?php endif; ?>
+            <div class="accordion" id="config-list">
+                <?php
+                $teacherList = $course->subject_id ? ArrayHelper::map($course->subject->teachers, 'id', 'name') : [];
+                foreach ($course->courseConfigs as $courseConfig): ?>
+                    <div class="card">
+                        <div class="card-header" id="config-header-<?= $courseConfig->id; ?>">
+                            <h2 class="mb-0">
+                                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                                        data-target="#config-<?= $courseConfig->id; ?>" aria-expanded="true"
+                                        aria-controls="config-<?= $courseConfig->id; ?>">
+                                    <?= $courseConfig->date_from; ?> - <?= $courseConfig->date_to ?? 'сейчас'; ?>
+                                </button>
+                            </h2>
+                        </div>
+                        <div id="config-<?= $courseConfig->id; ?>" class="collapse" aria-labelledby="config-header-<?= $courseConfig->id; ?>" data-parent="#config-list">
+                            <div class="card-body">
+                                <?= $this->render('_config_card', ['courseConfig' => $courseConfig]); ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+
+                <div class="card">
+                    <div class="card-header" id="config-header-new">
+                        <h2 class="mb-0">
+                            <button class="btn btn-info btn-block text-left" type="button" data-toggle="collapse"
+                                    data-target="#config-new" aria-expanded="true" aria-controls="config-new" onclick="Course.addConfig(this);"
+                                    <?= $course->isNewRecord ? ' disabled ' : ''; ?>>
+                                <span class="fas fa-plus"></span> Добавить
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="config-new" class="collapse <?= $course->isNewRecord ? ' show ' : ''; ?>" aria-labelledby="config-header-new" data-parent="#config-list">
+                        <div class="card-body">
+                            <?= $this->render(
+                                '_config_form',
+                                [
+                                    'courseConfig' => new CourseConfig(),
+                                    'teacherList' => $teacherList,
+                                    'form' => $form,
+                                    'disabled' => !$course->isNewRecord,
+                                ]);
+                            ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="form-group col-12" id="group_date">
+    <div class="form-group col-12" id="course_date">
         <h5>Группа занимается</h5>
-        <?php if (count($group->pupils) == 0): ?>
-        <div class="row">
-                <?= $form->field(
-                        $group,
-                        'date_start',
-                        [
-                            'options' => ['class' => 'form-group col-12 col-md-6 form-inline align-items-start'],
-                            'labelOptions' => ['label' => 'C', 'class' => 'mr-2 mt-2'],
-                        ]
-                    )
-                    ->widget(DatePicker::class, ArrayHelper::merge(
-                        DefaultValuesComponent::getDatePickerSettings(),
-                        ['options' => [
-                            'required' => true,
-                            'autocomplete' => 'off',
-                            'onchange' => 'Main.handleDateRangeFrom(this)',
-                            'data' => ['target-to-selector' => '#group-date_end'],
-                        ]]
-                    )); ?>
-                <?= $form->field(
-                        $group,
-                        'date_end',
-                        [
-                            'options' => ['class' => 'form-group col-12 col-md-6 form-inline align-items-start'],
-                            'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2 mt-2'],
-                        ]
-                    )
-                    ->widget(DatePicker::class, ArrayHelper::merge(
-                        DefaultValuesComponent::getDatePickerSettings(),
-                        ['options' => [
-                            'autocomplete' => 'off',
-                            'onchange' => 'Main.handleDateRangeTo(this)',
-                            'data' => ['target-from-selector' => '#group-date_start'],
-                        ]]
-                    )); ?>
-        </div>
-            <?php
-//            $options = ['required' => true];
-//            $optionsTo = [];
-//            if ($group->date_start) $options['value'] = $group->startDateObject->format('d.m.Y');
-//            if ($group->date_end) $optionsTo['value'] = $group->endDateObject->format('d.m.Y');
-//            ? >
-//            < ? = $form->field($group, 'date_start', ['labelOptions' => ['label' => 'Группа занимается'], 'options' => ['class' => '']])
-//            ->widget(DateRangePicker::class, array_merge(
-//                DefaultValuesComponent::getDatePickerSettings(),
-//                [
-//                    'options' => $options,
-//                    'optionsTo' => $optionsTo,
-//                    'attributeTo' => 'date_end',
-//                    'form' => $form, // best for correct client validation
-//                    'language' => 'ru',
-//                    'labelTo' => 'ДО',
-//                    'clientEvents' => [
-//                        'changeDate' => 'function(e) {if ($(e.target).attr("name") == "Group[date_end]" && e.format() == $(e.currentTarget).find("input[name=\'Group[date_start]\']").val()) $(e.target).datepicker("clearDates");}',
-//                    ]
-//                ]
-//            ));?>
+        <?php if (count($course->students) === 0): ?>
+            <div class="row">
+                    <?= $form->field(
+                            $course,
+                            'date_start',
+                            [
+                                'options' => ['class' => 'form-group col-12 col-md-6 form-inline align-items-start'],
+                                'labelOptions' => ['label' => 'C', 'class' => 'mr-2 mt-2'],
+                            ]
+                        )
+                        ->widget(DatePicker::class, ArrayHelper::merge(
+                            DefaultValuesComponent::getDatePickerSettings(),
+                            ['options' => [
+                                'required' => true,
+                                'autocomplete' => 'off',
+                                'onchange' => 'Main.handleDateRangeFrom(this)',
+                                'data' => ['target-to-selector' => '#course-date_end'],
+                            ]]
+                        )); ?>
+                    <?= $form->field(
+                            $course,
+                            'date_end',
+                            [
+                                'options' => ['class' => 'form-group col-12 col-md-6 form-inline align-items-start'],
+                                'labelOptions' => ['label' => 'ДО', 'class' => 'mr-2 mt-2'],
+                            ]
+                        )
+                        ->widget(DatePicker::class, ArrayHelper::merge(
+                            DefaultValuesComponent::getDatePickerSettings(),
+                            ['options' => [
+                                'autocomplete' => 'off',
+                                'onchange' => 'Main.handleDateRangeTo(this)',
+                                'data' => ['target-from-selector' => '#course-date_start'],
+                            ]]
+                        )); ?>
+            </div>
         <?php else: ?>
             <div class="row align-items-center">
                 <div class="col-12 col-sm-6 col-md-auto form-group">
-                    C <?= $group->startDateObject->format('d.m.Y'); ?>
+                    C <?= $course->startDateObject->format('d.m.Y'); ?>
                 </div>
-                <?= Html::hiddenInput('Group[date_start]', $group->startDateObject->format('d.m.Y'), ['id' => 'group-date_start']); ?>
+                <?= Html::hiddenInput('Course[date_start]', $course->startDateObject->format('d.m.Y'), ['id' => 'course-date_start']); ?>
                 <?= $form->field(
-                        $group,
+                        $course,
                         'date_end',
                         [
                             'options' => ['class' => 'form-group col-12 col-sm-6 col-md-auto form-inline align-items-start'],
@@ -168,7 +162,7 @@ if ($group->teacher_id) {
                         DefaultValuesComponent::getDatePickerSettings(),
                         [
                             'options' => ['autocomplete' => 'off'],
-                            'clientOptions' => ['minDate' => $group->startDateObject->format('d.m.Y')],
+                            'clientOptions' => ['minDate' => $course->startDateObject->format('d.m.Y')],
                         ]
                     )); ?>
             </div>
@@ -177,33 +171,26 @@ if ($group->teacher_id) {
 
     <div class="col-12">
         <h5>Студенты</h5>
-        <div id="group_pupils">
+        <div id="course_students">
             <?php
-            $script .= 'Group.isNew = ' . (count($group->pupils) ? 'false' : 'true') . ";\n";
-            if ($group->date_start) $script .= 'Group.startDate = "' . $group->startDateObject->format('d.m.Y') . '";' . "\n";
-            if ($group->date_end) $script .= 'Group.endDate = "' . $group->endDateObject->format('d.m.Y') . '";' . "\n";
-            foreach ($group->activeGroupPupils as $groupPupil): ?>
-                <div class="row row-cols-2 justify-content-between mt-3 form-group" id="pupil_row_<?= $groupPupil->id; ?>">
+            $script .= 'Course.isNew = ' . ($course->id ? 'false' : 'true') . ";\n";
+            if ($course->date_start) $script .= 'Course.startDate = "' . $course->startDateObject->format('d.m.Y') . '";' . "\n";
+            if ($course->date_end) $script .= 'Course.endDate = "' . $course->endDateObject->format('d.m.Y') . '";' . "\n";
+            foreach ($course->activeCourseStudents as $courseStudent): ?>
+                <div class="row row-cols-2 justify-content-between mt-3 form-group" id="student_row_<?= $courseStudent->id; ?>">
                     <div class="col-9 col-sm-10 col-md-auto">
-                        <?= Html::hiddenInput('pupil[]', $groupPupil->user->id); ?>
-                        <?= $groupPupil->user->name; ?>
+                        <?= Html::hiddenInput('student[]', $courseStudent->user->id); ?>
+                        <?= $courseStudent->user->name; ?>
                         <br class="d-md-none">
-                        <?php if ($groupPupil->user->phone): ?>
-                            (<?= Html::phoneLink($groupPupil->user->phone, $groupPupil->user->phoneFormatted);
-                            ?><?= $groupPupil->user->phone2 ? ', ' . Html::phoneLink($groupPupil->user->phone2, $groupPupil->user->phone2Formatted) : ''; ?>)
+                        <?php if ($courseStudent->user->phone): ?>
+                            (<?= Html::phoneLink($courseStudent->user->phone, $courseStudent->user->phoneFormatted);
+                            ?><?= $courseStudent->user->phone2 ? ', ' . Html::phoneLink($courseStudent->user->phone2, $courseStudent->user->phone2Formatted) : ''; ?>)
                         <?php endif; ?>
                     </div>
-                    <?php /*
-                    <div class="col-3 col-sm-2 col-md-auto">
-                        <a href="<?= Url::to(['group/move-pupil', 'groupPupilId' => $groupPupil->id]); ?>" class="btn btn-sm btn-outline-dark">
-                            <span class="d-none d-md-inline">Перевести</span>
-                            <span class="fas fa-arrow-right"></span>
-                        </a>
-                    </div> */ ?>
                 </div>
-                <div class="row group-pupil-block mb-3 border-bottom">
+                <div class="row course-student-block mb-3 border-bottom">
                     <?= $form->field(
-                            $groupPupil,
+                            $courseStudent,
                             'date_start',
                             [
                                 'options' => ['class' => 'form-group col-6 col-sm-auto form-inline align-items-start'],
@@ -214,23 +201,23 @@ if ($group->teacher_id) {
                             DefaultValuesComponent::getDatePickerSettings(),
                             [
                                 'options' => [
-                                    'name' => 'pupil_start[]',
-                                    'id' => 'group-pupil-old-date-start-' . $groupPupil->id,
+                                    'name' => 'student_start[]',
+                                    'id' => 'course-student-old-date-start-' . $courseStudent->id,
                                     'required' => true,
                                     'autocomplete' => 'off',
-                                    'class' => 'form-control pupil-date-start',
+                                    'class' => 'form-control student-date-start',
                                     'onchange' => 'Main.handleDateRangeFrom(this)',
-                                    'data' => ['target-to-closest' => '.group-pupil-block', 'target-to-selector' => '.pupil-date-end'],
+                                    'data' => ['target-to-closest' => '.course-student-block', 'target-to-selector' => '.student-date-end'],
                                 ],
                                 'clientOptions' => [
-                                    'minDate' => $group->startDateObject->format('d.m.Y'),
-                                    'maxDate' => $group->date_end ? $group->endDateObject->format('d.m.Y') : null,
+                                    'minDate' => $course->startDateObject->format('d.m.Y'),
+                                    'maxDate' => $course->date_end ? $course->endDateObject->format('d.m.Y') : null,
                                 ],
                             ]
                         )); ?>
                     
                     <?= $form->field(
-                            $groupPupil,
+                            $courseStudent,
                             'date_end',
                             [
                                 'options' => ['class' => 'form-group col-6 col-sm-auto form-inline align-items-start'],
@@ -242,59 +229,59 @@ if ($group->teacher_id) {
                             [
                                 'options' => [
                                     'name' => 'pupil_end[]',
-                                    'id' => 'group-pupil-old-date-end-' . $groupPupil->id,
+                                    'id' => 'course-student-old-date-end-' . $courseStudent->id,
                                     'autocomplete' => 'off',
-                                    'class' => 'form-control pupil-date-end',
-                                    'onchange' => 'Main.handleDateRangeTo(this); Group.handlePupilEndDate(this);',
+                                    'class' => 'form-control student-date-end',
+                                    'onchange' => 'Main.handleDateRangeTo(this); Course.handleStudentEndDate(this);',
                                     'data' => [
-                                        'target-from-closest' => '.group-pupil-block',
-                                        'target-from-selector' => '.pupil-date-start',
-                                        'id' => $groupPupil->id,
+                                        'target-from-closest' => '.course-student-block',
+                                        'target-from-selector' => '.student-date-start',
+                                        'id' => $courseStudent->id,
                                     ],
                                 ],
                                 'clientOptions' => [
-                                    'minDate' => $groupPupil->startDateObject->format('d.m.Y'),
-                                    'maxDate' => $group->date_end ? $group->endDateObject->format('d.m.Y') : null,
+                                    'minDate' => $courseStudent->startDateObject->format('d.m.Y'),
+                                    'maxDate' => $course->date_end ? $course->endDateObject->format('d.m.Y') : null,
                                 ],
                             ]
                         )); ?>
                 </div>
                 <?php
-                $script .= 'Group.pupilsActive.push(' . $groupPupil->user->id . ');' . "\n";
+                $script .= 'Course.studentsActive.push(' . $courseStudent->user->id . ');' . "\n";
             endforeach;
             $this->registerJs($script); ?>
         </div>
-        <button class="btn btn-outline-success btn-sm" onclick="return Course.renderPupilForm();"><span class="fas fa-user-plus"></span> Добавить студента</button>
+        <button class="btn btn-outline-success btn-sm" onclick="return Course.renderStudentForm();"><span class="fas fa-user-plus"></span> Добавить студента</button>
         <hr class="mb-4">
 
-        <?php if (count($group->movedGroupPupils)): ?>
+        <?php if (count($course->movedCourseStudents)): ?>
             <h5>Перешли в другие группы</h5>
             <table class="table table-sm">
-                <?php foreach ($group->movedGroupPupils as $groupPupil): ?>
+                <?php foreach ($course->movedCourseStudents as $courseStudent): ?>
                     <tr>
-                        <td><?= $groupPupil->user->name; ?></td>
+                        <td><?= $courseStudent->user->name; ?></td>
                         <td class="text-right">
-                            <?= $groupPupil->startDateObject->format('d.m.Y'); ?> - <?= $groupPupil->endDateObject->format('d.m.Y'); ?>
+                            <?= $courseStudent->startDateObject->format('d.m.Y'); ?> - <?= $courseStudent->endDateObject->format('d.m.Y'); ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </table>
         <?php endif; ?>
-        <?php if (count($group->finishedGroupPupils)): ?>
+        <?php if (count($course->finishedCourseStudents)): ?>
             <h5>Закончили заниматься</h5>
             <table class="table table-sm">
-                <?php foreach ($group->finishedGroupPupils as $groupPupil): ?>
+                <?php foreach ($course->finishedCourseStudents as $courseStudent): ?>
                     <tr>
                         <td>
-                            <?= $groupPupil->user->name; ?>
-                            <?php if ($groupPupil->end_reason): ?>
-                                <span class="fas fa-info-circle text-info" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= CourseStudent::END_REASON_LABELS[$groupPupil->end_reason] . '<br>' . nl2br($groupPupil->comment); ?>"></span>
+                            <?= $courseStudent->user->name; ?>
+                            <?php if ($courseStudent->end_reason): ?>
+                                <span class="fas fa-info-circle text-info" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= CourseStudent::END_REASON_LABELS[$courseStudent->end_reason] . '<br>' . nl2br($courseStudent->comment); ?>"></span>
                             <?php endif; ?>
                         </td>
                         <td class="text-right">
-                            <?= $groupPupil->startDateObject->format('d.m.Y'); ?> - <?= $groupPupil->endDateObject->format('d.m.Y'); ?>
-                            <?php if ($canMoveMoney && $groupPupil->moneyLeft > 0): ?>
-                                <a href="<?= Url::to(['group/move-money', 'groupPupilId' => $groupPupil->id]); ?>" class="btn btn-sm btn-outline-dark" title="Перенести оставшиеся деньги">
+                            <?= $courseStudent->startDateObject->format('d.m.Y'); ?> - <?= $courseStudent->endDateObject->format('d.m.Y'); ?>
+                            <?php if ($canMoveMoney && $courseStudent->moneyLeft > 0): ?>
+                                <a href="<?= Url::to(['course/move-money', 'courseStudentId' => $courseStudent->id]); ?>" class="btn btn-sm btn-outline-dark" title="Перенести оставшиеся деньги">
                                     <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>
                                 </a>
                             <?php endif; ?>
@@ -306,7 +293,7 @@ if ($group->teacher_id) {
     </div>
 
     <div class="form-group col-12 mt-3">
-        <?= Html::submitButton($group->isNewRecord ? 'Добавить' : 'Сохранить', ['class' => 'btn btn-primary']) ?>
+        <?= Html::submitButton($course->isNewRecord ? 'Добавить' : 'Сохранить', ['class' => 'btn btn-primary']) ?>
         <div id="form-valid" class="my-2 px-2 rounded"></div>
     </div>
 
@@ -320,7 +307,7 @@ if ($group->teacher_id) {
                         <h4 class="modal-title">Причина</h4>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" name="group_pupil_id" value="0">
+                        <input type="hidden" name="course_student_id" value="0">
                         <?php foreach (CourseStudent::END_REASON_LABELS as $id => $label): ?>
                             <div class="radio">
                                 <label>
@@ -340,7 +327,7 @@ if ($group->teacher_id) {
     <?php 
         $this->registerJs(<<<SCRIPT
     $('#end-reason-modal').on('hide.bs.modal', function (e) {
-        if (!Group.setEndReason($("#end-reason-form"), false)) {
+        if (!Course.setEndReason($("#end-reason-form"), false)) {
             e.preventDefault();
         }
     });

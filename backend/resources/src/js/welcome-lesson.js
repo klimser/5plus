@@ -196,7 +196,7 @@ let WelcomeLesson = {
             })
             .always(WelcomeLesson.unlockRescheduleFormButtons);
     },
-    movePupil: function(form) {
+    moveStudent: function(form) {
         this.lockMovingFormButtons();
         return $.ajax({
                 url: '/welcome-lesson/move',

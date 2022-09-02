@@ -967,7 +967,7 @@ class AccountCommand extends UserCommand
             ];
             $transaction = Yii::$app->db->beginTransaction();
             try {
-                $contract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $userResult, $amount, $group);
+                $contract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $userResult, $amount, $group);
                 $transaction->commit();
             } catch (\Throwable $ex) {
                 ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Contract not created: ' . $ex->getMessage(), true);
@@ -1077,7 +1077,7 @@ class AccountCommand extends UserCommand
                     ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Payment is not applied, contract does not exists: ' . $payload, true);
                 } else {
                     try {
-                        $newContract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $contract->user, (int) ($payment->getTotalAmount() / 100), $contract->course);
+                        $newContract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $contract->user, (int) ($payment->getTotalAmount() / 100), $contract->course);
                         MoneyComponent::payContract($newContract, null, Contract::PAYMENT_TYPE_TELEGRAM_PAYME, $payment->getTelegramPaymentChargeId());
                         $newContract->external_id = $payment->getProviderPaymentChargeId();
                         $newContract->save();
@@ -1101,7 +1101,7 @@ class AccountCommand extends UserCommand
                             ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])
                             ->one();
                         if ($groupPupil) {
-                            $newContract = MoneyComponent::addPupilContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, (int) ($payment->getTotalAmount() / 100), $group);
+                            $newContract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, (int) ($payment->getTotalAmount() / 100), $group);
                             MoneyComponent::payContract($newContract, null, Contract::PAYMENT_TYPE_TELEGRAM_PAYME, $payment->getTelegramPaymentChargeId());
                             $newContract->external_id = $payment->getProviderPaymentChargeId();
                             $newContract->save();

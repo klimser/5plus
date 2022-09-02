@@ -1,53 +1,53 @@
 let Payment = {
     users: {},
     user: null,
-    selectPupil: function(e) {
-        this.user = $(e).data("pupil");
-        $("#user_select").find("button.pupil-button").removeClass('btn-primary').addClass('btn-outline-dark');
+    selectStudent: function(e) {
+        this.user = $(e).data("student");
+        $("#user_select").find("button.student-button").removeClass('btn-primary').addClass('btn-outline-dark');
         $(e).addClass('btn-primary').removeClass('btn-outline-dark');
-        this.renderGroupSelect();
+        this.renderCourseSelect();
     },
-    renderGroupSelect: function() {
+    renderCourseSelect: function() {
         if (this.user !== null && this.users.hasOwnProperty(this.user)) {
             let htmlData = '';
-            this.users[this.user].groups.forEach(function(group) {
+            this.users[this.user].courses.forEach(function(course) {
                 let addonClass = 'outline-dark';
                 let addonText = '';
-                if (group.debt > 0) {
+                if (course.debt > 0) {
                     addonClass = 'danger';
-                    addonText = 'задолженность ' + group.debt + ' сум';
-                } else if (group.paid.length > 0) {
-                    addonText = 'оплачено до ' + group.paid;
+                    addonText = 'задолженность ' + course.debt + ' сум';
+                } else if (course.paid.length > 0) {
+                    addonText = 'оплачено до ' + course.paid;
                 }
-                htmlData += '<button class="mb-3 btn btn-lg btn-' + addonClass + '" type="button" data-id="' + group.id + '" onclick="Payment.toggleGroup(this);">' +
-                    group.name +
+                htmlData += '<button class="mb-3 btn btn-lg btn-' + addonClass + '" type="button" data-id="' + course.id + '" onclick="Payment.toggleCourse(this);">' +
+                    course.name +
                     (addonText.length > 0 ? '<br><small>' + addonText + '</small>' : '') +
-                    '</button><div id="payment-' + group.id + '" class="group-payments collapse" data-groupid="' + group.id + '" data-groupname="' + group.name + '"><div class="row">';
-                if (group.debt > 0) {
-                    htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-primary btn-block" data-sum="' + group.debt + '" onclick="Payment.selectSum(this);">' +
-                        'Погасить задолженность ' + group.debt + ' сум' +
+                    '</button><div id="payment-' + course.id + '" class="course-payments collapse" data-courseid="' + course.id + '" data-coursename="' + course.name + '"><div class="row">';
+                if (course.debt > 0) {
+                    htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-primary btn-block" data-sum="' + course.debt + '" onclick="Payment.selectSum(this);">' +
+                        'Погасить задолженность ' + course.debt + ' сум' +
                         '</button></div>';
                 }
-                htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceLesson + '" data-limit="' + group.priceDiscountLimit + '" onclick="Payment.selectSum(this);">' +
-                    'за 1 занятие ' + group.priceLesson + ' сум' +
+                htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + course.priceLesson + '" data-limit="' + course.priceDiscountLimit + '" onclick="Payment.selectSum(this);">' +
+                    'за 1 занятие ' + course.priceLesson + ' сум' +
                     '</button></div>' +
 
-                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + group.priceMonth + '" data-limit="' + group.priceDiscountLimit + '" onclick="Payment.selectSum(this);">' +
-                    'за 1 месяц ' + group.priceMonth + ' сум' +
+                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="' + course.priceMonth + '" data-limit="' + course.priceDiscountLimit + '" onclick="Payment.selectSum(this);">' +
+                    'за 1 месяц ' + course.priceMonth + ' сум' +
                     '</button></div>' +
 
-                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="none" data-limit="' + group.priceDiscountLimit + '" onclick="Payment.selectSum(this);">другая сумма</button></div>' +
+                    '<div class="col-12 col-md-auto mb-2"><button class="btn btn-secondary btn-block" data-sum="none" data-limit="' + course.priceDiscountLimit + '" onclick="Payment.selectSum(this);">другая сумма</button></div>' +
                     '</div></div><hr>';
             });
 
-            $("#group_select").html(htmlData);
-            if (this.users[this.user].groups.length === 1) {
-                $("#group_select").find('button').get(0).click();
+            $("#course_select").html(htmlData);
+            if (this.users[this.user].courses.length === 1) {
+                $("#course_select").find('button').get(0).click();
             }
         }
     },
-    toggleGroup: function(e) {
-        $(".group-payments").collapse("hide");
+    toggleCourse: function(e) {
+        $(".course-payments").collapse("hide");
         $("#payment-" + $(e).data("id")).collapse("show");
     },
     selectSum: function(e) {
@@ -60,8 +60,8 @@ let Payment = {
             $(amountInput).val(parseInt(sum)).prop('disabled', true);
         }
 
-        $("#pupil").data("val", this.user).val(this.users[this.user].name);
-        $("#group").data("val", $(e).closest(".group-payments").data("groupid")).val($(e).closest(".group-payments").data("groupname"));
+        $("#student").data("val", this.user).val(this.users[this.user].name);
+        $("#course").data("val", $(e).closest(".course-payments").data("courseid")).val($(e).closest(".course-payments").data("coursename"));
         $("#payment_form").modal();
         Payment.checkAmount(amountInput);
     },
@@ -74,7 +74,7 @@ let Payment = {
     },
     completePayment: function(button) {
         let form = $(button).closest("form");
-        if (!$("#pupil").data("val") || !$("#group").data("val") || $("#amount").val() < 1000 || ($(form).find('#giftcard-email').length > 0 && !$("#agreement").is(":checked"))) return false;
+        if (!$("#student").data("val") || !$("#course").data("val") || $("#amount").val() < 1000 || ($(form).find('#giftcard-email').length > 0 && !$("#agreement").is(":checked"))) return false;
 
         this.lockPayButton();
         $.ajax({
@@ -82,8 +82,8 @@ let Payment = {
             type: 'post',
             dataType: 'json',
             data: {
-                pupil: $("#pupil").data("val"),
-                group: $("#group").data("val"),
+                pupil: $("#student").data("val"),
+                group: $("#course").data("val"),
                 amount: $("#amount").val(),
                 method: $(button).data("payment")
             },

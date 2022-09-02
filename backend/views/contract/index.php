@@ -58,7 +58,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'course_id',
                 'label' => 'Группа',
                 'content' => function (Contract $model, $key, $index, $column) {
-                    return $model->course_id ? Html::a($model->course->courseConfig->name, Url::to(['group/view', 'id' => $model->course_id])) : null;
+                    return $model->course_id ? Html::a($model->course->courseConfig->name, Url::to(['course/view', 'id' => $model->course_id])) : null;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

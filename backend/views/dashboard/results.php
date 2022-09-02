@@ -7,10 +7,10 @@ use yii\helpers\Url;
 
 /* @var $contract \common\models\Contract */
 /* @var $giftCard \common\models\GiftCard */
-/* @var $existingPupil User */
+/* @var $existingStudent User */
 /* @var $parents User[] */
-/* @var $pupils User[] */
-/* @var $showAddPupil bool */
+/* @var $students User[] */
+/* @var $showAddStudent bool */
 
 $noResults = true;
 
@@ -21,16 +21,16 @@ if ($contract):
 
 if ($giftCard):
     $noResults = false; ?>
-    <?= $this->render('_result_gift_card', ['giftCard' => $giftCard, 'existingPupil' => $existingPupil]); ?>
+    <?= $this->render('_result_gift_card', ['giftCard' => $giftCard, 'existingPupil' => $existingStudent]); ?>
 <?php endif;
 
 $pupilIdSet = [];
-if ($pupils):
+if ($students):
     $noResults = false;
-    foreach ($pupils as $pupil):
-        $pupilIdSet[$pupil->id] = true;
+    foreach ($students as $student):
+        $pupilIdSet[$student->id] = true;
         ?>
-        <?= $this->render('_result_pupil', ['pupil' => $pupil]); ?>
+        <?= $this->render('_result_student', ['student' => $student]); ?>
     <?php endforeach;
 endif;
 
@@ -62,7 +62,7 @@ if ($noResults): ?>
 <div class="alert alert-warning">
     Ничего не найдено
     <br><br>
-    <?php if ($showAddPupil): ?>
+    <?php if ($showAddStudent): ?>
         <a href="#" target="_blank" class="btn btn-info" onclick="Dashboard.showCreatePupilForm(); return false;">Добавить студента</a>
     <?php else: ?>
         <b>Попробуйте поискать по фамилии или имени</b>

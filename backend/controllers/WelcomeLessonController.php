@@ -281,12 +281,12 @@ class WelcomeLessonController extends AdminController
         }
         
         if (!empty($welcomeLessonData['group_proposal'])) {
-            $group = Course::findOne($welcomeLessonData['group_proposal']);
+            $course = Course::findOne($welcomeLessonData['group_proposal']);
         } else {
-            $group = Course::findOne($welcomeLessonData['group_id']);
+            $course = Course::findOne($welcomeLessonData['course_id']);
         }
 
-        if (!$group || $group->active != Course::STATUS_ACTIVE) {
+        if (!$course || $course->active != Course::STATUS_ACTIVE) {
             return self::getJsonErrorResult('Group not found');
         }
 
@@ -294,31 +294,30 @@ class WelcomeLessonController extends AdminController
         try {
             /** @var CourseStudent $groupPupil */
             $groupPupil = CourseStudent::find()
-                ->andWhere(['user_id' => $welcomeLesson->user_id, 'group_id' => $group->id])
+                ->andWhere(['user_id' => $welcomeLesson->user_id, 'course_id' => $course->id])
                 ->andWhere(['>=', 'date_start', $welcomeLesson->lessonDateTime->format('Y-m-d')])
                 ->addOrderBy(['date_start' => SORT_ASC])
                 ->one();
             if ($groupPupil) {
-                $groupPupil->date_start = max($welcomeLesson->lessonDateTime, $group->startDateObject)->format('Y-m-d');
+                $groupPupil->date_start = max($welcomeLesson->lessonDateTime, $course->startDateObject)->format('Y-m-d');
                 $dataForLog = $groupPupil->getDiffMap();
                 if (!$groupPupil->save()) {
                     ComponentContainer::getErrorLogger()
-                        ->logError('welcome-lesson/pupil-to-group', $groupPupil->getErrorsAsString(), true);
+                        ->logError('welcome-lesson/pupil-to-course', $groupPupil->getErrorsAsString(), true);
                     throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
                 }
-                EventComponent::fillSchedule($group);
-                CourseComponent::calculateTeacherSalary($group);
+                EventComponent::fillSchedule($course);
                 ComponentContainer::getActionLogger()->log(
-                    Action::TYPE_GROUP_PUPIL_UPDATED,
+                    Action::TYPE_COURSE_STUDENT_UPDATED,
                     $groupPupil->user,
                     null,
-                    $group,
+                    $course,
                     json_encode($dataForLog, JSON_UNESCAPED_UNICODE)
                 );
             } else {
-                CourseComponent::addPupilToGroup($welcomeLesson->user, $group, $welcomeLesson->lessonDateTime);
+                CourseComponent::addStudentToCourse($welcomeLesson->user, $course, $welcomeLesson->lessonDateTime);
             }
-            MoneyComponent::setUserChargeDates($welcomeLesson->user, $group);
+            MoneyComponent::setUserChargeDates($welcomeLesson->user, $course);
             $welcomeLesson->status = WelcomeLesson::STATUS_SUCCESS;
             $welcomeLesson->save();
             ComponentContainer::getActionLogger()

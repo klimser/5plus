@@ -16,17 +16,17 @@ use common\models\Contract;
                 <div class="modal-body">
                     <div id="income-messages-place"></div>
                     <input type="hidden" name="income[userId]" id="income-user-id" required>
-                    <input type="hidden" name="income[groupId]" id="income-group-id" required>
+                    <input type="hidden" name="income[courseId]" id="income-course-id" required>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label" for="income-pupil-name">Студент</label>
+                        <label class="col-12 col-sm-3 control-label" for="income-student-name">Студент</label>
                         <div class="col-12 col-sm-9">
-                            <input readonly class="form-control-plaintext" id="income-pupil-name">
+                            <input readonly class="form-control-plaintext" id="income-student-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label" for="income-group-name">Группа</label>
+                        <label class="col-12 col-sm-3 control-label" for="income-course-name">Группа</label>
                         <div class="col-12 col-sm-9">
-                            <input readonly class="form-control-plaintext" id="income-group-name">
+                            <input readonly class="form-control-plaintext" id="income-course-name">
                         </div>
                     </div>
                     <div class="form-group row">

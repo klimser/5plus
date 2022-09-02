@@ -107,7 +107,7 @@ class WelcomeLesson extends ActiveRecord
     {
         return [
             [['comment'], 'trim'],
-            [['user_id', 'group_id', 'status', 'deny_reason', 'created_by'], 'integer'],
+            [['user_id', 'course_id', 'status', 'deny_reason', 'created_by'], 'integer'],
             [['user_id', 'lesson_date'], 'required'],
             [['comment'], 'string'],
             [['deny_reason', 'comment'], 'default', 'value' => null],

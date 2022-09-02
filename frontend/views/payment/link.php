@@ -5,7 +5,7 @@ use yii\web\View;
 
 /* @var $this \frontend\components\extended\View */
 /* @var $paymentLink \common\models\PaymentLink|null */
-/* @var $groupPupils \common\models\CourseStudent[] */
+/* @var $courseStudents \common\models\CourseStudent[] */
 
 $this->params['breadcrumbs'][] = ['url' => Url::to(['payment/index']), 'label' => 'Онлайн оплата'];
 $this->params['breadcrumbs'][] = $paymentLink !== null ? $paymentLink->user->nameHidden : 'Не найден';
@@ -14,7 +14,7 @@ if ($paymentLink) {
     $script ="
         Payment.users[{$paymentLink->user_id}] = {
             name: '{$paymentLink->user->nameHidden}',
-            groups: []
+            courses: []
         };
         Payment.user = {$paymentLink->user_id};
     ";
@@ -27,22 +27,22 @@ if ($paymentLink) {
         <?php if (!$paymentLink): ?>
             <h3>Неверная ссылка!</h3>
         <?php else: ?>
-            <div id="payment-<?= $paymentLink->group_id; ?>" class="group-payments" data-groupid="<?= $paymentLink->group_id; ?>" data-groupname="<?= $paymentLink->group->legal_name; ?>">
+            <div id="payment-<?= $paymentLink->course_id; ?>" class="course-payments" data-courseid="<?= $paymentLink->course_id; ?>" data-coursename="<?= $paymentLink->course->courseConfig->legal_name; ?>">
                 <br>
                 <?php
-                    $debt = $paymentLink->user->getDebt($paymentLink->group);
+                    $debt = $paymentLink->user->getDebt($paymentLink->course);
                     $debt = $debt ? $debt->amount : 0;
                     $payDate = null;
                     if (!$debt) {
-                        foreach ($groupPupils as $groupPupil) {
-                            if ($groupPupil->chargeDateObject && ($payDate === null || $payDate > $groupPupil->chargeDateObject)) {
-                                $payDate = $groupPupil->chargeDateObject;
+                        foreach ($courseStudents as $courseStudent) {
+                            if ($courseStudent->chargeDateObject && ($payDate === null || $payDate > $courseStudent->chargeDateObject)) {
+                                $payDate = $courseStudent->chargeDateObject;
                             }
                         }
                     }
                 ?>
                 <h4>
-                    <?= $paymentLink->user->nameHidden; ?> | <?= $paymentLink->group->legal_name; ?> <?= $debt ? '' : '<small>оплачено до ' . ($payDate ? $payDate->format('d.m.Y') : '') . '</small>'; ?>
+                    <?= $paymentLink->user->nameHidden; ?> | <?= $paymentLink->course->courseConfig->legal_name; ?> <?= $debt ? '' : '<small>оплачено до ' . ($payDate ? $payDate->format('d.m.Y') : '') . '</small>'; ?>
                 </h4>
                 <div class="row">
                     <?php if ($debt > 0): ?>
@@ -54,17 +54,17 @@ if ($paymentLink) {
                     <?php endif; ?>
 
                     <div class="col-12 col-md-auto mb-2">
-                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->group->lesson_price; ?>" data-limit="<?= $paymentLink->group->price12Lesson; ?>" onclick="Payment.selectSum(this);">
-                            за 1 занятие <?= $paymentLink->group->lesson_price; ?> сум
+                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->course->courseConfig->lesson_price; ?>" data-limit="<?= $paymentLink->course->courseConfig->price12Lesson; ?>" onclick="Payment.selectSum(this);">
+                            за 1 занятие <?= $paymentLink->course->courseConfig->lesson_price; ?> сум
                         </button>
                     </div>
                     <div class="col-12 col-md-auto mb-2">
-                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->group->priceMonth; ?>" data-limit="<?= $paymentLink->group->price12Lesson; ?>" onclick="Payment.selectSum(this);">
-                            за 1 месяц <?= $paymentLink->group->priceMonth; ?> сум
+                        <button class="btn btn-secondary btn-block" data-sum="<?= $paymentLink->course->courseConfig->priceMonth; ?>" data-limit="<?= $paymentLink->course->courseConfig->price12Lesson; ?>" onclick="Payment.selectSum(this);">
+                            за 1 месяц <?= $paymentLink->course->courseConfig->priceMonth; ?> сум
                         </button>
                     </div>
                     <div class="col-12 col-md-auto mb-2">
-                        <button class="btn btn-secondary btn-block" data-sum="none" data-limit="<?= $paymentLink->group->price12Lesson; ?>" onclick="Payment.selectSum(this);">другая сумма</button>
+                        <button class="btn btn-secondary btn-block" data-sum="none" data-limit="<?= $paymentLink->course->courseConfig->price12Lesson; ?>" onclick="Payment.selectSum(this);">другая сумма</button>
                     </div>
                 </div>
             </div>

@@ -19,15 +19,15 @@ use yii\helpers\Url;
                 <div id="message_board"></div>
                 <div id="order_form_body" class="form-horizontal">
                     <div class="form-group">
-                        <label for="pupil" class="col-4 col-md-3 col-xl-2 control-label">Студент</label>
+                        <label for="student" class="col-4 col-md-3 col-xl-2 control-label">Студент</label>
                         <div class="col-8 col-md-9 col-xl-10">
-                            <input class="form-control" id="pupil" disabled>
+                            <input class="form-control" id="studemt" disabled>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="group" class="col-4 col-md-3 col-xl-2 control-label">Группа</label>
+                        <label for="course" class="col-4 col-md-3 col-xl-2 control-label">Группа</label>
                         <div class="col-8 col-md-9 col-xl-10">
-                            <input class="form-control" id="group" disabled>
+                            <input class="form-control" id="course" disabled>
                         </div>
                     </div>
                     <div class="form-group">

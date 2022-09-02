@@ -39,8 +39,8 @@ class EventController extends AdminController
     private function isTeacherHasAccess(Event $event): bool
     {
         if (Yii::$app->user->can('teacher')) {
-            $groupParam = CourseComponent::getGroupParam($event->group, new DateTime());
-            return $groupParam->teacher_id == Yii::$app->user->identity->teacher_id;
+            $courseConfig = CourseComponent::getCourseConfig($event->course, new DateTime());
+            return $courseConfig->teacher_id == Yii::$app->user->identity->teacher_id;
         }
         return true;
     }
@@ -171,7 +171,7 @@ class EventController extends AdminController
                         $member->status = EventMember::STATUS_MISS;
                         $member->save();
                         if ($recalculateCharges) {
-                            MoneyComponent::rechargePupil($member->groupPupil->user, $event->group);
+                            MoneyComponent::rechargeStudent($member->groupPupil->user, $event->group);
                         }
                         MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
                     }

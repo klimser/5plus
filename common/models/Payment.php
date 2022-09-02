@@ -83,7 +83,7 @@ class Payment extends ActiveRecord
             if ($this->used_payment_id) {
                 $usedPayment = $this->findOne($this->used_payment_id);
                 if (!$usedPayment) return false;
-                if ($usedPayment->group_id != $this->group_id) return false;
+                if ($usedPayment->course_id != $this->course_id) return false;
             }
             return true;
         }
@@ -102,7 +102,7 @@ class Payment extends ActiveRecord
 
     public function getCourse(): ActiveQuery
     {
-        return $this->hasOne(Course::class, ['id' => 'group_id']);
+        return $this->hasOne(Course::class, ['id' => 'course_id']);
     }
 
     public function getAdmin(): ActiveQuery

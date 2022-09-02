@@ -6,58 +6,58 @@ use yii\bootstrap4\Html;
 use yii\bootstrap4\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $pupil User */
+/* @var $student User */
 /* @var $activeTab string */
 /* @var $incomeAllowed bool */
 /* @var $debtAllowed bool */
 /* @var $contractAllowed bool */
-/* @var $groupManagementAllowed bool */
+/* @var $courseManagementAllowed bool */
 /* @var $moveMoneyAllowed bool */
 /* @var $welcomeLessonsAllowed bool */
 
-$this->title = $pupil->name;
+$this->title = $student->name;
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="user-view" id="user-view-<?= $pupil->id; ?>">
-    <?php $form = ActiveForm::begin(['options' => ['onsubmit' => 'Dashboard.savePupil(this); return false;']]); ?>
+<div class="user-view" id="user-view-<?= $student->id; ?>">
+    <?php $form = ActiveForm::begin(['options' => ['onsubmit' => 'Dashboard.saveStudent(this); return false;']]); ?>
     
     <div class="user-view-messages-place"></div>
-    <?= $form->field($pupil, '[pupil]id', ['template' => '{input}', 'options' => ['class' => []]])->hiddenInput(); ?>
+    <?= $form->field($student, '[student]id', ['template' => '{input}', 'options' => ['class' => []]])->hiddenInput(); ?>
 
     <div class="row">
-        <div class="col-12 col-md-6 pupil-info-block">
+        <div class="col-12 col-md-6 student-info-block">
             <h2>
-                <small class="fas fa-pencil-alt point" onclick="Dashboard.showEditForm('pupil', this);"></small>
+                <small class="fas fa-pencil-alt point" onclick="Dashboard.showEditForm('student', this);"></small>
                 <?= Html::encode($this->title) ?>
                 <small><small>
-                    <?php if ($pupil->individual): ?>
+                    <?php if ($student->individual): ?>
                         <span class="badge badge-success">Физ. лицо</span>
                     <?php else: ?>
                         <span class="badge badge-info">Юр. лицо</span>
                     <?php endif; ?>
                 </small></small>
             </h2>
-            <div class="pupil-view-block collapse show">
-                <?= $form->field($pupil, 'phoneFull')->staticControl(); ?>
+            <div class="student-view-block collapse show">
+                <?= $form->field($student, 'phoneFull')->staticControl(); ?>
     
-                <?php if ($pupil->phone2): ?>
-                    <?= $form->field($pupil, 'phone2Full')->staticControl(); ?>
+                <?php if ($student->phone2): ?>
+                    <?= $form->field($student, 'phone2Full')->staticControl(); ?>
                 <?php endif; ?>
     
-                <?php if ($pupil->note): ?>
-                    <?= $form->field($pupil, 'note')->staticControl(); ?>
+                <?php if ($student->note): ?>
+                    <?= $form->field($student, 'note')->staticControl(); ?>
                 <?php endif; ?>
             </div>
-            <div class="pupil-edit-block collapse">
-                <?= $form->field($pupil, '[pupil]name')->textInput(['maxlength' => true, 'required' => true, 'disabled' => true]); ?>
+            <div class="student-edit-block collapse">
+                <?= $form->field($student, '[student]name')->textInput(['maxlength' => true, 'required' => true, 'disabled' => true]); ?>
 
-                <?= $form->field($pupil, '[pupil]note')->textarea(['maxlength' => true, 'disabled' => true, 'htmlOptions' => ['rows' => 3]]); ?>
+                <?= $form->field($student, '[student]note')->textarea(['maxlength' => true, 'disabled' => true, 'htmlOptions' => ['rows' => 3]]); ?>
 
-                <?= $form->field($pupil, '[pupil]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
+                <?= $form->field($student, '[student]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'disabled' => true, 'required' => true, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
 
-                <?= $form->field($pupil, '[pupil]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
+                <?= $form->field($student, '[student]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'disabled' => true, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
             </div>
         </div>
@@ -67,24 +67,24 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="col-12 col-md-6 parent-info-block">
             <h2>
                 <small class="fas fa-pencil-alt point" onclick="Dashboard.showEditForm('parent', this);"></small>
-                <?= $pupil->individual ? 'Родители' : 'Компания'; ?>
+                <?= $student->individual ? 'Родители' : 'Компания'; ?>
             </h2>
 
             <div class="parent-view-block collapse show">
-                <?php if (!$pupil->parent_id): ?>
+                <?php if (!$student->parent_id): ?>
                     <span class="label label-default">Студент уже взрослый</span>
                 <?php else: ?>
-                    <?= $form->field($pupil->parent, 'name')->staticControl(); ?>
+                    <?= $form->field($student->parent, 'name')->staticControl(); ?>
     
-                    <?= $form->field($pupil->parent, 'phoneFull')->staticControl(); ?>
+                    <?= $form->field($student->parent, 'phoneFull')->staticControl(); ?>
 
-                    <?php if ($pupil->parent->phone2): ?>
-                        <?= $form->field($pupil->parent, 'phone2Full')->staticControl(); ?>
+                    <?php if ($student->parent->phone2): ?>
+                        <?= $form->field($student->parent, 'phone2Full')->staticControl(); ?>
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
             <div class="parent-edit-block collapse">
-                <?php if (!$pupil->parent_id): ?>
+                <?php if (!$student->parent_id): ?>
                     <div class="form-check">
                         <label class="form-check-label">
                             <input class="form-check-input" type="radio" name="parent_type" value="none" onclick="Dashboard.changeParentType(this)" checked>
@@ -99,7 +99,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     </div>
                     <div class="parent-edit-option parent-edit-exist collapse">
                         <input type="hidden" class="autocomplete-user-id" name="User[parent][id]">
-                        <input class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" required disabled data-role="<?= $pupil->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY; ?>">
+                        <input class="autocomplete-user form-control" placeholder="начните печатать фамилию или имя" required disabled data-role="<?= $student->individual ? User::ROLE_PARENTS : User::ROLE_COMPANY; ?>">
                     </div>
                     <div class="form-check">
                         <label class="form-check-label">
@@ -109,29 +109,29 @@ $this->params['breadcrumbs'][] = $this->title;
                     </div>
                 <?php endif; ?>
 
-                <div class="parent-edit-option parent-edit-new collapse <?= $pupil->parent_id ? ' show ' : ''; ?>">
-                    <?php $parent = $pupil->parent_id ? $pupil->parent : new User(); ?>
-                    <?= $form->field($parent, '[parent]name')->textInput(['maxlength' => true, 'required' => true, 'disabled' => !$pupil->parent_id]); ?>
+                <div class="parent-edit-option parent-edit-new collapse <?= $student->parent_id ? ' show ' : ''; ?>">
+                    <?php $parent = $student->parent_id ? $student->parent : new User(); ?>
+                    <?= $form->field($parent, '[parent]name')->textInput(['maxlength' => true, 'required' => true, 'disabled' => !$student->parent_id]); ?>
 
                     <?= $form->field($parent, '[parent]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
-                        ->textInput(['maxlength' => 11, 'required' => true, 'disabled' => !$pupil->parent_id, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+                        ->textInput(['maxlength' => 11, 'required' => true, 'disabled' => !$student->parent_id, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
 
                     <?= $form->field($parent, '[parent]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
-                        ->textInput(['maxlength' => 11, 'disabled' => !$pupil->parent_id, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
+                        ->textInput(['maxlength' => 11, 'disabled' => !$student->parent_id, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted']); ?>
                 </div>
             </div>
         </div>
     </div>
     
     <?php
-        $getTabLi = function(string $tabId, string $title) use ($pupil, $activeTab) {
-            $elemId = $tabId . '-tab-' . $pupil->id;
+        $getTabLi = function(string $tabId, string $title) use ($student, $activeTab) {
+            $elemId = $tabId . '-tab-' . $student->id;
             return '<li class="nav-item">'
                 . '<a class="nav-link ' . ($activeTab === $tabId ? ' active ' : '') . '" href="#' . $elemId . '" aria-controls="' . $elemId . '" role="tab" data-toggle="tab">' . $title . '</a></li>';
         };
         
-        $getTabDiv = function(string $tabId) use ($pupil, $activeTab) {
-            return '<div role="tabpanel" class="tab-pane fade ' . ($activeTab === $tabId ? ' active show ' : '') . '" id="' . $tabId . '-tab-' . $pupil->id . '">';
+        $getTabDiv = function(string $tabId) use ($student, $activeTab) {
+            return '<div role="tabpanel" class="tab-pane fade ' . ($activeTab === $tabId ? ' active show ' : '') . '" id="' . $tabId . '-tab-' . $student->id . '">';
         };
     ?>
 
@@ -142,35 +142,35 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?php if ($welcomeLessonsAllowed): ?>
                     <?= $getTabLi('welcome_lesson', 'пробные уроки'); ?>
                 <?php endif; ?>
-                <?= $getTabLi('group', 'группы'); ?>
+                <?= $getTabLi('course', 'группы'); ?>
                 <?= $getTabLi('contract', 'договоры'); ?>
                 <?= $getTabLi('payment', 'платежи'); ?>
             </ul>
 
             <div class="tab-content">
                 <?= $getTabDiv('consultation'); ?>
-                    <?= $this->render('_view_consultation', ['pupil' => $pupil]); ?>
+                    <?= $this->render('_view_consultation', ['student' => $student]); ?>
                 </div>
                 <?php if ($welcomeLessonsAllowed): ?>
                     <?= $getTabDiv('welcome_lesson'); ?>
-                        <?= $this->render('_view_welcome_lesson', ['pupil' => $pupil]); ?>
+                        <?= $this->render('_view_welcome_lesson', ['student' => $student]); ?>
                     </div>
                 <?php endif; ?>
-                <?= $getTabDiv('group'); ?>
-                    <?= $this->render('_view_group', [
-                        'pupil' => $pupil,
+                <?= $getTabDiv('course'); ?>
+                    <?= $this->render('_view_course', [
+                        'student' => $student,
                         'contractAllowed' => $contractAllowed,
                         'incomeAllowed' => $incomeAllowed,
                         'debtAllowed' => $debtAllowed,
-                        'groupManagementAllowed' => $groupManagementAllowed,
+                        'courseManagementAllowed' => $courseManagementAllowed,
                         'moveMoneyAllowed' => $moveMoneyAllowed,
                     ]); ?>
                 </div>
                 <?= $getTabDiv('contract'); ?>
-                    <?= $this->render('_view_contract', ['pupil' => $pupil]); ?>
+                    <?= $this->render('_view_contract', ['student' => $student]); ?>
                 </div>
                 <?= $getTabDiv('payment'); ?>
-                    <?= $this->render('_view_payment', ['pupil' => $pupil]); ?>
+                    <?= $this->render('_view_payment', ['student' => $student]); ?>
                 </div>
             </div>
         </div>

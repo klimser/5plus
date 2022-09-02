@@ -16,7 +16,7 @@ class PaymentSearch extends Payment
     public function rules()
     {
         return [
-            [['user_id', 'admin_id', 'group_id', 'amount'], 'integer'],
+            [['user_id', 'admin_id', 'course_id', 'amount'], 'integer'],
             [['comment', 'amountFrom', 'amountTo', 'created_at'], 'safe'],
         ];
     }
@@ -53,7 +53,7 @@ class PaymentSearch extends Payment
                 'amount',
                 'created_at',
                 'id',
-                'group_id',
+                'course_id',
             ]
         ]);
 
@@ -80,7 +80,7 @@ class PaymentSearch extends Payment
         }
         $query->andFilterWhere([
             'user_id' => $this->user_id,
-            'group_id' => $this->group_id,
+            'course_id' => $this->course_id,
         ]);
 
         if ($this->created_at) {

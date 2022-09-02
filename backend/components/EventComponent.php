@@ -8,6 +8,7 @@ use common\components\MoneyComponent;
 use common\models\Course;
 use DateInterval;
 use DateTime;
+use DateTimeInterface;
 use Exception;
 use Throwable;
 use yii\base\Component;
@@ -64,20 +65,20 @@ class EventComponent extends Component
     }
 
     /**
-     * @param Course $group
+     * @param Course $course
      *
      * @throws Throwable
      */
-    public static function fillSchedule(Course $group)
+    public static function fillSchedule(Course $course)
     {
         $limitDate = new \DateTimeImmutable('+1 day midnight');
-        $lookupDate = DateTime::createFromImmutable($group->startDateObject);
-        $endDate = $group->endDateObject;
+        $lookupDate = DateTime::createFromImmutable($course->startDateObject);
+        $endDate = $course->endDateObject;
         if (!$endDate || $endDate > $limitDate) $endDate = $limitDate;
         $intervalDay = new DateInterval('P1D');
         while ($lookupDate < $endDate) {
-            if ($group->groupPupils || $group->hasWelcomeLessons($lookupDate)) {
-                $event = self::addEvent($group, $lookupDate);
+            if ($course->courseStudents || $course->hasWelcomeLessons($lookupDate)) {
+                $event = self::addEvent($course, $lookupDate);
                 if ($event) {
                     MoneyComponent::chargeByEvent($event);
                 }
@@ -86,7 +87,7 @@ class EventComponent extends Component
         }
         /** @var Event[] $overEvents */
         $overEvents = Event::find()
-            ->andWhere(['group_id' => $group->id])
+            ->andWhere(['course_id' => $course->id])
             ->andWhere(['>', 'event_date', $endDate->format('Y-m-d H:i:s')])
             ->with('members.payments')
             ->all();
@@ -97,17 +98,11 @@ class EventComponent extends Component
         }
     }
 
-    /**
-     * @param Course             $group
-     * @param \DateTimeInterface $limitDate
-     *
-     * @return Event|null
-     */
-    public static function getUncheckedEvent(Course $group, \DateTimeInterface $limitDate): ?Event
+    public static function getUncheckedEvent(Course $course, DateTimeInterface $limitDate): ?Event
     {
         /** @var Event|null $event */
         $event = Event::find()
-            ->andWhere(['group_id' => $group->id, 'status' => Event::STATUS_UNKNOWN])
+            ->andWhere(['course_id' => $course->id, 'status' => Event::STATUS_UNKNOWN])
             ->andWhere(['<=', 'event_date', $limitDate->format('Y-m-d H:i:s')])
             ->orderBy(['event_date' => SORT_ASC])->one();
         return $event;

@@ -1,9 +1,9 @@
 let CourseMove = {
     init: function() {
-        Main.initAutocompleteUser($("#pupil-to-move"));
+        Main.initAutocompleteUser($("#student-to-move"));
         Main.loadCourses()
             .done(function(courseIds) {
-                let elem = $("#group_to");
+                let elem = $("#course_to");
                 $(elem).html('');
                 courseIds.forEach(function(courseId) {
                     $(elem).append('<option value="' + courseId + '">' + Main.courseMap[courseId].name + ' (' + Main.courseMap[courseId].teacher + ')</option>');
@@ -18,9 +18,9 @@ let CourseMove = {
             $(courseFrom).html('<option>загрузка...</option>');
             $(courseFrom).prop('disabled', true);
             $.ajax({
-                url: '/group/list-json',
+                url: '/course/list-json',
                 data: {
-                    pupilId: studentId
+                    studentId: studentId
                 },
                 dataType: 'json'
             })
@@ -29,10 +29,10 @@ let CourseMove = {
                     let htmlAddon = '';
                     let activeCourseStudent = $(courseFrom).data('courseStudent');
                     data.forEach(function(courseData) {
-                        let group = Main.courseMap[courseData.course_id];
+                        let course = Main.courseMap[courseData.course_id];
                         htmlAddon += '<option value="' + courseData.id + '" data-start="' + courseData.date_start + '" ' +
                             'data-end="' + courseData.date_end + '" ' + (courseData.id === activeCourseStudent ? ' selected ' : '') + '>' +
-                            group.name + '</option>';
+                            course.name + '</option>';
                     });
                     $(courseFrom).html(htmlAddon);
                     $(courseFrom).data("student", $("#student-id").val());
@@ -40,7 +40,7 @@ let CourseMove = {
                 })
                 .fail(Main.logAndFlashAjaxError)
                 .always(function() {
-                    $("#group_from").prop('disabled', false);
+                    $("#course_from").prop('disabled', false);
                 });
         }
     },
@@ -88,7 +88,7 @@ let CourseMove = {
         }
         this.lockMoveButton();
         $.ajax({
-            url: "/group/process-move-student",
+            url: "/course/process-move-student",
             type: 'post',
             dataType: 'json',
             data: {

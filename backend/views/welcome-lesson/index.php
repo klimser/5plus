@@ -82,21 +82,21 @@ SCRIPT
                 )
             ],
             [
-                'attribute' => 'group_id',
-                'content' => function ($model, $key, $index, $column) {
-                    return $model->group_id ? $model->group->name : '-';
+                'attribute' => 'course_id',
+                'content' => function (WelcomeLesson $model, $key, $index, $column) {
+                    return $model->course_id ? $model->course->courseConfig->name : '-';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
-                    'group_id',
+                    'course_id',
                     $groupMap,
                     ['class' => 'form-control']
                 )
             ],
             [
                 'attribute' => 'subjectId',
-                'content' => function ($model, $key, $index, $column) {
-                    return $model->group_id ? $model->group->subject->name : '';
+                'content' => function (WelcomeLesson $model, $key, $index, $column) {
+                    return $model->course_id ? $model->course->subject->name : '';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -107,8 +107,8 @@ SCRIPT
             ],
             [
                 'attribute' => 'teacherId',
-                'content' => function ($model, $key, $index, $column) {
-                    return $model->group_id ? $model->group->teacher->name : '';
+                'content' => function (WelcomeLesson $model, $key, $index, $column) {
+                    return $model->course_id ? $model->course->courseConfig->teacher->name : '';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

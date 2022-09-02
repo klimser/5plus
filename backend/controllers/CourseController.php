@@ -12,6 +12,7 @@ use common\models\Course;
 use common\models\CourseConfig;
 use common\models\CourseStudent;
 use common\models\CourseSearch;
+use common\models\CourseType;
 use common\models\Payment;
 use common\models\Subject;
 use common\models\Teacher;
@@ -109,107 +110,100 @@ class CourseController extends AdminController
     }
 
     /**
-     * Creates a new Group model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
+     * Creates a new Course model.
+     * If creation is successful, the browser will be redirected to the 'update' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('manageGroups');
 
-        $group = new Course();
-        $group->loadDefaultValues();
+        $course = new Course();
+        $course->loadDefaultValues();
 
-        return $this->processGroupData($group);
+        return $this->processCourseData($course);
     }
 
     /**
-     * Updates an existing Group model.
+     * Updates an existing Course model.
      * If update is successful, the browser will be redirected to the 'same' page.
      * @param int $id
      * @return mixed
      */
     public function actionUpdate($id)
     {
-        if (!Yii::$app->user->can('manageGroups')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('manageGroups');
 
-        $group = $this->findModel($id);
-        return $this->processGroupData($group);
+        $course = $this->findModel($id);
+        return $this->processCourseData($course);
     }
 
     /**
-     * View Group info.
+     * View Course info.
      * @param int $id
      * @return mixed
      */
     public function actionView($id)
     {
-        if (!Yii::$app->user->can('viewGroups')) throw new ForbiddenHttpException('Access denied!');
+        $this->checkAccess('viewGroups');
 
-        $group = $this->findModel($id);
+        $course = $this->findModel($id);
 
         return $this->render('view', [
-            'group' => $group,
+            'course' => $course,
         ]);
     }
 
     /**
-     * @param Course $group
+     * @param Course $course
      *
      * @return string|Response
      * @throws yii\db\Exception
      */
-    private function processGroupData(Course $group)
+    private function processCourseData(Course $course)
     {
         if (Yii::$app->request->isPost) {
-            if (empty($group->groupPupils)) {
-                $group->scenario = Course::SCENARIO_EMPTY;
+            if (empty($course->courseStudents)) {
+                $course->scenario = Course::SCENARIO_EMPTY;
             }
-            $group->load(Yii::$app->request->post());
-            $groupVal = Yii::$app->request->post('Group', []);
-            $newPupils = Yii::$app->request->post('pupil', []);
+            $course->load(Yii::$app->request->post());
+            $courseVal = Yii::$app->request->post('Course', []);
+            $newStudents = Yii::$app->request->post('student', []);
             $error = false;
 
-            if (empty($group->groupPupils)) {
-                $group->startDateObject = !empty($groupVal['date_start']) ? new \DateTime($groupVal['date_start']) : null;
+            if (empty($course->courseStudents)) {
+                $course->startDateObject = !empty($courseVal['date_start']) ? new DateTimeImmutable($courseVal['date_start']) : null;
             }
-            $group->endDateObject = !empty($groupVal['date_end']) ? new \DateTime($groupVal['date_end']) : null;
+            $course->endDateObject = !empty($courseVal['date_end']) ? new DateTimeImmutable($courseVal['date_end']) : null;
 
-            if (!$group->date_start && !empty($newPupils)) {
+            if (!$course->date_start && !empty($newStudents)) {
                 Yii::$app->session->addFlash('error', 'Введите дату начала занятий группы!');
                 $error = true;
-            } elseif ($group->date_end && !$group->date_start) {
+            } elseif ($course->date_end && !$course->date_start) {
                 Yii::$app->session->addFlash('error', 'Введите дату начала занятий группы прежде чем вносить дату завершения занятий');
                 $error = true;
-            } elseif ($group->date_end && $group->date_end <= $group->date_start) {
+            } elseif ($course->date_end && $course->date_end <= $course->date_start) {
                 Yii::$app->session->addFlash('error', 'Введённые даты начала и завершения занятий группы недопустимы');
                 $error = true;
             }
-            if (!$group->date_end || $group->endDateObject > new \DateTime()) {
-                $group->active = Course::STATUS_ACTIVE;
+            if (!$course->date_end || $course->endDateObject > new DateTimeImmutable()) {
+                $course->active = Course::STATUS_ACTIVE;
             }
 
-            $groupConfigData = Yii::$app->request->post('GroupConfig');
-            if (!empty($groupConfigData)) {
+            $courseConfigData = Yii::$app->request->post('CourseConfig');
+            if (!empty($courseConfigData)) {
                 $weektime = Yii::$app->request->post('weektime', []);
                 if (empty(array_filter($weektime))) {
                     Yii::$app->session->addFlash('error', 'Не указано время занятий');
                     $error = true;
                 } else {
-                    $groupConfig = new CourseConfig();
-                    $groupConfig->load($groupConfigData, '');
-                    $groupConfig->schedule = $weektime;
-                    if ($group->isNewRecord) {
-                        $groupConfig->date_from = $group->date_start;
-                        // TODO remove this after migration
-                        $group->teacher_id = $groupConfig->teacher_id;
-                        $group->lesson_price = $groupConfig->lesson_price;
+                    $courseConfig = new CourseConfig();
+                    $courseConfig->load($courseConfigData, '');
+                    $courseConfig->schedule = $weektime;
+                    if ($course->isNewRecord) {
+                        $courseConfig->date_from = $course->date_start;
                     } else {
-                        $groupConfig->dateFromObject = new DateTimeImmutable($groupConfigData['date_from']);
-                    }
-                    if ($group->groupConfig) {
-                        $group->groupConfig->dateToObject = new DateTimeImmutable($groupConfigData['date_from']);
-                        $group->groupConfig->save();
+                        $courseConfig->dateFromObject = new DateTimeImmutable($courseConfigData['date_from']);
                     }
                 }
             }
@@ -217,188 +211,165 @@ class CourseController extends AdminController
             if (!$error) {
                 $transaction = Yii::$app->db->beginTransaction();
                 try {
-                    $isNew = $group->isNewRecord;
-                    $groupDiff = $group->getDiffMap();
-                    if ($group->save()) {
-                        if (!empty($groupDiff)) {
+                    $isNew = $course->isNewRecord;
+                    $courseDiff = $course->getDiffMap();
+                    if ($course->save()) {
+                        if (!empty($courseDiff)) {
                             ComponentContainer::getActionLogger()->log(
-                                $isNew ? Action::TYPE_GROUP_ADDED : Action::TYPE_GROUP_UPDATED,
+                                $isNew ? Action::TYPE_COURSE_ADDED : Action::TYPE_COURSE_UPDATED,
                                 null,
                                 null,
-                                $group,
-                                json_encode($groupDiff, JSON_UNESCAPED_UNICODE)
+                                $course,
+                                json_encode($courseDiff, JSON_UNESCAPED_UNICODE)
                             );
                         }
-                        if (empty($group->groupPupils) && !empty($newPupils)) {
-                            $this->fillGroupParams($group);
-                        }
-                        if (isset($groupConfig)) {
-                            $group->link('groupConfigs', $groupConfig);
-//                            if (!$groupConfig->save()) {
-//                                $transaction->rollBack();
-//                                $groupConfig->moveErrorsToFlash();
-//                                Yii::$app->session->addFlash('error', 'Внутренняя ошибка сервера');
-//                                $error = true;
-//                            }
-                        }
-                        if (!$error) {
-                            $this->saveGroupPupils($group, $newPupils);
-                            /** @var Course $group */
-                            $group = Course::find()->with(['groupPupils', 'events.members.payments'])->andWhere(['id' => $group->id])->one();
-                            EventComponent::fillSchedule($group);
-                            CourseComponent::calculateTeacherSalary($group);
-                            foreach ($group->groupPupils as $groupPupil) {
-                                MoneyComponent::setUserChargeDates($groupPupil->user, $group);
+                        if (isset($courseConfig)) {
+                            $courseConfigs = $course->courseConfigs;
+                            if (!empty($courseConfigs)) {
+                                $previousCourseConfig = end($courseConfigs);
+                                $previousCourseConfig->date_to = $courseConfig->date_from;
+                                $previousCourseConfig->save();
                             }
-
-                            $transaction->commit();
-                            Yii::$app->session->addFlash('success', 'Данные успешно сохранены');
-
-                            return $this->redirect(['update', 'id' => $group->id]);
+                            $course->link('courseConfigs', $courseConfig);
+                        } elseif ($isNew) {
+                            throw new \Exception('Course cannot be created without initial config');
                         }
+
+                        $this->saveCourseStudents($course, $newStudents);
+                        /** @var Course $course */
+                        $course = Course::find()->with(['courseStudents', 'events.members.payments'])->andWhere(['id' => $course->id])->one();
+                        EventComponent::fillSchedule($course);
+
+                        foreach ($course->courseStudents as $courseStudent) {
+                            MoneyComponent::setUserChargeDates($courseStudent->user, $course);
+                        }
+
+                        $transaction->commit();
+                        Yii::$app->session->addFlash('success', 'Данные успешно сохранены');
+
+                        return $this->redirect(['update', 'id' => $course->id]);
                     } else {
                         $transaction->rollBack();
-                        $group->moveErrorsToFlash();
+                        $course->moveErrorsToFlash();
                         Yii::$app->session->addFlash('error', 'Внутренняя ошибка сервера');
                     }
                 } catch (\Throwable $ex) {
                     $transaction->rollBack();
                     ComponentContainer::getErrorLogger()
-                        ->logError('group/update', $ex->getMessage(), true);
+                        ->logError('course/update', $ex->getMessage(), true);
                     Yii::$app->session->addFlash('error', 'Внутренняя ошибка сервера: ' . $ex->getMessage());
                 }
             }
         }
         return $this->render('update', [
-            'group' => $group,
-            'groupTypes' => GroupType::find()->orderBy('name')->all(),
+            'course' => $course,
+            'courseTypes' => CourseType::find()->orderBy('name')->all(),
             'subjects' => Subject::find()->orderBy('name')->with('teachers')->all(),
             'canMoveMoney' => Yii::$app->user->can('moveMoney'),
         ]);
     }
 
-    /**
-     * @param Course $group
-     *
-     * @throws \Exception
-     */
-    private function fillGroupParams(Course $group) {
-        $currMonth = clone $group->startDateObject;
-        $currMonth->modify('first day of this month midnight');
-        $nextMonth = new \DateTime('first day of next month midnight');
-        $monthInterval = new \DateInterval('P1M');
-        while ($currMonth < $nextMonth) {
-            CourseComponent::getGroupParam($group, $currMonth);
-            $currMonth->add($monthInterval);
-        }
-    }
-
-    /**
-     * @param Course $group
-     * @param array  $newPupils
-     *
-     * @throws \Exception
-     */
-    private function saveGroupPupils(Course $group, array $newPupils) {
-        /** @var \DateTime[][] $pupilsMap */
-        $pupilsMap = [];
-        $salaryRecalcDate = null;
-        if (count($group->groupPupils) == 0) {
-            foreach ($newPupils as $pupilId) {
-                $pupilsMap[$pupilId] = ['startDate' => $group->startDateObject, 'endDate' => $group->endDateObject];
+    private function saveCourseStudents(Course $course, array $newStudents) {
+        /** @var array<int,DateTimeImmutable[]> $studentMap */
+        $studentMap = [];
+        if (count($course->courseStudents) === 0) {
+            foreach ($newStudents as $studentId) {
+                $studentMap[$studentId] = ['startDate' => $course->startDateObject, 'endDate' => $course->endDateObject];
             }
         } else {
-            $pupilStartDates = Yii::$app->request->post('pupil_start', []);
-            $pupilEndDates = Yii::$app->request->post('pupil_end', []);
+            $studentStartDates = Yii::$app->request->post('student_start', []);
+            $studentEndDates = Yii::$app->request->post('student_end', []);
             $reasonIds = Yii::$app->request->post('reason_id', []);
             $reasonComments = Yii::$app->request->post('reason_comment', []);
-            foreach ($newPupils as $key => $pupilId) {
-                $startDate = new \DateTime($pupilStartDates[$key] . ' midnight');
-                $pupil = User::findOne($pupilId);
-                if ($pupil === null || $pupil->role != User::ROLE_STUDENT) throw new \Exception('Студент не найден');
-                elseif (!$startDate) throw new \Exception('Введите корректную дату начала занятий студента ' . $pupil->name);
-                if ($startDate < $group->startDateObject) $startDate = clone $group->startDateObject;
+            foreach ($newStudents as $key => $studentId) {
+                $student = User::findOne(['id' => $studentId, 'role' => User::ROLE_STUDENT]);
+                if ($student === null) {
+                    throw new \Exception('Студент не найден');
+                }
+                if (!$studentStartDates[$key]) {
+                    throw new \Exception('Введите корректную дату начала занятий студента ' . $student->name);
+                }
 
-                $endDate = !empty($pupilEndDates[$key]) ? new \DateTime($pupilEndDates[$key] . ' midnight') : null;
-                if ($endDate && $group->date_end && $endDate > $group->endDateObject) $endDate = clone $group->endDateObject;
-                if ($endDate && $endDate <= $startDate) throw new \Exception('Введённые даты начала и завершения занятий студента ' . $pupil->name . ' недопустимы');
-                $pupilsMap[$pupilId] = [
+                $startDate = new DateTimeImmutable($studentStartDates[$key] . ' midnight');
+                if ($startDate < $course->startDateObject) {
+                    $startDate = $course->startDateObject;
+                }
+
+                $endDate = !empty($studentEndDates[$key]) ? new DateTimeImmutable($studentEndDates[$key] . ' midnight') : null;
+                if ($endDate && $course->date_end && $endDate > $course->endDateObject) $endDate = $course->endDateObject;
+                if ($endDate && $endDate <= $startDate) throw new \Exception('Введённые даты начала и завершения занятий студента ' . $student->name . ' недопустимы');
+                $studentMap[$studentId] = [
                     'startDate' => $startDate,
                     'endDate' => $endDate,
                 ];
             }
-            foreach ($group->activeGroupPupils as $groupPupil) {
-                if (array_key_exists($groupPupil->user_id, $pupilsMap)
-                    && ($groupPupil->startDateObject != $pupilsMap[$groupPupil->user_id]['startDate']
-                        || $groupPupil->endDateObject != $pupilsMap[$groupPupil->user_id]['endDate'])) {
-                    CourseComponent::checkPupilDates($groupPupil, $pupilsMap[$groupPupil->user_id]['startDate'], $pupilsMap[$groupPupil->user_id]['endDate']);
-                    $groupPupil->date_start = $pupilsMap[$groupPupil->user_id]['startDate']->format('Y-m-d');
-                    $groupPupil->date_end = $pupilsMap[$groupPupil->user_id]['endDate'] ? $pupilsMap[$groupPupil->user_id]['endDate']->format('Y-m-d') : null;
+            foreach ($course->activeCourseStudents as $courseStudent) {
+                if (array_key_exists($courseStudent->user_id, $studentMap)
+                    && ($courseStudent->startDateObject !== $studentMap[$courseStudent->user_id]['startDate']
+                        || $courseStudent->endDateObject !== $studentMap[$courseStudent->user_id]['endDate'])) {
+                    CourseComponent::checkStudentDates($courseStudent, $studentMap[$courseStudent->user_id]['startDate'], $studentMap[$courseStudent->user_id]['endDate']);
+                    $courseStudent->date_start = $studentMap[$courseStudent->user_id]['startDate']->format('Y-m-d');
+                    $courseStudent->date_end = $studentMap[$courseStudent->user_id]['endDate'] ? $studentMap[$courseStudent->user_id]['endDate']->format('Y-m-d') : null;
 
-                    if ($groupPupil->date_end !== null && !empty($reasonIds[$groupPupil->id])) {
-                        $groupPupil->end_reason = $reasonIds[$groupPupil->id];
-                        $groupPupil->comment = $reasonComments[$groupPupil->id];
+                    if ($courseStudent->date_end !== null && !empty($reasonIds[$courseStudent->id])) {
+                        $courseStudent->end_reason = $reasonIds[$courseStudent->id];
+                        $courseStudent->comment = $reasonComments[$courseStudent->id];
                     }
                     ComponentContainer::getActionLogger()->log(
-                        Action::TYPE_GROUP_PUPIL_UPDATED,
-                        $groupPupil->user,
+                        Action::TYPE_COURSE_STUDENT_UPDATED,
+                        $courseStudent->user,
                         null,
-                        $group,
-                        json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
+                        $course,
+                        json_encode($courseStudent->getDiffMap(), JSON_UNESCAPED_UNICODE)
                     );
 
-                    if (!$groupPupil->save()) throw new \Exception($groupPupil->getErrorsAsString());
+                    if (!$courseStudent->save()) throw new \Exception($courseStudent->getErrorsAsString());
 
-                    EventComponent::fillSchedule($group);
-                    MoneyComponent::rechargePupil($groupPupil->user, $group);
+                    EventComponent::fillSchedule($course);
+                    MoneyComponent::rechargeStudent($courseStudent->user, $course);
                 }
-                unset($pupilsMap[$groupPupil->user_id]);
+                unset($studentMap[$courseStudent->user_id]);
             }
         }
 
-        foreach ($pupilsMap as $pupilId => $pupilData) {
-            CourseComponent::addPupilToGroup(User::findOne($pupilId), $group, $pupilData['startDate'], $pupilData['endDate'], false);
+        foreach ($studentMap as $studentId => $studentData) {
+            CourseComponent::addStudentToCourse(User::findOne($studentId), $course, $studentData['startDate'], $studentData['endDate'], false);
         }
     }
 
-    /**
-     * @param null $groupPupilId
-     * @return string|Response
-     * @throws ForbiddenHttpException
-     */
-    public function actionMovePupil($groupPupilId = null)
+    public function actionMoveStudent($courseStudentId = null)
     {
         $this->checkAccess('manageGroups');
 
-        $groupPupil = null;
-        if ($groupPupilId) {
-            $groupPupil = CourseStudent::findOne(['id' => $groupPupilId, 'active' => CourseStudent::STATUS_ACTIVE]);
+        $courseStudent = null;
+        if ($courseStudentId) {
+            $courseStudent = CourseStudent::findOne(['id' => $courseStudentId, 'active' => CourseStudent::STATUS_ACTIVE]);
         }
         
-        return $this->render('move_pupil', [
-            'groupPupil' => $groupPupil,
-            'groupList' => Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy('name')->all(),
+        return $this->render('move_student', [
+            'courseStudent' => $courseStudent,
+            'courseList' => Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy('name')->all(),
         ]);
     }
 
-    public function actionProcessMovePupil()
+    public function actionProcessMoveStudent()
     {
         $this->checkRequestIsAjax();
         $this->checkAccess('manageGroups');
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $formData = Yii::$app->request->post('group-move', []);
-        if (!isset($formData['id'], $formData['group_id'], $formData['date_from'], $formData['date_to'])) {
+        $formData = Yii::$app->request->post('course-move', []);
+        if (!isset($formData['id'], $formData['course_id'], $formData['date_from'], $formData['date_to'])) {
             return self::getJsonErrorResult('Wrong request');
         }
 
         $courseStudent = CourseStudent::findOne($formData['id']);
-        $groupTo = Course::findOne($formData['group_id']);
+        $courseTo = Course::findOne($formData['course_id']);
 
         if (!$courseStudent || $courseStudent->active !== CourseStudent::STATUS_ACTIVE) {
             return self::getJsonErrorResult('Студент не найден');
         }
-        if (!$groupTo || $groupTo->active !== Course::STATUS_ACTIVE) {
+        if (!$courseTo || $courseTo->active !== Course::STATUS_ACTIVE) {
             return self::getJsonErrorResult('Группа В не найдена');
         }
         
@@ -406,12 +377,12 @@ class CourseController extends AdminController
         $dateTo =  new DateTimeImmutable($formData['date_to'] . ' midnight');
         if (!$dateFrom
             || !$dateTo
-            || ($courseStudent->group->date_end && $dateFrom > $courseStudent->group->endDateObject)
-            || $dateTo < $groupTo->startDateObject
+            || ($courseStudent->course->date_end && $dateFrom > $courseStudent->course->endDateObject)
+            || $dateTo < $courseTo->startDateObject
         ) {
             self::getJsonErrorResult('Неверная дата перевода');
         }
-        $unknownEvent = EventComponent::getUncheckedEvent($courseStudent->group, $dateFrom);
+        $unknownEvent = EventComponent::getUncheckedEvent($courseStudent->course, $dateFrom);
         if ($unknownEvent !== null) {
             return self::getJsonErrorResult(
                 'В группе ИЗ остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: '
@@ -442,18 +413,17 @@ class CourseController extends AdminController
                 if (!$courseStudent->save()) {
                     throw new \Exception($courseStudent->getErrorsAsString());
                 }
-                EventComponent::fillSchedule($courseStudent->group);
-                CourseComponent::calculateTeacherSalary($courseStudent->group);
+                EventComponent::fillSchedule($courseStudent->course);
             }
-            CourseComponent::addPupilToGroup($courseStudent->user, $groupTo, $dateTo, null, false);
-            CourseComponent::moveMoney($courseStudent->group, $groupTo, $courseStudent->user, $dateTo);
+            CourseComponent::addStudentToCourse($courseStudent->user, $courseTo, $dateTo, null, false);
+            CourseComponent::moveMoney($courseStudent->course, $courseTo, $courseStudent->user, $dateTo);
 
             $transaction->commit();
             return self::getJsonOkResult(['userId' => $courseStudent->user_id]);
         } catch (\Throwable $ex) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()
-                ->logError('group/move-pupil', $ex->getMessage(), true);
+                ->logError('course/move-student', $ex->getMessage(), true);
             return self::getJsonErrorResult('Server error: ' . $ex->getMessage());
         }
     }
@@ -470,7 +440,7 @@ class CourseController extends AdminController
         $this->checkAccess('moveMoney');
 
         $courseStudent = CourseStudent::findOne($courseStudentId);
-        if (!$courseStudent) throw new BadRequestHttpException('Pupil not found');
+        if (!$courseStudent) throw new BadRequestHttpException('Student not found');
         
         if (CourseStudent::findOne(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id, 'active' => CourseStudent::STATUS_ACTIVE, 'date_end' => null])) {
             throw new BadRequestHttpException('Студент ещё занимается в группе');
@@ -536,28 +506,28 @@ class CourseController extends AdminController
         Yii::$app->response->format = Response::FORMAT_JSON;
         
         $formData = Yii::$app->request->post('money-move', []);
-        if (!isset($formData['id'], $formData['groupId'])) {
+        if (!isset($formData['id'], $formData['courseId'])) {
             return self::getJsonErrorResult('Wrong request');
         }
-        /** @var CourseStudent $groupPupil */
-        $groupPupil = CourseStudent::find()->andWhere(['id' => $formData['id'], 'active' => CourseStudent::STATUS_INACTIVE])->one();
-        if (!$groupPupil) {
-            return self::getJsonErrorResult('Pupil not found');
+        /** @var CourseStudent $courseStudent */
+        $courseStudent = CourseStudent::find()->andWhere(['id' => $formData['id'], 'active' => CourseStudent::STATUS_INACTIVE])->one();
+        if (!$courseStudent) {
+            return self::getJsonErrorResult('Student not found');
         }
-        /** @var Course $groupTo */
-        $groupTo = Course::findOne($formData['groupId']);
-        if (!$groupTo) {
-            return self::getJsonErrorResult('Group not found');
+        /** @var Course $courseTo */
+        $courseTo = Course::findOne($formData['courseId']);
+        if (!$courseTo) {
+            return self::getJsonErrorResult('Course not found');
         }
         
-        $groupPupilsTo = CourseStudent::find()->andWhere(['user_id' => $groupPupil->user_id, 'group_id' => $groupTo->id, 'active' => CourseStudent::STATUS_ACTIVE])->all();
-        if (count($groupPupilsTo) == 0) {
-            return self::getJsonErrorResult('Pupil in destination group is not found');
+        $courseStudentsTo = CourseStudent::find()->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseTo->id, 'active' => CourseStudent::STATUS_ACTIVE])->all();
+        if (count($courseStudentsTo) == 0) {
+            return self::getJsonErrorResult('Student in destination group is not found');
         }
 
-        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $groupPupil->endDateObject);
+        $unknownEvent = EventComponent::getUncheckedEvent($courseStudent->course, $courseStudent->endDateObject);
         if ($unknownEvent !== null) {
-            return self::getJsonErrorResult("В группе {$groupPupil->group->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
+            return self::getJsonErrorResult("В группе {$courseStudent->course->courseConfig->name} остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: "
                 . Html::a(
                     $unknownEvent->eventDateTime->format('d.m.Y'),
                     Url::to(['event/index', 'date' => $unknownEvent->eventDateTime->format('d.m.Y')])
@@ -567,37 +537,37 @@ class CourseController extends AdminController
 
         $transaction = \Yii::$app->db->beginTransaction();
         try {
-            CourseComponent::moveMoney($groupPupil->group, $groupTo, $groupPupil->user);
+            CourseComponent::moveMoney($courseStudent->course, $courseTo, $courseStudent->user);
             $transaction->commit();
-            return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
+            return self::getJsonOkResult(['userId' => $courseStudent->user_id]);
         } catch (\Throwable $exception) {
             $transaction->rollBack();
             return self::getJsonErrorResult($exception->getMessage());
         }
     }
 
-    public function actionEndPupil()
+    public function actionEndStudent()
     {
         $this->checkRequestIsAjax();
         $this->checkAccess('manageGroups');
         Yii::$app->response->format = Response::FORMAT_JSON;
         
-        $formData = Yii::$app->request->post('end-pupil');
+        $formData = Yii::$app->request->post('end-student');
         if (!isset($formData['id'], $formData['date'], $formData['reasonId'])) {
             return self::getJsonErrorResult('Wrong request');
         }
-        /** @var CourseStudent $groupPupil */
-        $groupPupil = CourseStudent::findOne(['id' => $formData['id'], 'active' => CourseStudent::STATUS_ACTIVE]);
-        if (!$groupPupil) {
-            return self::getJsonErrorResult('Pupil not found');
+        /** @var CourseStudent $courseStudent */
+        $courseStudent = CourseStudent::findOne(['id' => $formData['id'], 'active' => CourseStudent::STATUS_ACTIVE]);
+        if (!$courseStudent) {
+            return self::getJsonErrorResult('Student not found');
         }
         
         $endDate =  new DateTimeImmutable($formData['date'] . ' +1 day midnight');
-        if (!$endDate || $endDate < $groupPupil->startDateObject || ($groupPupil->group->date_end && $groupPupil->group->endDateObject < $endDate)) {
+        if (!$endDate || $endDate < $courseStudent->startDateObject || ($courseStudent->course->date_end && $courseStudent->course->endDateObject < $endDate)) {
             return self::getJsonErrorResult('Неверная дата');
         }
 
-        $unknownEvent = EventComponent::getUncheckedEvent($groupPupil->group, $endDate);
+        $unknownEvent = EventComponent::getUncheckedEvent($courseStudent->course, $endDate);
         if ($unknownEvent !== null) {
             return self::getJsonErrorResult(
                 'В группе остались неотмеченные занятия, отметьте их чтобы в дальнейшем не возникало долгов: '
@@ -608,29 +578,28 @@ class CourseController extends AdminController
             );
         }
 
-        $groupPupil->date_end = $endDate->format('Y-m-d');
-        $groupPupil->end_reason = $formData['reasonId'];
-        $groupPupil->comment = $formData['reasonComment'];
+        $courseStudent->date_end = $endDate->format('Y-m-d');
+        $courseStudent->end_reason = $formData['reasonId'];
+        $courseStudent->comment = $formData['reasonComment'];
 
         if ($endDate <= new DateTimeImmutable('tomorrow midnight')) {
-            $groupPupil->active = CourseStudent::STATUS_INACTIVE;
+            $courseStudent->active = CourseStudent::STATUS_INACTIVE;
         }
 
         ComponentContainer::getActionLogger()->log(
-            Action::TYPE_GROUP_PUPIL_UPDATED,
-            $groupPupil->user,
+            Action::TYPE_COURSE_STUDENT_UPDATED,
+            $courseStudent->user,
             null,
-            $groupPupil->group,
-            json_encode($groupPupil->getDiffMap(), JSON_UNESCAPED_UNICODE)
+            $courseStudent->course,
+            json_encode($courseStudent->getDiffMap(), JSON_UNESCAPED_UNICODE)
         );
         
-        if (!$groupPupil->save()) {
-            return self::getJsonErrorResult($groupPupil->getErrorsAsString());
+        if (!$courseStudent->save()) {
+            return self::getJsonErrorResult($courseStudent->getErrorsAsString());
         }
-        EventComponent::fillSchedule($groupPupil->group);
-        CourseComponent::calculateTeacherSalary($groupPupil->group);
+        EventComponent::fillSchedule($courseStudent->course);
         
-        return self::getJsonOkResult(['userId' => $groupPupil->user_id]);
+        return self::getJsonOkResult(['userId' => $courseStudent->user_id]);
     }
 
     /**
@@ -679,7 +648,7 @@ class CourseController extends AdminController
         $currentUser = Yii::$app->user->identity;
         $courseId = Yii::$app->request->post('course_id');
         if (!$courseId || !($course = Course::findOne($courseId)) || $course->courseConfig->teacher_id !== $currentUser->teacher_id) {
-            return self::getJsonErrorResult('Invalid group');
+            return self::getJsonErrorResult('Invalid course');
         }
         if (!$note = Yii::$app->request->post('note')) {
             return self::getJsonErrorResult('Empty note is not allowed');

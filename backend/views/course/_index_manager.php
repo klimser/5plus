@@ -39,7 +39,7 @@ use yii\web\View;
                 return Html::a($model->courseConfig->name, Url::to(['course/view', 'id' => $model->id]))
                     . ($model->note ? '<br><i>' . $model->note->topic . '</i>' : '');
             },
-            'filter' => Html::activeTextInput($searchModel, 'name')
+            'filter' => Html::activeTextInput($searchModel, 'name', ['class' => 'form-control'])
         ],
         [
             'attribute' => 'subject_id',

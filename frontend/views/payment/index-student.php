@@ -12,12 +12,12 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для учащих�
     <div class="content-box payment-panel">
         <?= Html::beginForm(Url::to(['payment/find']), 'post', ['onsubmit' => 'var gToken = grecaptcha.getResponse(); if (gToken.length === 0) return false;']); ?>
             <div class="form-group">
-                <label for="pupil-phone">Введите свой номер телефона</label>
+                <label for="student-phone">Введите свой номер телефона</label>
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <span class="input-group-text">+998</span>
                     </div>
-                    <input type="tel" name="phoneFormatted" id="pupil-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" inputmode="numeric" autocomplete="tel-national" required autofocus>
+                    <input type="tel" name="phoneFormatted" id="student-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" inputmode="numeric" autocomplete="tel-national" required autofocus>
                 </div>
             </div>
             <div class="float-left mw-100">

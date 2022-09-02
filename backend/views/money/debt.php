@@ -1,5 +1,6 @@
 <?php
 
+use common\models\Debt;
 use kartik\field\FieldRange;
 use yii\bootstrap4\Html;
 use yii\bootstrap4\LinkPager;
@@ -69,9 +70,9 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'date',
             ],
             [
-                'content' => function ($model, $key, $index, $column) use ($canCorrect) {
+                'content' => function (Debt $model, $key, $index, $column) use ($canCorrect) {
                     return '<div class="text-nowrap">' . Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), Url::to(['money/income', 'user' => $model->user_id]), ['class' => 'btn btn-outline-dark', 'title' => 'Внести деньги'])
-                        . ($canCorrect ? Html::a(Html::tag('span', '', ['class' => 'fas fa-fire-extinguisher']), Url::to(['money/correction', 'userId' => $model->user_id, 'groupId' => $model->group_id]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'Погасить долг']) : '')
+                        . ($canCorrect ? Html::a(Html::tag('span', '', ['class' => 'fas fa-fire-extinguisher']), Url::to(['money/correction', 'userId' => $model->user_id, 'courseId' => $model->course_id]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'Погасить долг']) : '')
                         . '</div>';
                 },
             ],

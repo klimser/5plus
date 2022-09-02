@@ -107,7 +107,7 @@ class CourseStudent extends ActiveRecord
 
     public function getUser(): ActiveQuery
     {
-        return $this->hasOne(User::class, ['id' => 'user_id'])->inverseOf('groupPupils');
+        return $this->hasOne(User::class, ['id' => 'user_id'])->inverseOf('courseStudents');
     }
 
     public function getCourse(): ActiveQuery
@@ -136,7 +136,7 @@ class CourseStudent extends ActiveRecord
     public function getEndDateObject(): ?DateTimeImmutable
     {
         if (!empty($this->date_end)) return new DateTimeImmutable($this->date_end . ' midnight');
-        if ($this->group->active == Course::STATUS_INACTIVE && $this->group->date_end) return $this->group->endDateObject;
+        if ($this->course->active == Course::STATUS_INACTIVE && $this->course->date_end) return $this->course->endDateObject;
         return null;
     }
 
@@ -148,7 +148,7 @@ class CourseStudent extends ActiveRecord
     public function getMoneyLeft(): int
     {
         return Payment::find()
-            ->andWhere(['user_id' => $this->user_id, 'group_id' => $this->group_id])
+            ->andWhere(['user_id' => $this->user_id, 'course_id' => $this->course_id])
             ->select('SUM(amount)')
             ->scalar() ?? 0;
     }
