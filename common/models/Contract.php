@@ -55,13 +55,14 @@ class Contract extends ActiveRecord
     public const PAYMENT_TYPE_ATMOS          = 3;
     public const PAYMENT_TYPE_CLICK          = 4;
     public const PAYMENT_TYPE_TELEGRAM_PAYME = 5;
-    public const PAYMENT_TYPE_MANUAL_CASH    = 6;
-    public const PAYMENT_TYPE_MANUAL_UZKARD  = 7;
-    public const PAYMENT_TYPE_MANUAL_HUMO    = 8;
-    public const PAYMENT_TYPE_MANUAL_PAYME   = 9;
-    public const PAYMENT_TYPE_MANUAL_BANK    = 10;
-    public const PAYMENT_TYPE_MANUAL_OLD     = 11;
-    public const PAYMENT_TYPE_APELSIN        = 12;
+    public const PAYMENT_TYPE_MANUAL_CASH = 6;
+    public const PAYMENT_TYPE_MANUAL_UZKARD = 7;
+    public const PAYMENT_TYPE_MANUAL_HUMO = 8;
+    public const PAYMENT_TYPE_MANUAL_PAYME = 9;
+    public const PAYMENT_TYPE_MANUAL_BANK = 10;
+    public const PAYMENT_TYPE_MANUAL_OLD = 11;
+    public const PAYMENT_TYPE_APELSIN = 12;
+    public const PAYMENT_TYPE_PAYBOX = 13;
 
     public const STATUS_LABELS = [
         self::STATUS_NEW => 'не оплачен',
@@ -82,6 +83,7 @@ class Contract extends ActiveRecord
         self::PAYMENT_TYPE_MANUAL_BANK => 'Банковский перевод (юр лица)',
         self::PAYMENT_TYPE_MANUAL_OLD => 'прошлый учебный год',
         self::PAYMENT_TYPE_APELSIN => 'Apelsin',
+        self::PAYMENT_TYPE_PAYBOX => 'PayBox',
     ];
 
     public const MANUAL_PAYMENT_TYPES = [
@@ -117,24 +119,21 @@ class Contract extends ActiveRecord
             ['discount', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_NEW, self::STATUS_PROCESS, self::STATUS_PAID]],
             ['status', 'default', 'value' => self::STATUS_NEW],
-            [
-                'payment_type',
-                'in',
-                'range' => [
-                    self::PAYMENT_TYPE_MANUAL,
-                    self::PAYMENT_TYPE_PAYME,
-                    self::PAYMENT_TYPE_ATMOS,
-                    self::PAYMENT_TYPE_CLICK,
-                    self::PAYMENT_TYPE_TELEGRAM_PAYME,
-                    self::PAYMENT_TYPE_MANUAL_CASH,
-                    self::PAYMENT_TYPE_MANUAL_UZKARD,
-                    self::PAYMENT_TYPE_MANUAL_HUMO,
-                    self::PAYMENT_TYPE_MANUAL_PAYME,
-                    self::PAYMENT_TYPE_MANUAL_BANK,
-                    self::PAYMENT_TYPE_MANUAL_OLD,
-                    self::PAYMENT_TYPE_APELSIN,
-                ]
-            ],
+            ['payment_type', 'in', 'range' => [
+                self::PAYMENT_TYPE_MANUAL,
+                self::PAYMENT_TYPE_PAYME,
+                self::PAYMENT_TYPE_ATMOS,
+                self::PAYMENT_TYPE_CLICK,
+                self::PAYMENT_TYPE_TELEGRAM_PAYME,
+                self::PAYMENT_TYPE_MANUAL_CASH,
+                self::PAYMENT_TYPE_MANUAL_UZKARD,
+                self::PAYMENT_TYPE_MANUAL_HUMO,
+                self::PAYMENT_TYPE_MANUAL_PAYME,
+                self::PAYMENT_TYPE_MANUAL_BANK,
+                self::PAYMENT_TYPE_MANUAL_OLD,
+                self::PAYMENT_TYPE_APELSIN,
+                self::PAYMENT_TYPE_PAYBOX,
+            ]],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
             [['course_id'], 'exist', 'targetRelation' => 'course'],
             [['company_id'], 'exist', 'targetRelation' => 'company'],

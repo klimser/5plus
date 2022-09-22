@@ -3,6 +3,7 @@
 namespace frontend\controllers;
 
 use common\components\apelsin\ApelsinServer;
+use common\components\paybox\PayboxServer;
 use common\components\click\ClickServer;
 use common\components\ComponentContainer;
 use common\components\payme\PaymeServer;
@@ -12,7 +13,6 @@ use Longman\TelegramBot\TelegramLog;
 use Yii;
 use yii\web\Controller;
 use yii\web\HttpException;
-use yii\web\Response;
 
 /**
  * ApiController is used to provide API-messaging
@@ -72,5 +72,10 @@ class ApiController extends Controller
     public function actionApelsin()
     {
         return (new ApelsinServer())->handle(Yii::$app->request);
+    }
+
+    public function actionPayboxComplete()
+    {
+        return (new PayboxServer())->handle(Yii::$app->request);
     }
 }

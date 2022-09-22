@@ -68,12 +68,15 @@ class ActiveRecord extends \yii\db\ActiveRecord
         return $map;
     }
 
-    public static function convertTextForEditor(string $text, string $highlightClassName): string
+    public static function convertTextForEditor(?string $text, string $highlightClassName): string
     {
-        if (!is_string($text)) $text = '';
+        if (!is_string($text)) {
+            return '';
+        }
+
         $text = str_replace(['<span class="' . $highlightClassName . '">', '</span>', '</p><p>'], ['{{', '}}', "\n"], $text);
-        $text = str_replace(['<p>', '</p>'], '', $text);
-        return $text;
+
+        return str_replace(['<p>', '</p>'], '', $text);
     }
 
     public static function convertTextForDB(string $text, string $highlightClassName): string

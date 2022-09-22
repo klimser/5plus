@@ -2,6 +2,8 @@
 
 namespace common\components\payme;
 
+use common\service\payment\PaymentApiInterface;
+use common\service\payment\TransactionResponse;
 use yii\base\BaseObject;
 
 /**
@@ -13,7 +15,7 @@ use yii\base\BaseObject;
  * @property string $login
  * @property string $password
  */
-class PaymeApi extends BaseObject
+class PaymeApi extends BaseObject implements PaymentApiInterface
 {
     /** @var string */
     protected $paymentUrl;
@@ -88,15 +90,16 @@ class PaymeApi extends BaseObject
     }
 
     /**
-     * @param float $amount
-     * @param string $paymentId
-     * @param string|null $returnUrl
-     * @return string
+     * @param array<mixed> $details
      */
-    public function payCreate(float $amount, string $paymentId, ?string $returnUrl = null): string
+    public function payCreate(float $amount, string $paymentId, ?string $returnUrl = null, array $details = []): TransactionResponse
     {
-        return $this->paymentUrl . '/' . base64_encode(
+        return new TransactionResponse(
+            null,
+            $this->paymentUrl . '/' . base64_encode(
         "m={$this->merchantId};ac.order_id={$paymentId};a=" . round($amount * 100) . ';' . ($returnUrl ? "c={$returnUrl};" : '') . 'cr=860'
-            );
+            ),
+            []
+        );
     }
 }

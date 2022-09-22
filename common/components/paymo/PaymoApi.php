@@ -2,6 +2,8 @@
 
 namespace common\components\paymo;
 
+use common\service\payment\PaymentApiInterface;
+use common\service\payment\TransactionResponse;
 use yii\base\BaseObject;
 
 /**
@@ -11,7 +13,7 @@ use yii\base\BaseObject;
  * @property int|string $storeId
  * @property int|string $apiKey
  */
-class PaymoApi extends BaseObject
+class PaymoApi extends BaseObject implements PaymentApiInterface
 {
     const API_URL = 'https://api.paymo.uz';
 
@@ -165,22 +167,25 @@ class PaymoApi extends BaseObject
     }
 
     /**
-     * @param float $amount
-     * @param string $paymentId
-     * @param array $details
-     * @return string
+     * @param array<mixed> $details
      * @throws PaymoApiException
      */
-    public function payCreate(float $amount, string $paymentId, array $details = []): string
+    public function payCreate(float $amount, string $paymentId, ?string $returnUrl = null, array $details = []): TransactionResponse
     {
         $response = $this->execute('/merchant/pay/create', true, [
             'amount' => (int) round($amount * 100),
             'account' => $paymentId,
             'store_id' => $this->storeId,
-            'details' => json_encode($details),
+            'details' => json_encode($details['paymentDetails'] ?? []),
         ]);
 
-        if (array_key_exists('transaction_id', $response)) return strval($response['transaction_id']);
+        if (array_key_exists('transaction_id', $response)) {
+            return new TransactionResponse(
+                strval($response['transaction_id']),
+                "$this->paymentUrl/invoice/get?storeId=$this->storeId&transactionId={$response['transaction_id']}&redirectLink=$returnUrl",
+                $response
+            );
+        }
 
         throw new PaymoApiException('Wrong response: ' . print_r($response, true));
     }

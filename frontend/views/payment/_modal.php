@@ -41,6 +41,12 @@ use yii\helpers\Url;
                     </div>
                     <div class="form-group">
                         <div class="col-12 text-center">
+                            <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_PAYBOX; ?>" class="btn freedompay_logo pay_button m-2">
+                                Оплатить через <span class="sr-only">VISA, MasterCard, American express</span>
+                                <span class="fab fa-cc-visa"></span>
+                                <span class="fab fa-cc-mastercard"></span>
+                                <span class="fab fa-cc-amex"></span>
+                            </button>
                             <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_APELSIN; ?>" class="btn apelsin_logo pay_button m-2">
                                 Оплатить через <span class="sr-only">Apelsin</span> <i class="ml-2"></i>
                             </button>

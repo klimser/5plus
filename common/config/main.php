@@ -147,6 +147,11 @@ return [
             'cashId' => $params['apelsin-cashId'],
             'login' => $params['apelsin-login'],
             'password' => $params['apelsin-password'],
+        ],
+        'payboxApi' => [
+            'class' => \common\components\paybox\PayboxApi::class,
+            'merchantId' => $params['paybox-merchantId'],
+            'secretKey' => $params['paybox-secretKey'],
         ]
     ],
     'aliases' => [

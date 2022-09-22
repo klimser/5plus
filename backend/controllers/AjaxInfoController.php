@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\components\GroupComponent;
 use common\models\Company;
 use common\models\Course;
 use common\models\Teacher;
