@@ -339,6 +339,7 @@ class EventController extends AdminController
             'status' => (int)$event->status,
             'time' => $event->eventTime,
             'limitAttendTimestamp' => $event->limitAttendTimestamp,
+            'limitStatusTimestamp' =>$event->eventDateTime->getTimestamp(),
             'name' => $event->group->name,
             'teacher' => $event->teacher->name,
             'members' => $members,
