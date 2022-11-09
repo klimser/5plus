@@ -117,27 +117,27 @@ let WelcomeLesson = {
                 if (data.status === "ok") {
                     let form = $("#welcome-lesson-moving-form");
                     $(form).find(".welcome-lesson-id").val(data.id);
-                    $(form).find(".pupil-info").html(data.pupilName);
+                    $(form).find(".student-info").html(data.studentName);
                     $(form).find(".welcome-lesson-start-date").html(data.lessonDate);
                     let proposals = '';
-                    let checkProposal = (data.groupIds.length === 1);
-                    data.groupIds.forEach(function (groupId) {
+                    let checkProposal = (data.courseIds.length === 1);
+                    data.courseIds.forEach(function (courseId) {
                         proposals += '<div class="form-check">' +
                             '<label class="form-check-label">' +
-                            '<input class="form-check-input" type="radio" name="welcome_lesson[group_proposal]" ' +
-                            'value="' + groupId + '" onchange="WelcomeLesson.groupChange(this);" ' + (checkProposal ? ' checked' : '') + ' required>' +
-                            Main.courseMap[groupId].name + ' (' + Main.courseMap[groupId].teacher + ')' +
+                            '<input class="form-check-input" type="radio" name="welcome_lesson[course_proposal]" ' +
+                            'value="' + courseId + '" onchange="WelcomeLesson.courseChange(this);" ' + (checkProposal ? ' checked' : '') + ' required>' +
+                            Main.courseMap[courseId].name + ' (' + Main.courseMap[courseId].teacher + ')' +
                             '</label>' +
                             '</div>';
                     });
-                    $(form).find(".group-proposal").html(proposals);
-                    let groupList = '';
-                    Main.courseActiveList.forEach(function(groupId) {
-                        if (data.groupIds.indexOf(groupId) < 0 && data.excludeGroupIds.indexOf(groupId) < 0) {
-                            groupList += '<option value="' + groupId + '">' + Main.courseMap[groupId].name + ' (' + Main.courseMap[groupId].teacher + ')</option>';
+                    $(form).find(".course-proposal").html(proposals);
+                    let courseList = '';
+                    Main.courseActiveList.forEach(function(courseId) {
+                        if (data.courseIds.indexOf(courseId) < 0 && data.excludeCourseIds.indexOf(courseId) < 0) {
+                            courseList += '<option value="' + courseId + '">' + Main.courseMap[courseId].name + ' (' + Main.courseMap[courseId].teacher + ')</option>';
                         }
                     });
-                    $(form).find(".other-group").html(groupList);
+                    $(form).find(".other-course").html(courseList);
                     $("#welcome-lesson-moving-modal").modal('show');
                 } else {
                     Main.throwFlashMessage('#messages_place', "Ошибка: " + data.message, 'alert-danger');
@@ -148,8 +148,8 @@ let WelcomeLesson = {
                 $(".welcome-lesson-buttons button").prop("disabled", false);
             });
     },
-    groupChange: function(e) {
-        $("#welcome-lesson-moving-form .other-group").prop("disabled", parseInt($(e).val()) !== 0 || !$(e).is(":checked"));
+    courseChange: function(e) {
+        $("#welcome-lesson-moving-form .other-course").prop("disabled", parseInt($(e).val()) !== 0 || !$(e).is(":checked"));
     },
     lockMovingFormButtons: function() {
         $("#welcome-lesson-moving-form").find('button').prop("disabled", true);

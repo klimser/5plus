@@ -248,5 +248,12 @@ let Course = {
     addConfig: function(e) {
         let formContainer = $("#config-new");
         $(formContainer).find('input,select,textarea').prop('disabled', $(formContainer).hasClass('show'));
+    },
+    getCourseSchedule: function(course, date) {
+        for (let i = 0; i < course.scheduleList.length; ++i) {
+            if (null === course.scheduleList[i].to || date < course.scheduleList[i].to) {
+                return course.scheduleList[i].schedule;
+            }
+        }
     }
 };

@@ -3,7 +3,7 @@
 /* @var $this \frontend\components\extended\View */
 /* @var $success bool */
 /* @var $amount int */
-/* @var $group string */
+/* @var $course string */
 /* @var $discount bool */
 /* @var $lessons int */
 /* @var $giftCard \common\models\GiftCard */
@@ -34,7 +34,7 @@ $this->params['breadcrumbs'][] = 'Завершение оплаты';
                     <?php else: ?>
                         <tr>
                             <th>Группа</th>
-                            <td><?= $group; ?></td>
+                            <td><?= $course; ?></td>
                         </tr>
                         <tr>
                             <th>Занятий</th>

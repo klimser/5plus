@@ -50,7 +50,7 @@ class SiteController extends Controller
         if (!Yii::$app->user->can('viewIndex')) throw new ForbiddenHttpException('Access denied!');
         /** @var User $currentUser */
         $currentUser = Yii::$app->user->identity;
-        $viewFile = 'index_pupil';
+        $viewFile = 'index_student';
         switch ($currentUser->role) {
             case User::ROLE_ROOT:
             case User::ROLE_MANAGER:

@@ -10,6 +10,7 @@ use common\components\ComponentContainer;
 use common\components\CourseComponent;
 use common\components\MoneyComponent;
 use common\models\Course;
+use common\models\CourseConfig;
 use common\models\GroupParam;
 use common\models\CourseStudent;
 use common\models\Subject;
@@ -25,7 +26,7 @@ use yii\web\Response;
  */
 class WelcomeLessonController extends AdminController
 {
-    const PROPOSE_GROUP_LIMIT = 6;
+    const PROPOSE_COURSE_LIMIT = 6;
 
     protected $accessRule = 'welcomeLessons';
 
@@ -54,10 +55,10 @@ class WelcomeLessonController extends AdminController
         $studentMap = [null => 'Все'];
         foreach ($users as $user) $studentMap[$user->id] = $user->name;
 
-        /** @var Course[] $groups */
-        $groups = Course::find()->where(['id' => WelcomeLesson::find()->select(['group_id'])->distinct()->asArray()->column()])->orderBy(['name' => SORT_ASC])->all();
-        $groupMap = [null => 'Все'];
-        foreach ($groups as $group) $groupMap[$group->id] = $group->name;
+        /** @var Course[] $courses */
+        $courses = Course::find()->where(['id' => WelcomeLesson::find()->select(['course_id'])->distinct()->asArray()->column()])->all();
+        $courseMap = [null => 'Все'];
+        foreach ($courses as $course) $courseMap[$course->id] = $course->courseConfig->name;
 
         /** @var Subject[] $subjects */
         $subjects = Subject::find()->orderBy('name')->all();
@@ -85,10 +86,13 @@ class WelcomeLessonController extends AdminController
             'studentMap' => $studentMap,
             'subjectMap' => $subjectMap,
             'teacherMap' => $teacherMap,
-            'groupMap' => $groupMap,
+            'courseMap' => $courseMap,
             'statusMap' => $statusMap,
             'reasonsMap' => $reasonsMap,
-            'groups' => Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->with('teacher')->orderBy(['name' => 'ASC'])->all(),
+            'courses' => Course::find()
+                ->andWhere(['active' => Course::STATUS_ACTIVE])
+                ->orderBy(['id' => 'ASC'])
+                ->all(),
         ]);
     }
 
@@ -156,7 +160,7 @@ class WelcomeLessonController extends AdminController
         return $this->getAjaxInfoResult($welcomeLesson);
     }
 
-    public function actionProposeGroup()
+    public function actionProposeCourse()
     {
         $this->checkRequestIsAjax();
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -179,10 +183,10 @@ class WelcomeLessonController extends AdminController
                     'subject_id' => $welcomeLesson->subject_id,
                     'teacher_id' => $welcomeLesson->teacher_id,
                 ])
-                ->limit(self::PROPOSE_GROUP_LIMIT)
+                ->limit(self::PROPOSE_COURSE_LIMIT)
                 ->all();
-            foreach ($courses as $group) {
-                $resultCourseIds[] = $group->id;
+            foreach ($courses as $course) {
+                $resultCourseIds[] = $course->id;
             }
         }
         
@@ -193,7 +197,7 @@ class WelcomeLessonController extends AdminController
                     'active' => Course::STATUS_ACTIVE,
                     'subject_id' => $welcomeLesson->subject_id,
                 ])
-                ->limit(self::PROPOSE_GROUP_LIMIT)
+                ->limit(self::PROPOSE_COURSE_LIMIT)
                 ->with('teacher')
                 ->all();
             foreach ($courses as $course) {
@@ -207,9 +211,9 @@ class WelcomeLessonController extends AdminController
         
         return self::getJsonOkResult([
             'id' => $welcomeLesson->id,
-            'groupIds' => $resultCourseIds,
-            'excludeGroupIds' => $excludeCourseIds,
-            'pupilName' => $welcomeLesson->user->name,
+            'courseIds' => $resultCourseIds,
+            'excludeCourseIds' => $excludeCourseIds,
+            'studentName' => $welcomeLesson->user->name,
             'lessonDate' => $welcomeLesson->lessonDateTime->format('d.m.Y'),
         ]);
     }
@@ -228,16 +232,13 @@ class WelcomeLessonController extends AdminController
             return self::getJsonErrorResult('Welcome lesson is not found');
         }
 
-        $startDate = new \DateTime($welcomeLessonData['date']);
+        $startDate = new \DateTimeImmutable($welcomeLessonData['date']);
         if (!$startDate) {
             return self::getJsonErrorResult('Empty lesson date');
         }
 
-        $groupParam = GroupParam::findByDate($welcomeLesson->course, $startDate);
-        if (!$groupParam) {
-            $groupParam = $welcomeLesson->course;
-        }
-        if (!$groupParam->hasLesson($startDate)) {
+        $courseConfig = CourseConfig::findByDate($welcomeLesson->course, $startDate);
+        if (!$courseConfig->hasLesson($startDate)) {
             return self::getJsonErrorResult('Неверная дата пробного урока');
         }
 
@@ -249,7 +250,7 @@ class WelcomeLessonController extends AdminController
             $newWelcomeLesson = new WelcomeLesson();
             $newWelcomeLesson->course_id = $welcomeLesson->course_id;
             $newWelcomeLesson->user_id = $welcomeLesson->user_id;
-            $newWelcomeLesson->lesson_date = $groupParam->getLessonDateTime($startDate);
+            $newWelcomeLesson->lesson_date = $courseConfig->getLessonDateTime($startDate);
 
             if (!$newWelcomeLesson->save()) {
                 throw new \Exception('Server error: ' . $newWelcomeLesson->getErrorsAsString());
@@ -280,36 +281,36 @@ class WelcomeLessonController extends AdminController
             return self::getJsonErrorResult('Welcome lesson is not found');
         }
         
-        if (!empty($welcomeLessonData['group_proposal'])) {
-            $course = Course::findOne($welcomeLessonData['group_proposal']);
+        if (!empty($welcomeLessonData['course_proposal'])) {
+            $course = Course::findOne($welcomeLessonData['course_proposal']);
         } else {
             $course = Course::findOne($welcomeLessonData['course_id']);
         }
 
         if (!$course || $course->active != Course::STATUS_ACTIVE) {
-            return self::getJsonErrorResult('Group not found');
+            return self::getJsonErrorResult('Course not found');
         }
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            /** @var CourseStudent $groupPupil */
-            $groupPupil = CourseStudent::find()
+            /** @var CourseStudent $courseStudent */
+            $courseStudent = CourseStudent::find()
                 ->andWhere(['user_id' => $welcomeLesson->user_id, 'course_id' => $course->id])
                 ->andWhere(['>=', 'date_start', $welcomeLesson->lessonDateTime->format('Y-m-d')])
                 ->addOrderBy(['date_start' => SORT_ASC])
                 ->one();
-            if ($groupPupil) {
-                $groupPupil->date_start = max($welcomeLesson->lessonDateTime, $course->startDateObject)->format('Y-m-d');
-                $dataForLog = $groupPupil->getDiffMap();
-                if (!$groupPupil->save()) {
+            if ($courseStudent) {
+                $courseStudent->date_start = max($welcomeLesson->lessonDateTime, $course->startDateObject)->format('Y-m-d');
+                $dataForLog = $courseStudent->getDiffMap();
+                if (!$courseStudent->save()) {
                     ComponentContainer::getErrorLogger()
-                        ->logError('welcome-lesson/pupil-to-course', $groupPupil->getErrorsAsString(), true);
-                    throw new \Exception('Внутренняя ошибка сервера: ' . $groupPupil->getErrorsAsString());
+                        ->logError('welcome-lesson/student-to-course', $courseStudent->getErrorsAsString(), true);
+                    throw new \Exception('Внутренняя ошибка сервера: ' . $courseStudent->getErrorsAsString());
                 }
                 EventComponent::fillSchedule($course);
                 ComponentContainer::getActionLogger()->log(
                     Action::TYPE_COURSE_STUDENT_UPDATED,
-                    $groupPupil->user,
+                    $courseStudent->user,
                     null,
                     $course,
                     json_encode($dataForLog, JSON_UNESCAPED_UNICODE)

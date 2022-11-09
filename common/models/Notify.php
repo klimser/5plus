@@ -31,10 +31,10 @@ class Notify extends ActiveRecord
     const STATUS_SENT = 2;
     const STATUS_ERROR = 3;
 
-    const TEMPLATE_PUPIL_DEBT = 1;
+    const TEMPLATE_STUDENT_DEBT = 1;
     const TEMPLATE_PARENT_DEBT = 2;
-    const TEMPLATE_PUPIL_LOW = 3;
-    const TEMPLATE_PARENT_LOW = 4;
+    const TEMPLATE_STUDENT_LOW = 3;
+    const TEMPLATE_PARENT_LOW  = 4;
 
     /**
      * {@inheritdoc}

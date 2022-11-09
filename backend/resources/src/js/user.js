@@ -1,6 +1,4 @@
 let User = {
-    contractAllowed: false,
-    incomeAllowed: false,
     studentLimitDate: null,
     iterator: 1,
     consultationList: [],
@@ -52,7 +50,8 @@ let User = {
         Main.courseActiveList.forEach(function(courseId) {
             let allowed = true;
             Object.keys(filter).forEach(function(filterKey) {
-                if (Main.courseMap[courseId][filterKey] !== filter[filterKey]) {
+                if (("exclude" === filterKey && filter[filterKey].indexOf(courseId) >= 0)
+                    || (undefined !== Main.courseMap[courseId][filterKey] && Main.courseMap[courseId][filterKey] !== filter[filterKey])) {
                     allowed = false;
                 }
             });
@@ -132,7 +131,7 @@ let User = {
     addWelcomeLesson: function (data, parentContainer) {
         this.setStudentPhoneRequired(true);
         if (data === undefined) {
-            data = {groupId: 0, subjectId: 0, teacherId: 0, date: ''};
+            data = {courseId: 0, subjectId: 0, teacherId: 0, date: ''};
         }
         if (parentContainer === undefined) {
             parentContainer = document;
@@ -143,22 +142,22 @@ let User = {
         blockHtml += '<div class="col-10 col-md-11 col-lg-6"><div class="form-group">' +
             '<label>Предмет</label>' +
             '<select class="form-control subject-select" name="welcome_lesson[subjectId][' + this.iterator + ']" autocomplete="off" onchange="User.setWelcomeLessonSubject(this);"' +
-            (data.groupId > 0 ? ' disabled ' : '') + '>' + this.getSubjectOptions(data.subjectId) + '</select>' +
+            (data.courseId > 0 ? ' disabled ' : '') + '>' + this.getSubjectOptions(data.subjectId) + '</select>' +
             '</div></div>';
         blockHtml += '<div class="col-2 col-md-1 order-lg-last"><button type="button" class="close" aria-label="Close" onclick="User.removeWelcomeLesson(this);"><span aria-hidden="true">&times;</span></button></div>';
         blockHtml += '<div class="col-12 col-lg-5"><div class="form-group">' +
             '<label>Учитель</label>' +
             '<select class="form-control teacher-select" name="welcome_lesson[teacherId][' + this.iterator + ']" autocomplete="off" onchange="User.setWelcomeLessonTeacher(this);"' +
-            (data.groupId > 0 ? ' disabled ' : '') + '>' +
-            this.getTeacherOptions(data.subjectId, data.teacherId) + '</select>' +
+            (data.courseId > 0 ? ' disabled ' : '') + '>' +
+            this.getTeacherOptions(data.subjectId, data.teacherId, true) + '</select>' +
             '</div></div>';
         blockHtml += '</div>';
         blockHtml += '<div class="row">';
         blockHtml +=
             '<div class="col-12"><div class="form-group">' +
             '<label>Группа</label>' +
-            '<select class="form-control group-select" name="welcome_lesson[groupId][' + this.iterator + ']" autocomplete="off" required onchange="User.setWelcomeLessonGroup(this);">' +
-            this.getCourseOptions(parseInt(data.groupId), true) +
+            '<select class="form-control course-select" name="welcome_lesson[courseId][' + this.iterator + ']" autocomplete="off" required onchange="User.setWelcomeLessonCourse(this);">' +
+            this.getCourseOptions(parseInt(data.courseId), true) +
             '</select>' +
             '</div>' +
             '</div>';
@@ -194,7 +193,7 @@ let User = {
         blockHtml += '<div class="form-group">' +
             '<label>Группа</label>' +
             '<select class="form-control course-select" name="course[courseId][' + this.iterator + ']" autocomplete="off" onchange="User.setCourse(this, true);" required>' +
-            this.getCourseOptions(parseInt(data.groupId)) +
+            this.getCourseOptions(parseInt(data.courseId), false, data.filter ?? {}) +
             '</select>' +
             '</div>';
         blockHtml += '<div class="form-group">' +
@@ -214,30 +213,6 @@ let User = {
             '</label>' +
             '</div>' +
             '</div>';
-        // if (this.contractAllowed || this.incomeAllowed) {
-        //     blockHtml += '<div class="form-check">' +
-        //         '<input class="form-check-input" type="checkbox" name="group[payment][' + this.iterator + ']" autocomplete="off"' +
-        //         ' value="1" id="group-payment-' + this.iterator + '" ' + (data.hasOwnProperty('payment') ? ' checked ' : '') + ' onchange="User.checkAddPayment(this);">' +
-        //         '<label class="form-check-label" for="group-payment-' + this.iterator + '">' +
-        //         'принять оплату' +
-        //         '</label>' +
-        //         '</div>' +
-        //         '<div class="payment-block collapse ' + (data.hasOwnProperty('payment') ? ' show ' : '') + '">' +
-        //         '<div class="form-group">' +
-        //         '<label>Сумма</label>' +
-        //         '<input class="form-control income-amount" name="group[amount][' + this.iterator + ']" autocomplete="off" type="number" step="1000" min="1000" required ' +
-        //         (data.hasOwnProperty('payment') ? '' : ' disabled ') + ' value="' + data.amount + '">' +
-        //         '<div class="amount-helper-buttons">' +
-        //         '<button type="button" class="btn btn-outline-secondary btn-sm price" onclick="Dashboard.setAmount(this);">за 1 месяц</button>' +
-        //         '<button type="button" class="btn btn-outline-secondary btn-sm price4" onclick="Dashboard.setAmount(this);">за 4 месяца</button>' +
-        //         '</div>' +
-        //         '</div>' +
-        //         '<div class="form-group payment-comment-block">' +
-        //         '<label>Комментарий к платежу</label>' +
-        //         '<input class="form-control" name="group[paymentComment][' + this.iterator + ']" autocomplete="off" value="' + data.paymentComment + '">' +
-        //         '</div>' +
-        //         '</div>';
-        // }
         blockHtml += '</div></div>';
         let container = $(parentContainer).find(".courses");
         $(container).append(blockHtml);
@@ -310,23 +285,23 @@ let User = {
             $(phoneInput).prop('required', isRequired);
         }
     },
-    setWelcomeLessonGroup: function(e) {
+    setWelcomeLessonCourse: function(e) {
         let container = $(e).closest('.welcome-lesson-item');
         if ($(e).val() > 0) {
-            let group = Main.courseMap[$(e).val()];
+            let course = Main.courseMap[$(e).val()];
             $(container).find(".subject-select").prop("disabled", true)
-                .find('option[value=' + group.subjectId + ']').prop('selected', true);
+                .find('option[value=' + course.subjectId + ']').prop('selected', true);
             $(container).find(".teacher-select").prop("disabled", true)
-                .find('option[value=' + group.teacherId + ']').prop('selected', true);
+                .find('option[value=' + course.teacherId + ']').prop('selected', true);
             let dateSelect = $(container).find(".date-select");
-            $(dateSelect).datepicker("option", "minDate", new Date(group.dateStart));
+            $(dateSelect).datepicker("option", "minDate", new Date(course.dateStart));
             $(dateSelect).datepicker("option", "beforeShowDay", function(date) {
-                let weekDays = group.scheduleMap[date.getFullYear() + '-' + (date.getMonth() + 1)];
-                if (undefined === weekDays) {
-                    weekDays = group.weekDays;
-                }
-                return [weekDays.indexOf(date.getDay()) >= 0, ""];
+                let schedule = Course.getCourseSchedule(course, date);
+                return [schedule[(date.getDay() + 6) % 7] !== "", ""];
             });
+            if (null !== course.dateEnd) {
+                $(dateSelect).datepicker("option", "maxDate", new Date(course.dateEnd));
+            }
             $(dateSelect).val('');
         } else {
             $(container).find(".subject-select").prop("disabled", false);
@@ -335,7 +310,7 @@ let User = {
     },
     setWelcomeLessonSubject: function(e) {
         $(e).closest('.welcome-lesson-item').find(".teacher-select")
-            .html(this.getTeacherOptions($(e).val()));
+            .html(this.getTeacherOptions($(e).val(), 0, true));
         this.filterCourseSelect($(e).closest('.welcome-lesson-item'));
     },
     setWelcomeLessonTeacher: function(e) {
@@ -370,12 +345,6 @@ let User = {
     setCourseDateType: function(e) {
         $(e).closest(".course-item").find(".date-select").prop("disabled", $(e).val() <= 0);
     },
-    checkAddPayment: function(e) {
-        let contatiner = $(e).closest(".group-item");
-        $(contatiner).find(".income-amount").prop("disabled", !e.checked);
-        $(contatiner).find(".company-input").prop("disabled", !e.checked);
-        $(contatiner).find(".payment-block").collapse(e.checked ? 'show' : 'hide');
-    },
     checkPhone(e) {
         this.phoneCheckInput = e;
         User.findByPhone($(e).val())
@@ -384,15 +353,13 @@ let User = {
                 if ($(User.phoneCheckInput).val() !== data.phone) return;
 
                 let messageBlock = $(User.phoneCheckInput).closest(".input-group").find(".help-block");
-                if (data.pupils !== undefined && data.pupils.length > 0) {
-                    let pupilList = '';
-                    Money.pupils = {};
-                    Money.groups = {};
-                    data.pupils.forEach(function(pupil) {
-                        pupilList += '<div>' + pupil.name + '</div>';
+                if (data.students !== undefined && data.students.length > 0) {
+                    let studentList = '';
+                    data.students.forEach(function(student) {
+                        studentList += '<div>' + student.name + '</div>';
                     });
 
-                    messageBlock.html('<b>Студенты с таким номером уже существуют!!!</b>' + pupilList);
+                    messageBlock.html('<b>Студенты с таким номером уже существуют!!!</b>' + studentList);
                 } else {
                     messageBlock.html('');
                 }

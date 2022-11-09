@@ -5,11 +5,9 @@ namespace common\components;
 use backend\components\EventComponent;
 use common\models\Course;
 use common\models\CourseConfig;
-use common\models\GroupParam;
 use common\models\CourseStudent;
 use common\models\Payment;
 use common\models\User;
-use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Yii;
@@ -46,30 +44,6 @@ class CourseComponent extends Component
 
         return $courses;
     }
-    /**
-     * @param Course    $group
-     * @param \DateTime $date
-     *
-     * @return GroupParam
-     * @throws \Exception
-     */
-    public static function getGroupParam(Course $group, DateTimeInterface $date): GroupParam
-    {
-        $groupParam = GroupParam::findByDate($group, $date);
-        if (!$groupParam) {
-            $groupParam = new GroupParam();
-            $groupParam->group_id = $group->id;
-            $groupParam->year = $date->format('Y');
-            $groupParam->month = $date->format('n');
-            $groupParam->lesson_price = $group->lesson_price;
-            $groupParam->lesson_price_discount = $group->lesson_price_discount;
-            $groupParam->teacher_id = $group->teacher_id;
-            $groupParam->schedule = $group->schedule;
-            $groupParam->teacher_rate = $group->teacher_rate;
-            if (!$groupParam->save()) throw new \Exception('Unable to save group param: ' . $groupParam->getErrorsAsString());
-        }
-        return $groupParam;
-    }
 
     public static function getCourseConfig(Course $course, DateTimeInterface $date): CourseConfig
     {
@@ -78,51 +52,6 @@ class CourseComponent extends Component
             throw new \Exception(sprintf('No course config: Course ID %s, date %s ', $course->id, $date->format('d.m.Y')));
         }
         return $courseConfig;
-    }
-
-    /**
-     * @param Course $course
-     *
-     * @throws \Exception
-     */
-    public static function calculateTeacherSalary(Course $course)
-    {
-        $monthInterval = new DateInterval('P1M');
-        $limit = new DateTimeImmutable('first day of next month midnight');
-        $to = $course->endDateObject;
-        if ($to) {
-            $to = $to->modify('first day of this month midnight')->add($monthInterval);
-        }
-        if (!$to || $to > $limit) $to = $limit;
-
-        if ($course->groupPupils) {
-            $dateStart = $course->startDateObject->modify('first day of this month midnight');
-            $dateEnd = $dateStart->add($monthInterval);
-
-            while ($dateEnd <= $to) {
-                $groupParam = self::getGroupParam($course, $dateStart);
-
-                $paymentSum = Payment::find()
-                    ->andWhere(['<', 'amount', 0])
-                    ->andWhere(['group_id' => $course->id])
-                    ->andWhere(['>=', 'created_at', $dateStart->format('Y-m-d H:i:s')])
-                    ->andWhere(['<', 'created_at', $dateEnd->format('Y-m-d H:i:s')])
-                    ->andWhere('used_payment_id IS NOT NULL')
-                    ->select('SUM(amount)')
-                    ->scalar();
-                $groupParam->teacher_salary = round($paymentSum * (-1) * $groupParam->teacher_rate / 100);
-                if (!$groupParam->save()) throw new \Exception($groupParam->getErrorsAsString());
-
-                $dateStart = $dateStart->add($monthInterval);
-                $dateEnd = $dateEnd->add($monthInterval);
-            }
-        }
-        /** @var GroupParam $minGroupParam */
-        $overGroupParams = GroupParam::find()
-            ->andWhere(['group_id' => $course->id])
-            ->andWhere(['or', ['>', 'year', $to->format('Y')], ['and', ['year' => $to->format('Y')], ['>=', 'month', $to->format('n')]]])
-            ->all();
-        foreach ($overGroupParams as $overGroupParam) $overGroupParam->delete();
     }
 
     public static function addStudentToCourse(User $student, Course $course, DateTimeInterface $startDate, ?DateTimeInterface $endDate = null, bool $fillSchedule = true): CourseStudent
@@ -235,7 +164,7 @@ class CourseComponent extends Component
 
     public static function getStudentLimitDate(): ?DateTimeImmutable
     {
-        return Yii::$app->user->can('pupilChangePast') ? null : new DateTimeImmutable('-7 days');
+        return Yii::$app->user->can('studentChangePast') ? null : new DateTimeImmutable('-7 days');
     }
 
     /**

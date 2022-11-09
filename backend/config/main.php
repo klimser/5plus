@@ -18,7 +18,7 @@ return [
             'ruleFile' => '@backend/config/rbac/rules.php',
             'itemFile' => '@backend/config/rbac/items.php',
             'assignmentFile' => '@backend/config/rbac/assignments.php',
-            'defaultRoles' => ['root', 'manager', 'pupil', 'parents', 'teacher'],
+            'defaultRoles' => ['root', 'manager', 'student', 'parents', 'teacher'],
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,

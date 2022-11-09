@@ -69,9 +69,7 @@ class BotPushController extends Controller
                 if ($response->getDescription() === 'Forbidden: bot was blocked by the user') {
                     $users = User::findAll(['tg_chat_id' => $botPush->chat_id]);
                     foreach ($users as $user) {
-                        $telegramSettings = $user->telegramSettings;
-                        $telegramSettings['subscribe'] = false;
-                        $user->telegramSettings = $telegramSettings;
+                        $user->telegramSettings = array_merge($user->telegramSettings,['subscribe' => false]);
                         $user->save();
                     }
                 }

@@ -20,8 +20,8 @@ class GroupMovementReport
         $startDateString = $startDate->format('Y-m-d');
         $endDateString = $endDate->format('Y-m-d');
 
-        /** @var Course[] $groups */
-        $groups = Course::find()
+        /** @var Course[] $courses */
+        $courses = Course::find()
             ->andWhere([
                 'AND',
                 ['<=', 'date_start', $endDateString],
@@ -30,30 +30,30 @@ class GroupMovementReport
             ->orderBy(['name' => SORT_ASC])
             ->all();
 
-        $groupPupilCount = function($condition): array {
+        $courseStudentCount = function($condition): array {
             return ArrayHelper::map(
                 CourseStudent::find()
                     ->andWhere($condition)
-                    ->select(['group_id', 'COUNT(DISTINCT user_id) as cnt'])
-                    ->groupBy(['group_id'])
-                    ->asArray(true)->all(),
-                'group_id',
+                    ->select(['course_id', 'COUNT(DISTINCT user_id) as cnt'])
+                    ->groupBy(['course_id'])
+                    ->asArray()->all(),
+                'course_id',
                 'cnt'
             );
         };
-        $inPupilsCount = $groupPupilCount(['BETWEEN', 'date_start', $startDateString, $endDateString]);
-        $outPupilsCount = $groupPupilCount(['BETWEEN', 'date_end', $startDateString, $endDateString]);
-        $totalPupilsCount = $groupPupilCount([
+        $inStudentCount = $courseStudentCount(['BETWEEN', 'date_start', $startDateString, $endDateString]);
+        $outStudentCount = $courseStudentCount(['BETWEEN', 'date_end', $startDateString, $endDateString]);
+        $totalStudentCount = $courseStudentCount([
             'AND',
             ['<=', 'date_start', $endDateString],
             ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]]
         ]);
-        $startPupilsCount = $groupPupilCount([
+        $startStudentCount = $courseStudentCount([
             'AND',
             ['<', 'date_start', $startDateString],
             ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]]
         ]);
-        $endPupilsCount = $groupPupilCount([
+        $endStudentCount = $courseStudentCount([
             'AND',
             ['<=', 'date_start', $endDateString],
             ['OR', ['>', 'date_end', $endDateString], ['date_end' => null]]
@@ -87,32 +87,28 @@ class GroupMovementReport
 
         $nums = [0 => 1, 1 => 1];
         $rows = [0 => 3, 1 => 3];
-        $groupCollections = [];
-        foreach ($groups as $group) {
-            if ($group->groupPupils) {
-                $teacher = CourseComponent::getGroupParam($group, $startDate)->teacher;
-            } else {
-                $teacher = $group->teacher;
-            }
+        $courseCollections = [];
+        foreach ($courses as $course) {
+            $courseConfig = CourseComponent::getCourseConfig($course, $startDate);
 
-            $index = $group->isKids() ? 1 : 0;
-            if (!array_key_exists($index, $groupCollections)) $groupCollections[$index] = [];
-            $groupCollections[$index][] = $group->id;
+            $index = $course->kids;
+            if (!array_key_exists($index, $courseCollections)) $courseCollections[$index] = [];
+            $courseCollections[$index][] = $course->id;
             $offset = $index * 9;
             $spreadsheet->getActiveSheet()
                 ->setCellValueByColumnAndRow($offset + 1, $rows[$index], $nums[$index])
-                ->setCellValueByColumnAndRow($offset + 2, $rows[$index], $group->name)
-                ->setCellValueByColumnAndRow($offset + 3, $rows[$index], $teacher->name)
-                ->setCellValueByColumnAndRow($offset + 4, $rows[$index], array_key_exists($group->id, $startPupilsCount) ? $startPupilsCount[$group->id] : 0)
-                ->setCellValueByColumnAndRow($offset + 5, $rows[$index], array_key_exists($group->id, $inPupilsCount) ? $inPupilsCount[$group->id] : 0)
-                ->setCellValueByColumnAndRow($offset + 6, $rows[$index], array_key_exists($group->id, $outPupilsCount) ? $outPupilsCount[$group->id] : 0)
-                ->setCellValueByColumnAndRow($offset + 7, $rows[$index], array_key_exists($group->id, $totalPupilsCount) ? $totalPupilsCount[$group->id] : 0)
-                ->setCellValueByColumnAndRow($offset + 8, $rows[$index], array_key_exists($group->id, $endPupilsCount) ? $endPupilsCount[$group->id] : 0);
+                ->setCellValueByColumnAndRow($offset + 2, $rows[$index], $courseConfig->name)
+                ->setCellValueByColumnAndRow($offset + 3, $rows[$index], $courseConfig->teacher->name)
+                ->setCellValueByColumnAndRow($offset + 4, $rows[$index], array_key_exists($course->id, $startStudentCount) ? $startStudentCount[$course->id] : 0)
+                ->setCellValueByColumnAndRow($offset + 5, $rows[$index], array_key_exists($course->id, $inStudentCount) ? $inStudentCount[$course->id] : 0)
+                ->setCellValueByColumnAndRow($offset + 6, $rows[$index], array_key_exists($course->id, $outStudentCount) ? $outStudentCount[$course->id] : 0)
+                ->setCellValueByColumnAndRow($offset + 7, $rows[$index], array_key_exists($course->id, $totalStudentCount) ? $totalStudentCount[$course->id] : 0)
+                ->setCellValueByColumnAndRow($offset + 8, $rows[$index], array_key_exists($course->id, $endStudentCount) ? $endStudentCount[$course->id] : 0);
             $nums[$index]++;
             $rows[$index]++;
         }
 
-        foreach ($groupCollections as $index => $groupIds) {
+        foreach ($courseCollections as $index => $courseIds) {
             $offset = $index * 9;
             $row = $rows[$index] - 1;
 
@@ -128,71 +124,71 @@ class GroupMovementReport
 
             $inUsers = CourseStudent::find()
                 ->andWhere(['BETWEEN', 'date_start', $startDateString, $endDateString])
-                ->andWhere(['group_id' => $groupIds])
+                ->andWhere(['course_id' => $courseIds])
                 ->select('user_id')
-                ->distinct(true)
+                ->distinct()
                 ->column();
             $excludeUsersCount = CourseStudent::find()
                 ->andWhere(['<', 'date_start', $startDateString])
-                ->andWhere(['group_id' => $groupIds])
+                ->andWhere(['course_id' => $courseIds])
                 ->andWhere(['user_id' => $inUsers])
                 ->count('DISTINCT user_id');
             $totalIn = count($inUsers) - $excludeUsersCount;
             
-            $totalNewGroupPupil = CourseStudent::find()
-                ->alias('gp1')
-                ->leftJoin(['gp2' => CourseStudent::tableName()], "gp1.id != gp2.id AND gp2.user_id = gp1.user_id AND gp2.group_id = gp1.group_id AND gp2.date_start < '$startDateString'")
-                ->andWhere(['BETWEEN', 'gp1.date_start', $startDateString, $endDateString])
-                ->andWhere(['gp1.group_id' => $groupIds])
-                ->andWhere(['gp2.id' => null])
-                ->count('DISTINCT gp1.id');
+            $totalNewCourseStudent = CourseStudent::find()
+                ->alias('cs1')
+                ->leftJoin(['cs2' => CourseStudent::tableName()], "cs1.id != cs2.id AND cs2.user_id = cs1.user_id AND cs2.course_id = cs1.course_id AND cs2.date_start < '$startDateString'")
+                ->andWhere(['BETWEEN', 'cs1.date_start', $startDateString, $endDateString])
+                ->andWhere(['cs1.course_id' => $courseIds])
+                ->andWhere(['cs2.id' => null])
+                ->count('DISTINCT cs1.id');
 
             $outUsers = CourseStudent::find()
                 ->andWhere(['BETWEEN', 'date_end', $startDateString, $endDateString])
-                ->andWhere(['group_id' => $groupIds])
+                ->andWhere(['course_id' => $courseIds])
                 ->select('user_id')
-                ->distinct(true)
+                ->distinct()
                 ->column();
             $excludeUsersCount = CourseStudent::find()
                 ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
-                ->andWhere(['group_id' => $groupIds])
+                ->andWhere(['course_id' => $courseIds])
                 ->andWhere(['user_id' => $outUsers])
                 ->count('DISTINCT user_id');
             $totalOut = count($outUsers) - $excludeUsersCount;
 
-            $startPupils = CourseStudent::find()
+            $startStudents = CourseStudent::find()
                 ->andWhere(['<', 'date_start', $startDateString])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
-                ->andWhere(['group_id' => $groupIds])
-                ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                ->andWhere(['course_id' => $courseIds])
+                ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", course_id))'))
                 ->scalar();
             $startUsers = CourseStudent::find()
                 ->andWhere(['<', 'date_start', $startDateString])
-                ->andWhere(['group_id' => $groupIds])
+                ->andWhere(['course_id' => $courseIds])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
                 ->select('COUNT(DISTINCT user_id)')
                 ->scalar();
-            $totalPupils = CourseStudent::find()
+            $totalStudents = CourseStudent::find()
                 ->andWhere(['<=', 'date_start', $endDateString])
-                ->andWhere(['group_id' => $groupIds])
+                ->andWhere(['course_id' => $courseIds])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
-                ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", course_id))'))
                 ->scalar();
             $totalUsers = CourseStudent::find()
                 ->andWhere(['<=', 'date_start', $endDateString])
-                ->andWhere(['group_id' => $groupIds])
+                ->andWhere(['course_id' => $courseIds])
                 ->andWhere(['or', ['date_end' => null], ['>=', 'date_end', $startDateString]])
                 ->select('COUNT(DISTINCT user_id)')
                 ->scalar();
-            $finalPupils = CourseStudent::find()
+            $finalStudents = CourseStudent::find()
                 ->andWhere(['<=', 'date_start', $endDateString])
-                ->andWhere(['group_id' => $groupIds])
+                ->andWhere(['course_id' => $courseIds])
                 ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
-                ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", group_id))'))
+                ->select(new  Expression('COUNT(DISTINCT CONCAT(user_id, "|", course_id))'))
                 ->scalar();
             $finalUsers = CourseStudent::find()
                 ->andWhere(['<=', 'date_start', $endDateString])
-                ->andWhere(['group_id' => $groupIds])
+                ->andWhere(['course_id' => $courseIds])
                 ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $endDateString]])
                 ->select('COUNT(DISTINCT user_id)')
                 ->scalar();
@@ -207,7 +203,7 @@ class GroupMovementReport
             
             $spreadsheet->getActiveSheet()
                 ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "Начали заниматься в группах (для бонуса): $totalNewGroupPupil");
+                ->setCellValueByColumnAndRow($offset + 1, $row, "Начали заниматься в группах (для бонуса): $totalNewCourseStudent");
             $row++;
             
             $spreadsheet->getActiveSheet()
@@ -217,15 +213,15 @@ class GroupMovementReport
 
             $spreadsheet->getActiveSheet()
                 ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "В начале месяца было $startUsers человек - $startPupils студентов в гуппах");
+                ->setCellValueByColumnAndRow($offset + 1, $row, "В начале месяца было $startUsers человек - $startStudents студентов в гуппах");
             $row++;
             $spreadsheet->getActiveSheet()
                 ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "В этом месяце занималось $totalUsers человек - $totalPupils студентов в гуппах");
+                ->setCellValueByColumnAndRow($offset + 1, $row, "В этом месяце занималось $totalUsers человек - $totalStudents студентов в гуппах");
             $row++;
             $spreadsheet->getActiveSheet()
                 ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "В конце месяца было $finalUsers человек - $finalPupils студентов в гуппах");
+                ->setCellValueByColumnAndRow($offset + 1, $row, "В конце месяца было $finalUsers человек - $finalStudents студентов в гуппах");
         }
 
         return $spreadsheet;

@@ -14,9 +14,9 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
-class PupilReport
+class StudentReport
 {
-    public static function create(User $pupil, Course $group): Spreadsheet
+    public static function create(User $student, Course $course): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
@@ -26,7 +26,7 @@ class PupilReport
 
         $greenColor = '9FF298';
         $spreadsheet->getActiveSheet()->mergeCells('A1:H1');
-        $spreadsheet->getActiveSheet()->setCellValue('A1', $pupil->name);
+        $spreadsheet->getActiveSheet()->setCellValue('A1', $student->name);
         $spreadsheet->getActiveSheet()->getStyle("A1")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $spreadsheet->getActiveSheet()->getStyle("A1")->getFont()->setBold(true)->setSize(16);
 
@@ -56,7 +56,7 @@ class PupilReport
         $row = 6;
         /** @var Payment[] $payments */
         $payments = Payment::find()
-            ->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id])
+            ->andWhere(['user_id' => $student->id, 'course_id' => $course->id])
             ->andWhere(['>', 'amount', 0])
             ->orderBy(['created_at' => SORT_ASC])
             ->with('payments')
@@ -65,7 +65,7 @@ class PupilReport
         $num = 1;
         foreach ($payments as $payment) {
             $spreadsheet->getActiveSheet()->setCellValueExplicit("A$row", $num, DataType::TYPE_NUMERIC);
-            $spreadsheet->getActiveSheet()->setCellValue("B$row", $payment->group->name);
+            $spreadsheet->getActiveSheet()->setCellValue("B$row", $payment->courseConfig->name);
             if ($payment->contract) {
                 $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $payment->contract->number, DataType::TYPE_STRING);
             }

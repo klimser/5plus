@@ -18,7 +18,8 @@ use yii\helpers\ArrayHelper;
  * @property int $id
  * @property int $type_id Тип группы
  * @property int $subject_id
- * @property int               $active
+ * @property int $active
+ * @property int $kids
  * @property string            $date_start
  * @property string            $date_end
  * @property DateTimeImmutable $startDateObject
@@ -58,8 +59,8 @@ class Course extends ActiveRecord
     public function scenarios()
     {
         return [
-            self::SCENARIO_EMPTY => ['type_id', 'subject_id', 'date_start', 'date_end'],
-            self::SCENARIO_DEFAULT => ['type_id', 'subject_id', 'date_end'],
+            self::SCENARIO_EMPTY => ['type_id', 'kids', 'subject_id', 'date_start', 'date_end'],
+            self::SCENARIO_DEFAULT => ['type_id', 'kids', 'subject_id', 'date_end'],
         ];
     }
 
@@ -69,8 +70,8 @@ class Course extends ActiveRecord
     public function rules()
     {
         return [
-            [['type_id', 'subject_id', 'date_start'], 'required'],
-            [['type_id', 'subject_id', 'active'], 'integer'],
+            [['type_id', 'subject_id', 'kids', 'date_start'], 'required'],
+            [['type_id', 'subject_id', 'active', 'kids'], 'integer'],
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
             [['date_start'], 'safe', 'on' => self::SCENARIO_EMPTY],
             [['date_end'], 'safe'],
@@ -88,6 +89,7 @@ class Course extends ActiveRecord
             'type_id' => 'Тип группы',
             'subject_id' => 'Предмет',
             'active' => 'Занимается',
+            'kids' => 'группа KIDS',
             'date_start' => 'Дата начала занятий',
             'date_end' => 'Дата завершения занятий',
             'date_charge_till' => 'Стоимость списана до этой даты',
@@ -128,11 +130,14 @@ class Course extends ActiveRecord
         if (null === $this->eventIdByDateMap) {
             $this->eventIdByDateMap = [];
             if ($this->id) {
-                $eventData = Event::find()->select('id', 'event_date')
+                $eventData = Event::find()->select(['id', 'event_date'])
                     ->andWhere(['course_id' => $this->id])
                     ->asArray()
                     ->all();
-                ArrayHelper::map($eventData, static fn(array $row) => (new DateTimeImmutable($row['event_date']))->format('Y-m-d'), 'id');
+                $this->eventIdByDateMap = ArrayHelper::map(
+                    $eventData,
+                    static fn(array $row) => (new DateTimeImmutable($row['event_date']))->format('Y-m-d'),
+                    static fn(array $row) => (int) $row['id']);
             }
         }
 
@@ -160,6 +165,11 @@ class Course extends ActiveRecord
         }
 
         return $this->courseConfig;
+    }
+
+    public function getCourseConfigByDate(DateTimeInterface $date): CourseConfig
+    {
+        return CourseComponent::getCourseConfig($this, $date);
     }
 
     public function getCourseConfigs(): ActiveQuery
@@ -254,11 +264,6 @@ class Course extends ActiveRecord
     public function getEndDateObject(): ?DateTimeImmutable
     {
         return empty($this->date_end) ? null : new DateTimeImmutable($this->date_end . ' midnight');
-    }
-
-    public function isKids(): bool
-    {
-        return preg_match('#kids#i', $this->getCourseConfig()->name) || preg_match('#кидс#iu', $this->getCourseConfig()->name);
     }
 
     public function hasWelcomeLessons(DateTimeInterface $date): bool

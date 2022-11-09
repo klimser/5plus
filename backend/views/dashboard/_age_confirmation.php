@@ -11,9 +11,9 @@
                 <div id="age-messages-place"></div>
                 <input type="hidden" id="age-user-id" required>
                 <div class="form-group row">
-                    <label class="col-12 col-sm-3 control-label" for="age-pupil-name">Студент</label>
+                    <label class="col-12 col-sm-3 control-label" for="age-student-name">Студент</label>
                     <div class="col-12 col-sm-9">
-                        <input readonly class="form-control-plaintext" id="age-pupil-name">
+                        <input readonly class="form-control-plaintext" id="age-student-name">
                     </div>
                 </div>
                 <div class="form-group row">

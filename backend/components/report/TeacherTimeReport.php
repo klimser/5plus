@@ -4,6 +4,8 @@ namespace backend\components\report;
 
 use backend\models\TeacherSubjectLink;
 use common\components\helpers\MoneyHelper;
+use DateTimeImmutable;
+use DateTimeInterface;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\SimpleType\TblWidth;
@@ -14,7 +16,7 @@ use Yii;
 
 class TeacherTimeReport
 {
-    public static function create(TeacherSubjectLink $teacherSubject, \DateTimeImmutable $reportDate, int $totalHours, ?PhpWord $document = null): PhpWord
+    public static function create(TeacherSubjectLink $teacherSubject, DateTimeInterface $reportDate, int $totalHours, ?PhpWord $document = null): PhpWord
     {
         if (null === $document) {
             $document = new PhpWord();
@@ -43,11 +45,11 @@ class TeacherTimeReport
         $titleRun = $section->addTextRun($pStyleCenter);
         $titleRun->addText('АКТ оказания услуг', $fontBold);
         $titleRun->addTextBreak();
-        $titleRun->addText("по договору № {$teacherSubject->teacher->contractNumber} от " . Yii::$app->formatter->asDate($teacherSubject->teacher->contractDate ?? new \DateTime(), 'long'), $fontBold);
+        $titleRun->addText("по договору № {$teacherSubject->teacher->contractNumber} от " . Yii::$app->formatter->asDate($teacherSubject->teacher->contractDate ?? new DateTimeImmutable(), 'long'), $fontBold);
 
         $section->addTextBreak();
         
-        $date = new \DateTimeImmutable($reportDate->format('Y-m-d H:i:s'));
+        $date = DateTimeImmutable::createFromInterface($reportDate);
         $date = $date->modify('last day of this month');
 
         $table = $section->addTable((new Table())->setWidth(100 * 50)->setUnit(TblWidth::PERCENT)->setLayout(Table::LAYOUT_AUTO));
@@ -81,7 +83,7 @@ class TeacherTimeReport
         $textrun->addText('» по договору №');
         $textrun->addText($teacherSubject->teacher->contractNumber, $fontBold);
         $textrun->addText(' от ');
-        $textrun->addText(Yii::$app->formatter->asDate($teacherSubject->teacher->contractDate ?? new \DateTime(), 'long'));
+        $textrun->addText(Yii::$app->formatter->asDate($teacherSubject->teacher->contractDate ?? new DateTimeImmutable(), 'long'));
         
         $section->addText(
             'Услуги оказаны Исполнителем в полном объеме и в срок. Заказчик претензий по объему, качеству и срокам оказания услуг претензий не имеет. Исполнитель претензий к Заказчику не имеет.',

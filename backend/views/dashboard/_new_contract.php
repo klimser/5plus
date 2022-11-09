@@ -11,17 +11,17 @@
                 <div class="modal-body">
                     <div id="new-contract-messages-place"></div>
                     <input type="hidden" name="new-contract[userId]" id="new-contract-user-id">
-                    <input type="hidden" name="new-contract[groupId]" id="new-contract-group-id">
+                    <input type="hidden" name="new-contract[courseId]" id="new-contract-course-id">
                     <div class="form-group row">
                         <label class="col-12 col-sm-3 control-label">Студент</label>
                         <div class="col-12 col-sm-9">
-                            <input readonly class="form-control-plaintext" id="new-contract-pupil-name">
+                            <input readonly class="form-control-plaintext" id="new-contract-student-name">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-12 col-sm-3 control-label">Группа</label>
                         <div class="col-12 col-sm-9">
-                            <input readonly class="form-control-plaintext" id="new-contract-group-name">
+                            <input readonly class="form-control-plaintext" id="new-contract-course-name">
                         </div>
                     </div>
                     <div class="form-group row">

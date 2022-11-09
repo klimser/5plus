@@ -15,6 +15,7 @@ use common\models\Payment;
 use common\models\User;
 use DateTime;
 use DateTimeImmutable;
+use DateTimeInterface;
 use Yii;
 use yii\base\Component;
 use yii\db\ActiveQuery;
@@ -105,14 +106,15 @@ class MoneyComponent extends Component
     }
 
     /**
-     * @param Contract $contract
-     * @param DateTime|null $pupilStartDate
-     * @param int $payType
-     * @param null|string $paymentComment
+     * @param Contract      $contract
+     * @param DateTime|null $studentStartDate
+     * @param int           $payType
+     * @param null|string   $paymentComment
+     *
      * @return int
      * @throws \Exception
      */
-    public static function payContract(Contract $contract, ?DateTime $pupilStartDate, int $payType, ?string $paymentComment = null): int
+    public static function payContract(Contract $contract, ?DateTimeInterface $studentStartDate, int $payType, ?string $paymentComment = null): int
     {
         if ($contract->status == Contract::STATUS_PAID) throw new \Exception('Договор уже оплачен!');
 
@@ -136,8 +138,8 @@ class MoneyComponent extends Component
         $courseStudent = CourseStudent::find()
             ->andWhere(['user_id' => $contract->user_id, 'course_id' => $contract->course_id, 'active' => CourseStudent::STATUS_ACTIVE])
             ->one();
-        if (!$courseStudent && $pupilStartDate) {
-            CourseComponent::addStudentToCourse($contract->user, $contract->course, $pupilStartDate);
+        if (!$courseStudent && $studentStartDate) {
+            CourseComponent::addStudentToCourse($contract->user, $contract->course, $studentStartDate);
         }
 
         $paymentId = self::registerIncome($payment);
@@ -294,7 +296,7 @@ class MoneyComponent extends Component
     {
         if (!$payment->save()) throw new \Exception('Error adding payment to DB: ' . $payment->getErrorsAsString());
         self::addStudentMoney($payment->user, $payment->amount, $payment->course);
-        $paymentComment = 'Списание за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->course->courseConfig->name . '"';
+        $paymentComment = 'Списание за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->courseConfig->name . '"';
         if ($logEvent && !ComponentContainer::getActionLogger()->log(
             $actionType,
             $payment->user,

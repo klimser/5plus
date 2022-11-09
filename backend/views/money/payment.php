@@ -16,7 +16,7 @@ use yii\jui\DatePicker;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $searchModel \common\models\PaymentSearch */
 /* @var $adminMap User[] */
-/* @var $groupMap User[] */
+/* @var $courseMap User[] */
 
 $this->title = 'Платежи';
 $this->params['breadcrumbs'][] = $this->title;
@@ -76,12 +76,12 @@ $this->registerJs('Main.initAutocompleteUser("#search-student");');
                 'attribute' => 'course_id',
                 'label' => 'Группа',
                 'content' => function (Payment $model, $key, $index, $column) {
-                    return Html::a($model->course->courseConfig->name, Url::to(['course/update', 'id' => $model->course_id]));
+                    return Html::a($model->courseConfig->name, Url::to(['course/update', 'id' => $model->course_id]));
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'course_id',
-                    $groupMap,
+                    $courseMap,
                     ['class' => 'form-control']
                 )
             ],

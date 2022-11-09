@@ -59,12 +59,12 @@ class PrecheckoutqueryCommand extends SystemCommand
 
         try {
             $payloadData = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
-            if (!empty($payloadData['user_id']) && !empty($payloadData['group_id'])) {
+            if (!empty($payloadData['user_id']) && !empty($payloadData['course_id'])) {
                 $user = User::findOne($payloadData['user_id']);
-                $group = Course::findOne($payloadData['group_id']);
-                if ($user && $group) {
+                $course = Course::findOne($payloadData['course_id']);
+                if ($user && $course) {
                     if (!empty(CourseStudent::find()
-                        ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])
+                        ->andWhere(['user_id' => $user->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])
                         ->one())) {
                         return $this->getPreCheckoutQuery()->answer(true);
                     }

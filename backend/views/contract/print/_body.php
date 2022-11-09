@@ -57,8 +57,8 @@
         <tr>
             <td class="number">2.4.</td>
             <td>
-                Продолжительность одного занятия: <span class="placeholder"><?= $contract->course->lesson_duration; ?></span> минут.
-                Периодичность проведения занятий: <span class="placeholder"><?= $contract->groupParam->classesPerWeek; ?></span> раз в неделю.
+                Продолжительность одного занятия: <span class="placeholder"><?= $contract->courseConfig->lesson_duration; ?></span> минут.
+                Периодичность проведения занятий: <span class="placeholder"><?= $contract->courseConfig->classesPerWeek; ?></span> раз в неделю.
             </td>
         </tr>
         <tr>

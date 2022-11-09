@@ -3,15 +3,13 @@
 /* @var $this \yii\web\View */
 /* @var $consultationData array */
 /* @var $welcomeLessonData array */
-/* @var $groupData array */
-/* @var $pupilLimitDate DateTime|null */
-/* @var $incomeAllowed bool */
-/* @var $contractAllowed bool */
+/* @var $courseData array */
+/* @var $studentLimitDate DateTime|null */
 
-$initialJs = 'User.contractAllowed = ' . ($contractAllowed ? 'true' : 'false') . ";\n";
-$initialJs .= 'User.incomeAllowed = ' . ($incomeAllowed ? 'true' : 'false') . ";\n";
-if ($pupilLimitDate !== null) {
-    $initialJs .= "User.pupilLimitDate = '{$pupilLimitDate->format('Y-m-d')}';\n";
+$initialJs = '';
+
+if ($studentLimitDate !== null) {
+    $initialJs .= "User.studentLimitDate = '{$studentLimitDate->format('Y-m-d')}';\n";
 }
 // Consultations
 foreach ($consultationData as $consultationSubjectId) {
@@ -24,8 +22,8 @@ foreach ($welcomeLessonData as $welcomeLesson) {
 }
 
 // Groups
-foreach ($groupData as $group) {
-    $initialJs .= "User.groupList.push(" . json_encode($group) . ");\n";
+foreach ($courseData as $course) {
+    $initialJs .= "User.courseList.push(" . json_encode($course) . ");\n";
 }
 
 $initialJs .= "User.init();\n";
@@ -34,7 +32,7 @@ $this->registerJs($initialJs);
 <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item"><a class="nav-link active" href="#consultation-tab" aria-controls="consultation-tab" role="tab" data-toggle="tab">консультация</a></li>
     <li class="nav-item"><a class="nav-link" href="#welcome_lesson-tab" aria-controls="welcome_lesson-tab" role="tab" data-toggle="tab">пробный урок</a></li>
-    <li class="nav-item"><a class="nav-link" href="#group-tab" aria-controls="group-tab" role="tab" data-toggle="tab">в группу</a></li>
+    <li class="nav-item"><a class="nav-link" href="#course-tab" aria-controls="course-tab" role="tab" data-toggle="tab">в группу</a></li>
 </ul>
 
 <div class="tab-content">
@@ -46,8 +44,8 @@ $this->registerJs($initialJs);
         <div class="welcome_lessons"></div>
         <button type="button" class="btn btn-success" onclick="User.addWelcomeLesson();"><span class="fas fa-plus"></span> добавить</button>
     </div>
-    <div role="tabpanel" class="tab-pane fade" id="group-tab">
-        <div class="groups"></div>
+    <div role="tabpanel" class="tab-pane fade" id="course-tab">
+        <div class="courses"></div>
         <button type="button" class="btn btn-success" onclick="User.addCourse();"><span class="fas fa-plus"></span> добавить</button>
     </div>
 </div>

@@ -12,7 +12,7 @@ use yii\helpers\Url;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $searchModel \common\models\DebtSearch */
 /* @var $debtorMap \common\models\User[] */
-/* @var $groupMap \common\models\Course[] */
+/* @var $courseMap \common\models\Course[] */
 
 $this->title = 'Задолженности';
 $this->params['breadcrumbs'][] = $this->title;
@@ -40,14 +40,14 @@ $this->params['breadcrumbs'][] = $this->title;
                 )
             ],
             [
-                'attribute' => 'group_id',
-                'content' => function ($model, $key, $index, $column) {
-                    return $model->group->name;
+                'attribute' => 'course_id',
+                'content' => function (Debt $model, $key, $index, $column) {
+                    return $model->course->courseConfig->name;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
-                    'group_id',
-                    $groupMap,
+                    'course_id',
+                    $courseMap,
                     ['class' => 'form-control']
                 )
             ],

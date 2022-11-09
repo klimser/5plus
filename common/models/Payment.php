@@ -27,6 +27,7 @@ use yii\db\ActiveQuery;
  * @property Contract      $contract
  * @property User          $user
  * @property Course        $course
+ * @property CourseConfig  $courseConfig
  * @property User          $admin
  * @property Payment       $usedPayment
  * @property EventMember   $eventMember
@@ -123,6 +124,12 @@ class Payment extends ActiveRecord
     public function getPayments(): ActiveQuery
     {
         return $this->hasMany(Payment::class, ['used_payment_id' => 'id'])->inverseOf('usedPayment');
+    }
+
+    public function getCourseConfig(): ActiveQuery
+    {
+        return $this->hasOne(CourseConfig::class, ['course_id' => 'course_id'])
+            ->andWhere(['and', 'date_from <= :payment_date', ['or', 'date_to IS NULL', 'date_to > :payment_date']], ['payment_date' => $this->created_at]);
     }
 
     public function getPaymentsSum(): int

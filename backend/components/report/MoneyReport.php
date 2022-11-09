@@ -4,7 +4,7 @@ namespace backend\components\report;
 
 use common\models\Course;
 use common\models\Payment;
-use DateTime;
+use DateTimeImmutable;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -12,10 +12,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class MoneyReport
 {
-    public static function createGroup(Course $group, DateTime $startDate, DateTime $endDate): Spreadsheet
+    public static function createForOneCourse(Course $course, DateTimeImmutable $startDate, DateTimeImmutable $endDate): Spreadsheet
     {
-        $startDateString = $startDate->format('Y-m-d');
-        $endDateString = $endDate->format('Y-m-d');
+        $startDateString = $startDate->format('Y-m-d H:i:s');
+        $endDateString = $endDate->format('Y-m-d H:i:s');
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
@@ -25,7 +25,7 @@ class MoneyReport
 
         $total = ['in_normal' => 0, 'in_discount' => 0, 'out_normal' => 0, 'out_discount' => 0];
         $amounts = Payment::find()
-            ->andWhere(['group_id' => $group->id])
+            ->andWhere(['course_id' => $course->id])
             ->andWhere(['>', 'amount', 0])
             ->andWhere(['>=', 'created_at', $startDateString])
             ->andWhere(['<', 'created_at', $endDateString])
@@ -34,10 +34,10 @@ class MoneyReport
             ->asArray()
             ->all();
         foreach ($amounts as $record) {
-            $total[$record['discount'] == Payment::STATUS_ACTIVE ? 'in_discount' : 'in_normal'] = $record['amount'];
+            $total[Payment::STATUS_ACTIVE == $record['discount'] ? 'in_discount' : 'in_normal'] = $record['amount'];
         }
         $amounts = Payment::find()
-            ->andWhere(['group_id' => $group->id])
+            ->andWhere(['course_id' => $course->id])
             ->andWhere(['<', 'amount', 0])
             ->andWhere(['>=', 'created_at', $startDateString])
             ->andWhere(['<', 'created_at', $endDateString])
@@ -47,7 +47,7 @@ class MoneyReport
             ->asArray()
             ->all();
         foreach ($amounts as $record) {
-            $total[$record['discount'] == Payment::STATUS_ACTIVE ? 'out_discount' : 'out_normal'] = abs($record['amount']);
+            $total[Payment::STATUS_ACTIVE == $record['discount'] ? 'out_discount' : 'out_normal'] = abs($record['amount']);
         }
 
         $spreadsheet->getActiveSheet()
@@ -58,7 +58,7 @@ class MoneyReport
             ->setCellValue('A5', 'Списано за занятия со скидкой')
             ->setCellValue('A6', 'Списано за занятия без скидки')
             ->setCellValue('A7', 'Списано за занятия всего')
-            ->setCellValue('B1', $group->name)
+            ->setCellValue('B1', $course->getCourseConfigByDate($endDate->modify('-1 day'))->name)
             ->setCellValueExplicit('B2', $total['in_discount'], DataType::TYPE_NUMERIC)
             ->setCellValueExplicit('B3', $total['in_normal'], DataType::TYPE_NUMERIC)
             ->setCellValueExplicit('B4', $total['in_discount'] + $total['in_normal'], DataType::TYPE_NUMERIC)
@@ -73,10 +73,10 @@ class MoneyReport
         return $spreadsheet;
     }
 
-    public static function createAll(DateTime $startDate, DateTime $endDate): Spreadsheet
+    public static function createForAllCourses(DateTimeImmutable $startDate, DateTimeImmutable $endDate): Spreadsheet
     {
-        $startDateString = $startDate->format('Y-m-d');
-        $endDateString = $endDate->format('Y-m-d');
+        $startDateString = $startDate->format('Y-m-d H:i:s');
+        $endDateString = $endDate->format('Y-m-d H:i:s');
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
@@ -113,84 +113,81 @@ class MoneyReport
         $spreadsheet->getActiveSheet()->getColumnDimension('F')->setWidth(15);
         $spreadsheet->getActiveSheet()->getColumnDimension('G')->setWidth(15);
 
-        $groupIds = Payment::find()
+        $courseIds = Payment::find()
             ->andWhere(['>=', 'created_at', $startDateString])
             ->andWhere(['<', 'created_at', $endDateString])
             ->andWhere(['>', 'amount', 0])
-            ->select('group_id')
-            ->distinct(true)
+            ->select('course_id')
+            ->distinct()
             ->column();
-        /** @var Course[] $groups */
-        $groups = Course::find()
-            ->andWhere(['id' => $groupIds])
-            ->orderBy('name')
-            ->all();
-        $groupMap = [];
-        foreach ($groups as $group) {
-            $groupMap[$group['id']] = $group->toArray();
-            $groupMap[$group['id']]['kids'] = $group->isKids();
-            $groupMap[$group['id']]['in_normal'] = $groupMap[$group['id']]['in_discount']
-                = $groupMap[$group['id']]['out_normal'] = $groupMap[$group['id']]['out_discount'] = 0;
+        /** @var Course[] $courses */
+        $courses = Course::findAll(['id' => $courseIds]);
+        $courseMap = [];
+        foreach ($courses as $course) {
+            $courseMap[$course->id] = [
+                'name' => $course->getCourseConfigByDate($endDate->modify('-1 day'))->name,
+                'kids' => $course->kids,
+                'in_normal' => 0,
+                'in_discount' => 0,
+                'out_normal' => 0,
+                'out_discount' => 0,
+            ];
         }
 
         $amounts = Payment::find()
-            ->andWhere(['group_id' => $groupIds])
+            ->andWhere(['course_id' => $courseIds])
             ->andWhere(['>', 'amount', 0])
             ->andWhere(['>=', 'created_at', $startDateString])
             ->andWhere(['<', 'created_at', $endDateString])
-            ->select(['group_id', 'discount', 'SUM(amount) as amount'])
-            ->groupBy(['group_id', 'discount'])
+            ->select(['course_id', 'discount', 'SUM(amount) as amount'])
+            ->groupBy(['course_id', 'discount'])
             ->asArray()
             ->all();
         foreach ($amounts as $record) {
-            $groupMap[$record['group_id']][$record['discount'] == Payment::STATUS_ACTIVE ? 'in_discount' : 'in_normal'] = $record['amount'];
+            $courseMap[$record['course_id']][Payment::STATUS_ACTIVE == $record['discount'] ? 'in_discount' : 'in_normal'] = $record['amount'];
         }
         $amounts = Payment::find()
-            ->andWhere(['group_id' => $groupIds])
+            ->andWhere(['course_id' => $courseIds])
             ->andWhere(['<', 'amount', 0])
             ->andWhere(['>=', 'created_at', $startDateString])
             ->andWhere(['<', 'created_at', $endDateString])
             ->andWhere('used_payment_id IS NOT NULL')
-            ->select(['group_id', 'discount', 'SUM(amount) as amount'])
-            ->groupBy(['group_id', 'discount'])
+            ->select(['course_id', 'discount', 'SUM(amount) as amount'])
+            ->groupBy(['course_id', 'discount'])
             ->asArray()
             ->all();
         foreach ($amounts as $record) {
-            $groupMap[$record['group_id']][$record['discount'] == Payment::STATUS_ACTIVE ? 'out_discount' : 'out_normal'] = abs($record['amount']);
+            $courseMap[$record['course_id']][Payment::STATUS_ACTIVE == $record['discount'] ? 'out_discount' : 'out_normal'] = abs($record['amount']);
         }
 
-        $renderTable = function(bool $kids, int $row) use ($spreadsheet, $groupMap) {
-            $total = ['in_normal' => 0, 'in_discount' => 0, 'out_normal' => 0, 'out_discount' => 0];
-            foreach ($groupMap as $groupData) {
-                if ($groupData['kids'] != $kids) continue;
-                $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupData['name']);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $groupData['in_discount'], DataType::TYPE_NUMERIC);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $groupData['in_normal'], DataType::TYPE_NUMERIC);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $groupData['in_discount'] + $groupData['in_normal'], DataType::TYPE_NUMERIC);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $groupData['out_discount'], DataType::TYPE_NUMERIC);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $groupData['out_normal'], DataType::TYPE_NUMERIC);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("G$row", $groupData['out_discount'] + $groupData['out_normal'], DataType::TYPE_NUMERIC);
-                foreach ($total as $key => $value) {
-                    $total[$key] += $groupData[$key];
-                }
-                $row++;
+        $renderTable = function(bool $kids, int $row) use ($spreadsheet, $courseMap) {
+            $startRow = $row;
+            foreach ($courseMap as $courseData) {
+                if ($courseData['kids'] != $kids) continue;
+                $spreadsheet->getActiveSheet()->setCellValue("A$row", $courseData['name']);
+                $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $courseData['in_discount'], DataType::TYPE_NUMERIC);
+                $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $courseData['in_normal'], DataType::TYPE_NUMERIC);
+                $spreadsheet->getActiveSheet()->setCellValue("D$row", "=B$row+C$row");
+                $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $courseData['out_discount'], DataType::TYPE_NUMERIC);
+                $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $courseData['out_normal'], DataType::TYPE_NUMERIC);
+                $spreadsheet->getActiveSheet()->setCellValue("G$row", "=E$row+F$row");
+                ++$row;
             }
 
             $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Итого');
-            $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $total['in_discount'], DataType::TYPE_NUMERIC);
-            $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $total['in_normal'], DataType::TYPE_NUMERIC);
-            $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $total['in_discount'] + $total['in_normal'], DataType::TYPE_NUMERIC);
-            $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $total['out_discount'], DataType::TYPE_NUMERIC);
-            $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $total['out_normal'], DataType::TYPE_NUMERIC);
-            $spreadsheet->getActiveSheet()->setCellValueExplicit("G$row", $total['out_discount'] + $total['out_normal'], DataType::TYPE_NUMERIC);
+            $spreadsheet->getActiveSheet()->setCellValue("B$row", "=SUM(B$startRow:B" . ($row - 1) . ')');
+            $spreadsheet->getActiveSheet()->setCellValue("C$row", "=SUM(C$startRow:C" . ($row - 1) . ')');
+            $spreadsheet->getActiveSheet()->setCellValue("D$row", "=SUM(D$startRow:D" . ($row - 1) . ')');
+            $spreadsheet->getActiveSheet()->setCellValue("E$row", "=SUM(E$startRow:E" . ($row - 1) . ')');
+            $spreadsheet->getActiveSheet()->setCellValue("F$row", "=SUM(F$startRow:F" . ($row - 1) . ')');
+            $spreadsheet->getActiveSheet()->setCellValue("G$row", "=SUM(G$startRow:G" . ($row - 1) . ')');
             $spreadsheet->getActiveSheet()->getStyle("A$row:G$row")->getFont()->setBold(true);
-            $spreadsheet->getActiveSheet()->getStyle("B3:G$row")->getNumberFormat()->setFormatCode('#,##0');
+            $spreadsheet->getActiveSheet()->getStyle("B$startRow:G$row")->getNumberFormat()->setFormatCode('#,##0');
 
             return $row;
         };
         $nextRow = $renderTable(false, 3);
-        $nextRow += 3;
-        $renderTable(true, $nextRow);
+        $renderTable(true, $nextRow + 3);
 
         return $spreadsheet;
     }

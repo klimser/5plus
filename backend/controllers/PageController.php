@@ -25,43 +25,6 @@ class PageController extends AdminController
      */
     public function actionIndex()
     {
-        /*$auth = Yii::$app->authManager;
-
-        $admin = $auth->getRole('admin');
-
-        $manageMoney = $auth->createPermission('moneyManagement');
-        $manageMoney->description = 'Manage money';
-        $auth->add($manageMoney);
-
-        $auth->addChild($admin, $manageMoney);
-
-
-        /*$rule = new \backend\components\ViewScheduleRule();
-        $auth->add($rule);
-
-        $pupil = $auth->getRole('pupil');
-
-        $schedule = $auth->createPermission('viewMySchedule');
-        $schedule->description = 'View my schedule';
-        $schedule->ruleName = $rule->name;
-
-        $auth->add($schedule);
-
-        $auth->addChild($pupil, $schedule);
-
-        $monitorSchedule = $auth->createPermission('viewSchedule');
-        $monitorSchedule->description = 'View schedule';
-        $auth->add($monitorSchedule);
-
-        $admin = $auth->getRole('admin');
-
-        $auth->addChild($admin, $monitorSchedule);
-
-        $auth->addChild($schedule, $monitorSchedule);
-
-        die('END');*/
-
-
         $dataProvider = new ActiveDataProvider([
             'query' => Page::find()->joinWith('webpage')->orWhere(['not', [Webpage::tableName() . '.main' => 1]])->orWhere([Webpage::tableName() . '.main' => null]),
         ]);

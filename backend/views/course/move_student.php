@@ -23,9 +23,9 @@ $this->params['breadcrumbs'][] = $this->title;
 <h1><?= Html::encode($this->title) ?></h1>
 
 <div id="messages_place"></div>
-<form id="move-pupil-form" onsubmit="CourseMove.moveStudent(); return false;">
+<form id="move-student-form" onsubmit="CourseMove.moveStudent(); return false;">
     <div class="form-group">
-        <label for="pupil">Студент</label>
+        <label for="student-to-move">Студент</label>
         <?php if ($courseStudent): ?>
             <input type="hidden" id="course-move-id" value="<?= $courseStudent->id; ?>">
             <input readonly class="form-control-plaintext" value="<?= $courseStudent->user->name; ?>">

@@ -21,14 +21,14 @@ if ($contract):
 
 if ($giftCard):
     $noResults = false; ?>
-    <?= $this->render('_result_gift_card', ['giftCard' => $giftCard, 'existingPupil' => $existingStudent]); ?>
+    <?= $this->render('_result_gift_card', ['giftCard' => $giftCard, 'existingStudent' => $existingStudent]); ?>
 <?php endif;
 
-$pupilIdSet = [];
+$studentIdSet = [];
 if ($students):
     $noResults = false;
     foreach ($students as $student):
-        $pupilIdSet[$student->id] = true;
+        $studentIdSet[$student->id] = true;
         ?>
         <?= $this->render('_result_student', ['student' => $student]); ?>
     <?php endforeach;
@@ -49,8 +49,8 @@ if ($parents):
         </div>
         <div class="card-body collapse children-list accordion px-0 py-3">
             <?php foreach ($parent->notLockedChildren as $child):
-                if (!isset($pupilIdSet[$child->id])): ?>
-                    <?= $this->render('_result_pupil', ['pupil' => $child]); ?>
+                if (!isset($studentIdSet[$child->id])): ?>
+                    <?= $this->render('_result_student', ['student' => $child]); ?>
                 <?php endif;
             endforeach; ?>
         </div>
@@ -63,7 +63,7 @@ if ($noResults): ?>
     Ничего не найдено
     <br><br>
     <?php if ($showAddStudent): ?>
-        <a href="#" target="_blank" class="btn btn-info" onclick="Dashboard.showCreatePupilForm(); return false;">Добавить студента</a>
+        <a href="#" target="_blank" class="btn btn-info" onclick="Dashboard.showCreateStudentForm(); return false;">Добавить студента</a>
     <?php else: ?>
         <b>Попробуйте поискать по фамилии или имени</b>
     <?php endif; ?>

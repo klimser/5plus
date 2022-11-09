@@ -325,25 +325,25 @@ class PaymentController extends Controller
             return self::getJsonErrorResult('Wrong payment method');
         }
 
-        $contract = MoneyComponent::addPupilContract(
+        $contract = MoneyComponent::addStudentContract(
             Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
-            $pupil,
+            $student,
             $amount,
-            $group
+            $course
         );
 
         $returnUrl = Url::to(['payment/complete', 'payment' => $contract->id], true);
         $details = [
             'description' => sprintf(
                 'Оплата занятий в группе %s: %d занятий',
-                $group->legal_name,
-                intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price)))
+                $course->courseConfig->legal_name,
+                intval(round($contract->amount / ($contract->discount ? $course->courseConfig->lesson_price_discount : $course->courseConfig->lesson_price)))
             ),
             'ip' => Yii::$app->request->userIP,
             'paymentDetails' => [
-                'студент' => $pupil->name,
-                'группа' => $group->legal_name,
-                'занятий' => intval(round($contract->amount / ($contract->discount ? $group->lesson_price_discount : $group->lesson_price)))
+                'студент' => $course->courseConfig->name,
+                'группа' => $course->courseConfig->legal_name,
+                'занятий' => intval(round($contract->amount / ($contract->discount ? $course->courseConfig->lesson_price_discount : $course->courseConfig->lesson_price)))
             ]
         ];
 
@@ -397,8 +397,8 @@ class PaymentController extends Controller
         $giftCard->name = $giftCardType->name;
         $giftCard->amount = $giftCardType->amount;
         $giftCard->status = GiftCard::STATUS_NEW;
-        $giftCard->customer_name = $giftCardData['pupil_name'];
-        $giftCard->phoneFormatted = $giftCardData['pupil_phone'];
+        $giftCard->customer_name = $giftCardData['student_name'];
+        $giftCard->phoneFormatted = $giftCardData['student_phone'];
         $giftCard->customer_email = $giftCardData['email'];
         $additionalData = ['payment_method' => $paymentMethodId];
         if ($giftCardData['parents_name'] && $giftCardData['parents_phone']) {
@@ -464,9 +464,9 @@ class PaymentController extends Controller
             if ($contract) {
                 $params['success'] = (Contract::STATUS_PAID === $contract->status);
                 $params['amount'] = $contract->amount;
-                $params['group'] = $contract->group->legal_name;
+                $params['course'] = $contract->courseConfig->legal_name;
                 $params['discount'] = (Contract::STATUS_ACTIVE === $contract->discount);
-                $params['lessons'] = intval(round($contract->amount / ($contract->discount ? $contract->group->lesson_price_discount : $contract->group->lesson_price)));
+                $params['lessons'] = intval(round($contract->amount / ($contract->discount ? $contract->courseConfig->lesson_price_discount : $contract->courseConfig->lesson_price)));
             }
         }
         return $this->render('complete', $params);

@@ -117,9 +117,9 @@ let StudyEvent = {
                         content += '<li class="list-group-item p-2">' +
                             '<div id="messages_place_event_member_' + member.id + '"></div>' +
                             '<div id="event_member_' + member.id + '" class="event_member row no-gutters align-items-center ' + titleCssClass + '">' +
-                            '<div class="col-8">' + member.groupPupil.user.name +
-                            (null !== member.groupPupil.debtMessage
-                                ? ' <span class="fas fa-info-circle text-danger" data-toggle="tooltip" data-placement="top" data-html="true" title="' + member.groupPupil.debtMessage + '"></span>'
+                            '<div class="col-8">' + member.courseStudent.user.name +
+                            (null !== member.courseStudent.debtMessage
+                                ? ' <span class="fas fa-info-circle text-danger" data-toggle="tooltip" data-placement="top" data-html="true" title="' + member.courseStudent.debtMessage + '"></span>'
                                 : '') +
                             '</div>' +
                             '<div class="col-4 buttons-column text-right">' + StudyEvent.getButtonsColumn(member, false) + '</div>' +
@@ -228,7 +228,9 @@ let StudyEvent = {
                 if (fillMarks) {
                     $("#event_member_" + member.id).closest(".list-group-item").find(".marks-form").html(this.getMarksForm(member));
                 }
-                let content = '<a href="#" class="btn btn-outline-' + this.getMarksClass(member) + ' marks" onclick="StudyEvent.toggleMarks(this); return false;">' + (member.mark ?? 0) + ' / ' + (member.markHomework ?? 0) + '</a>';
+                let content = '<a href="#" class="btn btn-outline-' + this.getMarksClass(member) + ' marks" onclick="StudyEvent.toggleMarks(this); return false;">'
+                    + (null === member.mark ? 0 : (member.mark.lesson ?? 0)) + ' / ' + (null === member.mark ? 0 : (member.mark.homework ?? 0))
+                    + '</a>';
                 if (this.isAttendEditAllowed()) {
                     content += ' <button class="btn btn-outline-dark" onclick="StudyEvent.revertMemberStatus(' + member.id + ');">' +
                             '<span class="fas fa-pencil-alt"></span>' +
@@ -246,10 +248,11 @@ let StudyEvent = {
         return '';
     },
     getMarksClass: function(member) {
-        if ((member.mark ?? 0) > 0 && (member.markHomework ?? 0) > 0) {
+        let mark = member.mark ?? {};
+        if ((mark.lesson ?? 0) > 0 && (mark.homework ?? 0) > 0) {
             return 'success';
         }
-        if ((member.mark ?? 0) > 0 || (member.markHomework ?? 0) > 0) {
+        if ((mark.lesson ?? 0) > 0 || (mark.homework ?? 0) > 0) {
             return 'warning';
         }
         return 'secondary';
@@ -258,24 +261,25 @@ let StudyEvent = {
         if (member.status !== this.memberStatusAttend) {
             return '';
         }
+        let mark = member.mark ?? {};
         return '<div class="row">' +
             '<div class="col"><div class="form-group">' +
             '<label>Оценка на занятии</label>' +
             '<div class="input-group">' +
-            '<input type="number" step="1" min="1" max="5" class="form-control mark ' + ((member.mark ?? 0) > 0 ? 'is-valid' : '') + '" ' +
-            'placeholder="Балл" title="Балл" value="' + ((member.mark ?? 0) > 0 ? member.mark : '') + '" required>' +
+            '<input type="number" step="1" min="1" max="5" class="form-control mark-lesson ' + ((mark.lesson ?? 0) > 0 ? 'is-valid' : '') + '" ' +
+            'placeholder="Балл" title="Балл" value="' + ((mark.lesson ?? 0) > 0 ? mark.lesson : '') + '" required>' +
             '<div class="input-group-append">' +
-            '<button class="btn btn-primary" onclick="StudyEvent.setMark(' + member.id + ', this);">OK</button>' +
+            '<button class="btn btn-primary" onclick="StudyEvent.setMark(' + member.id + ', \'lesson\', this);">OK</button>' +
             '</div>' +
             '</div>' +
             '</div></div>' +
             '<div class="col"><div class="form-group">' +
             '<label>Оценка за домашнее задание</label>' +
             '<div class="input-group">' +
-            '<input type="number" step="1" min="1" max="5" class="form-control markHomework ' + ((member.markHomework ?? 0) > 0 ? 'is-valid' : '') + '" ' +
-            'placeholder="Балл" title="Балл" value="' + ((member.markHomework ?? 0) > 0 ? member.markHomework : '') + '" required>' +
+            '<input type="number" step="1" min="1" max="5" class="form-control mark-homework ' + ((mark.homework ?? 0) > 0 ? 'is-valid' : '') + '" ' +
+            'placeholder="Балл" title="Балл" value="' + ((mark.homework ?? 0) > 0 ? mark.homework : '') + '" required>' +
             '<div class="input-group-append">' +
-            '<button class="btn btn-primary" onclick="StudyEvent.setMarkHomework(' + member.id + ', this);">OK</button>' +
+            '<button class="btn btn-primary" onclick="StudyEvent.setMark(' + member.id + ', \'homework\', this);">OK</button>' +
             '</div>' +
             '</div>' +
             '</div></div>' +
@@ -359,13 +363,10 @@ let StudyEvent = {
     toggleMarks: function(e) {
         $(e).closest(".list-group-item").find(".marks-form").collapse('toggle');
     },
-    setMark: function(memberId, e) {
-        return this.setMarks($(e).closest(".form-group").find(".mark"), 'mark', memberId);
+    setMark: function(memberId, markType, e) {
+        return this.setMarks($(e).closest(".form-group").find(".mark-" + markType), markType, memberId);
     },
-    setMarkHomework: function(memberId, e) {
-        return this.setMarks($(e).closest(".form-group").find(".markHomework"), 'mark_homework', memberId);
-    },
-    setMarks: function(markInput, dataKey, memberId) {
+    setMarks: function(markInput, markType, memberId) {
         $(markInput).removeClass("is-invalid").removeClass("is-valid");
         let mark = parseInt($(markInput).val());
         if (!mark || mark <= 0 || mark > 5) {
@@ -374,24 +375,26 @@ let StudyEvent = {
         }
 
         this.lockMemberButtons(memberId);
+        let data = {mark: {}};
+        data.mark[markType] = mark;
         $.ajax({
             url: '/event/set-mark?memberId=' + memberId,
             type: 'post',
             dataType: 'json',
-            data: {[dataKey]: mark}
+            data: data
         })
             .done(function(data) {
                 if (data.status === 'ok') {
                     let marksButton = $("#event_member_" + data.member.id).find(".marks");
                     let marksForm = $(marksButton).closest('li').find('.marks-form');
-                    $(marksButton).text((data.member.mark ?? 0) + ' / ' + (data.member.markHomework ?? 0));
+                    $(marksButton).text((data.member.mark.lesson ?? 0) + ' / ' + (data.member.mark.homework ?? 0));
                     $(marksButton).removeClass('btn-outline-success').removeClass('btn-outline-warning').removeClass('btn-outline-secondary')
                         .addClass('btn-outline-' + StudyEvent.getMarksClass(data.member));
-                    if ((data.member.mark ?? 0) > 0) {
-                        $(marksForm).find('.mark').addClass("is-valid");
+                    if ((data.member.mark.lesson ?? 0) > 0) {
+                        $(marksForm).find('.mark-lesson').addClass("is-valid");
                     }
-                    if ((data.member.markHomework ?? 0) > 0) {
-                        $(marksForm).find('.markHomework').addClass("is-valid");
+                    if ((data.member.mark.homework ?? 0) > 0) {
+                        $(marksForm).find('.mark-homework').addClass("is-valid");
                     }
                 } else {
                     Main.throwFlashMessage('#messages_place_event_member_' + StudyEvent.processingEventMemberId, 'Ошибка: ' + data.message, 'alert-danger');

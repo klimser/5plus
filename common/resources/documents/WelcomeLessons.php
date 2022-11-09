@@ -81,7 +81,7 @@ class WelcomeLessons
             }
             
             $y = max(5 * count($subjectStrings) + $yTop + 25, $yTop + 40);
-            $teacherStrings = $this->splitText('Преподаватель - ' . $welcomeLesson->course->teacher->officialName, 90);
+            $teacherStrings = $this->splitText('Преподаватель - ' . $welcomeLesson->courseConfig->teacher->officialName, 90);
             foreach ($teacherStrings as $i => $teacherString) {
                 $this->_doc->SetXY($xLeft + 5, 5 * $i + $y);
                 $this->_doc->Write(6, $teacherString);
@@ -89,15 +89,15 @@ class WelcomeLessons
 
             $y += 6 * count($teacherStrings) + 3;
             if ($welcomeLesson->course_id) {
-                $groupStrings = $this->splitText('Группа - ' . $welcomeLesson->course->name, 90);
-                foreach ($groupStrings as $i => $groupString) {
+                $courseStrings = $this->splitText('Группа - ' . $welcomeLesson->courseConfig->name, 90);
+                foreach ($courseStrings as $i => $courseString) {
                     $this->_doc->SetXY($xLeft + 5, $y + 6 * $i);
-                    $this->_doc->Write(6, $groupString);
+                    $this->_doc->Write(6, $courseString);
                 }
-                $y += 6 * count($groupStrings) + 8;
+                $y += 6 * count($courseStrings) + 8;
                 $this->_doc->SetXY($xLeft + 5, $y);
                 $offset = 0;
-                foreach ($welcomeLesson->course->scheduleData as $day => $time) {
+                foreach ($welcomeLesson->courseConfig->schedule as $day => $time) {
                     if ($time) {
                         $this->_doc->SetXY($xLeft + $offset + 8, $y);
                         $this->_doc->Write(6, Calendar::$weekDaysShort[($day + 1) % 7]);
@@ -108,10 +108,10 @@ class WelcomeLessons
                 }
                 $y += 15;
                 $this->_doc->SetXY($xLeft + 5, $y);
-                $this->_doc->Write(6, 'Цена - ' . $welcomeLesson->course->lesson_price_discount . ' за 1 занятие');
+                $this->_doc->Write(6, 'Цена - ' . $welcomeLesson->courseConfig->lesson_price_discount . ' за 1 занятие');
                 $y += 6;
                 $this->_doc->SetXY($xLeft + 5, $y);
-                $this->_doc->Write(6, 'При оплате менее 12 занятий - ' . $welcomeLesson->course->lesson_price . ' за 1 занятие');
+                $this->_doc->Write(6, 'При оплате менее 12 занятий - ' . $welcomeLesson->courseConfig->lesson_price . ' за 1 занятие');
             }
 
             $y += 12;

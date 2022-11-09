@@ -11,7 +11,7 @@ use yii\helpers\Url;
 /* @var $eventMonth \DateTime */
 /* @var $user User */
 /* @var $eventMap \backend\models\EventMember[][] */
-/* @var $groupMap array */
+/* @var $courseMap array */
 
 $this->title = 'Дневник';
 if (Yii::$app->user->identity->role == User::ROLE_ROOT) {
@@ -52,32 +52,32 @@ $intervalMonth = new \DateInterval('P1M');
         </div>
     </div>
 
-    <?php if (!empty($groupMap)): ?>
+    <?php if (!empty($courseMap)): ?>
         <div class="row">
             <div class="col-xs-12">
                 <hr><h4>Занятия в группах:</h4>
-                <?php foreach ($groupMap as $groupId => $groupData):
-                    /** @var Course $groupInfo */
-                    $groupInfo = $groupData['group'];
+                <?php foreach ($courseMap as $courseId => $courseData):
+                    /** @var Course $courseInfo */
+                    $courseInfo = $courseData['course'];
                     /** @var \common\models\Payment[] $payments */
-                    $payments = $groupData['payments'];
+                    $payments = $courseData['payments'];
                     ?>
-                    <div class="well well-sm <?= $groupInfo->active == Course::STATUS_INACTIVE ? ' text-muted' : ''; ?>">
-                        <?php if ($groupInfo->active == Course::STATUS_INACTIVE): ?>
+                    <div class="well well-sm <?= $courseInfo->active == Course::STATUS_INACTIVE ? ' text-muted' : ''; ?>">
+                        <?php if ($courseInfo->active == Course::STATUS_INACTIVE): ?>
                             <div class="row">
                                 <div class="col-xs-12"><small>Занятия в этой группе больше не проводятся.</small></div>
                             </div>
                         <?php endif; ?>
                         <div class="row">
-                            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">Группа: <b><?=$groupInfo->name; ?></b></div>
-                            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">Предмет: <b><?=$groupInfo->subject->name; ?></b></div>
-                            <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">Занятия проводит: <b><?=$groupInfo->teacher->name; ?></b></div>
+                            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">Группа: <b><?=$courseInfo->courseConfig->name; ?></b></div>
+                            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">Предмет: <b><?=$courseInfo->subject->name; ?></b></div>
+                            <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">Занятия проводит: <b><?=$courseInfo->teacher->name; ?></b></div>
                         </div>
-                        <?php if ($groupInfo->scheduleData): ?>
+                        <?php if ($courseInfo->scheduleData): ?>
                             <div class="row">
                                 <div class="col-xs-12">Занятия проводятся:
                                     <i>
-                                        <?php foreach ($groupInfo->scheduleData as $day => $time):
+                                        <?php foreach ($courseInfo->scheduleData as $day => $time):
                                             if ($time): ?>
                                                 <?= Calendar::$weekDays[($day + 1) % 7]; ?> <?= $time; ?>
                                             <?php endif;
@@ -133,7 +133,7 @@ $intervalMonth = new \DateInterval('P1M');
                     foreach ($eventMap[$key] as $eventMember): ?>
                         <div class="row event_<?= $eventMember->event->id; ?> input-group">
                             <div class="input-group-addon"><small><?= $eventMember->event->eventTime; ?></small></div>
-                            <?php $eventName = $eventMember->event->group->name; ?>
+                            <?php $eventName = $eventMember->event->courseConfig->name; ?>
                             <div class="form-control input-sm" title="<?= $eventName; ?>">
                                 <?= mb_strlen($eventName, 'UTF-8') > 12
                                     ? mb_substr($eventName, 0, 12, 'UTF-8') . '...'
@@ -142,28 +142,28 @@ $intervalMonth = new \DateInterval('P1M');
                         </div>
                         <div class="row input-group">
                             <span class="input-group-addon"><span class="icon icon-book"></span></span>
-                            <span class="form-control input-sm" title="<?= $eventMember->event->subject->name; ?>">
-                                <?= mb_strlen($eventMember->event->group->subject->name, 'UTF-8') > 15
-                                    ? mb_substr($eventMember->event->group->subject->name, 0, 15, 'UTF-8') . '...'
-                                    : $eventMember->event->subject->name; ?>
+                            <span class="form-control input-sm" title="<?= $eventMember->event->course->subject->name; ?>">
+                                <?= mb_strlen($eventMember->event->course->subject->name, 'UTF-8') > 15
+                                    ? mb_substr($eventMember->event->course->subject->name, 0, 15, 'UTF-8') . '...'
+                                    : $eventMember->event->course->subject->name; ?>
                             </span>
                         </div>
                         <div class="row input-group">
                             <span class="input-group-addon"><span class="icon icon-user-tie"></span></span>
-                            <span class="form-control input-sm" title="<?= $eventMember->event->teacher->name; ?>">
-                                <?= mb_strlen($eventMember->event->teacher->shortName, 'UTF-8') > 15
-                                    ? mb_substr($eventMember->event->teacher->shortName, 0, 15, 'UTF-8') . '...'
-                                    : $eventMember->event->teacher->shortName; ?>
+                            <span class="form-control input-sm" title="<?= $eventMember->event->courseConfig->teacher->name; ?>">
+                                <?= mb_strlen($eventMember->event->courseConfig->teacher->shortName, 'UTF-8') > 15
+                                    ? mb_substr($eventMember->event->courseConfig->teacher->shortName, 0, 15, 'UTF-8') . '...'
+                                    : $eventMember->event->courseConfig->teacher->shortName; ?>
                             </span>
                         </div>
                         <?php if ($eventMember->status != \backend\models\EventMember::STATUS_UNKNOWN):
-                            if ($eventMember->mark) $marks[] = $eventMember->mark;
+                            if ($eventMember->mark) $marks[] = $eventMember->mark[\backend\models\EventMember::MARK_LESSON];
                             if ($eventMember->event->status == \backend\models\Event::STATUS_CANCELED): ?>
                                 <div class="row bg-warning"><div class="col-xs-12">Отменено</div></div>
                             <?php else: ?>
                                 <div class="row <?= $eventMember->status == \backend\models\EventMember::STATUS_ATTEND ? 'bg-success' : 'bg-danger'; ?>">
                                     <div class="col-xs-8"><small><?= $eventMember->status == \backend\models\EventMember::STATUS_ATTEND ? 'Присутствовал(а)' : 'Отсутствовал(а)'; ?></small></div>
-                                    <div class="col-xs-4 text-center"><b><?= $eventMember->mark ?: ''; ?></b></div>
+                                    <div class="col-xs-4 text-center"><b><?= $eventMember->mark[\backend\models\EventMember::MARK_LESSON] ?: ''; ?></b></div>
                                 </div>
                         <?php endif;
                         endif; ?>

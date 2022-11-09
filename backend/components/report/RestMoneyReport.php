@@ -33,60 +33,55 @@ class RestMoneyReport
             ->setCellValue('C3', 'Остаток');
 
         $row = 5;
-        $data = Course::find()->alias('g')
-            ->andWhere(['g.active' => Course::STATUS_ACTIVE])
-            ->leftJoin(['gp1' => CourseStudent::tableName()], 'gp1.group_id = g.id')
+        $data = Course::find()->alias('c')
+            ->andWhere(['c.active' => Course::STATUS_ACTIVE])
+            ->leftJoin(['cs1' => CourseStudent::tableName()], 'cs1.course_id = c.id')
             ->leftJoin(
-                ['gp2' => CourseStudent::tableName()],
-                'gp2.group_id = gp1.group_id AND gp2.user_id = gp1.user_id AND gp2.id != gp1.id '
-                . 'AND gp2.active = ' . CourseStudent::STATUS_ACTIVE
+                ['cs2' => CourseStudent::tableName()],
+                'cs2.course_id = cs1.course_id AND cs2.user_id = cs1.user_id AND cs2.id != cs1.id '
+                . 'AND cs2.active = ' . CourseStudent::STATUS_ACTIVE
             )
             ->andWhere([
-                'gp1.active' => CourseStudent::STATUS_INACTIVE,
-                'gp2.id' => null,
+                'cs1.active' => CourseStudent::STATUS_INACTIVE,
+                'cs2.id' => null,
             ])
-            ->orderBy(['gp1.date_end' => SORT_DESC])
-            ->select(['group_id' => 'g.id', 'group_pupil_id' => 'gp1.id'])
+            ->orderBy(['cs1.date_end' => SORT_DESC])
+            ->select(['course_id' => 'c.id', 'course_student_id' => 'cs1.id'])
             ->asArray()
             ->all();
-        $groupPupilIds = [];
-        $groupPupilMap = [];
-        $groupMap = [];
+        $courseStudentIds = $courseStudentMap = $courseStudentIdMap = $courseMap = [];
         foreach ($data as $record) {
-            $groupPupilIds[] = $record['group_pupil_id'];
-            if (!array_key_exists($record['group_id'], $groupMap)) {
-                $groupMap[$record['group_id']] = ['entity' => null, 'pupils' => []];
-            }
-            $groupMap[$record['group_id']]['pupils'][] = $record['group_pupil_id'];
+            $courseStudentIds[] = $record['course_student_id'];
+            $courseStudentIdMap[$record['course_id']][] = $record['course_student_id'];
         }
-        $groups = Course::find()->andWhere(['id' => array_keys($groupMap)])->all();
-        foreach ($groups as $group) $groupMap[$group->id]['entity'] = $group;
-        $groupPupils = CourseStudent::find()->andWhere(['id' => $groupPupilIds])->all();
-        foreach ($groupPupils as $groupPupil) $groupPupilMap[$groupPupil->id] = $groupPupil;
-        $totalSum = 0;
-        foreach ($groupMap as $groupData) {
+        /** @var Course[] $courses */
+        $courses = Course::find()->andWhere(['id' => array_keys($courseStudentIdMap)])->all();
+        foreach ($courses as $course) $courseMap[$course->id] = $course;
+        /** @var CourseStudent[] $courseStudents */
+        $courseStudents = CourseStudent::find()->andWhere(['id' => $courseStudentIds])->all();
+        foreach ($courseStudents as $courseStudent) $courseStudentMap[$courseStudent->id] = $courseStudent;
+        foreach ($courseStudentIdMap as $courseId => $courseStudentIds) {
             $titleRendered = false;
-            foreach ($groupData['pupils'] as $groupPupilId) {
-                $groupPupil = $groupPupilMap[$groupPupilId];
-                if ($groupPupil->moneyLeft > 0) {
+            foreach ($courseStudentIds as $courseStudentId) {
+                $courseStudent = $courseStudentMap[$courseStudentId];
+                if ($courseStudent->moneyLeft > 0) {
                     if (!$titleRendered) {
                         $spreadsheet->getActiveSheet()->mergeCells("A$row:C$row");
-                        $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupData['entity']->name);
+                        $spreadsheet->getActiveSheet()->setCellValue("A$row", $courseMap[$courseId]->getCourseConfigByDate($courseStudent->endDateObject)->name);
                         $spreadsheet->getActiveSheet()->getStyle("A$row")->getFont()->setItalic(true)->setSize(14);
                         $row++;
                         $titleRendered = true;
                     }
-                    $spreadsheet->getActiveSheet()->setCellValue("A$row", $groupPupil->user->name);
+                    $spreadsheet->getActiveSheet()->setCellValue("A$row", $courseStudent->user->name);
                     $spreadsheet->getActiveSheet()->setCellValue(
                         "B$row",
-                        $groupPupil->endDateObject->format('d.m.Y')
+                        $courseStudent->endDateObject->format('d.m.Y')
                     );
                     $spreadsheet->getActiveSheet()->setCellValueExplicit(
                         "C$row",
-                        $groupPupil->moneyLeft,
+                        $courseStudent->moneyLeft,
                         DataType::TYPE_NUMERIC
                     );
-                    $totalSum += $groupPupil->moneyLeft;
 
                     $row++;
                 }
@@ -96,7 +91,7 @@ class RestMoneyReport
 
         $row++;
         $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Итого');
-        $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $totalSum, DataType::TYPE_NUMERIC);
+        $spreadsheet->getActiveSheet()->setCellValue("C$row", '=SUM(C5:C' . ($row - 1) . ')');
         $spreadsheet->getActiveSheet()->getStyle("A$row:C$row")->getFont()->setBold(true);
 
         $spreadsheet->getActiveSheet()->getStyle("C5:C$row")->getNumberFormat()->setFormatCode('#,##0');

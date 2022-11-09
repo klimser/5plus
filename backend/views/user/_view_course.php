@@ -143,4 +143,6 @@ foreach ($student->courseStudentsAggregated as $courseId => $courseStudents) {
         endforeach; ?>
     </div>
 </div>
-<button type="button" class="btn btn-success" onclick="User.addCourse(undefined, $(this).closest('.user-view'));"><span class="fas fa-plus"></span> добавить</button>
+<button type="button" class="btn btn-success"
+        onclick="User.addCourse({courseId: 0, date: '', amount: 0, paymentComment: '', filter: {exclude: [<?= implode(',', array_keys($activeCourseIdSet)); ?>]}}, $(this).closest('.user-view'));"
+><span class="fas fa-plus"></span> добавить</button>

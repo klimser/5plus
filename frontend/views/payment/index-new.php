@@ -19,16 +19,16 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
             <div class="row">
                 <div class="col-12 col-lg-6">
                     <div class="form-group required">
-                        <label for="giftcard-pupil-name">Фамилия, имя, отчество студента</label>
-                        <input name="giftcard[pupil_name]" id="giftcard-pupil-name" class="form-control" maxlength="127" autocomplete="name" required>
+                        <label for="giftcard-student-name">Фамилия, имя, отчество студента</label>
+                        <input name="giftcard[student_name]" id="giftcard-student-name" class="form-control" maxlength="127" autocomplete="name" required>
                     </div>
                     <div class="form-group required">
-                        <label for="giftcard-pupil-phone">Телефон студента</label>
+                        <label for="giftcard-student-phone">Телефон студента</label>
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">+998</span>
                             </div>
-                            <input type="tel" name="giftcard[pupil_phone]" id="giftcard-pupil-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" inputmode="numeric" autocomplete="tel-national" required>
+                            <input type="tel" name="giftcard[student_phone]" id="giftcard-student-phone" class="form-control phone-formatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" inputmode="numeric" autocomplete="tel-national" required>
                         </div>
                     </div>
                 </div>

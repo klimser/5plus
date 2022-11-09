@@ -30,19 +30,18 @@ use yii\db\ActiveQuery;
  * @property string $shortName
  * @property string $officialName
  * @property string $webpage_id
- * @property string $descriptionForEdit
- * @property int                     $page_order
- * @property string                  $noPhotoUrl
- * @property-read bool               $deleteAllowed
- * @property string                  $contractNumber
+ * @property string                 $descriptionForEdit
+ * @property int                    $page_order
+ * @property string                 $noPhotoUrl
+ * @property-read bool              $deleteAllowed
+ * @property string                 $contractNumber
  * @property DateTimeImmutable|null $contractDate
  *
- * @property Event[]                 $events
- * @property TeacherSubjectLink[]    $teacherSubjects
- * @property Subject[]               $subjects
- * @property Course[]                $groups
- * @property Webpage                 $webpage
- * @property User                    $user
+ * @property Event[]                $events
+ * @property TeacherSubjectLink[]   $teacherSubjects
+ * @property Subject[]              $subjects
+ * @property Webpage                $webpage
+ * @property User                   $user
  */
 class Teacher extends ActiveRecord
 {
@@ -195,14 +194,6 @@ class Teacher extends ActiveRecord
     {
         return $this->hasMany(Subject::class, ['id' => 'subject_id'])
             ->via('teacherSubjects');
-    }
-
-    /**
-     * @return ActiveQuery
-     */
-    public function getGroups()
-    {
-       return $this->hasMany(Course::class, ['teacher_id' => 'id']);
     }
 
 //    /**

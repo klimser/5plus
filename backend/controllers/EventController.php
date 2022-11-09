@@ -11,6 +11,7 @@ use common\components\helpers\WordForm;
 use common\components\MoneyComponent;
 use backend\models\Event;
 use backend\models\EventMember;
+use common\models\CourseConfig;
 use common\models\GroupParam;
 use DateTime;
 use Exception;
@@ -57,24 +58,19 @@ class EventController extends AdminController
         $endDate = $startDate->modify('+1 day');
 
         $eventsQuery = Event::find()
+            ->alias('e')
             ->where('event_date > :startDate', [':startDate' => $startDate->format('Y-m-d H:i:s')])
             ->andWhere('event_date < :endDate', [':endDate' => $endDate->format('Y-m-d H:i:s')])
-            ->with(['group', 'members.groupPupil.user', 'welcomeMembers'])
+            ->with(['course', 'members.courseStudent.user', 'welcomeMembers'])
             ->orderBy(['event_date' => SORT_ASC]);
         
         if (Yii::$app->user->can('teacher')) {
             $teacherId = Yii::$app->user->identity->teacher_id;
-            $eventsQuery->joinWith(['group' => function(yii\db\ActiveQuery $query) { $query->alias('g'); }])
-                ->leftJoin(
-                    ['gp' => GroupParam::tableName()],
-                    'g.id = gp.group_id AND gp.year = :year AND gp.month = :month',
-                    [':year' => (int)$startDate->format('Y'), ':month' => (int)$startDate->format('n')]
+            $eventsQuery->innerJoin(
+                    ['cc' => CourseConfig::tableName()],
+                    'e.course_id = cc.course_id AND cc.date_from <= e.event_date AND (cc.date_to IS NULL OR cc.date_to > e.event_date)'
                 )
-                ->andWhere([
-                    'or',
-                    ['gp.teacher_id' => $teacherId],
-                    ['and', ['gp.id' => null], ['g.teacher_id' => $teacherId]]
-                ]);
+                ->andWhere(['cc.teacher_id' => $teacherId]);
         }
         
         $events = $eventsQuery->all();
@@ -97,7 +93,7 @@ class EventController extends AdminController
         /** @var Event $event */
         $event = Event::find()
             ->andWhere(['id' => $id])
-            ->with(['members.groupPupil.user', 'welcomeMembers.user'])
+            ->with(['members.courseStudent.user', 'welcomeMembers.user'])
             ->one();
         if (empty($event)) {
             return self::getJsonErrorResult('Event not found');
@@ -112,7 +108,7 @@ class EventController extends AdminController
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         /** @var Event $event */
-        $event = Event::find()->andWhere(['id' => $id])->with('members.groupPupil.user')->one();
+        $event = Event::find()->andWhere(['id' => $id])->with('members.courseStudent.user')->one();
         if (!$event) {
             return self::getJsonErrorResult('Event not found');
         }
@@ -133,7 +129,7 @@ class EventController extends AdminController
             $revertMemberStatuses = Event::STATUS_CANCELED == $event->status && Event::STATUS_PASSED == $status;
             $recalculateCharges = Event::STATUS_PASSED == $event->status && Event::STATUS_CANCELED == $status;
             if (!empty($event->status)) {
-                ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_STATUS_REVERTED, null, null, $event->group);
+                ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_STATUS_REVERTED, null, null, $event->course);
             }
             $event->status = $status;
             if (!$event->save()) {
@@ -146,9 +142,9 @@ class EventController extends AdminController
                     MoneyComponent::chargeByEvent($event);
 
                     foreach ($event->members as $member) {
-                        MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
-                        if ($member->groupPupil->user->getDebt($member->groupPupil->group)) {
-                            ComponentContainer::getBotPush()->lowBalance($member->groupPupil);
+                        MoneyComponent::setUserChargeDates($member->courseStudent->user, $event->course);
+                        if ($member->courseStudent->user->getDebt($member->courseStudent->course)) {
+                            ComponentContainer::getBotPush()->lowBalance($member->courseStudent);
                         }
                         if ($revertMemberStatuses) {
                             $member->status = EventMember::STATUS_UNKNOWN;
@@ -161,25 +157,28 @@ class EventController extends AdminController
                             $welcomeMember->save();
                         }
                     }
-                    ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_PASSED, null, null, $event->group);
+                    ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_PASSED, null, null, $event->course, $event->event_date);
                     break;
                 case Event::STATUS_CANCELED:
                     if ($recalculateCharges) {
-                        EventComponent::fillSchedule($event->group);
+                        $event = EventComponent::addEvent($event->course, $event->eventDateTime);
+                        if ($event) {
+                            MoneyComponent::chargeByEvent($event);
+                        }
                     }
                     foreach ($event->members as $member) {
                         $member->status = EventMember::STATUS_MISS;
                         $member->save();
                         if ($recalculateCharges) {
-                            MoneyComponent::rechargeStudent($member->groupPupil->user, $event->group);
+                            MoneyComponent::rechargeStudent($member->courseStudent->user, $event->course);
                         }
-                        MoneyComponent::setUserChargeDates($member->groupPupil->user, $event->group);
+                        MoneyComponent::setUserChargeDates($member->courseStudent->user, $event->course);
                     }
                     foreach ($event->welcomeMembers as $welcomeMember) {
                         $welcomeMember->status = WelcomeLesson::STATUS_CANCELED;
                         $welcomeMember->save();
                     }
-                    ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_CANCELLED, null, null, $event->group);
+                    ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_CANCELLED, null, null, $event->course, $event->event_date);
                     break;
             }
 
@@ -188,7 +187,7 @@ class EventController extends AdminController
         } catch (Throwable $ex) {
             $transaction->rollBack();
             ComponentContainer::getErrorLogger()
-                ->logError('event/change-status', $ex->getMessage(), true);
+                ->logError('event/change-status', $ex->getMessage() . $ex->getTraceAsString(), true);
             return self::getJsonErrorResult($ex->getMessage());
         }
     }
@@ -210,7 +209,7 @@ class EventController extends AdminController
         $welcomeLesson->status = $status;
         if (!$welcomeLesson->save()) {
             ComponentContainer::getErrorLogger()
-                ->logError('Event.setWelcomePupilStatus', $welcomeLesson->getErrorsAsString(), true);
+                ->logError('Event.setWelcomeStudentStatus', $welcomeLesson->getErrorsAsString(), true);
             return self::getJsonErrorResult();
         }
         ComponentContainer::getActionLogger()
@@ -247,12 +246,11 @@ class EventController extends AdminController
 
             $member->status = $status;
             if ($member->status == EventMember::STATUS_MISS) {
-                $member->mark = null;
-                $member->mark_homework = null;
+                $member->mark = [];
             }
             if (!$member->save()) {
                 ComponentContainer::getErrorLogger()
-                    ->logError('Event.setPupilStatus', $member->getErrorsAsString(), true);
+                    ->logError('Event.setStudentStatus', $member->getErrorsAsString(), true);
                 return self::getJsonErrorResult();
             }
 
@@ -273,10 +271,12 @@ class EventController extends AdminController
 
         /** @var EventMember $member */
         $member = EventMember::findOne($memberId);
-        $mark = intval(Yii::$app->getRequest()->post('mark'));
-        $markHomework = intval(Yii::$app->getRequest()->post('mark_homework'));
+        $mark = Yii::$app->getRequest()->post('mark', []);
         if (!$member) {
             return self::getJsonErrorResult('Student not found');
+        }
+        if (empty($mark)) {
+            return self::getJsonOkResult(['member' => $this->prepareMemberData($member)]);
         }
         if (!$this->isTeacherHasAccess($member->event) || $member->status != EventMember::STATUS_ATTEND) {
             return self::getJsonErrorResult('Mark set denied!');
@@ -284,15 +284,10 @@ class EventController extends AdminController
         if (Yii::$app->user->can('teacher') && $member->event->teacherEditLimitDate < new DateTime()) {
             return self::getJsonErrorResult('Прошло слишком много времени после завершения занятия! Обратитесь в администрацию');
         }
-        if ($mark > 0 && $mark <= 5) {
-            $member->mark = $mark;
-        }
-        if ($markHomework > 0 && $markHomework <= 5) {
-            $member->mark_homework = $markHomework;
-        }
+        $member->mark = array_merge($member->mark ?? [], $mark);
 
         if ($member->save()) {
-            if ($member->mark > 0 && $member->event->eventDateTime >= date_create('midnight') && !$member->mark_notification_sent) {
+            if (($member->mark[EventMember::MARK_LESSON] ?? 0) > 0 && $member->event->eventDateTime >= date_create('midnight') && !$member->mark_notification_sent) {
                 ComponentContainer::getBotPush()->mark($member);
                 $member->mark_notification_sent = 1;
                 $member->save();
@@ -335,8 +330,8 @@ class EventController extends AdminController
             'status' => (int)$event->status,
             'time' => $event->eventTime,
             'limitAttendTimestamp' => $event->limitAttendTimestamp,
-            'name' => $event->group->name,
-            'teacher' => $event->teacher->name,
+            'name' => $event->courseConfig->name,
+            'teacher' => $event->courseConfig->teacher->name,
             'members' => $members,
             'welcomeMembers' => $welcomeMembers,
         ];
@@ -347,15 +342,14 @@ class EventController extends AdminController
             'id' => $member->id,
             'status' => $member->status,
             'mark' => $member->mark,
-            'markHomework' => $member->mark_homework,
-            'groupPupil' => [
-                'id' => $member->groupPupil->id,
-                'debtMessage' => $member->groupPupil->paid_lessons < 0 ? 'долг ' . (0 - $member->groupPupil->paid_lessons) . ' ' . WordForm::getLessonsForm($member->groupPupil->paid_lessons) . '!' : null,
-                'paidLessons' => $member->groupPupil->paid_lessons,
+            'courseStudent' => [
+                'id' => $member->courseStudent->id,
+                'debtMessage' => $member->courseStudent->paid_lessons < 0 ? 'долг ' . (0 - $member->courseStudent->paid_lessons) . ' ' . WordForm::getLessonsForm($member->courseStudent->paid_lessons) . '!' : null,
+                'paidLessons' => $member->courseStudent->paid_lessons,
                 'user' => [
-                    'id' => $member->groupPupil->user->id,
-                    'name' => $member->groupPupil->user->name,
-                    'note' => $member->groupPupil->user->note,
+                    'id' => $member->courseStudent->user->id,
+                    'name' => $member->courseStudent->user->name,
+                    'note' => $member->courseStudent->user->note,
                 ]
             ]
         ];

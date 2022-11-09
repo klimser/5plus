@@ -48,6 +48,8 @@ if ($course->id) {
             <?= $form->field($course, 'type_id', ['options' => ['class' => 'form-group']])
                 ->dropDownList(ArrayHelper::map($courseTypes, 'id', 'name'), ['required' => true]); ?>
 
+            <?= $form->field($course, 'kids', ['options' => ['class' => 'form-group']])->checkbox(); ?>
+
             <?= $form->field($course, 'subject_id', ['options' => ['class' => 'form-group']])
                 ->dropDownList(
                     ArrayHelper::map($subjects, 'id', 'name'),
@@ -57,9 +59,7 @@ if ($course->id) {
         <div class="col-12 col-lg-6">
             <h3>Параметры</h3>
             <div class="accordion" id="config-list">
-                <?php
-                $teacherList = $course->subject_id ? ArrayHelper::map($course->subject->teachers, 'id', 'name') : [];
-                foreach ($course->courseConfigs as $courseConfig): ?>
+                <?php foreach ($course->courseConfigs as $courseConfig): ?>
                     <div class="card">
                         <div class="card-header" id="config-header-<?= $courseConfig->id; ?>">
                             <h2 class="mb-0">
@@ -90,10 +90,13 @@ if ($course->id) {
                     </div>
                     <div id="config-new" class="collapse <?= $course->isNewRecord ? ' show ' : ''; ?>" aria-labelledby="config-header-new" data-parent="#config-list">
                         <div class="card-body">
+                            <?php
+                                $teacherList = $course->subject_id ? ArrayHelper::map($course->subject->activeTeachers, 'id', 'name') : [];
+                            ?>
                             <?= $this->render(
                                 '_config_form',
                                 [
-                                    'courseConfig' => new CourseConfig(),
+                                    'courseConfig' => empty($course->courseConfigs) ? new CourseConfig() : clone $course->courseConfigs[count($course->courseConfigs) - 1],
                                     'teacherList' => $teacherList,
                                     'form' => $form,
                                     'disabled' => !$course->isNewRecord,
@@ -228,7 +231,7 @@ if ($course->id) {
                             DefaultValuesComponent::getDatePickerSettings(),
                             [
                                 'options' => [
-                                    'name' => 'pupil_end[]',
+                                    'name' => 'student_end[]',
                                     'id' => 'course-student-old-date-end-' . $courseStudent->id,
                                     'autocomplete' => 'off',
                                     'class' => 'form-control student-date-end',

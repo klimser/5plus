@@ -111,7 +111,7 @@ class AccountCommand extends UserCommand
                     [PublicMain::ACCOUNT_BUTTON_ATTEND, PublicMain::ACCOUNT_BUTTON_MARKS],
                     [PublicMain::ACCOUNT_BUTTON_BALANCE, PublicMain::ACCOUNT_BUTTON_PAYMENT],
                     PublicMain::ACCOUNT_SUBSCRIPTION,
-                    PublicMain::ACCOUNT_EDIT_PUPILS,
+                    PublicMain::ACCOUNT_EDIT_STUDENTS,
                 ];
                 $row = [];
                 /** @var User[] $users */
@@ -154,7 +154,7 @@ class AccountCommand extends UserCommand
                         return $this->processPayments($conversation);
                     case PublicMain::ACCOUNT_SUBSCRIPTION:
                         return $this->processSubscribtion($conversation);
-                    case PublicMain::ACCOUNT_EDIT_PUPILS:
+                    case PublicMain::ACCOUNT_EDIT_STUDENTS:
                         return $this->processUsers($conversation);
                     case PublicMain::ACCOUNT_CONFIRM:
                         return $this->accountConfirm($conversation);
@@ -169,7 +169,7 @@ class AccountCommand extends UserCommand
     /**
      * @return string[][]
      */
-    private function getPupilList(): array
+    private function getStudentList(): array
     {
         /** @var User[] $users */
         $users = User::find()
@@ -181,37 +181,37 @@ class AccountCommand extends UserCommand
             ->orderBy(['u.name' => SORT_ASC, 'u2.name' => SORT_ASC])
             ->all();
 
-        $pupils = [];
+        $students = [];
         foreach ($users as $user) {
             $trusted = $user->telegramSettings['trusted'];
             if ($user->role === User::ROLE_STUDENT) {
-                $pupils[] = ['name' => $trusted ? $user->name : $user->nameHidden, 'entity' => $user];
+                $students[] = ['name' => $trusted ? $user->name : $user->nameHidden, 'entity' => $user];
             } else {
                 foreach ($user->children as $child) {
-                    $pupils[] = ['name' => $trusted ? $child->name : $child->nameHidden, 'entity' => $child];
+                    $students[] = ['name' => $trusted ? $child->name : $child->nameHidden, 'entity' => $child];
                 }
             }
         }
         
-        return $pupils;
+        return $students;
     }
     
     private function processUserSelect(Conversation $conversation)
     {
-        $pupils = $this->getPupilList();
+        $students = $this->getStudentList();
 
-        if (count($pupils) === 1) {
-            return $pupils[0]['entity'];
+        if (count($students) === 1) {
+            return $students[0]['entity'];
         }
         if ($conversation->notes['step'] === 3
             && preg_match('#^(\d+)\D*#', $this->getMessage()->getText(), $matches)
-            && isset($pupils[$matches[1] - 1])) {
-            return $pupils[$matches[1] - 1]['entity'];
+            && isset($students[$matches[1] - 1])) {
+            return $students[$matches[1] - 1]['entity'];
         }
                 
         $buttons = [];
-        foreach ($pupils as $i => $pupilData) {
-            $buttons[] = ($i + 1) . ' ' . $pupilData['name'];
+        foreach ($students as $i => $studentData) {
+            $buttons[] = ($i + 1) . ' ' . $studentData['name'];
         }
         $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
         $keyboard = new Keyboard(...$buttons);
@@ -242,16 +242,16 @@ class AccountCommand extends UserCommand
         /** @var EventMember[] $eventMembers */
         $eventMembers = EventMember::find()
             ->alias('em')
-            ->joinWith('event e', true)
-            ->joinWith('groupPupil gp')
+            ->joinWith('event e')
+            ->joinWith('courseStudent cs')
             ->andWhere([
                 'e.status' => Event::STATUS_PASSED,
                 'em.status' => EventMember::STATUS_MISS,
-                'gp.user_id' => $userResult->id,
+                'cs.user_id' => $userResult->id,
             ])
             ->andWhere(['>', 'e.event_date', date_create('-90 days')->format('Y-m-d H:i:s')])
-            ->with('event.group')
-            ->orderBy(['e.group_id' => SORT_ASC, 'e.event_date' => SORT_ASC])
+            ->with('event.course')
+            ->orderBy(['e.course_id' => SORT_ASC, 'e.event_date' => SORT_ASC])
             ->all();
         
         $rows = [];
@@ -259,11 +259,11 @@ class AccountCommand extends UserCommand
             $rows[] = Entity::escapeMarkdownV2(PublicMain::ATTEND_NO_MISSED);
         } else {
             $rows[] = Entity::escapeMarkdownV2(sprintf(PublicMain::ATTEND_HAS_MISSED, count($eventMembers)));
-            $groupId = null;
+            $courseId = null;
             foreach ($eventMembers as $eventMember) {
-                if ($eventMember->event->course_id != $groupId) {
-                    $rows[] = '*' . Entity::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
-                    $groupId = $eventMember->event->course_id;
+                if ($eventMember->event->course_id != $courseId) {
+                    $rows[] = '*' . Entity::escapeMarkdownV2($eventMember->event->course->courseConfig->legal_name) . '*';
+                    $courseId = $eventMember->event->course_id;
                 }
                 $rows[] = Entity::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i'));
             }
@@ -298,16 +298,16 @@ class AccountCommand extends UserCommand
         $eventMembers = EventMember::find()
             ->alias('em')
             ->joinWith('event e', true)
-            ->joinWith('groupPupil gp')
+            ->joinWith('courseStudent cs')
             ->andWhere([
                 'e.status' => Event::STATUS_PASSED,
                 'em.status' => EventMember::STATUS_ATTEND,
-                'gp.user_id' => $userResult->id,
+                'cs.user_id' => $userResult->id,
             ])
             ->andWhere(['not', ['em.mark' => null]])
             ->andWhere(['>', 'e.event_date', date_create('-90 days')->format('Y-m-d H:i:s')])
-            ->with('event.group')
-            ->orderBy(['e.group_id' => SORT_ASC, 'e.event_date' => SORT_ASC])
+            ->with('event.course')
+            ->orderBy(['e.course_id' => SORT_ASC, 'e.event_date' => SORT_ASC])
             ->all();
 
         $rows = [];
@@ -315,14 +315,18 @@ class AccountCommand extends UserCommand
             $rows[] = Entity::escapeMarkdownV2(PublicMain::MARKS_NONE);
         } else {
             $rows[] = Entity::escapeMarkdownV2(PublicMain::MARKS_TEXT);
-            $groupId = null;
+            $courseId = null;
             foreach ($eventMembers as $eventMember) {
-                if ($eventMember->event->course_id != $groupId) {
-                    $rows[] = '*' . Entity::escapeMarkdownV2($eventMember->event->group->legal_name) . '*';
-                    $groupId = $eventMember->event->course_id;
+                if (empty($eventMember->mark) || empty($eventMember->mark[EventMember::MARK_LESSON])) {
+                    continue;
+                }
+
+                if ($eventMember->event->course_id != $courseId) {
+                    $rows[] = '*' . Entity::escapeMarkdownV2($eventMember->event->courseConfig->legal_name) . '*';
+                    $courseId = $eventMember->event->course_id;
                 }
                 $rows[] = Entity::escapeMarkdownV2($eventMember->event->eventDateTime->format('d.m.Y H:i') . ' - ')
-                    . "*{$eventMember->mark}*" . ($eventMember->mark_homework > 0 ? " \/ *{$eventMember->mark_homework}*" : '');
+                    . "*{$eventMember->mark[EventMember::MARK_LESSON]}*" . (!empty($eventMember->mark[EventMember::MARK_HOMEWORK]) ? " \/ *{$eventMember->mark[EventMember::MARK_HOMEWORK]}*" : '');
             }
         }
 
@@ -349,15 +353,15 @@ class AccountCommand extends UserCommand
             return $userResult;
         }
 
-        $rows = $groupSet = [];
-        foreach ($userResult->courseStudents as $groupPupil) {
-            if (!array_key_exists($groupPupil->group_id, $groupSet)) {
-                $balance = $groupPupil->moneyLeft;
-                if ($groupPupil->active || $balance < 0) {
-                    $groupSet[$groupPupil->group_id] = true;
-                    $rows[] = Entity::escapeMarkdownV2($groupPupil->group->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
-                        . '\\(*' . abs($groupPupil->paid_lessons) . '* ' . WordForm::getLessonsForm(abs($groupPupil->paid_lessons)) . '\\) '
-                        . '[' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($groupPupil->user_id, $groupPupil->group_id)->url . ')';
+        $rows = $courseSet = [];
+        foreach ($userResult->courseStudents as $courseStudent) {
+            if (!array_key_exists($courseStudent->course_id, $courseSet)) {
+                $balance = $courseStudent->moneyLeft;
+                if ($courseStudent->active || $balance < 0) {
+                    $courseSet[$courseStudent->course_id] = true;
+                    $rows[] = Entity::escapeMarkdownV2($courseStudent->course->courseConfig->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
+                        . '\\(*' . abs($courseStudent->paid_lessons) . '* ' . WordForm::getLessonsForm(abs($courseStudent->paid_lessons)) . '\\) '
+                        . '[' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($courseStudent->user_id, $courseStudent->course_id)->url . ')';
                 }
             }
         }
@@ -374,7 +378,7 @@ class AccountCommand extends UserCommand
 
         return [
             'parse_mode' => 'MarkdownV2',
-            'text' => empty($rows) ? Entity::escapeMarkdownV2(PublicMain::BALANCE_NO_GROUP) : implode("\n", $rows),
+            'text' => empty($rows) ? Entity::escapeMarkdownV2(PublicMain::BALANCE_NO_COURSE) : implode("\n", $rows),
             'reply_markup' => $keyboard,
         ];
     }
@@ -400,15 +404,15 @@ class AccountCommand extends UserCommand
             ->andWhere(['user_id' => $userResult->id])
             ->andWhere(['<', 'amount', 0])
             ->andWhere(['>', 'created_at', date_create('-90 days')->format('Y-m-d H:i:s')])
-            ->orderBy(['group_id' => SORT_ASC, 'created_at' => SORT_ASC])
-            ->with('group')
+            ->orderBy(['course_id' => SORT_ASC, 'created_at' => SORT_ASC])
+            ->with('course')
             ->all();
         
-        $rows = $groupSet = [];
+        $rows = $courseSet = [];
         foreach ($payments as $payment) {
-            if (!array_key_exists($payment->group_id, $groupSet)) {
-                $groupSet[$payment->group_id] = true;
-                $rows[] = "\n*" . Entity::escapeMarkdownV2($payment->group->legal_name) . '*';
+            if (!array_key_exists($payment->course_id, $courseSet)) {
+                $courseSet[$payment->course_id] = true;
+                $rows[] = "\n*" . Entity::escapeMarkdownV2($payment->courseConfig->legal_name) . '*';
             }
             $rows[] = Entity::escapeMarkdownV2($payment->createDate->format('d.m.Y') . ' - ' . abs($payment->amount) . PublicMain::CURRENCY_SIGN);
         }
@@ -447,20 +451,18 @@ class AccountCommand extends UserCommand
                 $offset = count($matches) > 2 ? $matches[1] - 1 : 0;
                 $icon = count($matches) > 2 ? $matches[2] : $matches[1];
 
-                $pupils = [];
+                $students = [];
                 foreach ($users as $user) {
                     if ($user->role === User::ROLE_STUDENT || count($user->children) > 0) {
-                        $pupils[] = $user;
+                        $students[] = $user;
                     }
                 }
 
-                if (isset($pupils[$offset])) {
-                    /** @var User $pupil */
-                    $pupil = $pupils[$offset];
-                    $settings = $pupil->telegramSettings;
-                    $settings['subscribe'] = ($icon === PublicMain::ICON_CHECK);
-                    $pupil->telegramSettings = $settings;
-                    $pupil->save();
+                if (isset($students[$offset])) {
+                    /** @var User $student */
+                    $student = $students[$offset];
+                    $student->telegramSettings = array_merge($student->telegramSettings, ['subscribe' => ($icon === PublicMain::ICON_CHECK)]);
+                    $student->save();
                 }
             }
 
@@ -515,12 +517,12 @@ class AccountCommand extends UserCommand
     
     private function processUsers(Conversation $conversation)
     {
-        $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_EDIT_PUPILS);
+        $this->addNote($conversation, 'step2', PublicMain::ACCOUNT_EDIT_STUDENTS);
         
-        $text = Entity::escapeMarkdownV2(PublicMain::PUPILS_TEXT);
+        $text = Entity::escapeMarkdownV2(PublicMain::STUDENTS_TEXT);
         
         if ($conversation->notes['step'] === 3) {
-            if ($this->getMessage()->getText() === PublicMain::PUPILS_ADD) {
+            if ($this->getMessage()->getText() === PublicMain::STUDENTS_ADD) {
                 return $this->telegram->executeCommand('login');
             }
 
@@ -557,7 +559,7 @@ class AccountCommand extends UserCommand
             $buttons[] = ($i + 1) . ' ' . PublicMain::ICON_REMOVE
                 . ' ' . ($user->telegramSettings['trusted'] ? $user->name : $user->nameHidden);
         }
-        $buttons[] = [PublicMain::PUPILS_ADD];
+        $buttons[] = [PublicMain::STUDENTS_ADD];
         $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
         $keyboard = new Keyboard(...$buttons);
         $keyboard->setResizeKeyboard(true)->setSelective(false);
@@ -574,7 +576,7 @@ class AccountCommand extends UserCommand
         $message = $this->getMessage();
         
         $filterUntrusted = function(User $user) {
-            return !$user->telegramSettings['trusted'];
+            return empty($user->telegramSettings['trusted']);
         };
         
         /** @var User[] $users */
@@ -912,46 +914,46 @@ class AccountCommand extends UserCommand
         $this->addNote($conversation, 'userId', $userResult->id);
 
         
-        $buttons = $groupMap = [];
-        foreach ($userResult->courseStudents as $groupPupil) {
-            if (!array_key_exists($groupPupil->group_id, $groupMap) && ($groupPupil->active || $groupPupil->moneyLeft < 0)) {
-                $groupMap[$groupPupil->group_id] = $groupPupil->group->legal_name;
-                $buttons[] = Entity::escapeMarkdownV2($groupPupil->group->legal_name);
+        $buttons = $courseMap = [];
+        foreach ($userResult->courseStudents as $courseStudent) {
+            if (!array_key_exists($courseStudent->course_id, $courseMap) && ($courseStudent->active || $courseStudent->moneyLeft < 0)) {
+                $courseMap[$courseStudent->course_id] = $courseStudent->course->courseConfig->legal_name;
+                $buttons[] = Entity::escapeMarkdownV2($courseStudent->course->courseConfig->legal_name);
             }
         }
 
         if (empty($buttons)) {
             return [
                 'parse_mode' => 'MarkdownV2',
-                'text' => Entity::escapeMarkdownV2(PublicMain::PAY_NO_GROUP),
+                'text' => Entity::escapeMarkdownV2(PublicMain::PAY_NO_COURSE),
                 'reply_markup' => PublicMain::getBackAndMainKeyboard(),
             ];
         } elseif (count($buttons) > 1) {
-            if (isset($conversation->notes['groupId']) && array_key_exists($conversation->notes['groupId'], $groupMap)) {
-                $groupId = $conversation->notes['groupId'];
-            } elseif ($key = array_search($this->getMessage()->getText(), $groupMap)) {
-                $groupId = $key;
+            if (isset($conversation->notes['courseId']) && array_key_exists($conversation->notes['courseId'], $courseMap)) {
+                $courseId = $conversation->notes['courseId'];
+            } elseif ($key = array_search($this->getMessage()->getText(), $courseMap)) {
+                $courseId = $key;
             } else {
                 $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
                 $keyboard = new Keyboard(...$buttons);
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
                 return [
                     'parse_mode' => 'MarkdownV2',
-                    'text' => Entity::escapeMarkdownV2(PublicMain::PAY_CHOOSE_GROUP),
+                    'text' => Entity::escapeMarkdownV2(PublicMain::PAY_CHOOSE_COURSE),
                     'reply_markup' => $keyboard,
                 ];
             }
         } else {
-            $groupIds = array_keys($groupMap);
-            $groupId = reset($groupIds);
+            $courseIds = array_keys($courseMap);
+            $courseId = reset($courseIds);
         }
         
-        $this->addNote($conversation, 'groupId', $groupId);
-        $group = Course::findOne($groupId);
+        $this->addNote($conversation, 'courseId', $courseId);
+        $course = Course::findOne($courseId);
 
         $amount = match ($this->getMessage()->getText()) {
-            PublicMain::PAY_ONE_LESSON => $group->lesson_price,
-            PublicMain::PAY_ONE_MONTH => $group->priceMonth,
+            PublicMain::PAY_ONE_LESSON => $course->courseConfig->lesson_price,
+            PublicMain::PAY_ONE_MONTH => $course->courseConfig->priceMonth,
             default => intval($this->getMessage()->getText()),
         };
 
@@ -963,26 +965,29 @@ class AccountCommand extends UserCommand
         if ($amount >= PublicMain::PAY_MIN_AMOUNT) {
             $chatId = $this->getMessage()->getFrom()->getId();
             $prices = [
-                new LabeledPrice(['label' => sprintf(PublicMain::PAY_ITEM_TITLE, $group->legal_name), 'amount' => $amount * 100]),
+                new LabeledPrice(['label' => sprintf(PublicMain::PAY_ITEM_TITLE, $course->courseConfig->legal_name), 'amount' => $amount * 100]),
             ];
             $transaction = Yii::$app->db->beginTransaction();
             try {
-                $contract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $userResult, $amount, $group);
+                $contract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $userResult, $amount, $course);
                 $transaction->commit();
             } catch (\Throwable $ex) {
                 ComponentContainer::getErrorLogger()->logError('telegram/pay', 'Contract not created: ' . $ex->getMessage(), true);
                 $transaction->rollBack();
             }
-            $description = sprintf(PublicMain::PAY_ITEM_DESCRIPTION, $group->legal_name, $amount >= $group->price12Lesson ? $group->lesson_price_discount : $group->lesson_price);
-            if ($amount < $group->price12Lesson) {
+            $description = sprintf(
+                PublicMain::PAY_ITEM_DESCRIPTION,
+                $course->courseConfig->legal_name,
+                $amount >= $course->courseConfig->price12Lesson ? $course->courseConfig->lesson_price_discount : $course->courseConfig->lesson_price);
+            if ($amount < $course->courseConfig->price12Lesson) {
                 $description .= ' ' . PublicMain::PAY_ITEM_ATTENTION;
             }
 
             return Request::sendInvoice([
                 'chat_id'               => $chatId,
-                'title'                 => sprintf(PublicMain::PAY_ITEM_TITLE, $group->legal_name),
+                'title'                 => sprintf(PublicMain::PAY_ITEM_TITLE, $course->courseConfig->legal_name),
                 'description'           => $description,
-                'payload'               => !empty($contract) ? $contract->number : json_encode(['user_id' => $userResult->id, 'group_id' => $group->id, 'amount' => $amount]),
+                'payload'               => !empty($contract) ? $contract->number : json_encode(['user_id' => $userResult->id, 'course_id' => $course->id, 'amount' => $amount]),
                 'start_parameter'       => 'pay',
                 'provider_token'        => $this->getConfig('payment_provider_token'),
                 'currency'              => 'UZS',
@@ -1032,7 +1037,7 @@ class AccountCommand extends UserCommand
         
         return $keyboard;
     }
-    
+
     private function confirmUsers(array $users): array
     {
         $rows = [];
@@ -1092,16 +1097,16 @@ class AccountCommand extends UserCommand
         } else {
             try {
                 $payloadData = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
-                if (!empty($payloadData['user_id']) && !empty($payloadData['group_id'])) {
+                if (!empty($payloadData['user_id']) && !empty($payloadData['course_id'])) {
                     $user = User::findOne($payloadData['user_id']);
-                    $group = Course::findOne($payloadData['group_id']);
-                    if ($user && $group) {
-                        /** @var CourseStudent $groupPupil */
-                        $groupPupil = CourseStudent::find()
-                            ->andWhere(['user_id' => $user->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])
+                    $course = Course::findOne($payloadData['course_id']);
+                    if ($user && $course) {
+                        /** @var CourseStudent $courseStudent */
+                        $courseStudent = CourseStudent::find()
+                            ->andWhere(['user_id' => $user->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])
                             ->one();
-                        if ($groupPupil) {
-                            $newContract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, (int) ($payment->getTotalAmount() / 100), $group);
+                        if ($courseStudent) {
+                            $newContract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, (int) ($payment->getTotalAmount() / 100), $course);
                             MoneyComponent::payContract($newContract, null, Contract::PAYMENT_TYPE_TELEGRAM_PAYME, $payment->getTelegramPaymentChargeId());
                             $newContract->external_id = $payment->getProviderPaymentChargeId();
                             $newContract->save();
@@ -1126,7 +1131,7 @@ class AccountCommand extends UserCommand
 
         return Request::sendMessage([
             'chat_id' => $chatId,
-            'text' => 'Оплата принята. Спасибо. Ждем вас в Вашем учебном центре "Пять с плюсом"!',
+            'text' => PublicMain::PAY_SUCCESSFUL,
         ]);
     }
 }

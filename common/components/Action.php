@@ -42,14 +42,14 @@ class Action extends BaseObject
         self::TYPE_WELCOME_LESSON_STATUS_CHANGED => 'Статус пробного занятия изменён',
     ];
 
-    public function log(int $type, ?User $user = null, ?int $amount = null, ?Course $group = null, ?string $comment = null): bool
+    public function log(int $type, ?User $user = null, ?int $amount = null, ?Course $course = null, ?string $comment = null): bool
     {
         $action = new \backend\models\Action();
         $action->admin_id = \Yii::$app->user->id;
         if ($user) $action->user_id = $user->id;
         $action->type = $type;
         $action->amount = $amount;
-        if ($group) $action->course_id = $group->id;
+        if ($course) $action->course_id = $course->id;
         $action->comment = $comment;
 
         return $action->save();

@@ -6,8 +6,10 @@ use backend\models\EventMember;
 use backend\models\UserCall;
 use common\components\ComponentContainer;
 use common\models\Course;
+use common\models\CourseConfig;
 use common\models\GroupParam;
 use common\models\CourseStudent;
+use DateTimeImmutable;
 use Exception;
 use Yii;
 use yii\web\BadRequestHttpException;
@@ -15,7 +17,7 @@ use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
- * MissedController implements list of pupils that missing lessons.
+ * MissedController implements list of students that missing lessons.
  */
 class MissedController extends AdminController
 {
@@ -35,7 +37,7 @@ class MissedController extends AdminController
             ];
             /** @var Event[] $lastEvents */
             $lastEvents = Event::find()
-                ->andWhere(['group_id' => $course->id, 'status' => Event::STATUS_PASSED])
+                ->andWhere(['course_id' => $course->id, 'status' => Event::STATUS_PASSED])
                 ->with('members.courseStudent')
                 ->orderBy(['event_date' => SORT_DESC])
                 ->limit(self::MISS_LIMIT)
@@ -93,19 +95,19 @@ class MissedController extends AdminController
         if (!Yii::$app->request->isPost) throw new BadRequestHttpException('Only POST requests allowed');
         $this->checkAccess('callMissed');
 
-        $groupPupilId = Yii::$app->request->post('groupPupil');
-        if (!$groupPupilId) throw new BadRequestHttpException('Wrong request');
-        $groupPupil = CourseStudent::findOne($groupPupilId);
-        if (!$groupPupil) throw new BadRequestHttpException('Wrong request');
-        $callResult = Yii::$app->request->post('callResult')[$groupPupilId];
-        $comment = Yii::$app->request->post('callComment')[$groupPupilId];
+        $courseStudentId = Yii::$app->request->post('courseStudent');
+        if (!$courseStudentId) throw new BadRequestHttpException('Wrong request');
+        $courseStudent = CourseStudent::findOne($courseStudentId);
+        if (!$courseStudent) throw new BadRequestHttpException('Wrong request');
+        $callResult = Yii::$app->request->post('callResult')[$courseStudentId];
+        $comment = Yii::$app->request->post('callComment')[$courseStudentId];
         switch ($callResult) {
             case 'fail': $comment = 'Недозвон'; break;
             case 'phone': $comment = 'Неправильный номер телефона'; break;
         }
 
         $userCall = new UserCall();
-        $userCall->user_id = $groupPupil->user_id;
+        $userCall->user_id = $courseStudent->user_id;
         $userCall->admin_id = Yii::$app->user->id;
         $userCall->comment = $comment;
         if (!$userCall->save()) {
@@ -118,14 +120,16 @@ class MissedController extends AdminController
 
     /**
      * Monitor teachers' salary.
-     * @param int $groupId
+     *
+     * @param int $courseId
      * @param int $year
      * @param int $month
+     *
      * @return mixed
      * @throws BadRequestHttpException
      * @throws ForbiddenHttpException
      */
-    public function actionTable(int $groupId = 0, int $year = 0, int $month = 0)
+    public function actionTable(int $courseId = 0, int $year = 0, int $month = 0)
     {
         $this->checkAccess('viewMissed');
 
@@ -136,33 +140,35 @@ class MissedController extends AdminController
 
         if (!$year) $year = intval(date('Y'));
         if (!$month) $month = intval(date('n'));
-        $dateStart = new \DateTimeImmutable("$year-$month-01 midnight");
+        $dateStart = new DateTimeImmutable("$year-$month-01 midnight");
         $dateEnd = $dateStart->modify('+1 month -1 second');
 
         $eventMap = [];
         $dataMap = [];
-        $group = null;
-        if ($groupId) {
-            $group = Course::findOne($groupId);
-            if (!$group) throw new BadRequestHttpException('Group not found');
+        $course = null;
+        if ($courseId) {
+            $course = Course::findOne($courseId);
+            if (!$course) throw new BadRequestHttpException('Group not found');
+
+            $eventsQuery = Event::find()
+                ->alias('e')
+                ->andWhere(['course_id' => $course->id])
+                ->andWhere(['between', 'event_date', $dateStart->format('Y-m-d H:i:s'), $dateEnd->format('Y-m-d H:i:s')])
+                ->with('members.courseStudent.user');
             if ($teacherId) {
-                $groupParam = GroupParam::findByDate($group, $dateStart);
-                if (($groupParam && $groupParam->teacher_id != $teacherId) || $group->teacher_id != $teacherId) {
-                    throw new ForbiddenHttpException('Access denied!');
-                }
+                $eventsQuery->innerJoin(
+                    ['cc' => CourseConfig::tableName()],
+                    'e.course_id = cc.course_id AND cc.date_from <= e.event_date AND (cc.date_to IS NULL OR cc.date_to > e.event_date)'
+                )
+                    ->andWhere(['cc.teacher_id' => $teacherId]);
             }
 
-            /** @var Event[] $events */
-            $events = Event::find()
-                ->andWhere(['group_id' => $group->id])
-                ->andWhere(['between', 'event_date', $dateStart->format('Y-m-d H:i:s'), $dateEnd->format('Y-m-d H:i:s')])
-                ->with('members.groupPupil.user')
-                ->all();
-            foreach ($events as $event) {
+            /** @var Event $event */
+            foreach ($eventsQuery->all() as $event) {
                 $eventMap[(int)$event->eventDateTime->format('j')] = $event;
                 foreach ($event->members as $eventMember) {
                     if (!array_key_exists($eventMember->course_student_id, $dataMap)) {
-                        $dataMap[$eventMember->course_student_id] = [0 => $eventMember->groupPupil->user->name];
+                        $dataMap[$eventMember->course_student_id] = [0 => $eventMember->courseStudent->user->name];
                     }
                     $dataMap[$eventMember->course_student_id][(int)$event->eventDateTime->format('j')] = $eventMember->toArray();
                 }
@@ -170,10 +176,10 @@ class MissedController extends AdminController
             usort($dataMap, function($a, $b) { return $a[0] <=> $b[0]; });
         }
 
-        $groupQuery = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC]);
+        $courseQuery = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC]);
         if ($teacherId) {
-            $ids = GroupParam::find()->andWhere(['teacher_id' => $teacherId])->select('group_id')->distinct(true)->column();
-            $groupQuery->andWhere(['id' => $ids]);
+            $ids = CourseConfig::find()->andWhere(['teacher_id' => $teacherId])->select('course_id')->distinct()->column();
+            $courseQuery->andWhere(['id' => $ids]);
         }
         
         return $this->render('table', [
@@ -181,8 +187,8 @@ class MissedController extends AdminController
             'daysCount' => intval($dateEnd->format('d')),
             'dataMap' => $dataMap,
             'eventMap' => $eventMap,
-            'groups' => $groupQuery->all(),
-            'group' => $group,
+            'courses' => $courseQuery->all(),
+            'course' => $course,
         ]);
     }
 }

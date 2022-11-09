@@ -3,7 +3,7 @@
 use yii\bootstrap4\Html;
 
 /* @var $this yii\web\View */
-/* @var $pupilCollection \common\models\User[] */
+/* @var $studentCollection \common\models\User[] */
 /* @var $user \common\models\User */
 
 $this->title = 'Мои дети';
@@ -23,8 +23,8 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
 
     <div class="list-group">
-    <?php foreach ($pupilCollection as $pupil): ?>
-        <a class="list-group-item" href="<?= \yii\helpers\Url::to(['money-history',  'id' => $pupil->id]); ?>"><?= $pupil->name; ?></a>
+    <?php foreach ($studentCollection as $student): ?>
+        <a class="list-group-item" href="<?= \yii\helpers\Url::to(['money-history',  'id' => $student->id]); ?>"><?= $student->name; ?></a>
     <?php endforeach; ?>
     </div>
 </div>

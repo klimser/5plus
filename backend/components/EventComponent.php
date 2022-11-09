@@ -8,6 +8,7 @@ use common\components\MoneyComponent;
 use common\models\Course;
 use DateInterval;
 use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
 use Throwable;
@@ -16,21 +17,21 @@ use yii\base\Component;
 class EventComponent extends Component
 {
     /**
-     * @param Course   $group
+     * @param Course   $course
      * @param DateTime $date
      *
      * @return Event|null
      * @throws Exception
      * @throws Throwable
      */
-    public static function addEvent(Course $group, DateTime $date): ?Event
+    public static function addEvent(Course $course, DateTimeInterface $date): ?Event
     {
-        $groupConfig = CourseComponent::getCourseConfig($group, $date);
-        if ($groupConfig->hasLesson($date)) {
-            if (!$event = $group->getEventByDate($date)) {
+        $courseConfig = CourseComponent::getCourseConfig($course, $date);
+        if ($courseConfig->hasLesson($date)) {
+            if (!$event = $course->getEventByDate($date)) {
                 $event = new Event();
-                $event->event_date = $groupConfig->getLessonDateTime($date);
-                $event->course_id = $group->id;
+                $event->event_date = $courseConfig->getLessonDateTime($date);
+                $event->course_id = $course->id;
                 $event->status = Event::STATUS_UNKNOWN;
 
                 if (!$event->save()) {
@@ -38,7 +39,7 @@ class EventComponent extends Component
                 }
             }
 
-            foreach ($group->courseStudents as $courseStudent) {
+            foreach ($course->courseStudents as $courseStudent) {
                 if ($courseStudent->startDateObject <= $event->eventDateTime && ($courseStudent->date_end == null || $courseStudent->endDateObject > $event->eventDateTime)) {
                     $event->addCourseStudent($courseStudent);
                 } elseif ($eventMember = $event->findByCourseStudent($courseStudent)) {
@@ -50,13 +51,13 @@ class EventComponent extends Component
             }
 
             return $event;
-        } elseif ($group->hasEvent($date)) {
-            $event = $group->getEventByDate($date);
+        } elseif ($course->hasEvent($date)) {
+            $event = $course->getEventByDate($date);
             foreach ($event->membersWithPayments as $member) {
                 foreach ($member->payments as $payment) {
                     MoneyComponent::cancelPayment($payment);
                 }
-                $event->removeCourseStudent($member->groupPupil);
+                $event->removeCourseStudent($member->courseStudent);
             }
             $event->delete();
         }
@@ -71,19 +72,17 @@ class EventComponent extends Component
      */
     public static function fillSchedule(Course $course)
     {
-        $limitDate = new \DateTimeImmutable('+1 day midnight');
-        $lookupDate = DateTime::createFromImmutable($course->startDateObject);
+        $limitDate = new DateTimeImmutable('+1 day midnight');
         $endDate = $course->endDateObject;
         if (!$endDate || $endDate > $limitDate) $endDate = $limitDate;
         $intervalDay = new DateInterval('P1D');
-        while ($lookupDate < $endDate) {
+        for ($lookupDate = DateTime::createFromImmutable($course->startDateObject); $lookupDate < $endDate; $lookupDate->add($intervalDay)) {
             if ($course->courseStudents || $course->hasWelcomeLessons($lookupDate)) {
                 $event = self::addEvent($course, $lookupDate);
                 if ($event) {
                     MoneyComponent::chargeByEvent($event);
                 }
             }
-            $lookupDate->add($intervalDay);
         }
         /** @var Event[] $overEvents */
         $overEvents = Event::find()

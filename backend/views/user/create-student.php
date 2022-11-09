@@ -17,8 +17,6 @@ use yii\helpers\ArrayHelper;
 /* @var $welcomeLessonData array */
 /* @var $courseData array */
 /* @var $studentLimitDate DateTime|null */
-/* @var $incomeAllowed bool */
-/* @var $contractAllowed bool */
 
 $this->title = 'Добавить студента и родителей';
 $this->params['breadcrumbs'][] = ['label' => 'Пользователи', 'url' => ['index']];
@@ -43,14 +41,14 @@ $this->params['breadcrumbs'][] = $this->title;
                     ['itemOptions' => ['onchange' => 'User.changePersonType();', 'class' => 'person_type']]
                 ); ?>
 
-                <?= $form->field($student, '[pupil]name')->textInput(['maxlength' => true, 'required' => true]); ?>
+                <?= $form->field($student, '[student]name')->textInput(['maxlength' => true, 'required' => true]); ?>
 
-                <?= $form->field($student, '[pupil]note')->textarea(['maxlength' => true, 'htmlOptions' => ['rows' => 3]]); ?>
+                <?= $form->field($student, '[student]note')->textarea(['maxlength' => true, 'htmlOptions' => ['rows' => 3]]); ?>
 
-                <?= $form->field($student, '[pupil]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
+                <?= $form->field($student, '[student]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
 
-                <?= $form->field($student, '[pupil]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
+                <?= $form->field($student, '[student]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
             </div>
 
@@ -126,13 +124,11 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
         </div>
 
-        <?= $this->render('_add_group', [
+        <?= $this->render('_add_course', [
             'consultationData' => $consultationData,
             'welcomeLessonData' => $welcomeLessonData,
-            'groupData' => $courseData,
-            'pupilLimitDate' => $studentLimitDate,
-            'incomeAllowed' => $incomeAllowed,
-            'contractAllowed' => $contractAllowed,
+            'courseData' => $courseData,
+            'studentLimitDate' => $studentLimitDate,
         ]) ?>
 
         <hr>

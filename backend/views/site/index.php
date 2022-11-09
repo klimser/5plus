@@ -22,22 +22,6 @@ $this->title = 'Панель управления';
     <hr>
 <?php endif; ?>
 <div class="row">
-    <?php if ($admin->can('root')): ?>
-        <div class="col-6 col-md mb-3">
-            <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('money/income'); ?>">
-                <span class="fas fa-hand-holding-usd fa-3x"></span><hr>
-                Принять оплату
-            </a>
-        </div>
-    <?php endif; ?>
-    <?php if ($admin->can('root')): ?>
-        <div class="col-6 col-md mb-3">
-            <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('contract/create'); ?>">
-                <span class="fas fa-file-invoice-dollar fa-3x"></span><hr>
-                Выдать договор
-            </a>
-        </div>
-    <?php endif; ?>
     <?php if ($admin->can('manageSchedule')): ?>
         <div class="col-6 col-md mb-3">
             <a class="btn btn-outline-dark btn-lg btn-block" href="<?= Url::to('event/index'); ?>">

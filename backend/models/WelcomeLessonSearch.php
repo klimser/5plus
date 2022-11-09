@@ -104,13 +104,13 @@ class WelcomeLessonSearch extends WelcomeLesson
         }
 
         if ($this->subjectId) {
-            $groupIds = Course::find()->andWhere(['subject_id' => $this->subjectId])->select('id')->asArray()->column();
-            $query->andWhere(['course_id' => $groupIds]);
+            $courseIds = Course::find()->andWhere(['subject_id' => $this->subjectId])->select('id')->asArray()->column();
+            $query->andWhere(['course_id' => $courseIds]);
         }
 
         if (isset($params['WelcomeLessonSearch'], $params['WelcomeLessonSearch']['teacherId']) && !empty($params['WelcomeLessonSearch']['teacherId'])) {
-            $groupIds = Course::find()->andWhere(['teacher_id' => $params['WelcomeLessonSearch']['teacherId']])->select('id')->asArray()->column();
-            $query->andWhere(['course_id' => $groupIds]);
+            $courseIds = Course::find()->andWhere(['teacher_id' => $params['WelcomeLessonSearch']['teacherId']])->select('id')->asArray()->column();
+            $query->andWhere(['course_id' => $courseIds]);
         }
 
         return $dataProvider;

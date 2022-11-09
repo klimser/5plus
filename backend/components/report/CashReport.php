@@ -3,7 +3,6 @@
 namespace backend\components\report;
 
 use common\models\Payment;
-use DateTime;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -22,32 +21,34 @@ class CashReport
             ->andWhere(['BETWEEN', 'created_at', $date->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
             ->andWhere('contract_id IS NOT NULL')
             ->andWhere('admin_id IS NOT NULL')
+            ->joinWith('course c')
+            ->andWhere('c.kids = ' . ($kids ? 1 : 0))
             ->with('admin', 'contract.payments')
             ->all();
 
         $adminSumMap = [];
         $adminMap = [];
         foreach ($payments as $payment) {
-            if ($payment->group->isKids() == $kids) {
-                if (!array_key_exists($payment->admin_id, $adminSumMap)) $adminSumMap[$payment->admin_id] = 0;
-                $adminMap[$payment->admin_id] = $payment->admin->name;
+            if (!array_key_exists($payment->admin_id, $adminSumMap)) {
+                $adminSumMap[$payment->admin_id] = 0;
+            }
+            $adminMap[$payment->admin_id] = $payment->admin->name;
 
-                if (count($payment->contract->payments) == 1) {
-                    $adminSumMap[$payment->admin_id] += $payment->amount;
-                } else {
-                    $ok = true;
-                    $minDate = $payment->created_at;
-                    $paymentSum = 0;
-                    foreach ($payment->contract->payments as $coPayment) {
-                        $paymentSum += $coPayment->amount;
-                        if ($coPayment->created_at < $minDate) {
-                            $ok = false;
-                            break;
-                        }
+            if (count($payment->contract->payments) == 1) {
+                $adminSumMap[$payment->admin_id] += $payment->amount;
+            } else {
+                $ok = true;
+                $minDate = $payment->created_at;
+                $paymentSum = 0;
+                foreach ($payment->contract->payments as $coPayment) {
+                    $paymentSum += $coPayment->amount;
+                    if ($coPayment->created_at < $minDate) {
+                        $ok = false;
+                        break;
                     }
-                    if ($ok) {
-                        $adminSumMap[$payment->admin_id] += $paymentSum;
-                    }
+                }
+                if ($ok) {
+                    $adminSumMap[$payment->admin_id] += $paymentSum;
                 }
             }
         }

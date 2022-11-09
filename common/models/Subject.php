@@ -24,6 +24,7 @@ use yii\web\UploadedFile;
  * @property SubjectCategory $subjectCategory
  * @property TeacherSubjectLink[] $subjectTeachers
  * @property Teacher[] $teachers
+ * @property Teacher[] $activeTeachers
  * @property Teacher[] $visibleTeachers
  */
 class Subject extends ActiveRecord
@@ -122,10 +123,15 @@ class Subject extends ActiveRecord
             ->via('subjectTeachers');
     }
 
-    /**
-     * @return ActiveQuery
-     */
-    public function getVisibleTeachers()
+    public function getActiveTeachers(): ActiveQuery
+    {
+        return $this->hasMany(Teacher::class, ['id' => 'teacher_id'])
+            ->andWhere([Teacher::tableName() . '.active' => self::STATUS_ACTIVE])
+            ->orderBy([Teacher::tableName() . '.name' => SORT_ASC])
+            ->via('subjectTeachers');
+    }
+
+    public function getVisibleTeachers(): ActiveQuery
     {
         return $this->hasMany(Teacher::class, ['id' => 'teacher_id'])
             ->andWhere([

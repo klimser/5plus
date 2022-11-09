@@ -103,6 +103,7 @@ class LoginCommand extends UserCommand
                 }
 
                 $trusted = !empty($conversation->notes['trusted']);
+                /** @var User[] $parents */
                 $parents = User::find()
                     ->andWhere(['role' => [User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
@@ -134,19 +135,20 @@ class LoginCommand extends UserCommand
 
                     return $data;
                 }
-                
-                $pupils = User::find()
+
+                /** @var User[] $students */
+                $students = User::find()
                     ->andWhere(['role' => User::ROLE_STUDENT])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
                     ->andWhere('phone = :phone OR phone2 = :phone', ['phone' => $conversation->notes['phone']])
                     ->andWhere(['or', ['tg_chat_id' => null], ['!=', 'tg_chat_id', $message->getChat()->getId()]])
                     ->all();
                 
-                if (count($pupils) === 1) {
-                    return $this->setUserLoggedIn($conversation, $pupils[0], $trusted);
+                if (count($students) === 1) {
+                    return $this->setUserLoggedIn($conversation, $students[0], $trusted);
                 }
                 
-                if (count($pupils) === 0) {
+                if (count($students) === 0) {
                     $conversation->notes['step']--;
                     $conversation->update();
                     
@@ -165,8 +167,8 @@ class LoginCommand extends UserCommand
                 ];
                 if ($trusted) {
                     $buttons = [];
-                    foreach ($pupils as $pupil) {
-                        $buttons[] = $pupil->name;
+                    foreach ($students as $student) {
+                        $buttons[] = $student->name;
                     }
                     $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
                     $keyboard = new Keyboard(...$buttons);
@@ -178,6 +180,7 @@ class LoginCommand extends UserCommand
                 break;
             case 3:
                 $trusted = !empty($conversation->notes['trusted']);
+                /** @var User[] $users */
                 $users = User::find()
                     ->andWhere(['role' => $conversation->notes['role'] == User::ROLE_STUDENT ? User::ROLE_STUDENT : [User::ROLE_PARENTS, User::ROLE_COMPANY]])
                     ->andWhere(['!=', 'status', User::STATUS_LOCKED])
@@ -261,10 +264,7 @@ class LoginCommand extends UserCommand
         }
 
         $user->tg_chat_id = $this->getMessage()->getChat()->getId();
-        $telegramSettings = $user->telegramSettings;
-        $telegramSettings['trusted'] = $trusted;
-        $telegramSettings['subscribe'] = true;
-        $user->telegramSettings = $telegramSettings;
+        $user->telegramSettings = array_merge($user->telegramSettings, ['trusted' => $trusted, 'subscribe' => true]);
         if ($user->save()) {
             return $this->telegram->executeCommand('account');
         } else {

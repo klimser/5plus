@@ -125,7 +125,7 @@ class CourseStudent extends ActiveRecord
         return $this->hasMany(EventMember::class, ['course_student_id' => 'id'])
             ->joinWith('event')
             ->orderBy([Event::tableName() . '.event_date' => SORT_ASC])
-            ->inverseOf('courseStudents');
+            ->inverseOf('courseStudent');
     }
 
     public function getStartDateObject(): DateTimeImmutable

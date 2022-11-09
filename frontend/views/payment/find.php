@@ -13,7 +13,7 @@ $this->params['breadcrumbs'][] = ['url' => Url::to(['webpage', 'id' => $webpage-
 $this->params['breadcrumbs'][] = $user !== null ? $user->name : 'Выбрать студента';
 
 $script = '';
-$getPupilButton = function(User $student, bool $label = false) use (&$script) {
+$getStudentButton = function(User $student, bool $label = false) use (&$script) {
     $script .= "Payment.users[{$student->id}] = {
         name: '{$student->nameHidden}',
         age_confirmed: " . ($student->age_confirmed || ($student->parent_id && $student->parent->age_confirmed) ? 'true' : 'false') . ",
@@ -45,13 +45,13 @@ $getPupilButton = function(User $student, bool $label = false) use (&$script) {
         <div class="row">
             <div id="user_select" class="col-12">
                 <?php if ($user !== null): ?>
-                    <?= $getPupilButton($user, true); ?>
+                    <?= $getStudentButton($user, true); ?>
                 <?php
                     $script .= "Payment.user = {$user->id};
                         Payment.renderCourseSelect();\n";
                 else:
                     foreach ($users as $user): ?>
-                        <?= $getPupilButton($user); ?>
+                        <?= $getStudentButton($user); ?>
                     <?php endforeach;
                 endif; ?>
             </div>

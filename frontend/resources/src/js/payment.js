@@ -82,8 +82,8 @@ let Payment = {
             type: 'post',
             dataType: 'json',
             data: {
-                pupil: $("#student").data("val"),
-                group: $("#course").data("val"),
+                student: $("#student").data("val"),
+                course: $("#course").data("val"),
                 amount: $("#amount").val(),
                 method: $(button).data("payment")
             },

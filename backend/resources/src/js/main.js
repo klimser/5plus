@@ -191,6 +191,11 @@ let Main = {
                         if (listFlushed) {
                             Main.courseList.push(course.id);
                         }
+                        for (let i = 0; i < course.scheduleList.length; ++i) {
+                            if (null !== course.scheduleList[i].to) {
+                                course.scheduleList[i].to = new Date(course.scheduleList[i].to + ' 00:00:00');
+                            }
+                        }
                         Main.courseMap[course.id] = course;
                     });
                     defer.resolve(listFlushed ? Main.courseList : Main.courseActiveList);

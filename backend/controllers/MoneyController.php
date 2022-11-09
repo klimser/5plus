@@ -2,14 +2,16 @@
 
 namespace backend\controllers;
 
-use backend\components\report\PupilReport;
+use backend\components\report\StudentReport;
 use backend\components\SalaryComponent;
+use backend\models\Event;
+use common\components\CourseComponent;
 use common\components\MoneyComponent;
 use backend\models\ActionSearch;
 use common\models\Company;
 use common\models\Contract;
+use common\models\CourseConfig;
 use common\models\GiftCard;
-use common\models\GroupParam;
 use common\models\CourseStudent;
 use common\components\Action;
 use common\models\Debt;
@@ -18,6 +20,7 @@ use common\models\Course;
 use common\models\Payment;
 use common\models\PaymentSearch;
 use common\models\User;
+use DateTimeImmutable;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use yii;
 use yii\web\ForbiddenHttpException;
@@ -28,27 +31,6 @@ use yii\web\Response;
  */
 class MoneyController extends AdminController
 {
-    /**
-     * Register money income
-     * @return mixed
-     * @throws ForbiddenHttpException
-     */
-    public function actionIncome()
-    {
-        $this->checkAccess('root');
-
-        $params = [
-            'companies' => Company::find()->orderBy(['second_name' => SORT_ASC])->all(),
-            'groups' => Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy('name')->with('teacher')->all(),
-        ];
-        $userId = Yii::$app->request->get('user');
-        if ($userId) {
-            $user = User::findOne($userId);
-            if ($user) $params['user'] = $user;
-        }
-        return $this->render('income', $params);
-    }
-
     /**
      * @return mixed
      * @throws ForbiddenHttpException
@@ -105,13 +87,13 @@ class MoneyController extends AdminController
         $contract = Contract::findOne($contractId);
         if (!$contract) return self::getJsonErrorResult('Договор не найден');
         
-        $pupilStartDate = null;
-        if (!$contract->activeGroupPupil) {
-            $pupilStartDate = new \DateTime(Yii::$app->request->post('contractPupilDateStart', 'now'));
+        $studentStartDate = null;
+        if (!$contract->activeCourseStudent) {
+            $studentStartDate = new DateTimeImmutable(Yii::$app->request->post('contractStudentDateStart', 'now'));
         }
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            $paymentId = MoneyComponent::payContract($contract, $pupilStartDate, Contract::PAYMENT_TYPE_MANUAL);
+            $paymentId = MoneyComponent::payContract($contract, $studentStartDate, Contract::PAYMENT_TYPE_MANUAL);
             $transaction->commit();
             return self::getJsonOkResult(['paymentId' => $paymentId]);
         } catch (\Throwable $ex) {
@@ -141,39 +123,39 @@ class MoneyController extends AdminController
 
         $formData = Yii::$app->request->post();
         $personType = Yii::$app->request->post('person_type', User::ROLE_PARENTS);
-        $pupil = null;
-        if (isset($formData['pupil']['id'])) {
-            $pupil = User::findOne(['role' => User::ROLE_STUDENT, 'id' => $formData['pupil']['id']]);
+        $student = null;
+        if (isset($formData['student']['id'])) {
+            $student = User::findOne(['role' => User::ROLE_STUDENT, 'id' => $formData['student']['id']]);
         }
-        if (!$pupil) {
-            $pupil = new User(['scenario' => User::SCENARIO_USER]);
-            $pupil->role = User::ROLE_STUDENT;
-            $pupil->individual = $personType === User::ROLE_PARENTS ? 1 : 0;
-            $pupil->load($formData, 'pupil');
-            if (!$pupil->save()) return self::getJsonErrorResult($pupil->getErrorsAsString());
+        if (!$student) {
+            $student = new User(['scenario' => User::SCENARIO_USER]);
+            $student->role = User::ROLE_STUDENT;
+            $student->individual = $personType === User::ROLE_PARENTS ? 1 : 0;
+            $student->load($formData, 'student');
+            if (!$student->save()) return self::getJsonErrorResult($student->getErrorsAsString());
         }
-        if (!$pupil->parent_id) {
+        if (!$student->parent_id) {
             if ($formData['parents']['name'] && $formData['parents']['phoneFormatted']) {
                 $parent = new User(['scenario' => User::SCENARIO_USER]);
                 $parent->role = $personType;
                 $parent->load($formData, 'parents');
                 if (!$parent->save()) return self::getJsonErrorResult($parent->getErrorsAsString());
-                $pupil->link('parent', $parent);
+                $student->link('parent', $parent);
             }
         }
 
-        $groupPupil = null;
-        if ($formData['group']['existing']) {
-            /** @var CourseStudent $groupPupil */
-            $groupPupil = CourseStudent::findOne(['group_id' => $formData['group']['existing'], 'active' => CourseStudent::STATUS_ACTIVE, 'user_id' => $pupil->id]);
-            if (!$groupPupil) return self::getJsonErrorResult('Группа не найдена');
-            $group = $groupPupil->group;
+        $courseStudent = null;
+        if ($formData['course']['existing']) {
+            /** @var CourseStudent $courseStudent */
+            $courseStudent = CourseStudent::findOne(['course_id' => $formData['course']['existing'], 'active' => CourseStudent::STATUS_ACTIVE, 'user_id' => $student->id]);
+            if (!$courseStudent) return self::getJsonErrorResult('Группа не найдена');
+            $course = $courseStudent->course;
         } else {
-            /** @var Course $group */
-            $group = Course::findOne(['id' => $formData['group']['id'], 'active' => Course::STATUS_ACTIVE]);
-            if (!$group) return self::getJsonErrorResult('Группа не найдена');
+            /** @var Course $course */
+            $course = Course::findOne(['id' => $formData['course']['id'], 'active' => Course::STATUS_ACTIVE]);
+            if (!$course) return self::getJsonErrorResult('Группа не найдена');
 
-            $startDate = new \DateTime($formData['group']['date']);
+            $startDate = new DateTimeImmutable($formData['course']['date']);
             if (!$startDate) return self::getJsonErrorResult('Неверная дата начала занятий');
         }
 
@@ -181,9 +163,9 @@ class MoneyController extends AdminController
         try {
             $contract = MoneyComponent::addStudentContract(
                 Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
-                $pupil,
+                $student,
                 $giftCard->amount,
-                $group
+                $course
             );
 
             $paymentId = MoneyComponent::payContract($contract, $startDate ?? new \DateTime(), Contract::PAYMENT_TYPE_MANUAL);
@@ -219,16 +201,16 @@ class MoneyController extends AdminController
         $debtorMap = [null => 'Все'];
         foreach ($debtors as $debtor) $debtorMap[$debtor->id] = $debtor->name;
 
-        /** @var Course[] $groups */
-        $groups = Course::find()->orderBy('name')->all();
-        $groupMap = [null => 'Все'];
-        foreach ($groups as $group) $groupMap[$group->id] = $group->name;
+        /** @var Course[] $courses */
+        $courses = Course::find()->all();
+        $courseMap = [null => 'Все'];
+        foreach ($courses as $course) $courseMap[$course->id] = $course->courseConfig->name;
 
         return $this->render('debt', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
             'debtorMap' => $debtorMap,
-            'groupMap' => $groupMap,
+            'courseMap' => $courseMap,
             'canCorrect' => Yii::$app->user->can('moneyCorrection'),
         ]);
     }
@@ -245,16 +227,16 @@ class MoneyController extends AdminController
         $adminMap = [null => 'Все', '-1' => 'Online оплата'];
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
-        /** @var Course[] $groups */
-        $groups = Course::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
-        $groupMap = [null => 'Все'];
-        foreach ($groups as $group) $groupMap[$group->id] = $group->name;
+        /** @var Course[] $courses */
+        $courses = Course::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
+        $courseMap = [null => 'Все'];
+        foreach ($courses as $course) $courseMap[$course->id] = $course->courseConfig->name;
 
         return $this->render('payment', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
             'adminMap' => $adminMap,
-            'groupMap' => $groupMap,
+            'courseMap' => $courseMap,
         ]);
     }
 
@@ -270,10 +252,10 @@ class MoneyController extends AdminController
         $adminMap = [null => 'Все'];
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
-        /** @var Course[] $groups */
-        $groups = Course::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
-        $groupMap = [null => 'Все'];
-        foreach ($groups as $group) $groupMap[$group->id] = $group->name;
+        /** @var Course[] $courses */
+        $courses = Course::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
+        $courseMap = [null => 'Все'];
+        foreach ($courses as $course) $courseMap[$course->id] = $course->courseConfig->name;
 
         $typeMap = [null => 'Все'];
         foreach (Action::TYPE_LABELS as $key => $value) $typeMap[$key] = $value;
@@ -282,15 +264,13 @@ class MoneyController extends AdminController
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
             'adminMap' => $adminMap,
-            'groupMap' => $groupMap,
+            'courseMap' => $courseMap,
             'typeMap' => $typeMap,
         ]);
     }
 
     /**
      * Monitor teachers' salary.
-     * @param int $year
-     * @param int $month
      * @return mixed
      * @throws ForbiddenHttpException
      */
@@ -298,50 +278,81 @@ class MoneyController extends AdminController
     {
         $this->checkAccess('viewSalary');
 
-//        if (!$year) $year = intval(date('Y'));
-//        if (!$month) $month = intval(date('n'));
-//
-//        /** @var GroupParam[] $groupParams */
-//        $groupParams = GroupParam::find()
-//            ->andWhere(['year' => $year, 'month' => $month])
-//            ->andWhere(['>', 'teacher_salary', 0])
-//            ->with(['teacher', 'group'])
-//            ->orderBy([GroupParam::tableName() . '.teacher_id' => SORT_ASC])->all();
-//        $salaryMap = [];
-//        foreach ($groupParams as $groupParam) {
-//            if (!array_key_exists($groupParam->teacher_id, $salaryMap)) $salaryMap[$groupParam->teacher_id] = [];
-//            $salaryMap[$groupParam->teacher_id][] = [
-//                'teacher' => $groupParam->teacher->name,
-//                'group_id' => $groupParam->group_id,
-//                'group' => $groupParam->group->name,
-//                'amount' => $groupParam->teacher_salary
-//            ];
-//        }
+        if (!$year) $year = intval(date('Y'));
+        if (!$month) $month = intval(date('n'));
 
-        // TODO salary
+        $dateFrom = new DateTimeImmutable("$year-$month-01 midnight");
+        $dateTo = $dateFrom->modify('+1 month');
+
+        /** @var CourseConfig[] $courseConfigs */
+        $courseConfigs = CourseConfig::find()
+            ->alias('cc')
+            ->andWhere(['<', 'date_from', $dateTo->format('Y-m-d H:i:s')])
+            ->andWhere(['or', ['date_to' => null], ['>', 'date_to', $dateFrom->format('Y-m-d H:i:s')]])
+            ->with(['teacher', 'course'])
+            ->orderBy(['cc.teacher_id' => SORT_ASC])->all();
+        $salaryMap = [];
+        foreach ($courseConfigs as $courseConfig) {
+            if (!array_key_exists($courseConfig->course_id, $salaryMap[$courseConfig->teacher_id])) {
+                $salaryMap[$courseConfig->teacher_id][$courseConfig->course_id] = [
+                    'teacher' => $courseConfig->teacher->name,
+                    'course' => $courseConfig->name,
+                    'amount' => 0
+                ];
+            }
+            /** @var DateTimeImmutable $eventDateFrom */
+            $eventDateFrom = max($dateFrom, $courseConfig->dateFromObject);
+            /** @var DateTimeImmutable $eventDateTo */
+            $eventDateTo = (null === $courseConfig->dateToObject) ? $dateTo : min($dateTo, $courseConfig->dateToObject);
+
+            if (null !== $courseConfig->teacher_rate) {
+                $paymentSum = Payment::find()
+                    ->andWhere(['between', 'created_at', $eventDateFrom->format('Y-m-d H:i:s'), $eventDateTo->format('Y-m-d H:i:s')])
+                    ->andWhere(['course_id' => $courseConfig->course_id])
+                    ->andWhere('amount < 0')
+                    ->andWhere('used_payment_id IS NOT NULL')
+                    ->select('SUM(amount)')
+                    ->scalar();
+                $salary = round($paymentSum * (-1) * $courseConfig->teacher_rate / 100);
+            } else {
+                $eventPassed = Event::find()
+                    ->andWhere(['between', 'event_date', $eventDateFrom->format('Y-m-d H:i:s'), $eventDateTo->format('Y-m-d H:i:s')])
+                    ->andWhere(['course_id' => $courseConfig->course_id])
+                    ->andWhere(['status' => Event::STATUS_PASSED])
+                    ->select('COUNT(id)')
+                    ->scalar();
+                $salary = round($eventPassed * $courseConfig->teacher_lesson_pay);
+            }
+
+            $salaryMap[$courseConfig->teacher_id][$courseConfig->course_id]['amount'] += $salary;
+        }
+
         return $this->render('salary', [
-            'date' => new \DateTimeImmutable("$year-$month-01 midnight"),
+            'date' => $dateFrom,
+            'salaryMap' => $salaryMap,
         ]);
     }
 
     /**
      * @param int $year
      * @param int $month
-     * @param int $group
+     * @param int $course
+     *
      * @return Response
      * @throws ForbiddenHttpException
      * @throws yii\web\NotFoundHttpException
      */
-    public function actionSalaryDetails(int $year, int $month, int $group = 0)
+    public function actionSalaryDetails(int $year, int $month, int $course = 0)
     {
         $this->checkAccess('viewSalary');
 
-        $date = new \DateTime("$year-$month-01 midnight");
-        if ($group) {
-            $group = Course::findOne($group);
-            if (!$group) throw new yii\web\NotFoundHttpException('Group not found');
+        $date = new DateTimeImmutable("$year-$month-01 midnight");
+        if ($course) {
+            $course = Course::findOne($course);
+            $courseConfig = CourseComponent::getCourseConfig($course, $date);
+            if (!$course) throw new yii\web\NotFoundHttpException('Course not found');
             try {
-                $spreadsheet = SalaryComponent::getGroupSalarySpreadsheet($group, $date);
+                $spreadsheet = SalaryComponent::getCourseSalarySpreadsheet($course, $date);
             } catch (\Throwable $exception) {
                 throw new yii\web\NotFoundHttpException($exception->getMessage(), $exception->getCode(), $exception);
             }
@@ -364,34 +375,35 @@ class MoneyController extends AdminController
         $objWriter->save('php://output');
         return Yii::$app->response->sendContentAsFile(
             ob_get_clean(),
-            ($group ? $group->name . ' ' : '') . "$month-$year.xlsx",
+            ($courseConfig ? $courseConfig->name . ' ' : '') . "$month-$year.xlsx",
             ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         );
     }
 
     /**
      * @param int $userId
-     * @param int $groupId
+     * @param int $courseId
+     *
      * @return Response
      * @throws yii\web\BadRequestHttpException
      */
-    public function actionPupilReport(int $userId, int $groupId)
+    public function actionStudentReport(int $userId, int $courseId)
     {
-        $pupil = User::findOne($userId);
-        $group = Course::findOne($groupId);
+        $student = User::findOne($userId);
+        $course = Course::findOne($courseId);
 
-        if (!$pupil || $pupil->role != User::ROLE_STUDENT) throw new yii\web\BadRequestHttpException('Pupil not found');
-        if (!$group) throw new yii\web\BadRequestHttpException('Group not found');
+        if (!$student || $student->role != User::ROLE_STUDENT) throw new yii\web\BadRequestHttpException('Student not found');
+        if (!$course) throw new yii\web\BadRequestHttpException('Course not found');
 
-        $groupPupil = CourseStudent::find()->andWhere(['user_id' => $pupil->id, 'group_id' => $group->id, 'active' => CourseStudent::STATUS_ACTIVE])->one();
-        if (!$groupPupil) throw new yii\web\BadRequestHttpException('Wrong pupil and group selection');
+        $courseStudent = CourseStudent::find()->andWhere(['user_id' => $student->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])->one();
+        if (!$courseStudent) throw new yii\web\BadRequestHttpException('Wrong student and course selection');
 
         ob_start();
-        $objWriter = IOFactory::createWriter(PupilReport::create($pupil, $group), 'Xlsx');
+        $objWriter = IOFactory::createWriter(StudentReport::create($student, $course), 'Xlsx');
         $objWriter->save('php://output');
         return Yii::$app->response->sendContentAsFile(
             ob_get_clean(),
-            "$pupil->name $group->name.xlsx",
+            "$student->name {$course->courseConfig->name}.xlsx",
             ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         );
     }

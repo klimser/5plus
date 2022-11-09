@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?php if ($isRoot): ?>
-            <?= Html::a('Добавить студента', ['create-pupil'], ['class' => 'btn btn-success']) ?>
+            <?= Html::a('Добавить студента', ['create-student'], ['class' => 'btn btn-success']) ?>
         <?php endif; ?>
         <?= Html::a('Добавить учителя', ['create-teacher'], ['class' => 'btn btn-success float-right']) ?>
         <?php if ($canManageEmployees): ?>

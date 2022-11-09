@@ -33,7 +33,7 @@ use yii\web\IdentityInterface;
  * @property int $parent_id
  * @property int $teacher_id
  * @property int $tg_chat_id
- * @property-read string $tg_params
+ * @property-read array $tg_params
  * @property array           $telegramSettings
  * @property int             $age_confirmed
  * @property int             $created_by
@@ -340,9 +340,6 @@ class User extends ActiveRecord implements IdentityInterface
         $result = [];
         /** @var CourseStudent $courseStudent */
         foreach ($this->getCourseStudents()->orderBy(['date_start' => SORT_DESC])->with('course')->all() as $courseStudent) {
-            if (!array_key_exists($courseStudent->course_id, $result)) {
-                $result[$courseStudent->course_id] = [];
-            }
             $result[$courseStudent->course_id][] = $courseStudent;
         }
 
@@ -534,5 +531,15 @@ class User extends ActiveRecord implements IdentityInterface
         $user = self::findOne($userId);
 
         return $user?->name;
+    }
+
+    public function getTelegramSettings(): array
+    {
+        return $this->tg_params ?? [];
+    }
+
+    public function setTelegramSettings(array $telegramSettings): void
+    {
+        $this->tg_params = $telegramSettings;
     }
 }

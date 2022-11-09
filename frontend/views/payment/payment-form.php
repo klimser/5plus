@@ -12,7 +12,7 @@ $this->params['breadcrumbs'][] = ['url' => Url::to(['webpage', 'id' => $webpage-
 $this->params['breadcrumbs'][] = $user->nameHidden;
 
 $script = '';
-$getPupilButton = function(User $student, bool $label = false) use (&$script) {
+$getStudentButton = function(User $student, bool $label = false) use (&$script) {
     $script .= "Payment.users[{$student->id}] = {
         name: '{$student->nameHidden}',
         courses: []
@@ -43,19 +43,19 @@ $getPupilButton = function(User $student, bool $label = false) use (&$script) {
         <div class="row">
             <div id="user_select" class="col-12">
                 <?php if (User::ROLE_STUDENT === $user->role): ?>
-                    <?= $getPupilButton($user, true); ?>
+                    <?= $getStudentButton($user, true); ?>
                 <?php
                     $script .= "Payment.user = {$user->id};
                         Payment.renderCourseSelect();\n";
                 elseif (1 === count($user->children)):
                     $student = $user->children[0]; ?>
-                    <?= $getPupilButton($student, true); ?>
+                    <?= $getStudentButton($student, true); ?>
                     <?php
                     $script .= "Payment.user = {$student->id};
                         Payment.renderCourseSelect();\n";
                 else:
-                    foreach ($user->children as $pupil): ?>
-                        <?= $getPupilButton($pupil); ?>
+                    foreach ($user->children as $student): ?>
+                        <?= $getStudentButton($student); ?>
                     <?php endforeach;
                 endif; ?>
             </div>

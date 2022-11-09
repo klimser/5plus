@@ -33,7 +33,7 @@ class UserRoleRule extends Rule
                 return $role == User::ROLE_MANAGER || $role == User::ROLE_ROOT;
             } elseif ($item->name === 'parents') {
                 return $role == User::ROLE_PARENTS || $role == User::ROLE_COMPANY || $role == User::ROLE_MANAGER || $role == User::ROLE_ROOT;
-            } elseif ($item->name === 'pupil') {
+            } elseif ($item->name === 'student') {
                 return $role == User::ROLE_STUDENT || $role == User::ROLE_PARENTS || $role == User::ROLE_COMPANY || $role == User::ROLE_MANAGER || $role == User::ROLE_ROOT;
             }
         }

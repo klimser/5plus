@@ -2,7 +2,7 @@
 /* @var $contract \common\models\Contract */
 /* @var $this yii\web\View */
 
-$perWeek = $contract->groupParam->classesPerWeek;
+$perWeek = $contract->courseConfig->classesPerWeek;
 
 use yii\helpers\Url; ?>
 
@@ -41,7 +41,7 @@ use yii\helpers\Url; ?>
             <td><?= $contract->course->subject->name; ?></td>
             <td class="text-center"><?= number_format($contract->amount, 0, '.', ' '); ?></td>
             <td class="text-center"><?= number_format($contract->monthCount, 2, '.', ''); ?></td>
-            <td class="text-center"><?= $contract->course->lesson_duration; ?></td>
+            <td class="text-center"><?= $contract->courseConfig->lesson_duration; ?></td>
             <td>
                 Периодичность проведения занятий: <?= $perWeek; ?> раз<?= $perWeek > 1 ? 'а' : ''; ?> в неделю. Занятия проводятся с понедельника по субботу согласно утвержденному учебному расписанию.
             </td>

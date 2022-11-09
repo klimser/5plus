@@ -13,9 +13,11 @@ use backend\components\report\WelcomeLessonReport;
 use backend\models\Event;
 use backend\models\TeacherSubjectLink;
 use common\models\Course;
+use common\models\CourseConfig;
 use common\models\GroupParam;
 use common\models\Subject;
 use common\models\Teacher;
+use DateTimeImmutable;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
 use Yii;
@@ -77,21 +79,19 @@ class ReportController extends AdminController
         if (Yii::$app->request->isPost) {
             [$month, $year] = explode('.', Yii::$app->request->post('date', ''));
             if ($month && $year) {
-                $startDate = new \DateTime("$year-$month-01");
-                $endDate = clone $startDate;
-                $endDate->modify('last day of this month');
+                $startDate = new DateTimeImmutable("$year-$month-01 midnight");
+                $endDate = $startDate->modify('first day of next month midnight');
 
-                $groupId = Yii::$app->request->post('group');
-                if ($groupId == 'all') {
+                $courseId = Yii::$app->request->post('course');
+                if ($courseId == 'all') {
                     $this->checkAccess('reportMoneyTotal');
 
-                    $spreadsheet = MoneyReport::createAll($startDate, $endDate);
+                    $spreadsheet = MoneyReport::createForAllCourses($startDate, $endDate);
                 } else {
-                    [$devNull, $groupId] = explode('_', $groupId);
-                    $group = Course::findOne($groupId);
-                    if (!$group) throw new NotFoundHttpException('Invalid group!');
+                    $course = Course::findOne($courseId);
+                    if (!$course) throw new NotFoundHttpException('Invalid course!');
 
-                    $spreadsheet = MoneyReport::createGroup($group, $startDate, $endDate);
+                    $spreadsheet = MoneyReport::createForOneCourse($course, $startDate, $endDate);
                 }
 
                 ob_start();
@@ -106,7 +106,7 @@ class ReportController extends AdminController
         }
 
         return $this->render('money', [
-            'groups' => Course::find()->orderBy('name')->all(),
+            'courses' => Course::find()->orderBy('name')->all(),
             'allowedTotal' => Yii::$app->user->can('reportMoneyTotal')
         ]);
     }
@@ -116,7 +116,7 @@ class ReportController extends AdminController
         $this->checkAccess('reportCash');
 
         if (Yii::$app->request->isPost) {
-            $date = new \DateTimeImmutable(Yii::$app->request->post('date', 'now'));
+            $date = new DateTimeImmutable(Yii::$app->request->post('date', 'now'));
             if (!$date) throw new NotFoundHttpException('Wrong date');
 
             ob_start();
@@ -157,7 +157,7 @@ class ReportController extends AdminController
         $this->checkAccess('reportMoney');
 
         if (Yii::$app->request->isPost) {
-            $date = new \DateTimeImmutable(Yii::$app->request->post('date', 'now'));
+            $date = new DateTimeImmutable(Yii::$app->request->post('date', 'now'));
             if (!$date) throw new NotFoundHttpException('Wrong date');
 
             ob_start();
@@ -187,36 +187,33 @@ class ReportController extends AdminController
             $allTeachers = Yii::$app->request->post('all');
             $allSubjects = Yii::$app->request->post('one-teacher');
             if ($month && $year) {
-                $startDate = new \DateTimeImmutable("$year-$month-01 midnight");
+                $startDate = new DateTimeImmutable("$year-$month-01 midnight");
                 $endDate = $startDate->modify('last day of this month')->modify('+1 day midnight');
                 
                 $generatePage = function(TeacherSubjectLink $subjectTeacher, ?PhpWord $doc = null) use ($startDate, $endDate): PhpWord {
-                    $groupIds = GroupParam::find()
-                        ->alias('gp')
-                        ->joinWith('group g')
-                        ->andWhere([
-                            'gp.year' => $startDate->format('Y'),
-                            'gp.month' => $startDate->format('n'),
-                            'gp.teacher_id' => $subjectTeacher->teacher_id,
-                            'g.subject_id' => $subjectTeacher->subject_id,
-                        ])
-                        ->select('gp.group_id')
+                    $courseIds = Course::find()
+                        ->andWhere(['<', 'date_start', $endDate->format('Y-m-d H:i:s')])
+                        ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $startDate->format('Y-m-d H:i:s')]])
+                        ->andWhere(['subject_id' => $subjectTeacher->subject_id])
+                        ->select('course_id')
                         ->asArray()
                         ->column();
 
                     $eventData = Event::find()
-                        ->andWhere(['between', 'event_date', $startDate->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
-                        ->andWhere(['group_id' => $groupIds])
-                        ->andWhere(['status' => Event::STATUS_PASSED])
-                        ->select(['group_id', 'COUNT(id) AS cnt'])
-                        ->groupBy('group_id')
+                        ->alias('e')
+                        ->joinWith('courseConfig cc')
+                        ->andWhere(['between', 'e.event_date', $startDate->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
+                        ->andWhere(['cc.teacher_id' => $subjectTeacher->teacher_id])
+                        ->andWhere(['e.status' => Event::STATUS_PASSED])
+                        ->andWhere(['e.course_id' => $courseIds])
+                        ->select(['course_id', 'SUM(cc.lesson_duration) as duration', 'COUNT(id) AS cnt'])
+                        ->groupBy('course_id')
                         ->asArray()
                         ->all();
 
                     $totalHours = 0;
                     foreach ($eventData as $data) {
-                        $group = Course::findOne($data['group_id']);
-                        $totalHours += floor($group->lesson_duration * $data['cnt'] / 40);
+                        $totalHours += floor($data['duration'] * $data['cnt'] / 40);
                     }
 
                     return TeacherTimeReport::create($subjectTeacher, $startDate, $totalHours, $doc);
@@ -224,16 +221,14 @@ class ReportController extends AdminController
                 
                 switch (true) {
                     case $allTeachers:
-                        $data = GroupParam::find()
-                            ->alias('gp')
-                            ->joinWith('group g', false)
-                            ->andWhere([
-                                'gp.year' => $startDate->format('Y'),
-                                'gp.month' => $startDate->format('n'),
-                            ])
-                            ->select(['gp.teacher_id', 'g.subject_id'])
+                        $data = CourseConfig::find()
+                            ->alias('cc')
+                            ->joinWith('course c', false)
+                            ->andWhere(['<', 'cc.date_from', $endDate->format('Y-m-d')])
+                            ->andWhere(['or', ['cc.date_to' => null], ['>', 'date_to', $startDate->format('Y-m-d')]])
+                            ->select(['cc.teacher_id', 'c.subject_id'])
                             ->distinct()
-                            ->orderBy(['gp.teacher_id' => SORT_ASC, 'g.subject_id' => SORT_ASC])
+                            ->orderBy(['cc.teacher_id' => SORT_ASC, 'c.subject_id' => SORT_ASC])
                             ->asArray()
                             ->all();
                         $doc = null;
@@ -285,7 +280,7 @@ class ReportController extends AdminController
         if (Yii::$app->request->isPost) {
             [$month, $year] = explode('.', Yii::$app->request->post('date', ''));
             if ($month && $year) {
-                $startDate = new \DateTimeImmutable("$year-$month-01");
+                $startDate = new DateTimeImmutable("$year-$month-01");
                 $endDate = $startDate->modify('last day of this month');
 
                 ob_start();

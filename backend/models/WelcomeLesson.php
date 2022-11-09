@@ -4,6 +4,7 @@ namespace backend\models;
 
 use common\components\extended\ActiveRecord;
 use common\models\Course;
+use common\models\CourseConfig;
 use common\models\traits\Inserted;
 use common\models\User;
 use DateTime;
@@ -28,6 +29,7 @@ use yii\db\ActiveQuery;
  * @property int         $created_by
  * @property-read User   $user
  * @property-read Course $course
+ * @property CourseConfig      $courseConfig
  * @property DateTimeImmutable $lessonDateTime
  * @property-read string $lessonDateString
  * @property User        $createdAdmin
@@ -146,6 +148,12 @@ class WelcomeLesson extends ActiveRecord
     public function getCourse(): ActiveQuery
     {
         return $this->hasOne(Course::class, ['id' => 'course_id']);
+    }
+
+    public function getCourseConfig(): ActiveQuery
+    {
+        return $this->hasOne(CourseConfig::class, ['course_id' => 'course_id'])
+            ->andWhere(['and', 'date_from <= :lesson_date', ['or', 'date_to IS NULL', 'date_to > :lesson_date']], ['lesson_date' => $this->lesson_date]);
     }
 
     public function getLessonDateTime(): ?DateTimeImmutable

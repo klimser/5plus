@@ -17,7 +17,7 @@ use yii\web\View;
 /* @var $dataProvider ActiveDataProvider */
 /* @var $searchModel ActionSearch */
 /* @var $adminMap string[] */
-/* @var $groupMap string[] */
+/* @var $courseMap string[] */
 /* @var $typeMap string[] */
 
 $this->title = 'Действия';
@@ -86,12 +86,12 @@ $renderTable = function(array $arr)
             [
                 'attribute' => 'course_id',
                 'content' => function (\backend\models\Action $model, $key, $index, $column) {
-                    return $model->course_id ? $model->course->courseConfig->name : null;
+                    return $model->course_id ? $model->courseConfig->name : null;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'course_id',
-                    $groupMap,
+                    $courseMap,
                     ['class' => 'form-control']
                 ),
 

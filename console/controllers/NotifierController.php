@@ -56,27 +56,27 @@ class NotifierController extends Controller
             if ($tryTelegram && $toSend->user->tg_chat_id && $toSend->user->telegramSettings['subscribe']) {
                 $message = null;
                 switch ($toSend->template_id) {
-                    case Notify::TEMPLATE_PUPIL_DEBT:
-                        $message = 'У вас задолженность в группе *' . Entity::escapeMarkdownV2($toSend->course->legal_name) . '*'
+                    case Notify::TEMPLATE_STUDENT_DEBT:
+                        $message = 'У вас задолженность в группе *' . Entity::escapeMarkdownV2($toSend->course->courseConfig->legal_name) . '*'
                             . Entity::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->course_id)->url . ')';
                         break;
-                    case Notify::TEMPLATE_PUPIL_LOW:
-                        $message = 'В группе *' . Entity::escapeMarkdownV2($toSend->course->legal_name) . '*'
+                    case Notify::TEMPLATE_STUDENT_LOW:
+                        $message = 'В группе *' . Entity::escapeMarkdownV2($toSend->course->courseConfig->legal_name) . '*'
                             . Entity::escapeMarkdownV2(" у вас осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($toSend->user_id, $toSend->course_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PARENT_DEBT:
                         $child = User::findOne($toSend->parameters['child_id']);
                         $message = 'У студента ' . Entity::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
-                            . ' задолженность в группе *' . Entity::escapeMarkdownV2($toSend->course->legal_name) . '*'
+                            . ' задолженность в группе *' . Entity::escapeMarkdownV2($toSend->course->courseConfig->legal_name) . '*'
                             . Entity::escapeMarkdownV2(" - {$toSend->parameters['debt']} " . WordForm::getLessonsForm($toSend->parameters['debt']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url . ')';
                         break;
                     case Notify::TEMPLATE_PARENT_LOW:
                         $child = User::findOne($toSend->parameters['child_id']);
                         $message = 'У студента ' . Entity::escapeMarkdownV2($toSend->user->telegramSettings['trusted'] ? $child->name : $child->nameHidden)
-                            . ' в группе *' . Entity::escapeMarkdownV2($toSend->course->legal_name) . '*'
+                            . ' в группе *' . Entity::escapeMarkdownV2($toSend->course->courseConfig->legal_name) . '*'
                             . Entity::escapeMarkdownV2(" осталось {$toSend->parameters['paid_lessons']} " . WordForm::getLessonsForm($toSend->parameters['paid_lessons']) . '.')
                             . ' [' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url . ')';
                         break;
@@ -105,18 +105,18 @@ class NotifierController extends Controller
                 try {
                     $smsText = '';
                     switch ($toSend->template_id) {
-                        case Notify::TEMPLATE_PUPIL_DEBT:
+                        case Notify::TEMPLATE_STUDENT_DEBT:
                             $smsText = sprintf(
                                 'U vas zadolzhennost v gruppe "%s" - %s. Oplata online - %s',
-                                TranslitComponent::text($toSend->course->legal_name),
+                                TranslitComponent::text($toSend->course->courseConfig->legal_name),
                                 $toSend->parameters['debt'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['debt'])),
                                 PaymentComponent::getPaymentLink($toSend->user_id, $toSend->course_id)->url
                             );
                             break;
-                        case Notify::TEMPLATE_PUPIL_LOW:
+                        case Notify::TEMPLATE_STUDENT_LOW:
                             $smsText = sprintf(
                                 'V gruppe "%s" u vas ostalos %s. Oplata online - %s',
-                                TranslitComponent::text($toSend->course->legal_name),
+                                TranslitComponent::text($toSend->course->courseConfig->legal_name),
                                 $toSend->parameters['paid_lessons'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['paid_lessons'])),
                                 PaymentComponent::getPaymentLink($toSend->user_id, $toSend->course_id)->url
                             );
@@ -126,7 +126,7 @@ class NotifierController extends Controller
                             $smsText = sprintf(
                                 'U studenta %s zadolzhennost v gruppe "%s" - %s. Oplata online - %s',
                                 TranslitComponent::text($child->name),
-                                TranslitComponent::text($toSend->course->legal_name),
+                                TranslitComponent::text($toSend->course->courseConfig->legal_name),
                                 $toSend->parameters['debt'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['debt'])),
                                 PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url
                             );
@@ -136,7 +136,7 @@ class NotifierController extends Controller
                             $smsText = sprintf(
                             'U studenta %s v gruppe "%s" ostalos %s. Oplata online - %s',
                                 TranslitComponent::text($child->name),
-                                TranslitComponent::text($toSend->course->legal_name),
+                                TranslitComponent::text($toSend->course->courseConfig->legal_name),
                                 $toSend->parameters['paid_lessons'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['paid_lessons'])),
                                 PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url
                             );
@@ -185,13 +185,13 @@ class NotifierController extends Controller
             /*----------------------  TEMPLATE ID 1 ---------------------------*/
             /** @var Notify $queuedNotification */
             $queuedNotification = Notify::find()
-                ->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id, 'template_id' => Notify::TEMPLATE_PUPIL_DEBT])
+                ->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id, 'template_id' => Notify::TEMPLATE_STUDENT_DEBT])
                 ->andWhere(['!=', 'status', Notify::STATUS_SENT])
                 ->one();
             if (!$queuedNotification) {
                 /** @var Notify[] $sentNotifications */
                 $sentNotifications = Notify::find()
-                    ->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id, 'template_id' => Notify::TEMPLATE_PUPIL_DEBT])
+                    ->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseStudent->course_id, 'template_id' => Notify::TEMPLATE_STUDENT_DEBT])
                     ->andWhere(['status' => Notify::STATUS_SENT])
                     ->andWhere(['>', 'sent_at', $monthLimit->format('Y-m-d H:i:s')])
                     ->orderBy(['sent_at' => SORT_DESC])
@@ -210,7 +210,7 @@ class NotifierController extends Controller
                         ->scalar();
                     ComponentContainer::getNotifyQueue()->add(
                         $courseStudent->user,
-                        Notify::TEMPLATE_PUPIL_DEBT,
+                        Notify::TEMPLATE_STUDENT_DEBT,
                         ['debt' => abs($lessonDebt)],
                         $courseStudent->course
                     );
@@ -261,7 +261,7 @@ class NotifierController extends Controller
                             $parent,
                             Notify::TEMPLATE_PARENT_DEBT,
                             ['debt' => abs($lessonDebt), 'child_id' => $courseStudent->user_id],
-                            $courseStudent->group
+                            $courseStudent->course
                         );
                     }
                 }
@@ -290,7 +290,7 @@ class NotifierController extends Controller
                 ->andWhere([
                     'user_id' => $courseStudent->user_id,
                     'course_id' => $courseStudent->course_id,
-                    'template_id' => [Notify::TEMPLATE_PUPIL_LOW, Notify::TEMPLATE_PUPIL_DEBT],
+                    'template_id' => [Notify::TEMPLATE_STUDENT_LOW, Notify::TEMPLATE_STUDENT_DEBT],
                 ])
                 ->andWhere(['!=', 'status', Notify::STATUS_SENT])
                 ->one();
@@ -300,7 +300,7 @@ class NotifierController extends Controller
                     ->andWhere([
                         'user_id' => $courseStudent->user_id,
                         'course_id' => $courseStudent->course_id,
-                        'template_id' => [Notify::TEMPLATE_PUPIL_LOW, Notify::TEMPLATE_PUPIL_DEBT],
+                        'template_id' => [Notify::TEMPLATE_STUDENT_LOW, Notify::TEMPLATE_STUDENT_DEBT],
                     ])
                     ->andWhere(['status' => Notify::STATUS_SENT])
                     ->andWhere(['>', 'sent_at', $monthLimit->format('Y-m-d H:i:s')])
@@ -315,7 +315,7 @@ class NotifierController extends Controller
                 if ($needSent) {
                     ComponentContainer::getNotifyQueue()->add(
                         $courseStudent->user,
-                        Notify::TEMPLATE_PUPIL_LOW,
+                        Notify::TEMPLATE_STUDENT_LOW,
                         ['paid_lessons' => $courseStudent->paid_lessons],
                         $courseStudent->course
                     );
@@ -368,7 +368,7 @@ class NotifierController extends Controller
                             $parent,
                             Notify::TEMPLATE_PARENT_LOW,
                             ['paid_lessons' => $courseStudent->paid_lessons, 'child_id' => $courseStudent->user_id],
-                            $courseStudent->group
+                            $courseStudent->course
                         );
                     }
                 }

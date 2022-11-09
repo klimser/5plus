@@ -32,30 +32,28 @@ class DebtReport
         $this->report->getActiveSheet()->getColumnDimension('E')->setWidth(50);
 
         $row = 3;
-        /** @var Course[] $groups */
-        $groups = Course::find()
-//            ->andWhere([Group::tableName() . '.active' => Group::STATUS_ACTIVE])
-            ->joinWith('groupPupils')
-//            ->andWhere([GroupPupil::tableName() . '.active' => GroupPupil::STATUS_ACTIVE])
+        /** @var Course[] $courses */
+        $courses = Course::find()
+            ->joinWith('courseStudents')
             ->andWhere(['<', CourseStudent::tableName() . '.paid_lessons', 0])
             ->addOrderBy([Course::tableName() . '.name' => SORT_ASC])
             ->all();
-        foreach ($groups as $group) {
+        foreach ($courses as $course) {
             $this->report->getActiveSheet()->mergeCells("A$row:D$row");
-            $this->report->getActiveSheet()->setCellValue("A$row", $group->name);
+            $this->report->getActiveSheet()->setCellValue("A$row", $course->courseConfig->name);
             $this->report->getActiveSheet()->getStyle("A$row")->getFont()->setItalic(true)->setSize(14);
             $row++;
 
-            foreach ($group->activeGroupPupils as $groupPupil) {
-                if ($groupPupil->paid_lessons < 0) {
-                    $this->report->getActiveSheet()->setCellValue("A$row", $groupPupil->user->name);
+            foreach ($course->activeCourseStudents as $courseStudent) {
+                if ($courseStudent->paid_lessons < 0) {
+                    $this->report->getActiveSheet()->setCellValue("A$row", $courseStudent->user->name);
                     $this->report->getActiveSheet()->setCellValue(
                         "B$row",
-                        $groupPupil->user->phoneFull . ($groupPupil->user->phone2 ? ', ' . $groupPupil->user->phone2Full : '')
+                        $courseStudent->user->phoneFull . ($courseStudent->user->phone2 ? ', ' . $courseStudent->user->phone2Full : '')
                     );
-                    $this->report->getActiveSheet()->setCellValue("C$row", $groupPupil->paid_lessons * (-1));
-                    $this->report->getActiveSheet()->setCellValue("D$row", $groupPupil->chargeDateObject->format('d.m.Y'));
-                    $this->report->getActiveSheet()->setCellValue("E$row", $groupPupil->user->note);
+                    $this->report->getActiveSheet()->setCellValue("C$row", $courseStudent->paid_lessons * (-1));
+                    $this->report->getActiveSheet()->setCellValue("D$row", $courseStudent->chargeDateObject->format('d.m.Y'));
+                    $this->report->getActiveSheet()->setCellValue("E$row", $courseStudent->user->note);
 
                     $row++;
                 }

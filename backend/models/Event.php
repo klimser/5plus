@@ -27,6 +27,7 @@ use yii\db\ActiveQuery;
  * @property-read \DateTime    $teacherEditLimitDate
  *
  * @property Course            $course
+ * @property CourseConfig      $courseConfig
  * @property EventMember[]     $members
  * @property EventMember[]     $membersWithPayments
  * @property WelcomeLesson[]   $welcomeMembers
@@ -78,6 +79,12 @@ class Event extends ActiveRecord
         return $this->hasOne(Course::class, ['id' => 'course_id']);
     }
 
+    public function getCourseConfig(): ActiveQuery
+    {
+        return $this->hasOne(CourseConfig::class, ['course_id' => 'course_id'])
+            ->andWhere(['and', 'date_from <= :event_date', ['or', 'date_to IS NULL', 'date_to > :event_date']], ['event_date' => $this->event_date]);
+    }
+
     public function getMembers(): ActiveQuery
     {
         return $this->hasMany(EventMember::class, ['event_id' => 'id'])->inverseOf('event');
@@ -110,7 +117,7 @@ class Event extends ActiveRecord
 
     public function getTeacherEditLimitDate(): DateTimeImmutable
     {
-        $lessonDuration = CourseConfig::findByDate($this->group, $this->eventDateTime)->lesson_duration;
+        $lessonDuration = CourseConfig::findByDate($this->course, $this->eventDateTime)->lesson_duration;
 
         return $this->eventDateTime->modify("+{$lessonDuration} minutes")->modify('+1 hour');
     }

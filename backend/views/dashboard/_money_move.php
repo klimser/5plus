@@ -12,15 +12,15 @@
                     <div id="money-move-messages-place"></div>
                     <input type="hidden" name="money-move[id]" id="money-move-id">
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label" for="money-move-pupil-name">Студент</label>
+                        <label class="col-12 col-sm-3 control-label" for="money-move-student-name">Студент</label>
                         <div class="col-12 col-sm-9">
-                            <input readonly class="form-control-plaintext" id="money-move-pupil-name">
+                            <input readonly class="form-control-plaintext" id="money-move-student-name">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label" for="money-move-group">Из группы</label>
+                        <label class="col-12 col-sm-3 control-label" for="money-move-course">Из группы</label>
                         <div class="col-12 col-sm-9">
-                            <input readonly class="form-control-plaintext" id="money-move-group">
+                            <input readonly class="form-control-plaintext" id="money-move-course">
                         </div>
                     </div>
                     <div class="form-group row">
@@ -30,9 +30,9 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label" for="money-move-new-group">В группу</label>
+                        <label class="col-12 col-sm-3 control-label" for="money-move-new-course">В группу</label>
                         <div class="col-12 col-sm-9">
-                            <select id="money-move-new-group" name="money-move[groupId]" class="form-control" required autocomplete="off"></select>
+                            <select id="money-move-new-course" name="money-move[courseId]" class="form-control" required autocomplete="off"></select>
                         </div>
                     </div>
                 </div>

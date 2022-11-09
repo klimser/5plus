@@ -22,10 +22,10 @@ use yii\web\View;
 /* @var $studentMap User[] */
 /* @var $subjectMap Subject[] */
 /* @var $teacherMap Teacher[] */
-/* @var $groupMap Course[] */
+/* @var $courseMap Course[] */
 /* @var $statusMap string[] */
 /* @var $reasonsMap string[] */
-/* @var $groups Course[] */
+/* @var $courses Course[] */
 
 $this->title = 'Пробные уроки';
 $this->params['breadcrumbs'][] = $this->title;
@@ -89,7 +89,7 @@ SCRIPT
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'course_id',
-                    $groupMap,
+                    $courseMap,
                     ['class' => 'form-control']
                 )
             ],

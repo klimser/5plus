@@ -14,7 +14,7 @@ use yii\db\ActiveQuery;
  * @property int           $course_student_id
  * @property int           $event_id
  * @property int           $status
- * @property array         $mark
+ * @property array<string,int> $mark
  * @property int           $attendance_notification_sent
  * @property int           $mark_notification_sent
  *
@@ -42,7 +42,7 @@ class EventMember extends ActiveRecord
     {
         return [
             [['course_student_id', 'event_id'], 'required'],
-            [['course_student_id', 'event_id', 'status', 'mark', 'mark_homework'], 'integer'],
+            [['course_student_id', 'event_id', 'status'], 'integer'],
             [['event_id'], 'exist', 'targetRelation' => 'event'],
             [['course_student_id'], 'exist', 'targetRelation' => 'courseStudent'],
             [['status'], 'in', 'range' => [self::STATUS_UNKNOWN, self::STATUS_ATTEND, self::STATUS_MISS]],

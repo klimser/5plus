@@ -3,8 +3,8 @@
 use yii\bootstrap4\Html;
 
 /* @var $this yii\web\View */
-/* @var $pupil \common\models\User */
-/* @var $group \common\models\Course */
+/* @var $student \common\models\User */
+/* @var $course \common\models\Course */
 /* @var $debt \common\models\Debt|null */
 
 $this->title = 'Погашение долга';
@@ -17,7 +17,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <div id="messages_place"></div>
 
-<h2><?= $pupil->name; ?> <small><?= $group->name; ?></small> <?= $debt ? $debt->amount . ' сум' : ''; ?></h2>
+<h2><?= $student->name; ?> <small><?= $course->courseConfig->name; ?></small> <?= $debt ? $debt->amount . ' сум' : ''; ?></h2>
 
 <?= Html::beginForm(); ?>
 

@@ -98,116 +98,6 @@ class ContractController extends AdminController
     }
 
     /**
-     * @return mixed
-     * @throws BadRequestHttpException
-     */
-    public function actionFind()
-    {
-        $this->checkRequestIsAjax();
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
-        $contractNum = preg_replace('#\D#', '', Yii::$app->request->post('number', ''));
-
-        if (empty($contractNum)) {
-            return self::getJsonErrorResult('Неверный номер договора');
-        }
-        $contract = Contract::findOne(['number' => $contractNum]);
-        if (!$contract) {
-            return self::getJsonErrorResult('Договор не найден');
-        }
-        if ($contract->status != Contract::STATUS_NEW) {
-            return self::getJsonErrorResult('Договор уже оплачен!');
-        }
-
-        $jsonData = self::getJsonOkResult([
-            'id' => $contract->id,
-            'user_name' => $contract->user->name,
-            'group_name' => $contract->course->name,
-            'amount' => number_format($contract->amount, 0, '.', ' '),
-            'discount' => $contract->discount,
-            'create_date' => $contract->createDate->format('d.m.Y'),
-            'company_name' => $contract->company->second_name,
-            'group_pupil_id' => 0,
-        ]);
-
-        /** @var CourseStudent $groupPupil */
-        if ($groupPupil = CourseStudent::find()->andWhere(['user_id' => $contract->user_id, 'course_id' => $contract->course_id, 'active' => CourseStudent::STATUS_ACTIVE])->one()) {
-            $jsonData['group_pupil_id'] = $groupPupil->id;
-            $jsonData['date_start'] = $groupPupil->startDateObject->format('d.m.Y');
-            $jsonData['date_charge_till'] = $groupPupil->chargeDateObject ? $groupPupil->chargeDateObject->format('d.m.Y') : '';
-        }
-
-        return $this->asJson($jsonData);
-    }
-
-    /**
-     * Create new contract
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $this->checkAccess('accountant');
-        if (\Yii::$app->request->isPost) {
-            $userId = Yii::$app->request->post('user_id');
-            $groupId = Yii::$app->request->post('group_id');
-            $amount = Yii::$app->request->post('amount');
-            $discount = boolval(Yii::$app->request->post('discount', 0));
-
-            if (!$userId) \Yii::$app->session->addFlash('error', 'No user');
-            elseif (!$groupId) \Yii::$app->session->addFlash('error', 'No group');
-            elseif ($amount <= 0) \Yii::$app->session->addFlash('error', 'Wrong amount');
-            else {
-                $user = User::findOne($userId);
-                $group = Course::findOne($groupId);
-                $company = Company::findOne(Company::COMPANY_EXCLUSIVE_ID);
-                if (!$user || $user->role != User::ROLE_STUDENT) \Yii::$app->session->addFlash('error', 'Wrong pupil');
-                elseif (!$group || $group->active != Course::STATUS_ACTIVE) \Yii::$app->session->addFlash('error', 'Wrong group');
-                elseif (!$company) \Yii::$app->session->addFlash('error', 'Не выбран учебный центр');
-                else {
-                    $contract = new Contract();
-                    $contract->created_admin_id = Yii::$app->user->id;
-                    $contract->user_id = $user->id;
-                    $contract->course_id = $group->id;
-                    $contract->company_id = $company->id;
-                    $contract->amount = $amount;
-                    $contract->discount = $discount ? Contract::STATUS_ACTIVE : Contract::STATUS_INACTIVE;
-                    $contract->created_at = date('Y-m-d H:i:s');
-
-                    $groupParam = GroupParam::findByDate($group, new \DateTime());
-
-                    if ($contract->discount == Contract::STATUS_ACTIVE
-                        && (($groupParam && $amount < $groupParam->price12Lesson) || (!$groupParam && $amount < $group->price12Lesson))) {
-                        \Yii::$app->session->addFlash('error', 'Wrong payment amount');
-                    } else {
-                        if (!$contract->save()) \Yii::$app->session->addFlash('error', 'Не удалось создать договор: ' . $contract->getErrorsAsString());
-                        else {
-                            Yii::$app->session->addFlash(
-                                'success',
-                                'Договор ' . $contract->number . ' зарегистрирован '
-                                . '<a target="_blank" href="' . yii\helpers\Url::to(['contract/print', 'id' => $contract->id]) . '">Распечатать</a>'
-                            );
-                            ComponentContainer::getActionLogger()->log(
-                                Action::TYPE_CONTRACT_ADDED,
-                                $user,
-                                $contract->amount,
-                                $group
-                            );
-                        }
-                    }
-                }
-            }
-        }
-
-        $params = [];
-        $userId = Yii::$app->request->get('user');
-        if ($userId) {
-            $user = User::findOne($userId);
-            if ($user) $params['user'] = $user;
-        }
-        return $this->render('create', $params);
-    }
-
-    /**
      * Create new contract
      * @return mixed
      */
@@ -215,20 +105,20 @@ class ContractController extends AdminController
     {
         $this->checkRequestIsAjax();
         Yii::$app->response->format = Response::FORMAT_JSON;
-        
+
         $formData = Yii::$app->request->post('new-contract', []);
 
-        if (!isset($formData['userId'], $formData['groupId'], $formData['amount'])) {
+        if (!isset($formData['userId'], $formData['courseId'], $formData['amount'])) {
             return self::getJsonErrorResult('Wrong request');
         }
 
-        $pupil = User::findOne($formData['userId']);
-        $group = Course::findOne($formData['groupId']);
-        if (!$pupil || $pupil->role !== User::ROLE_STUDENT) {
-            return self::getJsonErrorResult('Wrong pupil');
+        $student = User::findOne($formData['userId']);
+        $course = Course::findOne($formData['courseId']);
+        if (!$student || $student->role !== User::ROLE_STUDENT) {
+            return self::getJsonErrorResult('Wrong student');
         }
-        if (!$group || $group->active !== Course::STATUS_ACTIVE) {
-            return self::getJsonErrorResult('Wrong group');
+        if (!$course || $course->active !== Course::STATUS_ACTIVE) {
+            return self::getJsonErrorResult('Wrong course');
         }
         if ($formData['amount'] <= 0) {
             return self::getJsonErrorResult('Wrong amount');
@@ -236,15 +126,15 @@ class ContractController extends AdminController
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            $contract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $pupil, $formData['amount'], $group);
+            $contract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $student, $formData['amount'], $course);
             $transaction->commit();
-            return self::getJsonOkResult(['userId' => $pupil->id, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
+            return self::getJsonOkResult(['userId' => $student->id, 'contractLink' => yii\helpers\Url::to(['contract/print', 'id' => $contract->id])]);
         } catch (\Throwable $ex) {
             $transaction->rollBack();
             return self::getJsonErrorResult($ex->getMessage());
         }
     }
-    
+
     public function actionReport(?int $type = null, ?string $from = null, ?string $to = null)
     {
         $this->checkAccess('root');

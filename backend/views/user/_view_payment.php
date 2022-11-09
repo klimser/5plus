@@ -57,7 +57,7 @@ foreach ($payments as $payment) {
                     }
                     ?>">
                     <td>
-                        <?= $payment->course->courseConfig->name; ?>
+                        <?= $payment->courseConfig->name; ?>
                         <?php if ($payment->comment): ?>
                             <span class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= $payment->comment; ?>"></span>
                         <?php endif; ?>

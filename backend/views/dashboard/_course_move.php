@@ -12,9 +12,9 @@
                     <div id="course-move-messages-place"></div>
                     <input type="hidden" name="course-move[id]" id="course-move-id">
                     <div class="form-group row">
-                        <label class="col-12 col-sm-3 control-label" for="course-move-pupil-name">Студент</label>
+                        <label class="col-12 col-sm-3 control-label" for="course-move-student-name">Студент</label>
                         <div class="col-12 col-sm-9">
-                            <input readonly class="form-control-plaintext" id="course-move-pupil-name">
+                            <input readonly class="form-control-plaintext" id="course-move-student-name">
                         </div>
                     </div>
                     <div class="form-group row">

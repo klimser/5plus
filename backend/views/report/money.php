@@ -6,7 +6,7 @@ use yii\helpers\ArrayHelper;
 use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
-/* @var $groups \common\models\Course[] */
+/* @var $courses \common\models\Course[] */
 /* @var $allowedTotal bool */
 
 $this->title = 'Финансовый отчёт';
@@ -15,7 +15,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 ?>
 
-<?= Html::beginForm('', 'post'); ?>
+<?= Html::beginForm(); ?>
     <div class="form-group">
         <label for="report-month">Месяц</label>
         <?= DatePicker::widget(ArrayHelper::merge(
@@ -37,7 +37,7 @@ $this->params['breadcrumbs'][] = $this->title;
             null,
             array_merge(
                     $allowedTotal ? ['all' => 'Все группы'] : [],
-                ArrayHelper::map($groups, function ($arr) {return "group_{$arr->id}";}, 'name')
+                ArrayHelper::map($courses, function ($elem) {return (string) $elem->id;}, 'name')
             ),
             ['id' => 'report-group', 'class' => 'form-control']
         ); ?>

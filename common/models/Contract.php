@@ -217,9 +217,10 @@ class Contract extends ActiveRecord
         return MoneyHelper::numberToStringRus($this->amount, true);
     }
 
-    public function getCourseConfig(): CourseConfig
+    public function getCourseConfig(): ActiveQuery
     {
-        return CourseConfig::findByDate($this->course, $this->createDate);
+        return $this->hasOne(CourseConfig::class, ['course_id' => 'course_id'])
+            ->andWhere(['and', 'date_from <= :contract_date', ['or', 'date_to IS NULL', 'date_to > :contract_date']], ['contract_date' => $this->created_at]);
     }
 
     public function getLessonsCount(): int

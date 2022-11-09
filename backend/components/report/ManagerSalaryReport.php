@@ -35,12 +35,12 @@ class ManagerSalaryReport
         $consultationSheet->setTitle('Консультации');
         $welcomeLessonSheet = $spreadsheet->createSheet();
         $welcomeLessonSheet->setTitle('Пробные уроки');
-        $groupsSheet = $spreadsheet->createSheet();
-        $groupsSheet->setTitle('Группы');
+        $courseSheet = $spreadsheet->createSheet();
+        $courseSheet->setTitle('Группы');
         $incomeSheet = $spreadsheet->createSheet();
         $incomeSheet->setTitle('Деньги');
 
-        $consultationSheet->setCellValue('A1', 'Админ');
+        $consultationSheet->setCellValue('A1', 'Менеджер');
         $consultationSheet->setCellValue('B1', 'Студент');
         $consultationSheet->setCellValue('C1', 'Предмет');
         $consultationSheet->setCellValue('D1', 'Дата');
@@ -68,7 +68,7 @@ class ManagerSalaryReport
                     'name' => $consultation->createdAdmin->name,
                     'consultation' => 0,
                     'welcome_lesson' => 0,
-                    'group' => 0,
+                    'course' => 0,
                     'money' => 0,
                 ];
             }
@@ -86,7 +86,7 @@ class ManagerSalaryReport
         $consultationSheet->getColumnDimension('C')->setAutoSize(true);
         $consultationSheet->getColumnDimension('D')->setAutoSize(true);
 
-        $welcomeLessonSheet->setCellValue('A1', 'Админ');
+        $welcomeLessonSheet->setCellValue('A1', 'Менеджер');
         $welcomeLessonSheet->setCellValue('B1', 'Студент');
         $welcomeLessonSheet->setCellValue('C1', 'Группа');
         $welcomeLessonSheet->setCellValue('D1', 'Дата');
@@ -100,7 +100,7 @@ class ManagerSalaryReport
         $welcomeLessons = WelcomeLesson::find()
             ->alias('wl')
             ->joinWith('createdAdmin u')
-            ->with(['group', 'user'])
+            ->with(['user'])
             ->andWhere(['between', 'wl.created_at', $date->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
             ->orderBy(['u.name' => SORT_ASC, 'wl.created_at' => SORT_ASC])
             ->all();
@@ -112,14 +112,14 @@ class ManagerSalaryReport
                     'name' => $welcomeLesson->createdAdmin->name,
                     'consultation' => 0,
                     'welcome_lesson' => 0,
-                    'group' => 0,
+                    'course' => 0,
                     'money' => 0,
                 ];
             }
 
             $welcomeLessonSheet->setCellValue("A$row", $welcomeLesson->createdAdmin->name);
             $welcomeLessonSheet->setCellValue("B$row", $welcomeLesson->user->name);
-            $welcomeLessonSheet->setCellValue("C$row", $welcomeLesson->course->name);
+            $welcomeLessonSheet->setCellValue("C$row", $welcomeLesson->courseConfig->name);
             $welcomeLessonSheet->setCellValue("D$row", Date::PHPToExcel($welcomeLesson->createDate));
             $managerMap[$welcomeLesson->createdAdmin->id]['welcome_lesson']++;
             $row++;
@@ -130,11 +130,11 @@ class ManagerSalaryReport
         $welcomeLessonSheet->getColumnDimension('C')->setAutoSize(true);
         $welcomeLessonSheet->getColumnDimension('D')->setAutoSize(true);
 
-        $groupsSheet->setCellValue('A1', 'Админ');
-        $groupsSheet->setCellValue('B1', 'Студент');
-        $groupsSheet->setCellValue('C1', 'Группа');
-        $groupsSheet->setCellValue('D1', 'Дата');
-        $header = $groupsSheet->getStyle('A1:D1');
+        $courseSheet->setCellValue('A1', 'Менеджер');
+        $courseSheet->setCellValue('B1', 'Студент');
+        $courseSheet->setCellValue('C1', 'Группа');
+        $courseSheet->setCellValue('D1', 'Дата');
+        $header = $courseSheet->getStyle('A1:D1');
         $header->getFont()->setBold(true);
         $header->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER)
@@ -143,7 +143,7 @@ class ManagerSalaryReport
         /** @var Action[] $actions */
         $actions = Action::find()
             ->alias('a')
-            ->with(['group', 'user', 'admin'])
+            ->with(['course', 'user', 'admin'])
             ->andWhere(['a.type' => \common\components\Action::TYPE_COURSE_STUDENT_ADDED])
             ->andWhere(['between', 'a.created_at', $date->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
             ->orderBy(['a.created_at' => SORT_ASC])
@@ -151,50 +151,50 @@ class ManagerSalaryReport
 
         $row = 2;
         $useSet = [];
-        $groupData = [];
+        $courseData = [];
         foreach ($actions as $action) {
             $key = "{$action->course_id}|{$action->user_id}";
             if (array_key_exists($key, $useSet)) continue;
             $useSet[$key] = true;
 
-            if (!array_key_exists($action->admin->id, $groupData)) {
-                $groupData[$action->admin_id] = [
+            if (!array_key_exists($action->admin->id, $courseData)) {
+                $courseData[$action->admin_id] = [
                     'name' => $action->admin->name,
-                    'groups' => [],
+                    'actions' => [],
                 ];
             }
-            $groupData[$action->admin_id]['groups'][] = $action;
+            $courseData[$action->admin_id]['actions'][] = $action;
         }
         
-        foreach ($groupData as $adminId => $data) {
+        foreach ($courseData as $adminId => $data) {
             
             if (!array_key_exists($adminId, $managerMap)) {
                 $managerMap[$adminId] = [
                     'name' => $data['name'],
                     'consultation' => 0,
                     'welcome_lesson' => 0,
-                    'group' => 0,
+                    'course' => 0,
                     'money' => 0,
                 ];
             }
-            
-            foreach ($data['groups'] as $action) {
 
-                $groupsSheet->setCellValue("A$row", $data['name']);
-                $groupsSheet->setCellValue("B$row", $action->user->name);
-                $groupsSheet->setCellValue("C$row", $action->group->name);
-                $groupsSheet->setCellValue("D$row", Date::PHPToExcel($action->createDate));
-                $managerMap[$adminId]['group']++;
+            /** @var Action $action */
+            foreach ($data['actions'] as $action) {
+                $courseSheet->setCellValue("A$row", $data['name']);
+                $courseSheet->setCellValue("B$row", $action->user->name);
+                $courseSheet->setCellValue("C$row", $action->courseConfig->name);
+                $courseSheet->setCellValue("D$row", Date::PHPToExcel($action->createDate));
+                $managerMap[$adminId]['course']++;
                 $row++;
             }
         }
-        $groupsSheet->getStyle("D2:D$row")->getNumberFormat()->setFormatCode('dd mmmm yy');
-        $groupsSheet->getColumnDimension('A')->setAutoSize(true);
-        $groupsSheet->getColumnDimension('B')->setAutoSize(true);
-        $groupsSheet->getColumnDimension('C')->setAutoSize(true);
-        $groupsSheet->getColumnDimension('D')->setAutoSize(true);
+        $courseSheet->getStyle("D2:D$row")->getNumberFormat()->setFormatCode('dd mmmm yy');
+        $courseSheet->getColumnDimension('A')->setAutoSize(true);
+        $courseSheet->getColumnDimension('B')->setAutoSize(true);
+        $courseSheet->getColumnDimension('C')->setAutoSize(true);
+        $courseSheet->getColumnDimension('D')->setAutoSize(true);
 
-        $incomeSheet->setCellValue('A1', 'Админ');
+        $incomeSheet->setCellValue('A1', 'Менеджер');
         $incomeSheet->setCellValue('B1', 'Студент');
         $incomeSheet->setCellValue('C1', 'Группа');
         $incomeSheet->setCellValue('D1', 'Дата');
@@ -209,7 +209,7 @@ class ManagerSalaryReport
         $payments = Payment::find()
             ->alias('p')
             ->joinWith('admin ad')
-            ->with(['group', 'user'])
+            ->with(['user'])
             ->andWhere(['between', 'p.created_at', $date->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
             ->andWhere(['not', ['p.admin_id' => null]])
             ->andWhere(['>', 'p.amount', 0])
@@ -224,14 +224,14 @@ class ManagerSalaryReport
                     'name' => $payment->admin->name,
                     'consultation' => 0,
                     'welcome_lesson' => 0,
-                    'group' => 0,
+                    'course' => 0,
                     'money' => 0,
                 ];
             }
 
             $incomeSheet->setCellValue("A$row", $payment->admin->name);
             $incomeSheet->setCellValue("B$row", $payment->user->name);
-            $incomeSheet->setCellValue("C$row", $payment->group->name);
+            $incomeSheet->setCellValue("C$row", $payment->courseConfig->name);
             $incomeSheet->setCellValue("D$row", Date::PHPToExcel($payment->createDate));
             $incomeSheet->setCellValueExplicit("E$row", $payment->amount, DataType::TYPE_NUMERIC);
             $managerMap[$payment->admin_id]['money'] += $payment->amount;
@@ -246,7 +246,7 @@ class ManagerSalaryReport
         $incomeSheet->getColumnDimension('E')->setAutoSize(true);
 
         $spreadsheet->setActiveSheetIndex(0);
-        $spreadsheet->getActiveSheet()->setCellValue('A1', 'Админ');
+        $spreadsheet->getActiveSheet()->setCellValue('A1', 'Менеджер');
         $spreadsheet->getActiveSheet()->setCellValue('B1', 'Консультации');
         $spreadsheet->getActiveSheet()->setCellValue('C1', 'Пробные уроки');
         $spreadsheet->getActiveSheet()->setCellValue('D1', 'Студенты');
@@ -262,7 +262,7 @@ class ManagerSalaryReport
             $spreadsheet->getActiveSheet()->setCellValue("A$row", $data['name']);
             $spreadsheet->getActiveSheet()->setCellValue("B$row", $data['consultation']);
             $spreadsheet->getActiveSheet()->setCellValue("C$row", $data['welcome_lesson']);
-            $spreadsheet->getActiveSheet()->setCellValue("D$row", $data['group']);
+            $spreadsheet->getActiveSheet()->setCellValue("D$row", $data['course']);
             $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $data['money'], DataType::TYPE_NUMERIC);
             $row++;
         }

@@ -12,12 +12,12 @@ use yii\console\Controller;
 use yii\console\ExitCode;
 
 /**
- * MoneyController is used to charge pupils.
+ * MoneyController is used to charge students.
  */
 class MoneyController extends Controller
 {
     /**
-     * Charges pupils that are not charged yet.
+     * Charges students that are not charged yet.
      * @return int
      */
     public function actionCharge()
@@ -26,33 +26,36 @@ class MoneyController extends Controller
         Yii::$app->user->login($admin);
         $transaction = null;
         try {
-            /** @var Course[] $activeGroups */
-            $activeGroups = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->all();
+            /** @var Course[] $activeCourses */
+            $activeCourses = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->all();
             $nowDate = new \DateTime();
-            foreach ($activeGroups as $emptyGroup) {
-                /** @var Course $group */
-                $group = Course::find()->andWhere(['id' => $emptyGroup->id])
-                    ->with(['groupPupils', 'events.members.payments'])
+            foreach ($activeCourses as $emptyCourse) {
+                /** @var Course $course */
+                $course = Course::find()->andWhere(['id' => $emptyCourse->id])
+                    ->with(['courseStudents', 'events.members.payments'])
                     ->one();
                 $transaction = Yii::$app->db->beginTransaction();
 
                 $isActive = false;
-                foreach ($group->activeGroupPupils as $groupPupil) {
-                    if (($groupPupil->date_end && $groupPupil->endDateObject < $nowDate)
-                        || ($group->date_end && $group->endDateObject < $nowDate)) {
-                        $groupPupil->active = CourseStudent::STATUS_INACTIVE;
-                        if (!$groupPupil->date_end) $groupPupil->date_end = $group->date_end;
-                        $groupPupil->save();
+                foreach ($course->activeCourseStudents as $courseStudent) {
+                    if (($courseStudent->date_end && $courseStudent->endDateObject < $nowDate)
+                        || ($course->date_end && $course->endDateObject < $nowDate)) {
+                        $courseStudent->active = CourseStudent::STATUS_INACTIVE;
+                        if (!$courseStudent->date_end) $courseStudent->date_end = $course->date_end;
+                        $courseStudent->save();
                     } else {
                         $isActive = true;
                     }
                 }
-                if (!$isActive && $group->date_end && $group->endDateObject < $nowDate) {
-                    $group->active = Course::STATUS_INACTIVE;
-                    $group->save();
+                if (!$isActive && $course->date_end && $course->endDateObject < $nowDate) {
+                    $course->active = Course::STATUS_INACTIVE;
+                    $course->save();
                 }
 
-                if ($group->active == Course::STATUS_ACTIVE) EventComponent::fillSchedule($group);
+                if ($course->active == Course::STATUS_ACTIVE) {
+                    EventComponent::fillSchedule($course);
+                }
+
                 $transaction->commit();
             }
         } catch (\Throwable $ex) {

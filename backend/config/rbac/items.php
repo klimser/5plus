@@ -14,7 +14,7 @@ return [
             'editUser',
             'reportMoneyTotal',
             'reportCash',
-            'pupilChangePast',
+            'studentChangePast',
             'moneyCorrection',
             'deleteTeachers',
             'adminSchedule',
@@ -31,10 +31,10 @@ return [
         'type' => 1,
         'ruleName' => 'userRole',
         'children' => [
-            'pupil',
+            'student',
         ],
     ],
-    'pupil' => [
+    'student' => [
         'type' => 1,
         'ruleName' => 'userRole',
         'children' => [
@@ -152,7 +152,7 @@ return [
     ],
     'welcomeLessons' => [
         'type' => 2,
-        'description' => 'Move pupils from welcome lessons to groups',
+        'description' => 'Move students from welcome lessons to groups',
     ],
 
     /* CASHIER */
@@ -180,11 +180,11 @@ return [
     ],
     'viewMissed' => [
         'type' => 2,
-        'description' => 'View missed pupils report',
+        'description' => 'View missed students report',
     ],
     'callMissed' => [
         'type' => 2,
-        'description' => 'Call pupils that missed lessons',
+        'description' => 'Call students that missed lessons',
     ],
 
     /* ACCOUNTANT */
@@ -216,11 +216,11 @@ return [
     ],
     'viewGroups' => [
         'type' => 2,
-        'description' => 'View pupil groups',
+        'description' => 'View student courses',
     ],
     'manageGroups' => [
         'type' => 2,
-        'description' => 'Manage pupil groups',
+        'description' => 'Manage student courses',
     ],
     'manageEvents' => [
         'type' => 2,
@@ -228,19 +228,19 @@ return [
     ],
     'reportGroupMovement' => [
         'type' => 2,
-        'description' => 'Get group pupils movement report',
+        'description' => 'Get course student movement report',
     ],
     'reportDebt' => [
         'type' => 2,
-        'description' => 'Get group pupils debt report',
+        'description' => 'Get course students debt report',
     ],
     'reportMoney' => [
         'type' => 2,
-        'description' => 'Get money totals report for single group',
+        'description' => 'Get money totals report for single course',
     ],
     'reportMoneyTotal' => [
         'type' => 2,
-        'description' => 'Get money totals report for all groups',
+        'description' => 'Get money totals report for all courses',
     ],
     'reportCash' => [
         'type' => 2,
@@ -252,9 +252,9 @@ return [
     ],
 
     // Root only!
-    'pupilChangePast' => [
+    'studentChangePast' => [
         'type' => 2,
-        'description' => 'Edit pupils in groups in past dates',
+        'description' => 'Edit students in courses in past dates',
     ],
     'deleteTeachers' => [
         'type' => 2,

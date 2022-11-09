@@ -4,6 +4,7 @@ namespace backend\models;
 
 use common\components\extended\ActiveRecord;
 use common\models\Course;
+use common\models\CourseConfig;
 use common\models\traits\Inserted;
 use common\models\User;
 use yii\db\ActiveQuery;
@@ -22,6 +23,7 @@ use yii\db\ActiveQuery;
  * @property User   $admin
  * @property User   $user
  * @property Course $course
+ * @property CourseConfig      $courseConfig
  */
 class Action extends ActiveRecord
 {
@@ -74,5 +76,11 @@ class Action extends ActiveRecord
     public function getCourse(): ActiveQuery
     {
         return $this->hasOne(Course::class, ['id' => 'course_id']);
+    }
+
+    public function getCourseConfig(): ActiveQuery
+    {
+        return $this->hasOne(CourseConfig::class, ['course_id' => 'course_id'])
+            ->andWhere(['and', 'date_from <= :action_date', ['or', 'date_to IS NULL', 'date_to > :action_date']], ['action_date' => $this->created_at]);
     }
 }

@@ -22,6 +22,7 @@ use common\models\Teacher;
 use common\models\User;
 use common\models\UserSearch;
 use DateTime;
+use DateTimeImmutable;
 use Exception;
 use Throwable;
 use Yii;
@@ -133,7 +134,7 @@ class UserController extends AdminController
     }
 
     /**
-     * Creates a new Pupil.
+     * Creates a new Student.
      * If creation is successful, the browser will be redirected to the 'index' page.
      * @return mixed
      * @throws ForbiddenHttpException
@@ -149,8 +150,6 @@ class UserController extends AdminController
         $consultationData = [];
         $welcomeLessonData = [];
         $courseData = [];
-        $incomeAllowed = Yii::$app->user->can('moneyManagement');
-        $contractAllowed = Yii::$app->user->can('contractManagement');
         $personType = User::ROLE_PARENTS;
         $parentType = $companyType = 'new';
 
@@ -197,9 +196,9 @@ class UserController extends AdminController
                     $welcomeLessonResults = $this->saveWelcomeLessons($student);
                     $errors = array_merge($errors, $welcomeLessonResults[0]);
                     $infoFlashArray = array_merge($infoFlashArray, $welcomeLessonResults[1]);
-                    $groupResults = $this->saveCourses($student);
-                    $errors = array_merge($errors, $groupResults[0]);
-                    $infoFlashArray = array_merge($infoFlashArray, $groupResults[1]);
+                    $courseResults = $this->saveCourses($student);
+                    $errors = array_merge($errors, $courseResults[0]);
+                    $infoFlashArray = array_merge($infoFlashArray, $courseResults[1]);
 
                     if (empty($errors)) {
                         $transaction->commit();
@@ -251,8 +250,6 @@ class UserController extends AdminController
             'welcomeLessonData' => $welcomeLessonData,
             'courseData' => $courseData,
             'studentLimitDate' => CourseComponent::getStudentLimitDate(),
-            'incomeAllowed' => $incomeAllowed,
-            'contractAllowed' => $contractAllowed,
         ]);
     }
 
@@ -342,27 +339,27 @@ class UserController extends AdminController
         return $welcomeLesson;
     }
 
-    public function actionAddToGroup($userId)
+    public function actionAddToCourse($userId)
     {
         $this->checkAccess('manageUsers');
 
-        /** @var User $pupil */
-        $pupil = User::find()
+        /** @var User $student */
+        $student = User::find()
             ->andWhere(['id' => $userId, 'role' => User::ROLE_STUDENT])
             ->andWhere('status != :locked', ['locked' => User::STATUS_LOCKED])
             ->one();
-        if (!$pupil) {
-            throw new NotFoundHttpException('Pupil not found');
+        if (!$student) {
+            throw new NotFoundHttpException('Student not found');
         }
 
-        $groupData = [];
+        $courseData = [];
         if (Yii::$app->request->isPost) {
-            $groupData = Yii::$app->request->post('group', []);
+            $courseData = Yii::$app->request->post('course', []);
 
             $transaction = Yii::$app->db->beginTransaction();
             try {
-                $groupPupil = $this->addStudentToCourse($pupil, $groupData);
-                MoneyComponent::setUserChargeDates($pupil, $groupPupil->group);
+                $courseStudent = $this->addStudentToCourse($student, $courseData);
+                MoneyComponent::setUserChargeDates($student, $courseStudent->course);
                 $transaction->commit();
                 Yii::$app->session->addFlash('success', 'Ученик добавлен в группу');
             } catch (Throwable $e) {
@@ -371,10 +368,10 @@ class UserController extends AdminController
             }
         }
 
-        return $this->render('add-to-group', [
-            'pupil' => $pupil,
-            'groups' => Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all(),
-            'groupData' => $groupData,
+        return $this->render('add-to-course', [
+            'student' => $student,
+            'courses' => CourseComponent::getActiveSortedByName(),
+            'courseData' => $courseData,
         ]);
     }
 
@@ -533,9 +530,9 @@ class UserController extends AdminController
         $welcomeLessonResults = $this->saveWelcomeLessons($student);
         $errors = array_merge($errors, $welcomeLessonResults[0]);
         $infoFlashArray = array_merge($infoFlashArray, $welcomeLessonResults[1]);
-        $groupResults = $this->saveCourses($student);
-        $errors = array_merge($errors, $groupResults[0]);
-        $infoFlashArray = array_merge($infoFlashArray, $groupResults[1]);
+        $courseResults = $this->saveCourses($student);
+        $errors = array_merge($errors, $courseResults[0]);
+        $infoFlashArray = array_merge($infoFlashArray, $courseResults[1]);
 
         if (empty($errors)) {
             $transaction->commit();
@@ -743,20 +740,19 @@ class UserController extends AdminController
         return $this->asJson($jsonData);
     }
 
-    private function renderSingleSchedule(User $pupil, $month = null)
+    private function renderSingleSchedule(User $student, $month = null)
     {
-        if ($month) $eventMonth = DateTime::createFromFormat('Y-m', $month);
-        if (!isset($eventMonth) || !$eventMonth) $eventMonth = new DateTime();
-        $eventMonth->modify('first day of this month midnight');
-        $endDate = clone($eventMonth);
-        $endDate->modify('+1 month');
+        if ($month) $eventMonth = DateTimeImmutable::createFromFormat('Y-m', $month);
+        if (!isset($eventMonth) || !$eventMonth) $eventMonth = new DateTimeImmutable();
+        $eventMonth = $eventMonth->modify('first day of this month midnight');
+        $endDate = $eventMonth->modify('+1 month');
         $eventMemberCollection = EventMember::find()
             ->innerJoinWith('event')
-            ->andWhere(['user_id' => $pupil->id])
+            ->andWhere(['user_id' => $student->id])
             ->andWhere('event_date > :startDate', [':startDate' => $eventMonth->format('Y-m-d H:i:s')])
             ->andWhere('event_date < :endDate', [':endDate' => $endDate->format('Y-m-d H:i:s')])
             ->all();
-        $groupMap = [];
+        $courseMap = [];
         $eventMap = [];
         /** @var EventMember $eventMember */
         foreach ($eventMemberCollection as $eventMember) {
@@ -764,13 +760,13 @@ class UserController extends AdminController
             if (!isset($eventMap[$day])) $eventMap[$day] = [];
             $eventMap[$day][$eventMember->event->eventTime] = $eventMember;
 
-            if (!array_key_exists($eventMember->event->course_id, $groupMap)) {
-                $groupMap[$eventMember->event->course_id] = [
-                    'group' => Course::findOne($eventMember->event->course_id),
+            if (!array_key_exists($eventMember->event->course_id, $courseMap)) {
+                $courseMap[$eventMember->event->course_id] = [
+                    'course' => Course::findOne($eventMember->event->course_id),
                     'payments' => Payment::find()
                         ->andWhere('created_at >= :from', ['from' => $eventMonth->format('Y-m-d H:i:s')])
                         ->andWhere('created_at < :to', ['to' => $endDate->format('Y-m-d H:i:s')])
-                        ->andWhere(['group_id' => $eventMember->event->course_id, 'user_id' => $pupil->id])
+                        ->andWhere(['course_id' => $eventMember->event->course_id, 'user_id' => $student->id])
                         ->all(),
                 ];
             }
@@ -778,9 +774,9 @@ class UserController extends AdminController
 
         return $this->render('schedule', [
             'eventMonth' => $eventMonth,
-            'user' => $pupil,
+            'user' => $student,
             'eventMap' => $eventMap,
-            'groupMap' => $groupMap,
+            'courseMap' => $courseMap,
         ]);
     }
 
@@ -802,16 +798,16 @@ class UserController extends AdminController
         }
 
         if (in_array($user->role, [User::ROLE_COMPANY, User::ROLE_PARENTS])) {
-            $pupilCollection = $user->children;
-            if ($pupilCollection && count($pupilCollection) == 1) {
-                return $this->renderSingleSchedule(reset($pupilCollection), $month);
+            $studentCollection = $user->children;
+            if ($studentCollection && count($studentCollection) == 1) {
+                return $this->renderSingleSchedule(reset($studentCollection), $month);
             }
         } else {
-            $pupilCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_STUDENT])->orderBy('name')->all();
+            $studentCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_STUDENT])->orderBy('name')->all();
         }
 
-        return $this->render('select_pupil_schedule', [
-            'pupilCollection' => $pupilCollection,
+        return $this->render('select_student_schedule', [
+            'studentCollection' => $studentCollection,
             'month' => $month,
             'user' => $user,
         ]);
@@ -830,14 +826,14 @@ class UserController extends AdminController
         $user = $this->findModel($userToWatch);
 
         if ($user->role != User::ROLE_STUDENT) {
-            if ($user->role == User::ROLE_PARENTS) $pupilCollection = $user->children;
-            else $pupilCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_STUDENT])->orderBy('name')->all();
+            if ($user->role == User::ROLE_PARENTS) $studentCollection = $user->children;
+            else $studentCollection = User::find()->where(['status' => User::STATUS_ACTIVE, 'role' => User::ROLE_STUDENT])->orderBy('name')->all();
 
-            if ($pupilCollection && count($pupilCollection) == 1) {
-                $user = reset($pupilCollection);
+            if ($studentCollection && count($studentCollection) == 1) {
+                $user = reset($studentCollection);
             } else {
-                return $this->render('select_pupil_money', [
-                    'pupilCollection' => $pupilCollection,
+                return $this->render('select_student_money', [
+                    'studentCollection' => $studentCollection,
                     'user' => $user,
                 ]);
             }
@@ -855,7 +851,7 @@ class UserController extends AdminController
     /**
      * @return Response
      */
-    public function actionPupils()
+    public function actionStudents()
     {
         $jsonData = [];
         if (Yii::$app->request->isAjax) {

@@ -2,8 +2,6 @@
 
 namespace backend\controllers;
 
-use common\components\GroupComponent;
-use common\models\Company;
 use common\models\Course;
 use common\models\Teacher;
 use yii;
@@ -92,6 +90,13 @@ class AjaxInfoController extends AdminController
             ->all();
         $resultArray = [];
         foreach ($courses as $course) {
+            $scheduleList = [];
+            foreach ($course->courseConfigs as $courseConfig) {
+                $scheduleList[] = [
+                    'to' => $courseConfig->date_to,
+                    'schedule' => $courseConfig->schedule,
+                ];
+            }
             $courseConfig = $course->courseConfig;
             $resultArray[] = [
                 'id' => $course->id,
@@ -106,7 +111,7 @@ class AjaxInfoController extends AdminController
                 'price12Lesson' => $courseConfig->price12Lesson,
                 'dateStart' => $course->date_start,
                 'dateEnd' => $course->date_end,
-                'weekDays' => array_map(static fn (int $val) => ($val + 1) % 7, array_keys(array_filter($courseConfig->schedule))),
+                'scheduleList' => $scheduleList,
             ];
         }
         usort($resultArray, static fn (array $a, array $b) => $a['name'] <=> $b['name']);

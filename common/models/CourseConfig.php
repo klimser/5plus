@@ -27,7 +27,7 @@ use yii\db\ActiveQuery;
  * @property string|null       $room_number
  *
  * @property DateTimeImmutable $dateFromObject
- * @property DateTimeImmutable $dateToObject
+ * @property DateTimeImmutable|null $dateToObject
  * @property int               $priceMonth
  * @property int               $price12Lesson
  * @property int               $classesPerWeek
@@ -133,7 +133,6 @@ class CourseConfig extends ActiveRecord
             ->andWhere(['course_id' => $course->id])
             ->andWhere(['<=', 'date_from', $dateString])
             ->andWhere(['or', ['date_to' => null], ['>', 'date_to', $dateString]])
-            ->orderBy(['date_from' => SORT_ASC, 'date_to' => SORT_ASC])
             ->one();
     }
 
@@ -142,7 +141,7 @@ class CourseConfig extends ActiveRecord
         return
             $day >= $this->dateFromObject
             && (empty($this->date_to) || $day < $this->dateToObject)
-            && !empty($this->scheduleData[(7 + intval($day->format('w')) - 1) % 7]);
+            && !empty($this->schedule[(7 + intval($day->format('w')) - 1) % 7]);
     }
 
     public function getLessonTime(DateTimeInterface $day): string
@@ -151,7 +150,7 @@ class CourseConfig extends ActiveRecord
             throw new \Exception(sprintf('No lesson that day: %s', $day->format('Y-m-d')));
         }
 
-        return $this->scheduleData[(7 + intval($day->format('w')) - 1) % 7] . ':00';
+        return $this->schedule[(7 + intval($day->format('w')) - 1) % 7] . ':00';
     }
 
     public function getLessonDateTime(DateTimeInterface $day): string
