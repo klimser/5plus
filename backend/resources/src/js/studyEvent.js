@@ -62,20 +62,22 @@ let StudyEvent = {
         let content = '';
         switch (this.eventData.status) {
             case this.eventStatusUnknown:
-                content = '<div class="card-body status_block">' +
-                    '<div class="row">' +
-                    '<div class="col">' +
-                    '<button class="btn btn-success btn-block" title="Состоялось" onclick="StudyEvent.setEventStatus(' + this.eventStatusPassed + ');">' +
-                    '<span class="fas fa-check"></span>' +
-                    '</button>' +
-                    '</div>' +
-                    '<div class="col">' +
-                    '<button class="btn btn-danger btn-block" title="Было отменено" onclick="StudyEvent.setEventStatus(' + this.eventStatusCancelled + ');">' +
-                    '<span class="fas fa-times"></span>' +
-                    '</button>' +
-                    '</div>' +
-                    '</div>' +
-                    '</div>';
+                if (this.isStatusEditAllowed()) {
+                    content = '<div class="card-body status_block">' +
+                        '<div class="row">' +
+                        '<div class="col">' +
+                        '<button class="btn btn-success btn-block" title="Состоялось" onclick="StudyEvent.setEventStatus(' + this.eventStatusPassed + ');">' +
+                        '<span class="fas fa-check"></span>' +
+                        '</button>' +
+                        '</div>' +
+                        '<div class="col">' +
+                        '<button class="btn btn-danger btn-block" title="Было отменено" onclick="StudyEvent.setEventStatus(' + this.eventStatusCancelled + ');">' +
+                        '<span class="fas fa-times"></span>' +
+                        '</button>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+                }
                 break;
             case this.eventStatusPassed:
             case this.eventStatusCancelled:
@@ -212,8 +214,13 @@ let StudyEvent = {
     isAttendEditAllowed: function() {
         if (this.eventData.status !== this.eventStatusPassed) return false;
         if (this.isAdmin) return true;
-        let currentTime = this.serverTimestamp + (Math.floor(Date.now() / 1000) - this.clientTimestamp);
+        let currentTime = this.serverTimestamp - this.clientTimestamp + (Math.floor(Date.now() / 1000));
         return currentTime <= this.eventData.limitAttendTimestamp;
+    },
+    isStatusEditAllowed: function() {
+        if (this.isAdmin) return true;
+        let currentTime = this.serverTimestamp - this.clientTimestamp + (Math.floor(Date.now() / 1000));
+        return currentTime >= this.eventData.limitStatusTimestamp;
     },
     getButtonsColumn: function(member, fillMarks = true) {
         switch (member.status) {

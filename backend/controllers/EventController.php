@@ -12,7 +12,6 @@ use common\components\MoneyComponent;
 use backend\models\Event;
 use backend\models\EventMember;
 use common\models\CourseConfig;
-use common\models\GroupParam;
 use DateTime;
 use Exception;
 use Throwable;
@@ -330,6 +329,7 @@ class EventController extends AdminController
             'status' => (int)$event->status,
             'time' => $event->eventTime,
             'limitAttendTimestamp' => $event->limitAttendTimestamp,
+            'limitStatusTimestamp' =>$event->eventDateTime->getTimestamp(),
             'name' => $event->courseConfig->name,
             'teacher' => $event->courseConfig->teacher->name,
             'members' => $members,

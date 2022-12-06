@@ -60,7 +60,7 @@ class BotPush extends ActiveRecord
      */
     public function getMessageArray(): array
     {
-        return $this->getAttribute('message') ? json_decode($this->getAttribute('message'), true) : [];
+        return $this->getAttribute('message') ? json_decode($this->getAttribute('message') ?? '', true) : [];
     }
 
     /**
@@ -76,7 +76,7 @@ class BotPush extends ActiveRecord
      */
     public function getDataArray(): ?array
     {
-        return $this->getAttribute('data') ? json_decode($this->getAttribute('data'), true) : null;
+        return $this->getAttribute('data') ? json_decode($this->getAttribute('data') ?? '', true) : null;
     }
 
     /**

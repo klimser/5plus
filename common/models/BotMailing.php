@@ -87,7 +87,7 @@ class BotMailing extends ActiveRecord
      */
     public function getProcessResult(): array
     {
-        return json_decode($this->getAttribute('data'), true) ?: [];
+        return json_decode($this->getAttribute('data') ?? '', true) ?: [];
     }
 
     /**
