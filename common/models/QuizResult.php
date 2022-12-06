@@ -74,7 +74,7 @@ class QuizResult extends ActiveRecord
     public function getQuestionsArray()
     {
         if ($this->_questionsArray === null) {
-            $this->_questionsArray = json_decode($this->questions_data, true);
+            $this->_questionsArray = json_decode($this->questions_data ?? '', true);
         }
         return $this->_questionsArray;
     }
@@ -85,7 +85,7 @@ class QuizResult extends ActiveRecord
     public function getAnswersArray()
     {
         if ($this->_answersArray === null) {
-            $this->_answersArray = json_decode($this->answers_data, true);
+            $this->_answersArray = json_decode($this->answers_data ?? '', true);
         }
         return $this->_answersArray;
     }

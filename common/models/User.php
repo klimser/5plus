@@ -341,7 +341,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getTelegramSettings(): array
     {
-        return json_decode($this->getAttribute('tg_params'), true) ?: [];
+        return json_decode($this->getAttribute('tg_params') ?? '', true) ?: [];
     }
 
     /**

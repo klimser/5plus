@@ -100,7 +100,7 @@ class Notify extends ActiveRecord
      */
     public function getParameters(): ?array
     {
-        return $this->getAttribute('params') ? json_decode($this->getAttribute('params'), true) : null;
+        return $this->getAttribute('params') ? json_decode($this->getAttribute('params') ?? '', true) : null;
     }
 
     /**

@@ -97,7 +97,7 @@ class GiftCard extends ActiveRecord
      */
     public function getAdditionalData(): array
     {
-        return json_decode($this->getAttribute('additional'), true) ?: [];
+        return json_decode($this->getAttribute('additional') ?? '', true) ?: [];
     }
 
     /**

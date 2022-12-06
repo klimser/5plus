@@ -23,7 +23,7 @@ trait GroupParam
      */
     public function getScheduleData(): array
     {
-        $data = json_decode($this->getAttribute('schedule'), true);
+        $data = json_decode($this->getAttribute('schedule') ?? '', true);
         if (empty($data)) $data = array_fill(0, 7, '');
         return $data;
     }

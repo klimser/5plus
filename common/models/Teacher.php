@@ -358,7 +358,7 @@ class Teacher extends ActiveRecord
 
     public function getContractDetails(): array
     {
-        return json_decode($this->getAttribute('contract_data'), true) ?: [];
+        return json_decode($this->getAttribute('contract_data') ?? '', true) ?: [];
     }
 
     public function setContractDetails(array $value)

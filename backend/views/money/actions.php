@@ -111,7 +111,7 @@ $renderTable = function(array $arr)
             [
                 'attribute' => 'comment',
                 'content' => function ($model, $key, $index, $column) use ($renderTable) {
-                    $decodedData = json_decode($model->comment, true);
+                    $decodedData = json_decode($model->comment ?? '', true);
                     return is_array($decodedData) ? $renderTable($decodedData) : $model->comment;
                 },
             ],
