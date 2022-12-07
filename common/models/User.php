@@ -360,7 +360,7 @@ class User extends ActiveRecord implements IdentityInterface
         if ($this->password_hash === null) {
             $this->password_hash = '';
         }
-        $this->name = preg_replace('#[ ]+#', ' ', $this->name);
+        $this->name = preg_replace('# +#', ' ', $this->name ?? '');
 
         if (!parent::beforeValidate()) {
             return false;
