@@ -20,9 +20,9 @@ class MailQueue extends BaseObject
         $email = new EmailQueue();
         if ($templateHtml) $email->template_html = $templateHtml;
         if ($templateText) $email->template_text = $templateText;
-        $email->params = json_encode($params, JSON_UNESCAPED_UNICODE);
-        $email->sender = json_encode([\Yii::$app->params['mailFrom'] => 'Robot 5plus']);
-        $email->recipient = json_encode($recipient);
+        $email->params = $params;
+        $email->sender = [\Yii::$app->params['mailFrom'] => 'Robot 5plus'];
+        $email->recipient = $recipient;
         $email->subject = $subject;
 
         return $email->save();

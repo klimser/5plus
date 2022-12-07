@@ -36,7 +36,7 @@ class MailController extends Controller
             $toSend->state = EmailQueue::STATUS_SENDING;
             $toSend->save();
 
-            $params = $toSend->params ? json_decode($toSend->params, true) : [];
+            $params = $toSend->params ?? [];
 
             $sendEmail = true;
             if ($tryTelegram) {
@@ -74,8 +74,8 @@ class MailController extends Controller
 
             if ($sendEmail) {
                 $message = Yii::$app->mailer->compose(['html' => $toSend->template_html, 'text' => $toSend->template_text], $params)
-                    ->setFrom(json_decode($toSend->sender, true))
-                    ->setTo(json_decode($toSend->recipient, true))
+                    ->setFrom($toSend->sender)
+                    ->setTo($toSend->recipient)
                     ->setSubject($toSend->subject);
                 if ($toSend->template_html === 'gift-card-html') {
                     $giftCard = GiftCard::findOne($params['id']);

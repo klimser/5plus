@@ -25,10 +25,10 @@ class MailController extends Controller
             $toSend->state = EmailQueue::STATUS_SENDING;
             $toSend->save();
 
-            $params = $toSend->params ? json_decode($toSend->params, true) : [];
+            $params = $toSend->params ?? [];
             if (Yii::$app->mailer->compose(['html' => $toSend->template_html, 'text' => $toSend->template_text], $params)
-                ->setFrom(json_decode($toSend->sender, true))
-                ->setTo(json_decode($toSend->recipient, true))
+                ->setFrom($toSend->sender)
+                ->setTo($toSend->recipient)
                 ->setSubject($toSend->subject)
                 ->send()
             ) $toSend->state = EmailQueue::STATUS_SENT;

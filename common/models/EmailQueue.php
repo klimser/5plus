@@ -11,9 +11,9 @@ use common\models\traits\InsertedUpdated;
  * @property int $id
  * @property string $template_html
  * @property string $template_text
- * @property string $params
- * @property string $sender
- * @property string $recipient
+ * @property array|null $params
+ * @property array|string $sender
+ * @property array|string $recipient
  * @property int $subject
  * @property int $state
  */
