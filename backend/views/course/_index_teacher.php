@@ -29,7 +29,14 @@ use yii\web\View;
     'rowOptions' => static fn (Course $model, $key, $index, $grid) => ($model->active == Course::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [],
     'columns' => [
         ['class' => 'yii\grid\SerialColumn'],
-        'name',
+        [
+            'format' => 'html',
+            'header' => 'Название',
+            'content' => function (Course $model, $key, $index, $column) use ($subjectMap) {
+                return $model->courseConfig->name . ($model->note ? '<br><i>' . $model->note->topic . '</i>' : '');
+            },
+            'filter' => Html::activeTextInput($searchModel, 'name', ['class' => 'form-control'])
+        ],
         [
             'attribute' => 'subject_id',
             'format' => 'text',
