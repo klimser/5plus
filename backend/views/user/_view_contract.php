@@ -21,7 +21,7 @@ $contracts = $student->getContracts()->with('course')->all();
         </tr>
         <?php foreach ($contracts as $contract): ?>
             <tr <?php if ($contract->status === Contract::STATUS_PAID): ?> class="table-success"<?php endif; ?> >
-                <td><?= $contract->course->courseConfig->name; ?></td>
+                <td><?= $contract->course->latestCourseConfig->name; ?></td>
                 <td class="text-right"><?= MoneyHelper::formatThousands($contract->amount); ?></td>
                 <td><?= $contract->createDate->format('d.m.Y'); ?></td>
                 <td>

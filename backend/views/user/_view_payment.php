@@ -25,7 +25,7 @@ foreach ($payments as $payment) {
                 <select id="payment-filter-course-<?= $student->id; ?>" class="form-control filter-course ml-2" onchange="Dashboard.filterPayments(this);">
                     <option value="0">все</option>
                     <?php foreach ($courseMap as $course): ?>
-                        <option value="<?= $course->id; ?>"><?= $course->courseConfig->name; ?></option>
+                        <option value="<?= $course->id; ?>"><?= $course->latestCourseConfig->name; ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -57,7 +57,7 @@ foreach ($payments as $payment) {
                     }
                     ?>">
                     <td>
-                        <?= $payment->courseConfig->name; ?>
+                        <?= (($paymentCourseConfig = $payment->courseConfig) ? $paymentCourseConfig : $payment->course->latestCourseConfig)->name; ?>
                         <?php if ($payment->comment): ?>
                             <span class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" data-html="true" title="<?= $payment->comment; ?>"></span>
                         <?php endif; ?>

@@ -38,6 +38,7 @@ use yii\helpers\ArrayHelper;
  * @property CourseNote[]    $notes
  * @property ?CourseNote     $note
  * @property CourseConfig    $courseConfig
+ * @property CourseConfig    $latestCourseConfig
  */
 class Course extends ActiveRecord
 {
@@ -156,6 +157,11 @@ class Course extends ActiveRecord
         }
 
         return Event::findOne($this->getEventIdByDateMap()[$eventDate->format('Y-m-d')]);
+    }
+
+    public function getLatestCourseConfig(): CourseConfig
+    {
+        return $this->courseConfigs[count($this->courseConfigs) - 1];
     }
 
     public function getCourseConfig(): CourseConfig

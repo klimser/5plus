@@ -97,7 +97,7 @@ class AjaxInfoController extends AdminController
                     'schedule' => $courseConfig->schedule,
                 ];
             }
-            $courseConfig = $course->courseConfig;
+            $courseConfig = $course->latestCourseConfig;
             $resultArray[] = [
                 'id' => $course->id,
                 'name' => $courseConfig->name,
