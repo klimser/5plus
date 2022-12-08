@@ -35,6 +35,7 @@ use yii\web\View;
         ['class' => 'yii\grid\SerialColumn'],
         [
             'format' => 'html',
+            'header' => 'Название',
             'content' => function (Course $model, $key, $index, $column) use ($subjectMap) {
                 return Html::a($model->courseConfig->name, Url::to(['course/view', 'id' => $model->id]))
                     . ($model->note ? '<br><i>' . $model->note->topic . '</i>' : '');
@@ -54,6 +55,7 @@ use yii\web\View;
         ],
         [
             'format' => 'text',
+            'header' => 'Учитель',
             'content' => static fn (Course $model, $key, $index, $column) => $model->courseConfig->teacher->name,
             'filter' => Html::activeDropDownList(
                 $searchModel,
@@ -63,7 +65,6 @@ use yii\web\View;
             )
         ],
         [
-            'attribute' => 'schedule',
             'format' => 'text',
             'header' => 'Расписание',
             'content' => function (Course $model, $key, $index, $column) {

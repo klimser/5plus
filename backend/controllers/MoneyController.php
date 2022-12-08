@@ -293,7 +293,7 @@ class MoneyController extends AdminController
             ->orderBy(['cc.teacher_id' => SORT_ASC])->all();
         $salaryMap = [];
         foreach ($courseConfigs as $courseConfig) {
-            if (!array_key_exists($courseConfig->course_id, $salaryMap[$courseConfig->teacher_id])) {
+            if (!array_key_exists($courseConfig->course_id, $salaryMap[$courseConfig->teacher_id] ?? [])) {
                 $salaryMap[$courseConfig->teacher_id][$courseConfig->course_id] = [
                     'teacher' => $courseConfig->teacher->name,
                     'course' => $courseConfig->name,

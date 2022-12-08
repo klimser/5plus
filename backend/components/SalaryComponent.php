@@ -342,7 +342,7 @@ class SalaryComponent
 
             ++$row;
             $spreadsheet->getActiveSheet()->setCellValueByColumnAndRow(1, $row, 'Стоимость занятия');
-            $spreadsheet->getActiveSheet()->setCellValue(1, $row + 1, 'Стоимость со скидкой');
+            $spreadsheet->getActiveSheet()->setCellValueByColumnAndRow(1, $row + 1, 'Стоимость со скидкой');
             $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(2, $row, $lastColumn, $row + 1)
                 ->getFill()->setFillType(Fill::FILL_SOLID)
                 ->getStartColor()->setRGB(self::GREEN_COLOR);
