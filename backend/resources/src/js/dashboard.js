@@ -414,14 +414,14 @@ let Dashboard = {
         })
             .done(function(data) {
                 if (data.status === 'ok') {
-                    $("#modal-group-move").modal("hide");
+                    $("#modal-course-move").modal("hide");
                     Dashboard.toggleStudentInfo($('#user-view-' + data.userId), true, 'course');
                 } else {
-                    Main.throwFlashMessage('#group-move-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
+                    Main.throwFlashMessage('#course-move-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
-                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#group-move-messages-place');
+                Main.logAndFlashAjaxError(jqXHR, textStatus, errorThrown, '#course-move-messages-place');
             })
             .always(Dashboard.unlockMoveStudentButton);
     },
@@ -531,12 +531,12 @@ let Dashboard = {
     },
     filterPayments: function(e) {
         let container = $(e).closest(".view-payments");
-        let filterGroup = $(container).find(".filter-group").val();
+        let filterCourse = $(container).find(".filter-course").val();
         let showExpenses = $(container).find(".filter-type").is(':checked');
         let paymentsTable = $(container).find("table.payments-table tbody");
-        if (filterGroup > 0) {
+        if (filterCourse > 0) {
             $(paymentsTable).find('tr').removeClass('show');
-            $(paymentsTable).find('tr.group-' + filterGroup).addClass('show');
+            $(paymentsTable).find('tr.course-' + filterCourse).addClass('show');
         } else {
             $(paymentsTable).find('tr').addClass('show');
         }
