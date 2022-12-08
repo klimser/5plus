@@ -228,9 +228,9 @@ class MoneyController extends AdminController
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
         /** @var Course[] $courses */
-        $courses = Course::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
+        $courses = Course::find()->orderBy(['active' => SORT_DESC])->all();
         $courseMap = [null => 'Все'];
-        foreach ($courses as $course) $courseMap[$course->id] = $course->courseConfig->name;
+        foreach ($courses as $course) $courseMap[$course->id] = $course->latestCourseConfig->name;
 
         return $this->render('payment', [
             'dataProvider' => $dataProvider,
