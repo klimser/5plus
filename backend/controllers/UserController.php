@@ -3,25 +3,23 @@
 namespace backend\controllers;
 
 use backend\components\EventComponent;
+use backend\components\UserComponent;
 use backend\models\Consultation;
+use backend\models\EventMember;
 use backend\models\WelcomeLesson;
 use common\components\ComponentContainer;
 use common\components\CourseComponent;
 use common\components\MoneyComponent;
-use backend\components\UserComponent;
 use common\models\Company;
 use common\models\Contract;
-use backend\models\EventMember;
 use common\models\Course;
 use common\models\CourseConfig;
-use common\models\GroupParam;
 use common\models\CourseStudent;
 use common\models\Payment;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
 use common\models\UserSearch;
-use DateTime;
 use DateTimeImmutable;
 use Exception;
 use Throwable;

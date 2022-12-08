@@ -14,7 +14,6 @@ use backend\models\Event;
 use backend\models\TeacherSubjectLink;
 use common\models\Course;
 use common\models\CourseConfig;
-use common\models\GroupParam;
 use common\models\Subject;
 use common\models\Teacher;
 use DateTimeImmutable;

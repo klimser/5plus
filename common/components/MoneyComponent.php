@@ -10,7 +10,6 @@ use common\models\Course;
 use common\models\CourseConfig;
 use common\models\CourseStudent;
 use common\models\Debt;
-use common\models\GroupParam;
 use common\models\Payment;
 use common\models\User;
 use DateTime;
@@ -321,6 +320,7 @@ class MoneyComponent extends Component
             ->andWhere(['user_id' => $student->id, 'course_id' => $course->id, 'discount' => Payment::STATUS_ACTIVE])
             ->andWhere(['event_member_id' => null])
             ->select('SUM(amount)')->scalar();
+        /** @var array<int,{entity:CourseStudent,state:bool}> $courseStudentMap */
         $courseStudentMap = [];
         foreach ($courseStudents as $courseStudent) {
             $courseStudent->paid_lessons = 0;
@@ -396,30 +396,34 @@ class MoneyComponent extends Component
                             $item['entity']->date_charge_till = $item['entity']->course->date_end;
                             $courseStudentMap[$id]['state'] = true;
                             $continue--;
-                        } elseif (!empty($item['config']->schedule[($w + 6) % 7])) {
-                            $toCharge = $item['config']->lesson_price;
-                            if ($moneyDiscount > 0) {
-                                if ($item['config']->lesson_price_discount) {
-                                    $toCharge = $item['config']->lesson_price_discount;
+                        } else{
+                            /** @var CourseConfig $config */
+                            $config = $item['entity']->course->getCourseConfigByDate($currentDate);
+                            if (!empty($config->schedule[($w + 6) % 7])) {
+                                $toCharge = $config->lesson_price;
+                                if ($moneyDiscount > 0) {
+                                    if ($config->lesson_price_discount) {
+                                        $toCharge = $config->lesson_price_discount;
+                                    }
+                                    if ($moneyDiscount > $toCharge) {
+                                        $moneyDiscount -= $toCharge;
+                                        $item['entity']->paid_lessons++;
+                                        continue;
+                                    } else {
+                                        $toCharge = (int) round($config->lesson_price * (1 - ($moneyDiscount / $toCharge)));
+                                        $moneyDiscount = 0;
+                                    }
                                 }
-                                if ($moneyDiscount > $toCharge) {
-                                    $moneyDiscount -= $toCharge;
-                                    $item['entity']->paid_lessons++;
-                                    continue;
-                                } else {
-                                    $toCharge = (int) round($item['config']->lesson_price * (1 - ($moneyDiscount / $toCharge)));
-                                    $moneyDiscount = 0;
-                                }
-                            }
 
-                            $money -= $toCharge;
-                            if ($money >= 0) {
-                                $item['entity']->paid_lessons++;
-                            }
-                            if ($money <= 0) {
-                                $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');
-                                $courseStudentMap[$id]['state'] = true;
-                                $continue--;
+                                $money -= $toCharge;
+                                if ($money >= 0) {
+                                    $item['entity']->paid_lessons++;
+                                }
+                                if ($money <= 0) {
+                                    $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');
+                                    $courseStudentMap[$id]['state'] = true;
+                                    $continue--;
+                                }
                             }
                         }
                     }

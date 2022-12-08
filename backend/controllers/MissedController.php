@@ -8,7 +8,6 @@ use common\components\ComponentContainer;
 use common\components\CourseComponent;
 use common\models\Course;
 use common\models\CourseConfig;
-use common\models\GroupParam;
 use common\models\CourseStudent;
 use DateTimeImmutable;
 use Exception;

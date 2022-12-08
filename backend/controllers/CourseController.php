@@ -50,11 +50,9 @@ class CourseController extends AdminController
 //            MoneyComponent::recalculateDebt($groupPupil->user, $groupPupil->group);
 //        }
 
-//        $groupPupil = GroupPupil::findOne(1146);
-//        EventComponent::fillSchedule($groupPupil->group);
-//        MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
-//        MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
-//        GroupComponent::calculateTeacherSalary($groupPupil->group);
+//        $courseStudent = CourseStudent::findOne(2993);
+//        EventComponent::fillSchedule($courseStudent->course);
+//        MoneyComponent::setUserChargeDates($courseStudent->user, $courseStudent->course);
 
 //        $group = Group::findOne(192);
 //        EventComponent::fillSchedule($group);

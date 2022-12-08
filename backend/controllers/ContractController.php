@@ -4,21 +4,16 @@ namespace backend\controllers;
 
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
-use common\components\ComponentContainer;
 use common\components\CourseComponent;
 use common\components\MoneyComponent;
 use common\models\Company;
 use common\models\Contract;
 use common\models\ContractSearch;
 use common\models\Course;
-use common\models\GroupParam;
-use common\models\CourseStudent;
 use common\models\User;
-use common\components\Action;
 use DateTimeImmutable;
 use yii;
 use yii\web\NotFoundHttpException;
-use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 /**
