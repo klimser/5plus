@@ -263,7 +263,7 @@ let Dashboard = {
                 if (data.status === 'ok') {
                     $("#modal-income").modal("hide");
                     let container = $('#user-view-' + data.userId).closest(".student-info");
-                    Dashboard.toggleStudentInfo(container, true, 'group')
+                    Dashboard.toggleStudentInfo(container, true, 'course')
                         .done(function() {
                             let messagesPlace = $(container).find('.user-view-messages-place');
                             Main.throwFlashMessage(messagesPlace, 'Внесение денег успешно зафиксировано, номер транзакции - ' + data.paymentId, 'alert-success');
@@ -319,7 +319,7 @@ let Dashboard = {
                 if (data.status === 'ok') {
                     $("#modal-debt").modal("hide");
                     let container = $('#user-view-' + data.userId).closest(".student-info");
-                    Dashboard.toggleStudentInfo(container, true, 'group')
+                    Dashboard.toggleStudentInfo(container, true, 'course')
                         .done(function() {
                             let messagesPlace = $(container).find('.user-view-messages-place');
                             Main.throwFlashMessage(messagesPlace, data.refund > 0 ? 'Возврат зарегистрирован' : 'Долг добавлен', 'alert-success');
@@ -415,7 +415,7 @@ let Dashboard = {
             .done(function(data) {
                 if (data.status === 'ok') {
                     $("#modal-group-move").modal("hide");
-                    Dashboard.toggleStudentInfo($('#user-view-' + data.userId), true, 'group');
+                    Dashboard.toggleStudentInfo($('#user-view-' + data.userId), true, 'course');
                 } else {
                     Main.throwFlashMessage('#group-move-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
@@ -513,7 +513,7 @@ let Dashboard = {
             .done(function(data) {
                 if (data.status === 'ok') {
                     $("#modal-end-student").modal("hide");
-                    Dashboard.toggleStudentInfo($('#user-view-' + data.userId), true, 'group');
+                    Dashboard.toggleStudentInfo($('#user-view-' + data.userId), true, 'course');
                 } else {
                     Main.throwFlashMessage('#end-student-messages-place', 'Ошибка: ' + data.message, 'alert-danger');
                 }
