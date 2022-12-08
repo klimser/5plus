@@ -153,8 +153,8 @@ class MissedController extends AdminController
 
             $eventsQuery = Event::find()
                 ->alias('e')
-                ->andWhere(['course_id' => $course->id])
-                ->andWhere(['between', 'event_date', $dateStart->format('Y-m-d H:i:s'), $dateEnd->format('Y-m-d H:i:s')])
+                ->andWhere(['e.course_id' => $course->id])
+                ->andWhere(['between', 'e.event_date', $dateStart->format('Y-m-d H:i:s'), $dateEnd->format('Y-m-d H:i:s')])
                 ->with('members.courseStudent.user');
             if ($teacherId) {
                 $eventsQuery->innerJoin(
