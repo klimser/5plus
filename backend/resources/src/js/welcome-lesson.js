@@ -108,7 +108,7 @@ let WelcomeLesson = {
     showMovingForm: function(e, lessonId) {
         $(e).prop("disabled", true);
         $.ajax({
-            url: '/welcome-lesson/propose-group',
+            url: '/welcome-lesson/propose-course',
             type: 'post',
             dataType: 'json',
             data: {id: lessonId}
