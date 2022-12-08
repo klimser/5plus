@@ -85,7 +85,7 @@ class NotifierController extends Controller
                     $sendSms = false;
                     $push = new BotPush();
                     $push->chat_id = $toSend->user->tg_chat_id;
-                    $push->messageArray = [
+                    $push->message_data = [
                         'text' => $message,
                         'parse_mode' => 'MarkdownV2',
                         'disable_web_page_preview' => true,

@@ -46,20 +46,20 @@ class BotPushController extends Controller
             $botPush->status = BotPush::STATUS_SENDING;
             $botPush->save();
             
-            if (empty($botPush->messageArray)) {
-                $botPush->dataArray = array_merge($botPush->dataArray ?? [], ['error_message' => 'Empty message!']);
+            if (empty($botPush->message_data)) {
+                $botPush->result_data = array_merge($botPush->result_data ?? [], ['error_message' => 'Empty message!']);
                 $botPush->status = BotPush::STATUS_ERROR;
                 $botPush->save();
             }
 
-            $response = Request::sendMessage(array_merge(['chat_id' => $botPush->chat_id], $botPush->messageArray));
+            $response = Request::sendMessage(array_merge(['chat_id' => $botPush->chat_id], $botPush->message_data ?? []));
             
             if ($response->isOk()) {
                 $botPush->status = BotPush::STATUS_SENT;
             } else {
                 $botPush->status = BotPush::STATUS_ERROR;
-                $botPush->dataArray = array_merge(
-                    $botPush->dataArray ?? [],
+                $botPush->result_data = array_merge(
+                    $botPush->result_data ?? [],
                     [
                         'error_code' => $response->getErrorCode(),
                         'error_message' => $response->getDescription(),

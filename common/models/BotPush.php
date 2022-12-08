@@ -7,11 +7,11 @@ use common\components\extended\ActiveRecord;
 /**
  * This is the model class for table "bot_push".
  *
- * @property int $id
- * @property int $chat_id
- * @property array $messageArray
- * @property array $dataArray
- * @property int $status
+ * @property int   $id
+ * @property int   $chat_id
+ * @property array $message_data
+ * @property array $result_data
+ * @property int   $status
  */
 class BotPush extends ActiveRecord
 {

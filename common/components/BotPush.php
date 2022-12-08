@@ -15,7 +15,7 @@ class BotPush extends BaseObject
     {
         $botPush = new \common\models\BotPush();
         $botPush->chat_id = $chatId;
-        $botPush->messageArray = $message;
+        $botPush->message_data = $message;
         return $botPush->save();
     }
 

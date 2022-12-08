@@ -250,7 +250,7 @@ class LoginCommand extends UserCommand
             if ($trusted) {
                 $push = new BotPush();
                 $push->chat_id = $user->tg_chat_id;
-                $push->messageArray = ['text' => PublicMain::LOGIN_RESET_BY_TRUSTED];
+                $push->message_data = ['text' => PublicMain::LOGIN_RESET_BY_TRUSTED];
                 $push->save();
             } else {
                 $conversation->notes['step']--;
