@@ -50,7 +50,7 @@ use common\models\User; ?>
                         <?= $tab_content(2, 'step-parent', false, false, "/user/_parent", []); ?>
                         <?= $tab_content(3, 'step-consultation', false, false, "/user/_view_consultation", ['student' => (new User())]); ?>
                         <?= $tab_content(4, 'step-welcome', false, false, "/user/_view_welcome_lesson", ['student' => (new User())]); ?>
-                        <?= $tab_content(5, 'step-group', false, true, "/user/_view_course", ['student' => (new User())]); ?>
+                        <?= $tab_content(5, 'step-course', false, true, "/user/_view_course", ['student' => (new User())]); ?>
                         
                     </div>
                 </div>
