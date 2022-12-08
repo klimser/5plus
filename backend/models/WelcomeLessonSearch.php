@@ -47,7 +47,7 @@ class WelcomeLessonSearch extends WelcomeLesson
      */
     public function search($params)
     {
-        $query = self::find()->joinWith(['user'])->with(['user', 'group']);
+        $query = self::find()->joinWith(['user'])->with(['user']);
 
         $providerParams = [
             'query' => $query,

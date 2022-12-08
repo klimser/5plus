@@ -11,13 +11,11 @@ use common\components\CourseComponent;
 use common\components\MoneyComponent;
 use common\models\Course;
 use common\models\CourseConfig;
-use common\models\GroupParam;
 use common\models\CourseStudent;
 use common\models\Subject;
 use common\models\Teacher;
 use common\models\User;
 use common\resources\documents\WelcomeLessons;
-use Exception;
 use yii;
 use yii\web\Response;
 
@@ -58,7 +56,9 @@ class WelcomeLessonController extends AdminController
         /** @var Course[] $courses */
         $courses = Course::find()->where(['id' => WelcomeLesson::find()->select(['course_id'])->distinct()->asArray()->column()])->all();
         $courseMap = [null => 'Все'];
-        foreach ($courses as $course) $courseMap[$course->id] = $course->courseConfig->name;
+        foreach ($courses as $course) {
+            $courseMap[$course->id] = $course->courseConfigs[count($course->courseConfigs) - 1]->name;
+        }
 
         /** @var Subject[] $subjects */
         $subjects = Subject::find()->orderBy('name')->all();
