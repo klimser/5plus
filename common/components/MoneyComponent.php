@@ -2,15 +2,15 @@
 
 namespace common\components;
 
-use common\models\Company;
-use common\models\Contract;
-use common\models\Debt;
 use backend\models\Event;
 use backend\models\EventMember;
+use common\models\Company;
+use common\models\Contract;
 use common\models\Course;
 use common\models\CourseConfig;
-use common\models\GroupParam;
 use common\models\CourseStudent;
+use common\models\Debt;
+use common\models\GroupParam;
 use common\models\Payment;
 use common\models\User;
 use DateTime;
@@ -380,18 +380,11 @@ class MoneyComponent extends Component
                 if (!$item['state'] && (!$item['entity']->date_end || $item['entity']->endDateObject >= $nowDate)
                     && (!$item['entity']->course->date_end || $item['entity']->course->endDateObject >= $nowDate)) {
                     $item['entity']->paid_lessons = 0;
-                    $courseStudentMap[$id]['config'] = CourseComponent::getCourseConfig($item['entity']->course, $nowDate);
                 }
             }
 
             $currentDate = new DateTime('midnight');
             while ($continue > 0) {
-                foreach ($courseStudentMap as $id => $item) {
-                    if (!$item['state'] && $item['config']->date_to && $item['config']->date_to < $currentDate->format('Y-m-d')) {
-                        $courseStudentMap[$id]['config'] = CourseComponent::getCourseConfig($item['entity']->course, $currentDate);
-                    }
-                }
-
                 $w = intval($currentDate->format('w'));
                 foreach ($courseStudentMap as $id => $item) {
                     if (!$item['state']) {
