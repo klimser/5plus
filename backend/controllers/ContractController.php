@@ -86,7 +86,7 @@ class ContractController extends AdminController
 
         $courseMap = [null => 'Все'];
         foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
-            $courseMap[$course->id] = $course->courseConfig->name;
+            $courseMap[$course->id] = $course->latestCourseConfig->name;
         }
 
         return $this->render('index', [

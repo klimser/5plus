@@ -227,10 +227,10 @@ class MoneyController extends AdminController
         $adminMap = [null => 'Все', '-1' => 'Online оплата'];
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
-        /** @var Course[] $courses */
-        $courses = Course::find()->orderBy(['active' => SORT_DESC])->all();
         $courseMap = [null => 'Все'];
-        foreach ($courses as $course) $courseMap[$course->id] = $course->latestCourseConfig->name;
+        foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
+            $courseMap[$course->id] = $course->latestCourseConfig->name;
+        }
 
         return $this->render('payment', [
             'dataProvider' => $dataProvider,

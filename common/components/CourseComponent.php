@@ -21,10 +21,10 @@ class CourseComponent extends Component
     public static function getAllSortedByActiveAndName(): array
     {
         /** @var Course[] $courses */
-        $courses = Course::findAll([]);
+        $courses = Course::find()->all();
         usort(
             $courses,
-            static fn (Course $a, Course $b) => (0 === ($res = $a->active <=> $b->active) ? $a->courseConfig->name <=> $b->courseConfig->name : $res)
+            static fn (Course $a, Course $b) => (0 === ($res = $a->active <=> $b->active) ? $a->latestCourseConfig->name <=> $b->latestCourseConfig->name : $res)
         );
 
         return $courses;
@@ -39,7 +39,22 @@ class CourseComponent extends Component
         $courses = Course::findAll(['active' => Course::STATUS_ACTIVE]);
         usort(
             $courses,
-            static fn (Course $a, Course $b) => $a->courseConfig->name <=> $b->courseConfig->name
+            static fn (Course $a, Course $b) => $a->latestCourseConfig->name <=> $b->latestCourseConfig->name
+        );
+
+        return $courses;
+    }
+
+    /**
+     * @param array<Course> $courses
+     *
+     * @return array<Course>
+     */
+    public static function sortCoursesByName(array $courses): array
+    {
+        usort(
+            $courses,
+            static fn (Course $a, Course $b) => $a->latestCourseConfig->name <=> $b->latestCourseConfig->name
         );
 
         return $courses;

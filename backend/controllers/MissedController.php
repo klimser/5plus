@@ -5,6 +5,7 @@ use backend\models\Event;
 use backend\models\EventMember;
 use backend\models\UserCall;
 use common\components\ComponentContainer;
+use common\components\CourseComponent;
 use common\models\Course;
 use common\models\CourseConfig;
 use common\models\GroupParam;
@@ -176,7 +177,7 @@ class MissedController extends AdminController
             usort($dataMap, function($a, $b) { return $a[0] <=> $b[0]; });
         }
 
-        $courseQuery = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC]);
+        $courseQuery = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE]);
         if ($teacherId) {
             $ids = CourseConfig::find()->andWhere(['teacher_id' => $teacherId])->select('course_id')->distinct()->column();
             $courseQuery->andWhere(['id' => $ids]);
@@ -187,7 +188,7 @@ class MissedController extends AdminController
             'daysCount' => intval($dateEnd->format('d')),
             'dataMap' => $dataMap,
             'eventMap' => $eventMap,
-            'courses' => $courseQuery->all(),
+            'courses' => CourseComponent::sortCoursesByName($courseQuery->all()),
             'course' => $course,
         ]);
     }
