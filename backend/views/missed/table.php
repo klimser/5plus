@@ -57,16 +57,17 @@ $nextMonth = $date->modify('+1 month');
             </tr>
         <?php foreach ($dataMap as $studentData): ?>
             <tr>
-                <td class="text-left"><?= $studentData[0]; ?></td>
+                <td class="text-left"><?= $studentData['student_name']; ?></td>
                 <?php for ($i = 1; $i <= $daysCount; $i++): ?><td class="p-1 <?php
                  if (array_key_exists($i, $studentData)) {
-                     switch ($studentData[$i]['status']) {
+                     switch ($studentData[$i]->status) {
                          case EventMember::STATUS_MISS: echo ' table-danger '; break;
                          case EventMember::STATUS_ATTEND: echo ' table-success '; break;
                      }
                  } ?>">
-                    <?= array_key_exists($i, $studentData)
-                        ? $studentData[$i]['mark'] . ($studentData[$i]['mark_homework'] > 0 ? " / {$studentData[$i]['mark_homework']}" : '')
+                    <?= array_key_exists($i, $studentData) && null !== $studentData[$i]->mark
+                        ? $studentData[$i]->mark[EventMember::MARK_LESSON]
+                            . ($studentData[$i]->mark[EventMember::MARK_HOMEWORK] > 0 ? " / {$studentData[$i]->mark[EventMember::MARK_HOMEWORK]}" : '')
                         : ''; ?>
                 </td><?php endfor; ?>
             </tr>

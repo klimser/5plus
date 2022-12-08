@@ -169,12 +169,12 @@ class MissedController extends AdminController
                 $eventMap[(int)$event->eventDateTime->format('j')] = $event;
                 foreach ($event->members as $eventMember) {
                     if (!array_key_exists($eventMember->course_student_id, $dataMap)) {
-                        $dataMap[$eventMember->course_student_id] = [0 => $eventMember->courseStudent->user->name];
+                        $dataMap[$eventMember->course_student_id] = ['student_name' => $eventMember->courseStudent->user->name];
                     }
-                    $dataMap[$eventMember->course_student_id][(int)$event->eventDateTime->format('j')] = $eventMember->toArray();
+                    $dataMap[$eventMember->course_student_id][(int)$event->eventDateTime->format('j')] = $eventMember;
                 }
             }
-            usort($dataMap, function($a, $b) { return $a[0] <=> $b[0]; });
+            usort($dataMap, function($a, $b) { return $a['student_name'] <=> $b['student_name']; });
         }
 
         $courseQuery = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE]);
