@@ -44,12 +44,14 @@ class CourseController extends AdminController
 //        $user = User::findOne(24392);
 //        foreach ($user->courseStudents as $courseStudent) {
 //            EventComponent::fillSchedule($courseStudent->course);
+//            MoneyComponent::rechargeStudent($courseStudent->user, $courseStudent->course);
 //            MoneyComponent::setUserChargeDates($courseStudent->user, $courseStudent->course);
 //            MoneyComponent::recalculateDebt($courseStudent->user, $courseStudent->course);
 //        }
 
 //        $courseStudent = CourseStudent::findOne(2993);
 //        EventComponent::fillSchedule($courseStudent->course);
+//        MoneyComponent::rechargeStudent($courseStudent->user, $courseStudent->course);
 //        MoneyComponent::setUserChargeDates($courseStudent->user, $courseStudent->course);
 
 //        $group = Group::findOne(192);
