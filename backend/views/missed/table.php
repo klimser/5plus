@@ -67,7 +67,7 @@ $nextMonth = $date->modify('+1 month');
                  } ?>">
                     <?= array_key_exists($i, $studentData) && null !== $studentData[$i]->mark
                         ? ($studentData[$i]->mark[EventMember::MARK_LESSON] ?? '-')
-                            . (0 < $studentData[$i]->mark[EventMember::MARK_HOMEWORK] ?? 0 ? " / {$studentData[$i]->mark[EventMember::MARK_HOMEWORK]}" : '')
+                            . (0 < ($studentData[$i]->mark[EventMember::MARK_HOMEWORK] ?? 0) ? " / {$studentData[$i]->mark[EventMember::MARK_HOMEWORK]}" : '')
                         : ''; ?>
                 </td><?php endfor; ?>
             </tr>
