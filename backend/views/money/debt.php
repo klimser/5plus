@@ -42,7 +42,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'course_id',
                 'content' => function (Debt $model, $key, $index, $column) {
-                    return $model->course->courseConfig->name;
+                    return $model->course->latestCourseConfig->name;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -70,6 +70,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'date',
             ],
             [
+                'header' => 'действия',
                 'content' => function (Debt $model, $key, $index, $column) use ($canCorrect) {
                     return '<div class="text-nowrap">' . Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), Url::to(['money/income', 'user' => $model->user_id]), ['class' => 'btn btn-outline-dark', 'title' => 'Внести деньги'])
                         . ($canCorrect ? Html::a(Html::tag('span', '', ['class' => 'fas fa-fire-extinguisher']), Url::to(['money/correction', 'userId' => $model->user_id, 'courseId' => $model->course_id]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'Погасить долг']) : '')

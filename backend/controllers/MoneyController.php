@@ -201,10 +201,10 @@ class MoneyController extends AdminController
         $debtorMap = [null => 'Все'];
         foreach ($debtors as $debtor) $debtorMap[$debtor->id] = $debtor->name;
 
-        /** @var Course[] $courses */
-        $courses = Course::find()->all();
         $courseMap = [null => 'Все'];
-        foreach ($courses as $course) $courseMap[$course->id] = $course->courseConfig->name;
+        foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
+            $courseMap[$course->id] = $course->latestCourseConfig->name;
+        }
 
         return $this->render('debt', [
             'dataProvider' => $dataProvider,

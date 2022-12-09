@@ -38,7 +38,7 @@ class DebtSearch extends Debt
      */
     public function search($params)
     {
-        $query = Debt::find()->with(['user', 'group']);
+        $query = Debt::find()->with(['user']);
 
         $providerParams = [
             'query' => $query,
