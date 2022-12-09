@@ -19,6 +19,7 @@ use yii\web\View;
 /* @var $teacherMap Teacher[] */
 /* @var $canEdit bool */
 /* @var $isTeacher bool */
+/* @var $courseMap \common\models\Course[] */
 
 $this->title = 'Темы';
 $this->params['breadcrumbs'][] = $this->title;
@@ -35,7 +36,17 @@ $this->params['breadcrumbs'][] = $this->title;
         'rowOptions' => static fn (Course $model, $key, $index, $grid) => ($model->active == Course::STATUS_INACTIVE) ? ['class' => 'table-secondary'] : [],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-            'name',
+            [
+                'attribute' => 'id',
+                'header' => 'Группа',
+                'content' => static fn (Course $model, $key, $index, $column) => $model->courseConfig->name,
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'id',
+                    $courseMap,
+                    ['class' => 'form-control']
+                )
+            ],
             [
                 'attribute' => 'subject_id',
                 'format' => 'text',

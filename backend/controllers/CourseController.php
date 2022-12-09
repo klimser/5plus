@@ -671,6 +671,11 @@ class CourseController extends AdminController
         $searchParams = array_key_exists('CourseSearch', Yii::$app->request->queryParams) ? Yii::$app->request->queryParams['CourseSearch'] : [];
         $dataProvider = $searchModel->search(['CourseSearch' => array_merge($searchParams, ['active' => Course::STATUS_ACTIVE])]);
 
+        $courseMap = [null => 'Все'];
+        foreach (CourseComponent::getActiveSortedByName() as $course) {
+            $courseMap[$course->id] = $course->latestCourseConfig->name;
+        }
+
         return $this->render('notes', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
@@ -687,6 +692,7 @@ class CourseController extends AdminController
                 'id',
                 'name'
             ),
+            'courseMap' => $courseMap,
         ]);
     }
     

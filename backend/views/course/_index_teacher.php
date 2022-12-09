@@ -75,7 +75,7 @@ use yii\web\View;
                         'title' => Yii::t('yii', 'Update'),
                         'class' => 'btn btn-outline-dark collapse show',
                         'onclick' => 'Course.toggleNoteUpdate(this); return false;',
-                        'data-group-id' => $model->id,
+                        'data-course-id' => $model->id,
                     ]);
                 },
             ],

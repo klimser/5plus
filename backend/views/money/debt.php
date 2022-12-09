@@ -41,9 +41,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'attribute' => 'course_id',
-                'content' => function (Debt $model, $key, $index, $column) {
-                    return $model->course->latestCourseConfig->name;
-                },
+                'content' => static fn (Debt $model, $key, $index, $column) => $model->course->latestCourseConfig->name,
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'course_id',
