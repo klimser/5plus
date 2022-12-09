@@ -252,10 +252,10 @@ class MoneyController extends AdminController
         $adminMap = [null => 'Все'];
         foreach ($admins as $admin) $adminMap[$admin->id] = $admin->name;
 
-        /** @var Course[] $courses */
-        $courses = Course::find()->orderBy(['active' => SORT_DESC, 'name' => SORT_ASC])->all();
         $courseMap = [null => 'Все'];
-        foreach ($courses as $course) $courseMap[$course->id] = $course->courseConfig->name;
+        foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
+            $courseMap[$course->id] = $course->latestCourseConfig->name;
+        }
 
         $typeMap = [null => 'Все'];
         foreach (Action::TYPE_LABELS as $key => $value) $typeMap[$key] = $value;
