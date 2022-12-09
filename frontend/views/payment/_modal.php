@@ -21,7 +21,7 @@ use yii\helpers\Url;
                     <div class="form-group">
                         <label for="student" class="col-4 col-md-3 col-xl-2 control-label">Студент</label>
                         <div class="col-8 col-md-9 col-xl-10">
-                            <input class="form-control" id="studemt" disabled>
+                            <input class="form-control" id="student" disabled>
                         </div>
                     </div>
                     <div class="form-group">
