@@ -3,9 +3,11 @@
 namespace backend\models;
 
 use common\models\Course;
+use common\models\CourseConfig;
 use DateTime;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveQuery;
 
 /**
  * WelcomeLessonSearch represents the model behind the search form about `backend\models\WelcomeLesson`.
@@ -47,7 +49,7 @@ class WelcomeLessonSearch extends WelcomeLesson
      */
     public function search($params)
     {
-        $query = self::find()->joinWith(['user'])->with(['user']);
+        $query = self::find()->alias('wl')->joinWith(['user'])->with(['user']);
 
         $providerParams = [
             'query' => $query,
@@ -88,29 +90,31 @@ class WelcomeLessonSearch extends WelcomeLesson
 
         // grid filtering conditions
         $query->andFilterWhere([
-            self::tableName() . '.status' => $this->status,
-            self::tableName() . '.deny_reason' => $this->deny_reason,
-            self::tableName() . '.course_id' => $this->course_id,
-            self::tableName() . '.user_id' => $this->user_id,
+            'wl.status' => $this->status,
+            'wl.deny_reason' => $this->deny_reason,
+            'wl.course_id' => $this->course_id,
+            'wl.user_id' => $this->user_id,
         ]);
         if (!$this->status) {
-            $query->andWhere(['not', [self::tableName() . '.status' => [self::STATUS_DENIED, self::STATUS_SUCCESS]]]);
+            $query->andWhere(['not', ['wl.status' => [self::STATUS_DENIED, self::STATUS_SUCCESS]]]);
         }
 
         if ($this->lesson_date) {
             $filterDate = new DateTime($this->lesson_date);
             $filterDate->modify('+1 day');
-            $query->andFilterWhere(['between', 'lesson_date', $this->lesson_date, $filterDate->format('Y-m-d H:i:s')]);
+            $query->andFilterWhere(['between', 'wl.lesson_date', $this->lesson_date, $filterDate->format('Y-m-d H:i:s')]);
         }
 
         if ($this->subjectId) {
             $courseIds = Course::find()->andWhere(['subject_id' => $this->subjectId])->select('id')->asArray()->column();
-            $query->andWhere(['course_id' => $courseIds]);
+            $query->andWhere(['wl.course_id' => $courseIds]);
         }
 
         if (isset($params['WelcomeLessonSearch'], $params['WelcomeLessonSearch']['teacherId']) && !empty($params['WelcomeLessonSearch']['teacherId'])) {
-            $courseIds = Course::find()->andWhere(['teacher_id' => $params['WelcomeLessonSearch']['teacherId']])->select('id')->asArray()->column();
-            $query->andWhere(['course_id' => $courseIds]);
+            $query->leftJoin(
+                CourseConfig::tableName() . ' c_c',
+                'c_c.date_from <= DATE(wl.lesson_date) AND (c_c.date_to IS NULL OR c_c.date_to > DATE(wl.lesson_date))'
+            );
         }
 
         return $dataProvider;
