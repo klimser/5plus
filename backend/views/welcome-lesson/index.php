@@ -84,7 +84,7 @@ SCRIPT
             [
                 'attribute' => 'course_id',
                 'content' => function (WelcomeLesson $model, $key, $index, $column) {
-                    return $model->course_id ? $model->course->latestCourseConfig->name : '-';
+                    return $model->course_id ? $model->courseConfig->name : '-';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -108,7 +108,7 @@ SCRIPT
             [
                 'attribute' => 'teacherId',
                 'content' => function (WelcomeLesson $model, $key, $index, $column) {
-                    return $model->course_id ? $model->course->courseConfig->teacher->name : '';
+                    return $model->course_id ? $model->courseConfig->teacher->name : '';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
