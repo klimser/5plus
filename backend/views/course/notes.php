@@ -37,15 +37,10 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             [
-                'attribute' => 'id',
-                'header' => 'Группа',
+                'format' => 'html',
+                'header' => 'Название',
                 'content' => static fn (Course $model, $key, $index, $column) => $model->courseConfig->name,
-                'filter' => Html::activeDropDownList(
-                    $searchModel,
-                    'id',
-                    $courseMap,
-                    ['class' => 'form-control']
-                )
+                'filter' => Html::activeTextInput($searchModel, 'name', ['class' => 'form-control'])
             ],
             [
                 'attribute' => 'subject_id',

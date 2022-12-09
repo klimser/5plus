@@ -39,6 +39,7 @@ class CourseSearch extends Course
     public function search($params)
     {
         $query = Course::find()
+            ->alias('c')
             ->with(['students', 'note'])
             ->joinWith([
                 'courseConfigs c_c' => function (ActiveQuery $query) {
@@ -77,6 +78,7 @@ class CourseSearch extends Course
 
         // grid filtering conditions
         $query->andFilterWhere([
+            'c.id' => $this->id,
             'subject_id' => $this->subject_id,
             'c_c.teacher_id' => $this->teacher_id,
             'active' => $this->active,
