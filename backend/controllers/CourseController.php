@@ -41,13 +41,11 @@ class CourseController extends AdminController
         $this->checkAccess('viewGroups');
 
         if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
-//        $user = User::findOne(7227);
-//        foreach ($user->groupPupils as $groupPupil) {
-//            EventComponent::fillSchedule($groupPupil->group);
-//            MoneyComponent::rechargePupil($groupPupil->user, $groupPupil->group);
-//            MoneyComponent::setUserChargeDates($groupPupil->user, $groupPupil->group);
-//            GroupComponent::calculateTeacherSalary($groupPupil->group);
-//            MoneyComponent::recalculateDebt($groupPupil->user, $groupPupil->group);
+//        $user = User::findOne(24392);
+//        foreach ($user->courseStudents as $courseStudent) {
+//            EventComponent::fillSchedule($courseStudent->course);
+//            MoneyComponent::setUserChargeDates($courseStudent->user, $courseStudent->course);
+//            MoneyComponent::recalculateDebt($courseStudent->user, $courseStudent->course);
 //        }
 
 //        $courseStudent = CourseStudent::findOne(2993);
