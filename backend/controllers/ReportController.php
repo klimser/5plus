@@ -194,7 +194,7 @@ class ReportController extends AdminController
                         ->andWhere(['<', 'date_start', $endDate->format('Y-m-d H:i:s')])
                         ->andWhere(['or', ['date_end' => null], ['>', 'date_end', $startDate->format('Y-m-d H:i:s')]])
                         ->andWhere(['subject_id' => $subjectTeacher->subject_id])
-                        ->select('course_id')
+                        ->select('id')
                         ->asArray()
                         ->column();
 
@@ -205,8 +205,8 @@ class ReportController extends AdminController
                         ->andWhere(['cc.teacher_id' => $subjectTeacher->teacher_id])
                         ->andWhere(['e.status' => Event::STATUS_PASSED])
                         ->andWhere(['e.course_id' => $courseIds])
-                        ->select(['course_id', 'SUM(cc.lesson_duration) as duration', 'COUNT(id) AS cnt'])
-                        ->groupBy('course_id')
+                        ->select(['e.course_id', 'SUM(cc.lesson_duration) as duration', 'COUNT(e.id) AS cnt'])
+                        ->groupBy('e.course_id')
                         ->asArray()
                         ->all();
 
