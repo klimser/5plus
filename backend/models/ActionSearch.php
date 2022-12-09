@@ -36,7 +36,7 @@ class ActionSearch extends Action
      */
     public function search($params)
     {
-        $query = Action::find()->with(['user', 'admin', 'group']);
+        $query = Action::find()->with(['user', 'admin']);
 
         $providerParams = [
             'query' => $query,
