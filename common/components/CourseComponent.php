@@ -192,10 +192,10 @@ class CourseComponent extends Component
     public static function checkStudentDates(?CourseStudent $courseStudent, DateTimeInterface $startDate, ?DateTimeInterface $endDate)
     {
         $limitDate = self::getStudentLimitDate();
-        if ($limitDate && (($courseStudent && $courseStudent->startDateObject !== $startDate && ($courseStudent->startDateObject < $limitDate || $startDate < $limitDate))
+        if ($limitDate && (($courseStudent && $courseStudent->startDateObject != $startDate && ($courseStudent->startDateObject < $limitDate || $startDate < $limitDate))
             || (!$courseStudent && $startDate < $limitDate)
             || (!$courseStudent && $endDate && $endDate < $limitDate)
-            || ($courseStudent && $courseStudent->endDateObject !== $endDate
+            || ($courseStudent && $courseStudent->endDateObject != $endDate
                 && (
                     ($courseStudent->endDateObject && $courseStudent->endDateObject < $limitDate)
                     || ($endDate && $endDate < $limitDate)
