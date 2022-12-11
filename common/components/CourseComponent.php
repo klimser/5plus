@@ -179,7 +179,7 @@ class CourseComponent extends Component
 
     public static function getStudentLimitDate(): ?DateTimeImmutable
     {
-        return Yii::$app->user->can('studentChangePast') ? null : new DateTimeImmutable('-7 days');
+        return Yii::$app->user->can('studentChangePast') ? null : new DateTimeImmutable('-7 days midnight');
     }
 
     /**

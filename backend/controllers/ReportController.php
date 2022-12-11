@@ -200,7 +200,10 @@ class ReportController extends AdminController
 
                     $eventData = Event::find()
                         ->alias('e')
-                        ->joinWith('courseConfig cc')
+                        ->leftJoin(
+                            CourseConfig::tableName() . ' cc',
+                            'e.course_id = cc.course_id AND cc.date_from <= e.event_date AND (cc.date_to IS NULL OR cc.date_to > e.event_date)'
+                        )
                         ->andWhere(['between', 'e.event_date', $startDate->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
                         ->andWhere(['cc.teacher_id' => $subjectTeacher->teacher_id])
                         ->andWhere(['e.status' => Event::STATUS_PASSED])

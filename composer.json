@@ -39,7 +39,7 @@
     "tecnickcom/tcpdf": "^6.3",
     "kartik-v/yii2-widget-datetimepicker": "^1",
     "yiisoft/yii2-redis": "^2.0",
-    "phpoffice/phpword": "^0.18",
+    "phpoffice/phpword": "^1",
     "longman/telegram-bot": "*"
   },
   "require-dev": {
