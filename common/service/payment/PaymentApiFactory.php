@@ -14,7 +14,7 @@ class PaymentApiFactory
             Contract::PAYMENT_TYPE_CLICK => ComponentContainer::getClickApi(),
             Contract::PAYMENT_TYPE_PAYME => ComponentContainer::getPaymeApi(),
             Contract::PAYMENT_TYPE_APELSIN => ComponentContainer::getApelsinApi(),
-            Contract::PAYMENT_TYPE_PAYBOX => ComponentContainer::getPayboxApi(),
+//            Contract::PAYMENT_TYPE_PAYBOX => ComponentContainer::getPayboxApi(),
             default => throw new PaymentServiceException('Unknown payment type passed'),
         };
     }
