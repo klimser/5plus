@@ -35,7 +35,7 @@ class TranslitComponent
      */
     public static function text(string $str): string
     {
-        $symbolList = preg_split('//u', $str, null, PREG_SPLIT_NO_EMPTY);
+        $symbolList = preg_split('//u', $str, -1, PREG_SPLIT_NO_EMPTY);
 
         for ($i = 0; $i < count($symbolList); $i++) {
             if (array_key_exists($symbolList[$i], self::$_symbolTable)) {
