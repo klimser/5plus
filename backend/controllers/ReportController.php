@@ -12,6 +12,7 @@ use backend\components\report\TeacherTimeReport;
 use backend\components\report\WelcomeLessonReport;
 use backend\models\Event;
 use backend\models\TeacherSubjectLink;
+use common\components\CourseComponent;
 use common\models\Course;
 use common\models\CourseConfig;
 use common\models\Subject;
@@ -75,6 +76,11 @@ class ReportController extends AdminController
     {
         $this->checkAccess('reportMoney');
 
+        $courseMap = [null => 'Все'];
+        foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
+            $courseMap[$course->id] = $course->latestCourseConfig->name;
+        }
+
         if (Yii::$app->request->isPost) {
             [$month, $year] = explode('.', Yii::$app->request->post('date', ''));
             if ($month && $year) {
@@ -82,13 +88,22 @@ class ReportController extends AdminController
                 $endDate = $startDate->modify('first day of next month midnight');
 
                 $courseId = Yii::$app->request->post('course');
-                if ($courseId == 'all') {
+                if (empty($courseId)) {
                     $this->checkAccess('reportMoneyTotal');
 
                     $spreadsheet = MoneyReport::createForAllCourses($startDate, $endDate);
                 } else {
                     $course = Course::findOne($courseId);
                     if (!$course) throw new NotFoundHttpException('Invalid course!');
+
+                    if ($course->startDateObject > $startDate || ($course->date_end && $course->endDateObject < $endDate)) {
+                        Yii::$app->session->addFlash('error', 'Группа не занималась в этом месяце');
+
+                        return $this->render('money', [
+                            'courseMap' => $courseMap,
+                            'allowedTotal' => Yii::$app->user->can('reportMoneyTotal')
+                        ]);
+                    }
 
                     $spreadsheet = MoneyReport::createForOneCourse($course, $startDate, $endDate);
                 }
@@ -105,7 +120,7 @@ class ReportController extends AdminController
         }
 
         return $this->render('money', [
-            'courses' => Course::find()->orderBy('name')->all(),
+            'courseMap' => $courseMap,
             'allowedTotal' => Yii::$app->user->can('reportMoneyTotal')
         ]);
     }

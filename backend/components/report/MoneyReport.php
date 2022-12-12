@@ -160,10 +160,12 @@ class MoneyReport
             $courseMap[$record['course_id']][Payment::STATUS_ACTIVE == $record['discount'] ? 'out_discount' : 'out_normal'] = abs($record['amount']);
         }
 
-        $renderTable = function(bool $kids, int $row) use ($spreadsheet, $courseMap) {
+        $renderTable = function (bool $kids, int $row) use ($spreadsheet, $courseMap) {
             $startRow = $row;
             foreach ($courseMap as $courseData) {
-                if ($courseData['kids'] != $kids) continue;
+                if ($courseData['kids'] != $kids) {
+                    continue;
+                }
                 $spreadsheet->getActiveSheet()->setCellValue("A$row", $courseData['name']);
                 $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $courseData['in_discount'], DataType::TYPE_NUMERIC);
                 $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $courseData['in_normal'], DataType::TYPE_NUMERIC);
@@ -174,15 +176,17 @@ class MoneyReport
                 ++$row;
             }
 
-            $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Итого');
-            $spreadsheet->getActiveSheet()->setCellValue("B$row", "=SUM(B$startRow:B" . ($row - 1) . ')');
-            $spreadsheet->getActiveSheet()->setCellValue("C$row", "=SUM(C$startRow:C" . ($row - 1) . ')');
-            $spreadsheet->getActiveSheet()->setCellValue("D$row", "=SUM(D$startRow:D" . ($row - 1) . ')');
-            $spreadsheet->getActiveSheet()->setCellValue("E$row", "=SUM(E$startRow:E" . ($row - 1) . ')');
-            $spreadsheet->getActiveSheet()->setCellValue("F$row", "=SUM(F$startRow:F" . ($row - 1) . ')');
-            $spreadsheet->getActiveSheet()->setCellValue("G$row", "=SUM(G$startRow:G" . ($row - 1) . ')');
-            $spreadsheet->getActiveSheet()->getStyle("A$row:G$row")->getFont()->setBold(true);
-            $spreadsheet->getActiveSheet()->getStyle("B$startRow:G$row")->getNumberFormat()->setFormatCode('#,##0');
+            if ($row !== $startRow) {
+                $spreadsheet->getActiveSheet()->setCellValue("A$row", 'Итого');
+                $spreadsheet->getActiveSheet()->setCellValue("B$row", "=SUM(B$startRow:B" . ($row - 1) . ')');
+                $spreadsheet->getActiveSheet()->setCellValue("C$row", "=SUM(C$startRow:C" . ($row - 1) . ')');
+                $spreadsheet->getActiveSheet()->setCellValue("D$row", "=SUM(D$startRow:D" . ($row - 1) . ')');
+                $spreadsheet->getActiveSheet()->setCellValue("E$row", "=SUM(E$startRow:E" . ($row - 1) . ')');
+                $spreadsheet->getActiveSheet()->setCellValue("F$row", "=SUM(F$startRow:F" . ($row - 1) . ')');
+                $spreadsheet->getActiveSheet()->setCellValue("G$row", "=SUM(G$startRow:G" . ($row - 1) . ')');
+                $spreadsheet->getActiveSheet()->getStyle("A$row:G$row")->getFont()->setBold(true);
+                $spreadsheet->getActiveSheet()->getStyle("B$startRow:G$row")->getNumberFormat()->setFormatCode('#,##0');
+            }
 
             return $row;
         };

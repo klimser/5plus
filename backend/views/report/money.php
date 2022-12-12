@@ -6,12 +6,11 @@ use yii\helpers\ArrayHelper;
 use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
-/* @var $courses \common\models\Course[] */
+/* @var $courseMap \common\models\Course[] */
 /* @var $allowedTotal bool */
 
 $this->title = 'Финансовый отчёт';
 $this->params['breadcrumbs'][] = $this->title;
-
 
 ?>
 
@@ -31,15 +30,12 @@ $this->params['breadcrumbs'][] = $this->title;
             ])); ?>
     </div>
     <div class="form-group">
-        <label for="report-group">Группа</label>
+        <label for="report-course">Группа</label>
         <?= Html::dropDownList(
-            'group',
+            'course',
             null,
-            array_merge(
-                    $allowedTotal ? ['all' => 'Все группы'] : [],
-                ArrayHelper::map($courses, function ($elem) {return (string) $elem->id;}, 'name')
-            ),
-            ['id' => 'report-group', 'class' => 'form-control']
+            $courseMap,
+            ['id' => 'report-course', 'class' => 'form-control']
         ); ?>
     </div>
     <button class="btn btn-primary">Получить</button>
