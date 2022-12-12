@@ -223,14 +223,14 @@ class ReportController extends AdminController
                         ->andWhere(['cc.teacher_id' => $subjectTeacher->teacher_id])
                         ->andWhere(['e.status' => Event::STATUS_PASSED])
                         ->andWhere(['e.course_id' => $courseIds])
-                        ->select(['e.course_id', 'SUM(cc.lesson_duration) as duration', 'COUNT(e.id) AS cnt'])
+                        ->select(['e.course_id', 'SUM(cc.lesson_duration) as duration'])
                         ->groupBy('e.course_id')
                         ->asArray()
                         ->all();
 
                     $totalHours = 0;
                     foreach ($eventData as $data) {
-                        $totalHours += floor($data['duration'] * $data['cnt'] / 40);
+                        $totalHours += floor($data['duration'] / 40);
                     }
 
                     return TeacherTimeReport::create($subjectTeacher, $startDate, $totalHours, $doc);
