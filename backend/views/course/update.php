@@ -15,7 +15,7 @@ use yii\jui\DatePicker;
 /* @var $subjects \common\models\Subject[] */
 /* @var $canMoveMoney bool */
 
-$this->title = $course->id ? $course->courseConfig->name : 'Добавить группу';
+$this->title = $course->id ? $course->latestCourseConfig->name : 'Добавить группу';
 $this->params['breadcrumbs'][] = ['label' => 'Группы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
@@ -27,7 +27,7 @@ if (!$course->subject_id) {
 }
 $script .= ";\n";
 if ($course->id) {
-    $script .= 'Course.activeTeacher = ' . $course->courseConfig->teacher_id . ";\n";
+    $script .= 'Course.activeTeacher = ' . $course->latestCourseConfig->teacher_id . ";\n";
 }
 ?>
 <div class="course-update">
@@ -96,7 +96,7 @@ if ($course->id) {
                             <?= $this->render(
                                 '_config_form',
                                 [
-                                    'courseConfig' => empty($course->courseConfigs) ? new CourseConfig() : clone $course->courseConfigs[count($course->courseConfigs) - 1],
+                                    'courseConfig' => empty($course->courseConfigs) ? new CourseConfig() : clone $course->latestCourseConfig,
                                     'teacherList' => $teacherList,
                                     'form' => $form,
                                     'disabled' => !$course->isNewRecord,
