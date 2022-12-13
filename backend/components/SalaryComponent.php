@@ -83,8 +83,8 @@ class SalaryComponent
                 'cc.course_id = e.course_id AND e.event_date BETWEEN :dateFrom AND :dateTo AND e.status = :passed',
                 ['dateFrom' => $dateFrom->format('Y-m-d H:i:s'), 'dateTo' => $dateTo->format('Y-m-d H:i:s'), 'passed' => Event::STATUS_PASSED]
             )
-            ->select('cc.*', 'COUNT(e.id) as cnt')
-            ->groupBy('cc.*')
+            ->select(['cc.*', 'COUNT(e.id) as cnt'])
+            ->groupBy('cc.id')
             ->having('cnt > 0')
             ->with('teacher')
             ->all();
@@ -133,7 +133,7 @@ class SalaryComponent
 
         $salaryMap = [];
         foreach ($courseConfigs as $courseConfig) {
-            if (!array_key_exists($courseConfig->course_id, $salaryMap[$courseConfig->teacher_id])) {
+            if (!isset($salaryMap[$courseConfig->teacher_id][$courseConfig->course_id])) {
                 $salaryMap[$courseConfig->teacher_id][$courseConfig->course_id] = [
                     'teacher' => $courseConfig->teacher->name,
                     'course' => $courseConfig->name,
@@ -152,7 +152,7 @@ class SalaryComponent
                     ->andWhere('amount < 0')
                     ->andWhere('used_payment_id IS NOT NULL')
                     ->select('SUM(amount)')
-                    ->scalar();
+                    ->scalar() ?? 0;
                 $salary = round(abs($paymentSum) * $courseConfig->teacher_rate / 100);
             } else {
                 $eventPassed = Event::find()

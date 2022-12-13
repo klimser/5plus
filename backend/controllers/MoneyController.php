@@ -375,7 +375,7 @@ class MoneyController extends AdminController
         $objWriter->save('php://output');
         return Yii::$app->response->sendContentAsFile(
             ob_get_clean(),
-            ($courseConfig ? $courseConfig->name . ' ' : '') . "$month-$year.xlsx",
+            (isset($courseConfig) ? $courseConfig->name . ' ' : '') . "$month-$year.xlsx",
             ['mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
         );
     }
