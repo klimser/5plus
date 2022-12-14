@@ -27,7 +27,6 @@ class GroupMovementReport
                 ['<=', 'date_start', $endDateString],
                 ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]]
             ])
-            ->orderBy(['name' => SORT_ASC])
             ->all();
 
         $courseStudentCount = function($condition): array {
