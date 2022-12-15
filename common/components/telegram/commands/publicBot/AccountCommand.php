@@ -97,7 +97,7 @@ class AccountCommand extends UserCommand
         $message = $this->getMessage();
         $chatId = $message->getChat()->getId();
 
-        $payload = trim($message->getText(true));
+        $payload = trim($message->getText(true) ?? '');
         if ('pay' === $payload) {
             $this->addNote($conversation, 'step', 2);
             $this->addNote($conversation, 'step2', PublicMain::BUTTON_PAY);

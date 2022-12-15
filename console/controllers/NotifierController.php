@@ -281,7 +281,7 @@ class NotifierController extends Controller
                 [CourseStudent::tableName() . '.date_end' => null],
                 ['>', CourseStudent::tableName() . '.date_end', $nextWeek->format('Y-m-d')]
             ])
-            ->with('group')
+            ->with('course')
             ->all();
         foreach ($courseStudents as $courseStudent) {
 
