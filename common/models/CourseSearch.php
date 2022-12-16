@@ -40,7 +40,7 @@ class CourseSearch extends Course
     {
         $query = Course::find()
             ->alias('c')
-            ->with(['students', 'note'])
+            ->with(['students', 'notes'])
             ->joinWith([
                 'courseConfigs c_c' => function (ActiveQuery $query) {
                     $query->andWhere(['<=', 'date_from', date('Y-m-d')])

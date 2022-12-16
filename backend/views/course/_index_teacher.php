@@ -33,7 +33,7 @@ use yii\web\View;
             'format' => 'html',
             'header' => 'Название',
             'content' => function (Course $model, $key, $index, $column) use ($subjectMap) {
-                return $model->courseConfig->name . ($model->note ? '<br><i>' . $model->note->topic . '</i>' : '');
+                return $model->courseConfig->name;
             },
             'filter' => Html::activeTextInput($searchModel, 'name', ['class' => 'form-control'])
         ],

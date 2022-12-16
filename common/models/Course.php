@@ -242,14 +242,15 @@ class Course extends ActiveRecord
 
     public function getNotes(): ActiveQuery
     {
-        return $this->hasMany(CourseNote::class, ['course_id' => 'id'])->orderBy([CourseNote::tableName() . '.created_at' => SORT_DESC])->inverseOf('course');
+        return $this->hasMany(CourseNote::class, ['course_id' => 'id'])
+            ->orderBy([CourseNote::tableName() . '.created_at' => SORT_DESC])
+            ->inverseOf('course');
     }
 
-    public function getNote(): ActiveQuery
+    public function getNote(): ?CourseNote
     {
-        return $this->hasOne(CourseNote::class, ['course_id' => 'id'])
-            ->orderBy([CourseNote::tableName() . '.created_at' => SORT_DESC])
-            ->limit(1);
+        $notes = $this->notes;
+        return empty($notes) ? null : reset($notes);
     }
     
     public function setStartDateObject(?DateTimeInterface $startDate): void
