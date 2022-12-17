@@ -309,7 +309,9 @@ class MoneyComponent extends Component
     {
         /** @var CourseStudent[] $courseStudents */
         $courseStudents = CourseStudent::find()->andWhere(['user_id' => $student->id, 'course_id' => $course->id])->all();
-        if (count($courseStudents) === 0) return;
+        if (count($courseStudents) === 0) {
+            return;
+        }
 
         /*    Собираем информацию обо всех внесенных средствах    */
         $money = (int) Payment::find()
@@ -368,75 +370,76 @@ class MoneyComponent extends Component
 
         /* Проверяем всем ли уже проставили даты */
         $continue = 0;
+        $nowDate = new DateTimeImmutable('midnight');
         foreach ($courseStudentMap as $item) {
-            if (!$item['state']) $continue++;
-        }
+            if (!$item['state']) {
 
-        /* Если не всем, то двигаемся в будущее */
-        if ($continue > 0) {
-            $nowDate = new DateTimeImmutable('midnight');
-
-            foreach ($courseStudentMap as $id => $item) {
-                if (!$item['state'] && (!$item['entity']->date_end || $item['entity']->endDateObject >= $nowDate)
+                $continue++;
+                if ((!$item['entity']->date_end || $item['entity']->endDateObject >= $nowDate)
                     && (!$item['entity']->course->date_end || $item['entity']->course->endDateObject >= $nowDate)) {
                     $item['entity']->paid_lessons = 0;
                 }
             }
+        }
 
-            $currentDate = new DateTime('midnight');
-            while ($continue > 0) {
-                $w = intval($currentDate->format('w'));
-                foreach ($courseStudentMap as $id => $item) {
-                    if (!$item['state']) {
-                        if ($item['entity']->date_end && $item['entity']->endDateObject <= $currentDate) {
-                            $item['entity']->date_charge_till = $item['entity']->date_end;
-                            $courseStudentMap[$id]['state'] = true;
-                            $continue--;
-                        } elseif ($item['entity']->course->date_end && $item['entity']->course->endDateObject <= $currentDate) {
-                            $item['entity']->date_charge_till = $item['entity']->course->date_end;
-                            $courseStudentMap[$id]['state'] = true;
-                            $continue--;
-                        } else{
-                            /** @var CourseConfig $config */
-                            $config = $item['entity']->course->getCourseConfigByDate($currentDate);
-                            if (!empty($config->schedule[($w + 6) % 7])) {
-                                $toCharge = $config->lesson_price;
-                                if ($moneyDiscount > 0) {
-                                    if ($config->lesson_price_discount) {
-                                        $toCharge = $config->lesson_price_discount;
-                                    }
-                                    if ($moneyDiscount > $toCharge) {
-                                        $moneyDiscount -= $toCharge;
-                                        $item['entity']->paid_lessons++;
-                                        continue;
-                                    } else {
-                                        $toCharge = (int) round($config->lesson_price * (1 - ($moneyDiscount / $toCharge)));
-                                        $moneyDiscount = 0;
-                                    }
+        /* Если не всем, то двигаемся в будущее */
+        $currentDate = new DateTime('midnight');
+        while ($continue > 0) {
+            $w = intval($currentDate->format('w'));
+            foreach ($courseStudentMap as $id => $item) {
+                if (!$item['state']) {
+                    if ($item['entity']->date_end && $item['entity']->endDateObject <= $currentDate) {
+                        $item['entity']->date_charge_till = $item['entity']->date_end;
+                        $courseStudentMap[$id]['state'] = true;
+                        $continue--;
+                    } elseif ($item['entity']->course->date_end && $item['entity']->course->endDateObject <= $currentDate) {
+                        $item['entity']->date_charge_till = $item['entity']->course->date_end;
+                        $courseStudentMap[$id]['state'] = true;
+                        $continue--;
+                    } else {
+                        /** @var CourseConfig $config */
+                        $config = $item['entity']->course->startDateObject > $nowDate
+                            ? $item['entity']->course->courseConfigs[0]
+                            : $item['entity']->course->getCourseConfigByDate($currentDate);
+                        if (!empty($config->schedule[($w + 6) % 7])) {
+                            $toCharge = $config->lesson_price;
+                            if ($moneyDiscount > 0) {
+                                if ($config->lesson_price_discount) {
+                                    $toCharge = $config->lesson_price_discount;
                                 }
-
-                                $money -= $toCharge;
-                                if ($money >= 0) {
+                                if ($moneyDiscount > $toCharge) {
+                                    $moneyDiscount -= $toCharge;
                                     $item['entity']->paid_lessons++;
+                                    continue;
+                                } else {
+                                    $toCharge = (int) round($config->lesson_price * (1 - ($moneyDiscount / $toCharge)));
+                                    $moneyDiscount = 0;
                                 }
-                                if ($money <= 0) {
-                                    $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');
-                                    $courseStudentMap[$id]['state'] = true;
-                                    $continue--;
-                                }
+                            }
+
+                            $money -= $toCharge;
+                            if ($money >= 0) {
+                                $item['entity']->paid_lessons++;
+                            }
+                            if ($money <= 0) {
+                                $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');
+                                $courseStudentMap[$id]['state'] = true;
+                                $continue--;
                             }
                         }
                     }
                 }
-                $currentDate->modify('+1 day');
-
-                if (intval($currentDate->format('Y')) > intval($nowDate->format('Y')) + 1) {
-                    foreach ($courseStudentMap as $item) {
-                        if (!$item['state']) $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');
-                    }
-                    break;
-                } // Когда внесли миллиарды оплаты
             }
+            $currentDate->modify('+1 day');
+
+            if (intval($currentDate->format('Y')) > intval($nowDate->format('Y')) + 1) {
+                foreach ($courseStudentMap as $item) {
+                    if (!$item['state']) {
+                        $item['entity']->date_charge_till = $currentDate->format('Y-m-d H:i:s');
+                    }
+                }
+                break;
+            } // Когда внесли миллиарды оплаты
         }
 
         foreach ($courseStudentMap as $item) {

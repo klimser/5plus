@@ -249,8 +249,7 @@ class Course extends ActiveRecord
 
     public function getNote(): ?CourseNote
     {
-        $notes = $this->notes;
-        return empty($notes) ? null : reset($notes);
+        return 0 < count($this->notes) ? $this->notes[0] : null;
     }
     
     public function setStartDateObject(?DateTimeInterface $startDate): void
