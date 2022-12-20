@@ -4,6 +4,7 @@ namespace common\components;
 
 use backend\models\Event;
 use backend\models\EventMember;
+use common\components\helpers\MoneyHelper;
 use common\models\Company;
 use common\models\Contract;
 use common\models\Course;
@@ -275,7 +276,7 @@ class MoneyComponent extends Component
         if ($payment->amount > 0) throw new \Exception('Wrong payment! You are not able to cancel positive payments: ' . $payment->id);
         if (!$payment->delete()) throw new \Exception('Error deleting payment from DB: ' . $payment->id);
         self::addStudentMoney($payment->user, $payment->amount * (-1), $payment->course);
-        $paymentComment = 'Отмена списания за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->course->courseConfig->name . '"';
+        $paymentComment = 'Отмена списания за ' . $payment->createDate->format('d F Y') . ' в группе "' . $payment->courseConfig->name . '"';
         if ($logEvent && !ComponentContainer::getActionLogger()->log(
             Action::TYPE_CANCEL_AUTO,
             $payment->user,
@@ -493,7 +494,7 @@ class MoneyComponent extends Component
                         $isDiscount = $payments[0]['discount'] && $courseConfigs[$key]->lesson_price_discount;
                         $lessonPrice = $isDiscount ? $courseConfigs[$key]->lesson_price_discount : $courseConfigs[$key]->lesson_price;
 
-                        $toPay = (int) bcmul($rate, (string) $lessonPrice, 0);
+                        $toPay = MoneyHelper::roundThousand((int) bcmul($rate, (string) $lessonPrice, 0));
                         $toChargeItem = ['id' => $payments[0]['id'], 'discount' => $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE];
                         if ($payments[0]['amount'] >= $toPay) {
                             $toChargeItem['amount'] = $toPay;
@@ -501,7 +502,7 @@ class MoneyComponent extends Component
                             $rate = '0';
                         } else {
                             $toChargeItem['amount'] = $payments[0]['amount'];
-                            $rate = bcsub($rate, number_format($payments[0]['amount'] * (-1) / $lessonPrice, 8, '.', ''));
+                            $rate = bcsub($rate, number_format($payments[0]['amount'] / $lessonPrice, 8, '.', ''), 8);
                             $payments[0]['amount'] = 0;
                         }
                         $toCharge[] = $toChargeItem;
