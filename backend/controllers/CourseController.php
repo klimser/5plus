@@ -9,6 +9,7 @@ use common\components\ComponentContainer;
 use common\components\CourseComponent;
 use common\components\MoneyComponent;
 use common\models\Course;
+use common\models\CourseCategory;
 use common\models\CourseConfig;
 use common\models\CourseStudent;
 use common\models\CourseSearch;
@@ -41,7 +42,7 @@ class CourseController extends AdminController
         $this->checkAccess('viewGroups');
 
         if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
-//        $user = User::findOne(24392);
+//        $user = User::findOne(20811);
 //        foreach ($user->courseStudents as $courseStudent) {
 //            EventComponent::fillSchedule($courseStudent->course);
 //            MoneyComponent::rechargeStudent($courseStudent->user, $courseStudent->course);
@@ -262,6 +263,7 @@ class CourseController extends AdminController
         return $this->render('update', [
             'course' => $course,
             'courseTypes' => CourseType::find()->orderBy('name')->all(),
+            'courseCategories' => CourseCategory::find()->orderBy('name')->all(),
             'subjects' => Subject::find()->orderBy('name')->with('teachers')->all(),
             'canMoveMoney' => Yii::$app->user->can('moveMoney'),
         ]);

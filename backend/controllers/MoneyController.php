@@ -24,6 +24,7 @@ use DateTimeImmutable;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use yii;
 use yii\web\ForbiddenHttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
@@ -334,13 +335,9 @@ class MoneyController extends AdminController
     }
 
     /**
-     * @param int $year
-     * @param int $month
-     * @param int $course
-     *
      * @return Response
      * @throws ForbiddenHttpException
-     * @throws yii\web\NotFoundHttpException
+     * @throws NotFoundHttpException
      */
     public function actionSalaryDetails(int $year, int $month, int $course = 0)
     {
@@ -350,23 +347,23 @@ class MoneyController extends AdminController
         if ($course) {
             $course = Course::findOne($course);
             $courseConfig = CourseComponent::getCourseConfig($course, $date);
-            if (!$course) throw new yii\web\NotFoundHttpException('Course not found');
+            if (!$course) throw new NotFoundHttpException('Course not found');
             try {
                 $spreadsheet = SalaryComponent::getCourseSalarySpreadsheet($course, $date);
             } catch (\Throwable $exception) {
-                throw new yii\web\NotFoundHttpException($exception->getMessage(), $exception->getCode(), $exception);
+                throw new NotFoundHttpException($exception->getMessage(), $exception->getCode(), $exception);
             }
         } elseif (Yii::$app->request->get('detail')) {
             try {
                 $spreadsheet = SalaryComponent::getMonthDetailedSalarySpreadsheet($date);
             } catch (\Throwable $exception) {
-                throw new yii\web\NotFoundHttpException($exception->getMessage(), $exception->getCode());
+                throw new NotFoundHttpException($exception->getMessage(), $exception->getCode());
             }
         } else {
             try {
                 $spreadsheet = SalaryComponent::getMonthSalarySpreadsheet($date);
             } catch (\Throwable $exception) {
-                throw new yii\web\NotFoundHttpException($exception->getMessage(), $exception->getCode());
+                throw new NotFoundHttpException($exception->getMessage(), $exception->getCode());
             }
         }
 

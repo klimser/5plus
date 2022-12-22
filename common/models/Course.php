@@ -19,7 +19,7 @@ use yii\helpers\ArrayHelper;
  * @property int $type_id Тип группы
  * @property int $subject_id
  * @property int $active
- * @property int $kids
+ * @property int $category_id
  * @property string            $date_start
  * @property string            $date_end
  * @property DateTimeImmutable $startDateObject
@@ -32,6 +32,7 @@ use yii\helpers\ArrayHelper;
  * @property CourseStudent[] $movedCourseStudents
  * @property CourseConfig[]  $courseConfigs
  * @property Subject         $subject
+ * @property CourseCategory  $category
  * @property Teacher         $teacher
  * @property Event[]         $events
  * @property Event[]         $eventsByDateMap
@@ -60,8 +61,8 @@ class Course extends ActiveRecord
     public function scenarios()
     {
         return [
-            self::SCENARIO_EMPTY => ['type_id', 'kids', 'subject_id', 'date_start', 'date_end'],
-            self::SCENARIO_DEFAULT => ['type_id', 'kids', 'subject_id', 'date_end'],
+            self::SCENARIO_EMPTY => ['type_id', 'category_id', 'subject_id', 'date_start', 'date_end'],
+            self::SCENARIO_DEFAULT => ['type_id', 'category_id', 'subject_id', 'date_end'],
         ];
     }
 
@@ -71,12 +72,13 @@ class Course extends ActiveRecord
     public function rules()
     {
         return [
-            [['type_id', 'subject_id', 'kids', 'date_start'], 'required'],
-            [['type_id', 'subject_id', 'active', 'kids'], 'integer'],
+            [['type_id', 'subject_id', 'category_id', 'date_start'], 'required'],
+            [['type_id', 'subject_id', 'active', 'category_id'], 'integer'],
             [['date_start', 'date_end'], 'date', 'format' => 'yyyy-MM-dd'],
             [['date_start'], 'safe', 'on' => self::SCENARIO_EMPTY],
             [['date_end'], 'safe'],
             [['subject_id'], 'exist', 'targetRelation' => 'subject'],
+            [['category_id'], 'exist', 'targetRelation' => 'category'],
         ];
     }
 
@@ -90,7 +92,7 @@ class Course extends ActiveRecord
             'type_id' => 'Тип группы',
             'subject_id' => 'Предмет',
             'active' => 'Занимается',
-            'kids' => 'группа KIDS',
+            'category_id' => 'Категория',
             'date_start' => 'Дата начала занятий',
             'date_end' => 'Дата завершения занятий',
             'date_charge_till' => 'Стоимость списана до этой даты',
@@ -111,6 +113,11 @@ class Course extends ActiveRecord
     public function getSubject(): ActiveQuery
     {
         return $this->hasOne(Subject::class, ['id' => 'subject_id']);
+    }
+
+    public function getCategory(): ActiveQuery
+    {
+        return $this->hasOne(CourseCategory::class, ['id' => 'category_id']);
     }
 
     public function getTeacher(): Teacher

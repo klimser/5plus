@@ -4,6 +4,7 @@ namespace backend\components\report;
 
 use common\components\CourseComponent;
 use common\models\Course;
+use common\models\CourseCategory;
 use common\models\CourseStudent;
 use DateTime;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -25,7 +26,7 @@ class GroupMovementReport
             ->andWhere([
                 'AND',
                 ['<=', 'date_start', $endDateString],
-                ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]]
+                ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]],
             ])
             ->all();
 
@@ -45,73 +46,78 @@ class GroupMovementReport
         $totalStudentCount = $courseStudentCount([
             'AND',
             ['<=', 'date_start', $endDateString],
-            ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]]
+            ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]],
         ]);
         $startStudentCount = $courseStudentCount([
             'AND',
             ['<', 'date_start', $startDateString],
-            ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]]
+            ['OR', ['>=', 'date_end', $startDateString], ['date_end' => null]],
         ]);
         $endStudentCount = $courseStudentCount([
             'AND',
             ['<=', 'date_start', $endDateString],
-            ['OR', ['>', 'date_end', $endDateString], ['date_end' => null]]
+            ['OR', ['>', 'date_end', $endDateString], ['date_end' => null]],
         ]);
 
         $spreadsheet = new Spreadsheet();
-        $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
-        $spreadsheet->getActiveSheet()->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
-        $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
-        $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
 
-        $spreadsheet->getActiveSheet()->mergeCells('A1:G1');
-        $spreadsheet->getActiveSheet()->setCellValue('A1', "Отчёт по студентам {$startDate->format('m Y')}");
-        $spreadsheet->getActiveSheet()->mergeCells('I1:O1');
-        $spreadsheet->getActiveSheet()->setCellValue('I1', "KIDS");
-        $spreadsheet->getActiveSheet()->getStyle('A1:I1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $spreadsheet->getActiveSheet()->getStyle('A1:I1')->getFont()->setBold(true)->setSize(16);
+        $nums = [];
+        $rows = [];
+        $indexCategoryMap = [];
+        /** @var CourseCategory $courseCategory */
+        foreach (CourseCategory::find()->all() as $index => $courseCategory) {
+            $nums[$index] = 1;
+            $rows[$index] = 3;
+            $indexCategoryMap[$courseCategory->id] = $index;
+            if (0 < $index) {
+                $spreadsheet->createSheet();
+            }
 
-        for ($i = 0; $i < 2; $i++) {
-            $offset = $i * 9;
-            $spreadsheet->getActiveSheet()
-                ->setCellValueByColumnAndRow($offset + 1, 2, "№")
-                ->setCellValueByColumnAndRow($offset + 2, 2, "группа")
-                ->setCellValueByColumnAndRow($offset + 3, 2, "учитель")
-                ->setCellValueByColumnAndRow($offset + 4, 2, "в начале месяца")
-                ->setCellValueByColumnAndRow($offset + 5, 2, "прибыло")
-                ->setCellValueByColumnAndRow($offset + 6, 2, "убыло")
-                ->setCellValueByColumnAndRow($offset + 7, 2, "всего занималось")
-                ->setCellValueByColumnAndRow($offset + 8, 2, "в конце месяца");
+            $spreadsheet->getSheet($index)->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+            $spreadsheet->getSheet($index)->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+            $spreadsheet->getSheet($index)->getPageSetup()->setFitToWidth(1);
+            $spreadsheet->getSheet($index)->getPageSetup()->setFitToHeight(0);
+
+            $spreadsheet->getSheet($index)->mergeCells('A1:G1');
+            $spreadsheet->getSheet($index)->setCellValue('A1', "Отчёт по студентам {$startDate->format('m Y')}");
+            $spreadsheet->getSheet($index)->getStyle('A1:G1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $spreadsheet->getSheet($index)->getStyle('A1:G1')->getFont()->setBold(true)->setSize(16);
+
+            $spreadsheet->getSheet($index)
+                ->setTitle($courseCategory->name)
+                ->setCellValueByColumnAndRow(1, 2, "№")
+                ->setCellValueByColumnAndRow(2, 2, "группа")
+                ->setCellValueByColumnAndRow(3, 2, "учитель")
+                ->setCellValueByColumnAndRow(4, 2, "в начале месяца")
+                ->setCellValueByColumnAndRow(5, 2, "прибыло")
+                ->setCellValueByColumnAndRow(6, 2, "убыло")
+                ->setCellValueByColumnAndRow(7, 2, "всего занималось")
+                ->setCellValueByColumnAndRow(8, 2, "в конце месяца");
         }
-
-        $nums = [0 => 1, 1 => 1];
-        $rows = [0 => 3, 1 => 3];
         $courseCollections = [];
         foreach ($courses as $course) {
             $courseConfig = CourseComponent::getCourseConfig($course, null === $course->date_end ? $endDate : min($course->endDateObject, $endDate));
 
-            $index = $course->kids;
+            $index = $indexCategoryMap[$course->category_id];
             if (!array_key_exists($index, $courseCollections)) $courseCollections[$index] = [];
             $courseCollections[$index][] = $course->id;
-            $offset = $index * 9;
-            $spreadsheet->getActiveSheet()
-                ->setCellValueByColumnAndRow($offset + 1, $rows[$index], $nums[$index])
-                ->setCellValueByColumnAndRow($offset + 2, $rows[$index], $courseConfig->name)
-                ->setCellValueByColumnAndRow($offset + 3, $rows[$index], $courseConfig->teacher->name)
-                ->setCellValueByColumnAndRow($offset + 4, $rows[$index], array_key_exists($course->id, $startStudentCount) ? $startStudentCount[$course->id] : 0)
-                ->setCellValueByColumnAndRow($offset + 5, $rows[$index], array_key_exists($course->id, $inStudentCount) ? $inStudentCount[$course->id] : 0)
-                ->setCellValueByColumnAndRow($offset + 6, $rows[$index], array_key_exists($course->id, $outStudentCount) ? $outStudentCount[$course->id] : 0)
-                ->setCellValueByColumnAndRow($offset + 7, $rows[$index], array_key_exists($course->id, $totalStudentCount) ? $totalStudentCount[$course->id] : 0)
-                ->setCellValueByColumnAndRow($offset + 8, $rows[$index], array_key_exists($course->id, $endStudentCount) ? $endStudentCount[$course->id] : 0);
+            $spreadsheet->getSheet($index)
+                ->setCellValueByColumnAndRow(1, $rows[$index], $nums[$index])
+                ->setCellValueByColumnAndRow(2, $rows[$index], $courseConfig->name)
+                ->setCellValueByColumnAndRow(3, $rows[$index], $courseConfig->teacher->name)
+                ->setCellValueByColumnAndRow(4, $rows[$index], array_key_exists($course->id, $startStudentCount) ? $startStudentCount[$course->id] : 0)
+                ->setCellValueByColumnAndRow(5, $rows[$index], array_key_exists($course->id, $inStudentCount) ? $inStudentCount[$course->id] : 0)
+                ->setCellValueByColumnAndRow(6, $rows[$index], array_key_exists($course->id, $outStudentCount) ? $outStudentCount[$course->id] : 0)
+                ->setCellValueByColumnAndRow(7, $rows[$index], array_key_exists($course->id, $totalStudentCount) ? $totalStudentCount[$course->id] : 0)
+                ->setCellValueByColumnAndRow(8, $rows[$index], array_key_exists($course->id, $endStudentCount) ? $endStudentCount[$course->id] : 0);
             $nums[$index]++;
             $rows[$index]++;
         }
 
         foreach ($courseCollections as $index => $courseIds) {
-            $offset = $index * 9;
             $row = $rows[$index] - 1;
 
-            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($offset + 1, 2, $offset + 8, $row)->applyFromArray([
+            $spreadsheet->getSheet($index)->getStyleByColumnAndRow(1, 2, 8, $row)->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -192,35 +198,35 @@ class GroupMovementReport
                 ->select('COUNT(DISTINCT user_id)')
                 ->scalar();
 
-            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($offset + 1, $row, $offset + 7, $row + 4)
+            $spreadsheet->getSheet($index)->getStyleByColumnAndRow(1, $row, 7, $row + 4)
                 ->getFont()->setBold(true);
 
-            $spreadsheet->getActiveSheet()
-                ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "Итого новых студентов: $totalIn");
+            $spreadsheet->getSheet($index)
+                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
+                ->setCellValueByColumnAndRow(1, $row, "Итого новых студентов: $totalIn");
             $row++;
             
-            $spreadsheet->getActiveSheet()
-                ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "Начали заниматься в группах (для бонуса): $totalNewCourseStudent");
+            $spreadsheet->getSheet($index)
+                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
+                ->setCellValueByColumnAndRow(1, $row, "Начали заниматься в группах (для бонуса): $totalNewCourseStudent");
             $row++;
             
-            $spreadsheet->getActiveSheet()
-                ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "Итого ушли из учебного центра: $totalOut");
+            $spreadsheet->getSheet($index)
+                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
+                ->setCellValueByColumnAndRow(1, $row, "Итого ушли из учебного центра: $totalOut");
             $row++;
 
-            $spreadsheet->getActiveSheet()
-                ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "В начале месяца было $startUsers человек - $startStudents студентов в гуппах");
+            $spreadsheet->getSheet($index)
+                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
+                ->setCellValueByColumnAndRow(1, $row, "В начале месяца было $startUsers человек - $startStudents студентов в гуппах");
             $row++;
-            $spreadsheet->getActiveSheet()
-                ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "В этом месяце занималось $totalUsers человек - $totalStudents студентов в гуппах");
+            $spreadsheet->getSheet($index)
+                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
+                ->setCellValueByColumnAndRow(1, $row, "В этом месяце занималось $totalUsers человек - $totalStudents студентов в гуппах");
             $row++;
-            $spreadsheet->getActiveSheet()
-                ->mergeCellsByColumnAndRow($offset + 1, $row, $offset + 7, $row)
-                ->setCellValueByColumnAndRow($offset + 1, $row, "В конце месяца было $finalUsers человек - $finalStudents студентов в гуппах");
+            $spreadsheet->getSheet($index)
+                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
+                ->setCellValueByColumnAndRow(1, $row, "В конце месяца было $finalUsers человек - $finalStudents студентов в гуппах");
         }
 
         return $spreadsheet;

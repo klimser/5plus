@@ -3,6 +3,7 @@
 namespace backend\components\report;
 
 use common\models\Course;
+use common\models\CourseCategory;
 use common\models\Payment;
 use DateTimeImmutable;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
@@ -78,41 +79,6 @@ class MoneyReport
         $startDateString = $startDate->format('Y-m-d H:i:s');
         $endDateString = $endDate->format('Y-m-d H:i:s');
 
-        $spreadsheet = new Spreadsheet();
-        $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
-        $spreadsheet->getActiveSheet()->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
-        $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
-        $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
-
-        $spreadsheet->getActiveSheet()
-            ->mergeCells('A1:A2')
-            ->setCellValue('A1', 'Группа')
-            ->mergeCells('B1:D1')
-            ->setCellValue('B1', 'Принесли в кассу')
-            ->setCellValue('B2', 'Со скидкой')
-            ->setCellValue('C2', 'Без скидки')
-            ->setCellValue('D2', 'Всего');
-
-        $spreadsheet->getActiveSheet()
-            ->mergeCells('E1:G1')
-            ->setCellValue('E1', 'Списано за занятия')
-            ->setCellValue('E2', 'Со скидкой')
-            ->setCellValue('F2', 'Без скидки')
-            ->setCellValue('G2', 'Всего');
-
-        $spreadsheet->getActiveSheet()->getStyle('A1:E1')->getFont()->setBold(true);
-        $spreadsheet->getActiveSheet()->getStyle('B1:E1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment()
-            ->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
-
-        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(30);
-        $spreadsheet->getActiveSheet()->getColumnDimension('B')->setWidth(15);
-        $spreadsheet->getActiveSheet()->getColumnDimension('C')->setWidth(15);
-        $spreadsheet->getActiveSheet()->getColumnDimension('D')->setWidth(15);
-        $spreadsheet->getActiveSheet()->getColumnDimension('E')->setWidth(15);
-        $spreadsheet->getActiveSheet()->getColumnDimension('F')->setWidth(15);
-        $spreadsheet->getActiveSheet()->getColumnDimension('G')->setWidth(15);
-
         $courseIds = Payment::find()
             ->andWhere(['>=', 'created_at', $startDateString])
             ->andWhere(['<', 'created_at', $endDateString])
@@ -126,7 +92,7 @@ class MoneyReport
         foreach ($courses as $course) {
             $courseMap[$course->id] = [
                 'name' => $course->getCourseConfigByDate($endDate->modify('-1 day'))->name,
-                'kids' => $course->kids,
+                'category' => $course->category_id,
                 'in_normal' => 0,
                 'in_discount' => 0,
                 'out_normal' => 0,
@@ -160,20 +126,65 @@ class MoneyReport
             $courseMap[$record['course_id']][Payment::STATUS_ACTIVE == $record['discount'] ? 'out_discount' : 'out_normal'] = abs($record['amount']);
         }
 
-        $renderTable = function (bool $kids, int $row) use ($spreadsheet, $courseMap) {
-            $startRow = $row;
+        $spreadsheet = new Spreadsheet();
+        $firstSheet = true;
+
+        /** @var CourseCategory $courseCategory */
+        foreach (CourseCategory::find()->all() as $courseCategory) {
+            if ($firstSheet) {
+                $firstSheet = false;
+            } else {
+                $spreadsheet->createSheet();
+                $spreadsheet->setActiveSheetIndex($spreadsheet->getSheetCount() - 1);
+            }
+
+            $spreadsheet->getActiveSheet()->setTitle($courseCategory->name);
+            $spreadsheet->getActiveSheet()->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+            $spreadsheet->getActiveSheet()->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+            $spreadsheet->getActiveSheet()->getPageSetup()->setFitToWidth(1);
+            $spreadsheet->getActiveSheet()->getPageSetup()->setFitToHeight(0);
+            $spreadsheet->getActiveSheet()
+                ->mergeCells('A1:A2')
+                ->setCellValue('A1', 'Группа')
+                ->mergeCells('B1:D1')
+                ->setCellValue('B1', 'Принесли в кассу')
+                ->setCellValue('B2', 'Со скидкой')
+                ->setCellValue('C2', 'Без скидки')
+                ->setCellValue('D2', 'Всего');
+
+            $spreadsheet->getActiveSheet()
+                ->mergeCells('E1:G1')
+                ->setCellValue('E1', 'Списано за занятия')
+                ->setCellValue('E2', 'Со скидкой')
+                ->setCellValue('F2', 'Без скидки')
+                ->setCellValue('G2', 'Всего');
+
+            $spreadsheet->getActiveSheet()->getStyle('A1:E1')->getFont()->setBold(true);
+            $spreadsheet->getActiveSheet()->getStyle('B1:E1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                ->setVertical(Alignment::VERTICAL_CENTER);
+
+            $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(30);
+            $spreadsheet->getActiveSheet()->getColumnDimension('B')->setWidth(15);
+            $spreadsheet->getActiveSheet()->getColumnDimension('C')->setWidth(15);
+            $spreadsheet->getActiveSheet()->getColumnDimension('D')->setWidth(15);
+            $spreadsheet->getActiveSheet()->getColumnDimension('E')->setWidth(15);
+            $spreadsheet->getActiveSheet()->getColumnDimension('F')->setWidth(15);
+            $spreadsheet->getActiveSheet()->getColumnDimension('G')->setWidth(15);
+
+            $startRow = $row = 3;
             foreach ($courseMap as $courseData) {
-                if ($courseData['kids'] != $kids) {
-                    continue;
+                if ($courseCategory->id === $courseData['category']) {
+                    $spreadsheet->getActiveSheet()->setCellValue("A$row", $courseData['name']);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $courseData['in_discount'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $courseData['in_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValue("D$row", "=B$row+C$row");
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $courseData['out_discount'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $courseData['out_normal'], DataType::TYPE_NUMERIC);
+                    $spreadsheet->getActiveSheet()->setCellValue("G$row", "=E$row+F$row");
+                    ++$row;
                 }
-                $spreadsheet->getActiveSheet()->setCellValue("A$row", $courseData['name']);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("B$row", $courseData['in_discount'], DataType::TYPE_NUMERIC);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("C$row", $courseData['in_normal'], DataType::TYPE_NUMERIC);
-                $spreadsheet->getActiveSheet()->setCellValue("D$row", "=B$row+C$row");
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("E$row", $courseData['out_discount'], DataType::TYPE_NUMERIC);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("F$row", $courseData['out_normal'], DataType::TYPE_NUMERIC);
-                $spreadsheet->getActiveSheet()->setCellValue("G$row", "=E$row+F$row");
-                ++$row;
             }
 
             if ($row !== $startRow) {
@@ -187,11 +198,7 @@ class MoneyReport
                 $spreadsheet->getActiveSheet()->getStyle("A$row:G$row")->getFont()->setBold(true);
                 $spreadsheet->getActiveSheet()->getStyle("B$startRow:G$row")->getNumberFormat()->setFormatCode('#,##0');
             }
-
-            return $row;
-        };
-        $nextRow = $renderTable(false, 3);
-        $renderTable(true, $nextRow + 3);
+        }
 
         return $spreadsheet;
     }

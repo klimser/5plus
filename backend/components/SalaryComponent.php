@@ -118,16 +118,22 @@ class SalaryComponent
 
     public static function getMonthSalarySpreadsheet(DateTimeImmutable $date): Spreadsheet
     {
+        $excludeCategoryIds = [4];
+        $noTaxCategoryIds = [2, 3];
+
         $dateFrom = $date->modify('first day of this month midnight');
         $dateTo = $date->modify('first day of next month midnight');
 
         /** @var CourseConfig[] $courseConfigs */
         $courseConfigs = CourseConfig::find()
             ->alias('cc')
-            ->andWhere(['<', 'date_from', $dateTo->format('Y-m-d H:i:s')])
-            ->andWhere(['or', ['date_to' => null], ['>', 'date_to', $dateFrom->format('Y-m-d H:i:s')]])
+            ->joinWith('course c')
+            ->andWhere(['not', ['c.category_id' => $excludeCategoryIds]])
+            ->andWhere(['<', 'cc.date_from', $dateTo->format('Y-m-d H:i:s')])
+            ->andWhere(['or', ['cc.date_to' => null], ['>', 'cc.date_to', $dateFrom->format('Y-m-d H:i:s')]])
             ->with(['teacher', 'course'])
-            ->orderBy(['cc.teacher_id' => SORT_ASC])->all();
+            ->orderBy(['cc.teacher_id' => SORT_ASC])
+            ->all();
 
         if (empty($courseConfigs)) throw new Exception('No salary data found');
 
@@ -137,6 +143,7 @@ class SalaryComponent
                 $salaryMap[$courseConfig->teacher_id][$courseConfig->course_id] = [
                     'teacher' => $courseConfig->teacher->name,
                     'course' => $courseConfig->name,
+                    'category' => $courseConfig->course->category_id,
                     'amount' => 0
                 ];
             }
@@ -183,12 +190,13 @@ class SalaryComponent
         $spreadsheet->getActiveSheet()->setCellValue('A2', '№');
         $spreadsheet->getActiveSheet()->setCellValue('B2', 'ФИО учителя');
         $spreadsheet->getActiveSheet()->setCellValue('C2', 'Группа');
-        $spreadsheet->getActiveSheet()->setCellValue('D2', 'Сумма');
-        $spreadsheet->getActiveSheet()->setCellValue('E2', 'Итого за группы');
-        $spreadsheet->getActiveSheet()->setCellValue('F2', '30,5%');
-        $spreadsheet->getActiveSheet()->setCellValue('G2', 'На карту');
-        $spreadsheet->getActiveSheet()->setCellValue('H2', 'Гарант');
-        $spreadsheet->getActiveSheet()->setCellValue('I2', 'Итого');
+        $spreadsheet->getActiveSheet()->setCellValue('D2', 'Сумма (группы)');
+        $spreadsheet->getActiveSheet()->setCellValue('E2', 'Сумма (инд+KIDS)');
+        $spreadsheet->getActiveSheet()->setCellValue('F2', 'Итого за группы');
+        $spreadsheet->getActiveSheet()->setCellValue('G2', '12%');
+        $spreadsheet->getActiveSheet()->setCellValue('H2', 'Итого за группы без налога');
+        $spreadsheet->getActiveSheet()->setCellValue('I2', 'Итого за инд+KIDS');
+        $spreadsheet->getActiveSheet()->setCellValue('J2', 'Итого');
         $spreadsheet->getActiveSheet()->getStyle("A2:I2")->getFont()->setBold(true);
         $spreadsheet->getActiveSheet()->getStyle("A2:I2")->getFont()->setItalic(true);
         $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(3);
@@ -200,6 +208,7 @@ class SalaryComponent
         $spreadsheet->getActiveSheet()->getColumnDimension('G')->setWidth(12);
         $spreadsheet->getActiveSheet()->getColumnDimension('H')->setWidth(12);
         $spreadsheet->getActiveSheet()->getColumnDimension('I')->setWidth(12);
+        $spreadsheet->getActiveSheet()->getColumnDimension('J')->setWidth(12);
 
         $row = 3;
         $num = 1;
@@ -209,23 +218,29 @@ class SalaryComponent
             foreach ($salaryMapByCourse as $salaryData) {
                 $teacherName = $salaryData['teacher'];
                 $spreadsheet->getActiveSheet()->setCellValue("C$row", $salaryData['course']);
-                $spreadsheet->getActiveSheet()->setCellValueExplicit("D$row", $salaryData['amount'], DataType::TYPE_NUMERIC);
+                $spreadsheet->getActiveSheet()->setCellValueExplicit(
+                    (in_array($salaryData['category'], $noTaxCategoryIds) ? 'E' : 'D') . $row,
+                    $salaryData['amount'],
+                    DataType::TYPE_NUMERIC
+                );
                 ++$row;
             }
 
             $spreadsheet->getActiveSheet()->mergeCells("A$startRow:A" . ($row - 1));
             $spreadsheet->getActiveSheet()->mergeCells("B$startRow:B" . ($row - 1));
-            $spreadsheet->getActiveSheet()->mergeCells("E$startRow:E" . ($row - 1));
             $spreadsheet->getActiveSheet()->mergeCells("F$startRow:F" . ($row - 1));
-            $spreadsheet->getActiveSheet()->mergeCells("G$startRow:g" . ($row - 1));
+            $spreadsheet->getActiveSheet()->mergeCells("G$startRow:G" . ($row - 1));
             $spreadsheet->getActiveSheet()->mergeCells("H$startRow:H" . ($row - 1));
             $spreadsheet->getActiveSheet()->mergeCells("I$startRow:I" . ($row - 1));
+            $spreadsheet->getActiveSheet()->mergeCells("J$startRow:J" . ($row - 1));
 
             $spreadsheet->getActiveSheet()->setCellValue("A$startRow", $num);
             $spreadsheet->getActiveSheet()->setCellValue("B$startRow", $teacherName);
-            $spreadsheet->getActiveSheet()->setCellValue("E$startRow", "=SUM(D$startRow:D" . ($row - 1) . ')');
-            $spreadsheet->getActiveSheet()->setCellValue("F$startRow", "=E$startRow*0.12");
-            $spreadsheet->getActiveSheet()->setCellValue("I$startRow", "=E$startRow-F$startRow-G$startRow");
+            $spreadsheet->getActiveSheet()->setCellValue("F$startRow", "=SUM(D$startRow:D" . ($row - 1) . ')');
+            $spreadsheet->getActiveSheet()->setCellValue("G$startRow", "=F$startRow*0.12");
+            $spreadsheet->getActiveSheet()->setCellValue("H$startRow", "=F$startRow-G$startRow");
+            $spreadsheet->getActiveSheet()->setCellValue("I$startRow", "=SUM(E$startRow:E" . ($row - 1) . ')');
+            $spreadsheet->getActiveSheet()->setCellValue("J$startRow", "=H$startRow+I$startRow");
 
             ++$num;
         }
@@ -233,9 +248,9 @@ class SalaryComponent
         --$row;
         $spreadsheet->getActiveSheet()->getStyle("A3:A$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $spreadsheet->getActiveSheet()->getStyle("B3:C$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-        $spreadsheet->getActiveSheet()->getStyle("D3:I$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        $spreadsheet->getActiveSheet()->getStyle("A3:I$row")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $spreadsheet->getActiveSheet()->getStyle("A2:I$row")->applyFromArray([
+        $spreadsheet->getActiveSheet()->getStyle("D3:J$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $spreadsheet->getActiveSheet()->getStyle("A3:J$row")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $spreadsheet->getActiveSheet()->getStyle("A2:J$row")->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,

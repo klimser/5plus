@@ -12,6 +12,7 @@ use yii\jui\DatePicker;
 /* @var $this yii\web\View */
 /* @var $course common\models\Course */
 /* @var $courseTypes \common\models\CourseType[] */
+/* @var $courseCategories \common\models\CourseCategory[] */
 /* @var $subjects \common\models\Subject[] */
 /* @var $canMoveMoney bool */
 
@@ -48,7 +49,8 @@ if ($course->id) {
             <?= $form->field($course, 'type_id', ['options' => ['class' => 'form-group']])
                 ->dropDownList(ArrayHelper::map($courseTypes, 'id', 'name'), ['required' => true]); ?>
 
-            <?= $form->field($course, 'kids', ['options' => ['class' => 'form-group']])->checkbox(); ?>
+            <?= $form->field($course, 'category_id', ['options' => ['class' => 'form-group']])
+                ->dropDownList(ArrayHelper::map($courseCategories, 'id', 'name'), ['required' => true]); ?>
 
             <?= $form->field($course, 'subject_id', ['options' => ['class' => 'form-group']])
                 ->dropDownList(
