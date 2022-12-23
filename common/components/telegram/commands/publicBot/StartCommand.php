@@ -3,18 +3,17 @@
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use common\components\telegram\commands\ConversationTrait;
-use common\models\User;
-use Longman\TelegramBot\Commands\UserCommand;
+use common\components\telegram\text\PublicMain;
+use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Entities\Entity;
+use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Request;
-use common\components\telegram\text\PublicMain;
-use Longman\TelegramBot\Entities\Keyboard;
 
 /**
  * Start command
  */
-class StartCommand extends UserCommand
+class StartCommand extends SystemCommand
 {
     use ConversationTrait;
     

@@ -9,7 +9,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Yii;
 use yii\base\BaseObject;
-use Longman\TelegramBot\Telegram as TelegramBot;
+use common\components\telegram\Telegram as TelegramBot;
 use yii\web\Request;
 
 /**
