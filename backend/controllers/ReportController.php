@@ -78,7 +78,7 @@ class ReportController extends AdminController
 
         $courseMap = [null => 'Все'];
         foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
-            $courseMap[$course->id] = $course->latestCourseConfig->name;
+            $courseMap[$course->id] = $course->courseConfig->name;
         }
 
         if (Yii::$app->request->isPost) {

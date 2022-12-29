@@ -57,7 +57,7 @@ class WelcomeLessonController extends AdminController
         $courses = Course::find()->where(['id' => WelcomeLesson::find()->select(['course_id'])->distinct()->asArray()->column()])->all();
         $courseMap = [null => 'Все'];
         foreach (CourseComponent::sortCoursesByName($courses) as $course) {
-            $courseMap[$course->id] = $course->latestCourseConfig->name;
+            $courseMap[$course->id] = $course->courseConfig->name;
         }
 
         /** @var Subject[] $subjects */

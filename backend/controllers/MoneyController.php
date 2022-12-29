@@ -204,7 +204,7 @@ class MoneyController extends AdminController
 
         $courseMap = [null => 'Все'];
         foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
-            $courseMap[$course->id] = $course->latestCourseConfig->name;
+            $courseMap[$course->id] = $course->courseConfig->name;
         }
 
         return $this->render('debt', [
@@ -230,7 +230,7 @@ class MoneyController extends AdminController
 
         $courseMap = [null => 'Все'];
         foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
-            $courseMap[$course->id] = $course->latestCourseConfig->name;
+            $courseMap[$course->id] = $course->courseConfig->name;
         }
 
         return $this->render('payment', [
@@ -255,7 +255,7 @@ class MoneyController extends AdminController
 
         $courseMap = [null => 'Все'];
         foreach (CourseComponent::getAllSortedByActiveAndName() as $course) {
-            $courseMap[$course->id] = $course->latestCourseConfig->name;
+            $courseMap[$course->id] = $course->courseConfig->name;
         }
 
         $typeMap = [null => 'Все'];

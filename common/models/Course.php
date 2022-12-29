@@ -122,7 +122,7 @@ class Course extends ActiveRecord
 
     public function getTeacher(): Teacher
     {
-        return $this->latestCourseConfig->teacher;
+        return $this->courseConfig->teacher;
     }
 
     public function getEvents(): ActiveQuery
@@ -172,10 +172,10 @@ class Course extends ActiveRecord
         return 0 === count($this->courseConfigs) ? null : $this->courseConfigs[count($this->courseConfigs) - 1];
     }
 
-    public function getCourseConfig(): CourseConfig
+    public function getCourseConfig(): ?CourseConfig
     {
         if (!isset($this->courseConfig)) {
-            $this->courseConfig = CourseComponent::getCourseConfig($this, new DateTimeImmutable());
+            $this->courseConfig = CourseComponent::getCourseConfig($this, new DateTimeImmutable(), false) ?? $this->latestCourseConfig;
         }
 
         return $this->courseConfig;

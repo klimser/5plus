@@ -24,7 +24,7 @@ class CourseComponent extends Component
         $courses = Course::find()->all();
         usort(
             $courses,
-            static fn (Course $a, Course $b) => (0 === ($res = $a->active <=> $b->active) ? $a->latestCourseConfig->name <=> $b->latestCourseConfig->name : $res)
+            static fn (Course $a, Course $b) => (0 === ($res = $a->active <=> $b->active) ? $a->courseConfig->name <=> $b->courseConfig->name : $res)
         );
 
         return $courses;
@@ -39,7 +39,7 @@ class CourseComponent extends Component
         $courses = Course::findAll(['active' => Course::STATUS_ACTIVE]);
         usort(
             $courses,
-            static fn (Course $a, Course $b) => $a->latestCourseConfig->name <=> $b->latestCourseConfig->name
+            static fn (Course $a, Course $b) => $a->courseConfig->name <=> $b->courseConfig->name
         );
 
         return $courses;
@@ -54,16 +54,16 @@ class CourseComponent extends Component
     {
         usort(
             $courses,
-            static fn (Course $a, Course $b) => $a->latestCourseConfig->name <=> $b->latestCourseConfig->name
+            static fn (Course $a, Course $b) => $a->courseConfig->name <=> $b->courseConfig->name
         );
 
         return $courses;
     }
 
-    public static function getCourseConfig(Course $course, DateTimeInterface $date): CourseConfig
+    public static function getCourseConfig(Course $course, DateTimeInterface $date, bool $throwOnEmpty = true): ?CourseConfig
     {
         $courseConfig = CourseConfig::findByDate($course, $date);
-        if (!$courseConfig) {
+        if (!$courseConfig && $throwOnEmpty) {
             throw new \Exception(sprintf('No course config: Course ID %s, date %s ', $course->id, $date->format('d.m.Y')));
         }
         return $courseConfig;

@@ -45,7 +45,7 @@ foreach ($student->courseStudentsAggregated as $courseId => $courseStudents) {
                         <div class="row">
                             <div class="col-12 col-md-4 col-lg-6">
                                 <?php if (!$courseNameRendered): ?>
-                                    <?= $courseStudent->course->latestCourseConfig->name; ?>
+                                    <?= $courseStudent->course->courseConfig->name; ?>
                                 <?php endif; ?>
                             </div>
                             <div class="col-12 col-md-4 col-lg-3">

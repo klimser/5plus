@@ -16,20 +16,21 @@ use yii\jui\DatePicker;
 /* @var $subjects \common\models\Subject[] */
 /* @var $canMoveMoney bool */
 
-$this->title = $course->id ? $course->latestCourseConfig->name : 'Добавить группу';
+$this->title = $course->id ? $course->courseConfig->name : 'Добавить группу';
 $this->params['breadcrumbs'][] = ['label' => 'Группы', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
-$script = 'Main.loadActiveTeachers()';
+$script = '';
+if ($course->id) {
+    $script .= 'Course.activeTeacher = ' . $course->latestCourseConfig->teacher_id . ";\n";
+}
+$script .= 'Main.loadActiveTeachers()';
 if (!$course->subject_id) {
     $script .= '.done(function(teacherIds) {
             Course.loadTeacherSelect($("#course-subject_id"));
         })';
 }
 $script .= ";\n";
-if ($course->id) {
-    $script .= 'Course.activeTeacher = ' . $course->latestCourseConfig->teacher_id . ";\n";
-}
 ?>
 <div class="course-update">
     <h1>
