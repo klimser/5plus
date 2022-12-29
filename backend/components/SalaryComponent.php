@@ -294,8 +294,10 @@ class SalaryComponent
         foreach ($courseConfigs as $courseConfig) {
             /** @var DateTimeImmutable $eventDateFrom */
             $eventDateFrom = max($dateFrom, $courseConfig->dateFromObject);
+            $eventDateFrom = $eventDateFrom->modify('midnight');
             /** @var DateTimeImmutable $eventDateTo */
             $eventDateTo = (null === $courseConfig->dateToObject) ? $dateTo : min($dateTo, $courseConfig->dateToObject);
+            $eventDateTo = $eventDateTo->modify('midnight');
 
             /** @var Event[] $events */
             $events = Event::find()

@@ -192,8 +192,12 @@ class CourseController extends AdminController
             $courseConfigData = Yii::$app->request->post('CourseConfig');
             if (!empty($courseConfigData)) {
                 $weektime = Yii::$app->request->post('weektime', []);
+                $latestCourseConfig = $course->latestCourseConfig;
                 if (empty(array_filter($weektime))) {
                     Yii::$app->session->addFlash('error', 'Не указано время занятий');
+                    $error = true;
+                } elseif ($latestCourseConfig && (new DateTimeImmutable($courseConfigData['date_from'] . ' midnight')) <= $latestCourseConfig->dateFromObject) {
+                    Yii::$app->session->addFlash('error', 'Выбрана неверная дата изменения параметров');
                     $error = true;
                 } else {
                     $courseConfig = new CourseConfig();
@@ -202,7 +206,7 @@ class CourseController extends AdminController
                     if ($course->isNewRecord) {
                         $courseConfig->date_from = $course->date_start;
                     } else {
-                        $courseConfig->dateFromObject = new DateTimeImmutable($courseConfigData['date_from']);
+                        $courseConfig->dateFromObject = new DateTimeImmutable($courseConfigData['date_from'] . ' midnight');
                     }
                 }
             }

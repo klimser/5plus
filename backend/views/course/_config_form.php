@@ -10,6 +10,8 @@ use common\components\helpers\Calendar;
 use yii\helpers\ArrayHelper;
 use yii\jui\DatePicker;
 
+$dateClientOptions = $courseConfig->dateFromObject ? ['minDate' => $courseConfig->dateFromObject->format('d.m.Y')] : [];
+
 ?>
 
 <div id="form_course_config">
@@ -17,11 +19,14 @@ use yii\jui\DatePicker;
         ->widget(
             DatePicker::class, ArrayHelper::merge(
             DefaultValuesComponent::getDatePickerSettings(),
-            ['options' => [
-                'required' => true,
-                'autocomplete' => 'off',
-                'disabled' => true,
-            ]]
+            [
+                'options' => [
+                    'required' => true,
+                    'autocomplete' => 'off',
+                    'disabled' => true,
+                ],
+                'clientOptions' => $dateClientOptions,
+            ]
         )); ?>
 
     <?= $form->field($courseConfig, 'name', ['options' => ['class' => 'form-group']])

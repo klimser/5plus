@@ -37,9 +37,9 @@ use yii\helpers\ArrayHelper;
  * @property Event[]         $events
  * @property Event[]         $eventsByDateMap
  * @property CourseNote[]    $notes
- * @property ?CourseNote     $note
+ * @property CourseNote|null $note
  * @property CourseConfig    $courseConfig
- * @property CourseConfig    $latestCourseConfig
+ * @property CourseConfig|null  $latestCourseConfig
  */
 class Course extends ActiveRecord
 {
@@ -49,7 +49,7 @@ class Course extends ActiveRecord
     private ?array $eventIdByDateMap = null;
 
     private CourseConfig $courseConfig;
-    
+
     /**
      * {@inheritdoc}
      */
@@ -145,7 +145,8 @@ class Course extends ActiveRecord
                 $this->eventIdByDateMap = ArrayHelper::map(
                     $eventData,
                     static fn(array $row) => (new DateTimeImmutable($row['event_date']))->format('Y-m-d'),
-                    static fn(array $row) => (int) $row['id']);
+                    static fn(array $row) => (int) $row['id']
+                );
             }
         }
 
@@ -166,9 +167,9 @@ class Course extends ActiveRecord
         return Event::findOne($this->getEventIdByDateMap()[$eventDate->format('Y-m-d')]);
     }
 
-    public function getLatestCourseConfig(): CourseConfig
+    public function getLatestCourseConfig(): ?CourseConfig
     {
-        return $this->courseConfigs[count($this->courseConfigs) - 1];
+        return 0 === count($this->courseConfigs) ? null : $this->courseConfigs[count($this->courseConfigs) - 1];
     }
 
     public function getCourseConfig(): CourseConfig
@@ -208,8 +209,11 @@ class Course extends ActiveRecord
     {
         $activeCourseStudents = [];
         foreach ($this->courseStudents as $courseStudent) {
-            if ($courseStudent->active == CourseStudent::STATUS_ACTIVE) $activeCourseStudents[] = $courseStudent;
+            if ($courseStudent->active == CourseStudent::STATUS_ACTIVE) {
+                $activeCourseStudents[] = $courseStudent;
+            }
         }
+
         return $activeCourseStudents;
     }
 
@@ -224,6 +228,7 @@ class Course extends ActiveRecord
                 $finishedCourseStudents[] = $courseStudent;
             }
         }
+
         return $finishedCourseStudents;
     }
 
@@ -238,6 +243,7 @@ class Course extends ActiveRecord
                 $movedCourseStudents[] = $courseStudent;
             }
         }
+
         return $movedCourseStudents;
     }
 
@@ -258,7 +264,7 @@ class Course extends ActiveRecord
     {
         return 0 < count($this->notes) ? $this->notes[0] : null;
     }
-    
+
     public function setStartDateObject(?DateTimeInterface $startDate): void
     {
         $this->date_start = $startDate?->format('Y-m-d');
@@ -285,6 +291,7 @@ class Course extends ActiveRecord
             ->andWhere(['course_id' => $this->id])
             ->andWhere(['between', 'lesson_date', $date->format('Y-m-d') . ' 00:00:00', $date->format('Y-m-d') . ' 23:59:59'])
             ->count();
+
         return $lessonsCount > 0;
     }
 }

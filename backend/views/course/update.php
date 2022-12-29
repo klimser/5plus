@@ -94,11 +94,17 @@ if ($course->id) {
                         <div class="card-body">
                             <?php
                                 $teacherList = $course->subject_id ? ArrayHelper::map($course->subject->activeTeachers, 'id', 'name') : [];
+                                if ($course->latestCourseConfig) {
+                                    $newCourseConfig = $course->latestCourseConfig;
+                                    $newCourseConfig->dateFromObject = $newCourseConfig->dateFromObject->modify('+1 day');
+                                } else {
+                                    $newCourseConfig = new CourseConfig();
+                                }
                             ?>
                             <?= $this->render(
                                 '_config_form',
                                 [
-                                    'courseConfig' => empty($course->courseConfigs) ? new CourseConfig() : clone $course->latestCourseConfig,
+                                    'courseConfig' => $newCourseConfig,
                                     'teacherList' => $teacherList,
                                     'form' => $form,
                                     'disabled' => !$course->isNewRecord,

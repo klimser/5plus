@@ -26,7 +26,7 @@ use yii\db\ActiveQuery;
  * @property int               $teacher_lesson_pay Фиксированная оплата учителю за урок
  * @property string|null       $room_number
  *
- * @property DateTimeImmutable $dateFromObject
+ * @property DateTimeImmutable|null $dateFromObject
  * @property DateTimeImmutable|null $dateToObject
  * @property int               $priceMonth
  * @property int               $price12Lesson
