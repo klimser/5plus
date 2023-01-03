@@ -122,7 +122,7 @@ class Course extends ActiveRecord
 
     public function getTeacher(): Teacher
     {
-        return $this->courseConfig->teacher;
+        return $this->getCourseConfig()->teacher;
     }
 
     public function getEvents(): ActiveQuery
