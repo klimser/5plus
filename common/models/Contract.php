@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use common\components\CourseComponent;
 use common\components\extended\ActiveRecord;
 use common\components\helpers\MoneyHelper;
 use common\models\traits\Inserted;
@@ -217,10 +218,17 @@ class Contract extends ActiveRecord
         return MoneyHelper::numberToStringRus($this->amount, true);
     }
 
-    public function getCourseConfig(): ActiveQuery
+    public function getCourseConfig(): CourseConfig
     {
-        return $this->hasOne(CourseConfig::class, ['course_id' => 'course_id'])
-            ->andWhere(['and', 'date_from <= :contract_date', ['or', 'date_to IS NULL', 'date_to > :contract_date']], ['contract_date' => $this->created_at]);
+        if ($courseConfig = CourseComponent::getCourseConfig($this->course, $this->createDate, false)) {
+            return $courseConfig;
+        }
+
+        if ($this->course->startDateObject > $this->createDate) {
+            return $this->course->courseConfigs[0];
+        } else {
+            return $this->course->latestCourseConfig;
+        }
     }
 
     public function getLessonsCount(): int
