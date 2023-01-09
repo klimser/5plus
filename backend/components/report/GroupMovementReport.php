@@ -96,7 +96,7 @@ class GroupMovementReport
         }
         $courseCollections = [];
         foreach ($courses as $course) {
-            $courseConfig = CourseComponent::getCourseConfig($course, null === $course->date_end ? $endDate : min($course->endDateObject, $endDate));
+            $courseConfig = CourseComponent::getCourseConfig($course, null === $course->date_end ? $endDate : min($course->endDateObject->modify('-1 day'), $endDate));
 
             $index = $indexCategoryMap[$course->category_id];
             if (!array_key_exists($index, $courseCollections)) $courseCollections[$index] = [];
