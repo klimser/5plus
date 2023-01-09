@@ -102,7 +102,7 @@ class CourseSearch extends Course
             'and',
             ['c.id' => $this->id],
             ['subject_id' => $this->subject_id],
-            ['or', 'c_c.teacher_id' => $this->teacher_id, 'c_c_f.teacher_id' => $this->teacher_id, 'c_c_l.teacher_id' => $this->teacher_id],
+            ['or', ['c_c.teacher_id' => $this->teacher_id], ['c_c_f.teacher_id' => $this->teacher_id], ['c_c_l.teacher_id' => $this->teacher_id]],
             ['active' => $this->active],
         ]);
 
