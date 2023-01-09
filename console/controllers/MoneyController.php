@@ -49,6 +49,8 @@ class MoneyController extends Controller
                 }
                 if (!$isActive && $course->date_end && $course->endDateObject < $nowDate) {
                     $course->active = Course::STATUS_INACTIVE;
+                    $course->latestCourseConfig->date_to = $course->date_end;
+                    $course->latestCourseConfig->save();
                     $course->save();
                 }
 

@@ -41,13 +41,34 @@ class CourseSearch extends Course
         $query = Course::find()
             ->alias('c')
             ->with(['students', 'notes'])
-            ->joinWith([
-                'courseConfigs c_c' => function (ActiveQuery $query) {
-                    $query->andWhere(['<=', 'date_from', date('Y-m-d')])
-                        ->andWhere(['or', ['date_to' => null], ['>', 'date_to', date('Y-m-d')]])
-                        ->orderBy(['name' => SORT_ASC]);
-                }
-            ]);
+            ->leftJoin(
+                ['c_c' => CourseConfig::tableName()],
+                [
+                    'and',
+                    'c.id = c_c.course_id',
+                    ['<=', 'c_c.date_from', date('Y-m-d')],
+                    ['or', ['c_c.date_to' => null], ['>', 'c_c.date_to', date('Y-m-d')]],
+                ],
+            )
+            ->leftJoin(
+                ['c_c_f' => CourseConfig::tableName()],
+                [
+                    'and',
+                    'c.id = c_c_f.course_id',
+                    ['>', 'c_c_f.date_from', date('Y-m-d')],
+                    ['or', ['c_c_f.date_to' => null], ['>', 'c_c_f.date_to', date('Y-m-d')]],
+                ],
+            )
+            ->leftJoin(
+                ['c_c_l' => CourseConfig::tableName()],
+                [
+                    'and',
+                    'c.id = c_c_l.course_id',
+                    ['<', 'c_c_l.date_from', date('Y-m-d')],
+                    ['<', 'c_c_l.date_to', date('Y-m-d')],
+                ],
+            )
+            ->orderBy(['c_c.name' => SORT_ASC, 'c_c_f.date_from' => SORT_ASC, 'c_c_f.name' => SORT_ASC, 'c_c_l.date_to' => SORT_DESC, 'c_c_l.name' => SORT_ASC]);
 
         $providerParams = [
             'query' => $query,
@@ -55,10 +76,10 @@ class CourseSearch extends Course
                 'pageSize' => 50,
             ],
             'sort' => [
-                'defaultOrder' => [
-                    'active' => SORT_DESC,
-                    'name' => SORT_ASC
-                ],
+//                'defaultOrder' => [
+//                    'active' => SORT_DESC,
+//                    'name' => SORT_ASC
+//                ],
                 'attributes' => [
                     'active',
                     'name',
@@ -78,13 +99,19 @@ class CourseSearch extends Course
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'c.id' => $this->id,
-            'subject_id' => $this->subject_id,
-            'c_c.teacher_id' => $this->teacher_id,
-            'active' => $this->active,
+            'and',
+            ['c.id' => $this->id],
+            ['subject_id' => $this->subject_id],
+            ['or', 'c_c.teacher_id' => $this->teacher_id, 'c_c_f.teacher_id' => $this->teacher_id, 'c_c_l.teacher_id' => $this->teacher_id],
+            ['active' => $this->active],
         ]);
 
-        $query->andFilterWhere(['like', 'c_c.name', $this->name]);
+        $query->andFilterWhere([
+            'or',
+            ['like', 'c_c.name', $this->name],
+            ['like', 'c_c_f.name', $this->name],
+            ['like', 'c_c_l.name', $this->name],
+        ]);
 
         return $dataProvider;
     }
