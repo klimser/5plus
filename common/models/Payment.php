@@ -3,6 +3,7 @@
 namespace common\models;
 
 use backend\models\EventMember;
+use common\components\CourseComponent;
 use common\components\extended\ActiveRecord;
 use DateTime;
 use yii\db\ActiveQuery;
@@ -126,10 +127,9 @@ class Payment extends ActiveRecord
         return $this->hasMany(Payment::class, ['used_payment_id' => 'id'])->inverseOf('usedPayment');
     }
 
-    public function getCourseConfig(): ActiveQuery
+    public function getCourseConfig(): CourseConfig
     {
-        return $this->hasOne(CourseConfig::class, ['course_id' => 'course_id'])
-            ->andWhere(['and', 'date_from <= :payment_date', ['or', 'date_to IS NULL', 'date_to > :payment_date']], ['payment_date' => $this->created_at]);
+        return CourseComponent::getCourseConfig($this->course, $this->createDate, false) ?? $this->course->latestCourseConfig;
     }
 
     public function getPaymentsSum(): int
