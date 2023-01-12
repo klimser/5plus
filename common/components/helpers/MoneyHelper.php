@@ -3,13 +3,14 @@ namespace common\components\helpers;
 
 class MoneyHelper
 {
-    /**
-     * @param int $amount
-     * @return int
-     */
-    public static function roundThousand($amount)
+    public static function roundThousand(int $amount): int
     {
         return round(round($amount) / 1000) * 1000;
+    }
+
+    public static function roundTen(int $amount): int
+    {
+        return round(round($amount) / 10) * 10;
     }
 
     /**

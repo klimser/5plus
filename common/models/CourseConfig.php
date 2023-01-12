@@ -164,14 +164,14 @@ class CourseConfig extends ActiveRecord
 
     public function getPrice12Lesson(): int
     {
-        return MoneyHelper::roundThousand(($this->lesson_price_discount ?: $this->lesson_price) * 12);
+        return MoneyHelper::roundTen(($this->lesson_price_discount ?: $this->lesson_price) * 12);
     }
 
     public function getPriceMonth(): int
     {
         $perMonth = $this->getClassesPerMonth();
 
-        return MoneyHelper::roundThousand($perMonth * ($perMonth >= 12 ? $this->lesson_price_discount : $this->lesson_price));
+        return MoneyHelper::roundTen($perMonth * ($perMonth >= 12 ? $this->lesson_price_discount : $this->lesson_price));
     }
 
     public function getClassesPerWeek(): int

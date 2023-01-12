@@ -216,7 +216,7 @@ class MoneyComponent extends Component
                             if ($parentPayment) {
                                 $isDiscount = $courseConfig->lesson_price_discount && $parentPayment->discount;
                                 $lessonPrice = $isDiscount ? $courseConfig->lesson_price_discount : $courseConfig->lesson_price;
-                                $toPay = (int) bcmul($rate, (string) $lessonPrice, 0);
+                                $toPay = MoneyHelper::roundTen((int) bcmul($rate, (string) $lessonPrice, 0));
 
                                 if ($parentPayment->moneyLeft >= $toPay) {
                                     $payment->amount = $toPay * (-1);
@@ -225,11 +225,11 @@ class MoneyComponent extends Component
                                 } else {
                                     $payment->amount = $parentPayment->moneyLeft * (-1);
                                     $payment->discount = $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
-                                    $rate = bcsub($rate, number_format($payment->amount * (-1) / $lessonPrice, 8, '.', ''));
+                                    $rate = bcadd($rate, number_format($payment->amount / $lessonPrice, 8, '.', ''));
                                 }
                                 $payment->used_payment_id = $parentPayment->id;
                             } else {
-                                $toPay = (int) bcmul($rate, (string) $courseConfig->lesson_price, 0);
+                                $toPay = MoneyHelper::roundTen((int) bcmul($rate, (string) $courseConfig->lesson_price, 0));
                                 $payment->amount = $toPay * (-1);
                                 $payment->discount = Payment::STATUS_INACTIVE;
                                 $rate = '0';
@@ -494,7 +494,7 @@ class MoneyComponent extends Component
                         $isDiscount = $payments[0]['discount'] && $courseConfigs[$key]->lesson_price_discount;
                         $lessonPrice = $isDiscount ? $courseConfigs[$key]->lesson_price_discount : $courseConfigs[$key]->lesson_price;
 
-                        $toPay = MoneyHelper::roundThousand((int) bcmul($rate, (string) $lessonPrice, 0));
+                        $toPay = MoneyHelper::roundTen((int) bcmul($rate, (string) $lessonPrice, 0));
                         $toChargeItem = ['id' => $payments[0]['id'], 'discount' => $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE];
                         if ($payments[0]['amount'] >= $toPay) {
                             $toChargeItem['amount'] = $toPay;
