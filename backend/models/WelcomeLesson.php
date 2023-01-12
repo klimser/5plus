@@ -2,6 +2,7 @@
 
 namespace backend\models;
 
+use common\components\CourseComponent;
 use common\components\extended\ActiveRecord;
 use common\models\Course;
 use common\models\CourseConfig;
@@ -150,10 +151,16 @@ class WelcomeLesson extends ActiveRecord
         return $this->hasOne(Course::class, ['id' => 'course_id']);
     }
 
-    public function getCourseConfig(): ActiveQuery
+    public function getCourseConfig(): CourseConfig
     {
-        return $this->hasOne(CourseConfig::class, ['course_id' => 'course_id'])
-            ->andWhere(['and', 'date_from <= :lesson_date', ['or', 'date_to IS NULL', 'date_to > :lesson_date']], ['lesson_date' => $this->lesson_date]);
+        if ($courseConfig = CourseComponent::getCourseConfig($this->course, $this->lessonDateTime, false)) {
+            return $courseConfig;
+        }
+
+        if ($this->lesson_date < $this->course->date_start) {
+            return $this->course->courseConfigs[0];
+        }
+        return $this->course->latestCourseConfig;
     }
 
     public function getLessonDateTime(): ?DateTimeImmutable

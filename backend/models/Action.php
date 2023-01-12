@@ -81,6 +81,13 @@ class Action extends ActiveRecord
 
     public function getCourseConfig(): CourseConfig
     {
-        return CourseComponent::getCourseConfig($this->course, $this->createDate, false) ?? $this->course->latestCourseConfig;
+        if ($courseConfig = CourseComponent::getCourseConfig($this->course, $this->createDate, false)) {
+            return $courseConfig;
+        }
+
+        if ($this->created_at < $this->course->date_start) {
+            return $this->course->courseConfigs[0];
+        }
+        return $this->course->latestCourseConfig;
     }
 }
