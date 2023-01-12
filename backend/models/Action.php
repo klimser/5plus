@@ -2,6 +2,7 @@
 
 namespace backend\models;
 
+use common\components\CourseComponent;
 use common\components\extended\ActiveRecord;
 use common\models\Course;
 use common\models\CourseConfig;
@@ -78,9 +79,8 @@ class Action extends ActiveRecord
         return $this->hasOne(Course::class, ['id' => 'course_id']);
     }
 
-    public function getCourseConfig(): ActiveQuery
+    public function getCourseConfig(): CourseConfig
     {
-        return $this->hasOne(CourseConfig::class, ['course_id' => 'course_id'])
-            ->andWhere(['and', 'date_from <= :action_date', ['or', 'date_to IS NULL', 'date_to > :action_date']], ['action_date' => $this->created_at]);
+        return CourseComponent::getCourseConfig($this->course, $this->createDate, false) ?? $this->course->latestCourseConfig;
     }
 }
