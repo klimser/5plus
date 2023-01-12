@@ -55,7 +55,7 @@ class StartCommand extends SystemCommand
     {
         $this->flushConversation();
         
-        $payload = trim($this->getMessage()->getText(true));
+        $payload = trim($this->getMessage()->getText(true) ?? '');
         if (array_key_exists($payload, $this->telegram->getCommandsList())) {
             return $this->telegram->executeCommand($payload);
         }
