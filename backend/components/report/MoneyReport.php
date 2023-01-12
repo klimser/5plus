@@ -2,6 +2,7 @@
 
 namespace backend\components\report;
 
+use common\components\CourseComponent;
 use common\models\Course;
 use common\models\CourseCategory;
 use common\models\Payment;
@@ -91,7 +92,7 @@ class MoneyReport
         $courseMap = [];
         foreach ($courses as $course) {
             $courseMap[$course->id] = [
-                'name' => $course->getCourseConfigByDate($endDate->modify('-1 day'))->name,
+                'name' => (CourseComponent::getCourseConfig($course,$endDate->modify('-1 day'), false) ?? $course->latestCourseConfig)->name,
                 'category' => $course->category_id,
                 'in_normal' => 0,
                 'in_discount' => 0,
