@@ -138,7 +138,7 @@ class AppPaymeServer extends PaymeServer
             return $result;
         }
 
-        $subjectMap = ComponentContainer::getPaymeApi()->getSubjectMap();
+        $subjectMap = ComponentContainer::getAppPaymeApi()->getSubjectMap();
         if (isset($subjectMap[$subjectSlug])) {
             $subjectIds = $subjectMap[$subjectSlug];
             $payCourse = null;
