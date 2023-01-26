@@ -302,7 +302,7 @@ class PaymeServer extends AbstractPaymentServer
             [$id, $time] = explode('|', $contract->external_id);
             return ['result' => [
                 'create_time' => (int)$time,
-                'transaction' => (string)$contract->id,
+                'transaction' => $contract->number,
                 'state' => $contract->status == Contract::STATUS_PAID ? 2 : 1,
                 'perform_time' => $contract->status == Contract::STATUS_PAID ? $contract->paidDate->getTimestamp() * 1000 : 0,
                 'cancel_time' => 0,
@@ -357,7 +357,7 @@ class PaymeServer extends AbstractPaymentServer
                     'create_time' => (int)$timestamp,
                     'perform_time' => $contract->status == Contract::STATUS_PAID ? $contract->paidDate->getTimestamp() * 1000 : 0,
                     'cancel_time' => 0,
-                    'transaction' => (string)$contract->id,
+                    'transaction' => $contract->number,
                     'state' => $contract->status == Contract::STATUS_PAID ? 2 : 1,
                 ];
             }

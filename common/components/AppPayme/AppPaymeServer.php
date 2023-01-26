@@ -328,7 +328,7 @@ class AppPaymeServer extends PaymeServer
             [$id, $time] = explode('|', $contract->external_id);
             return ['result' => [
                 'create_time' => (int)$time,
-                'transaction' => (string)$contract->id,
+                'transaction' => $contract->number,
                 'state' => $contract->status == Contract::STATUS_PAID ? 2 : 1,
                 'perform_time' => $contract->status == Contract::STATUS_PAID ? $contract->paidDate->getTimestamp() * 1000 : 0,
                 'cancel_time' => 0,
@@ -368,11 +368,13 @@ class AppPaymeServer extends PaymeServer
                     'id' => $transactionId,
                     'time' => (int)$timestamp,
                     'amount' => $contract->amount * 100,
-                    'account' => ['order_id' => $contract->number],
+                    'account' => [
+                        'phone_number' => $contract->user->phoneInternational,
+                    ],
                     'create_time' => (int)$timestamp,
                     'perform_time' => $contract->status == Contract::STATUS_PAID ? $contract->paidDate->getTimestamp() * 1000 : 0,
                     'cancel_time' => 0,
-                    'transaction' => (string)$contract->id,
+                    'transaction' => $contract->number,
                     'state' => $contract->status == Contract::STATUS_PAID ? 2 : 1,
                 ];
             }
