@@ -3,6 +3,7 @@
 namespace backend\controllers;
 
 use backend\components\EventComponent;
+use backend\models\EventMember;
 use backend\models\WelcomeLesson;
 use backend\models\WelcomeLessonSearch;
 use common\components\Action;
@@ -316,11 +317,28 @@ class WelcomeLessonController extends AdminController
                     json_encode($dataForLog, JSON_UNESCAPED_UNICODE)
                 );
             } else {
-                CourseComponent::addStudentToCourse($welcomeLesson->user, $course, $welcomeLesson->lessonDateTime);
+                $courseStudent = CourseComponent::addStudentToCourse($welcomeLesson->user, $course, $welcomeLesson->lessonDateTime);
             }
             MoneyComponent::setUserChargeDates($welcomeLesson->user, $course);
             $welcomeLesson->status = WelcomeLesson::STATUS_SUCCESS;
             $welcomeLesson->save();
+
+            /** @var EventMember $eventMember */
+            if ($eventMember = EventMember::find()
+                ->alias('em')
+                ->joinWith('event e')
+                ->andWhere(['e.course_id' => $welcomeLesson->course_id, 'e.event_date' => $welcomeLesson->lesson_date, 'em.course_student_id' => $courseStudent->id])
+                ->one()) {
+                $eventMember->status = EventMember::STATUS_ATTEND;
+                $eventMember->save();
+
+                if ($eventMember->event->eventDateTime >= date_create('midnight') && !$eventMember->attendance_notification_sent) {
+                    ComponentContainer::getBotPush()->attendance($eventMember);
+                    $eventMember->attendance_notification_sent = 1;
+                    $eventMember->save();
+                }
+            }
+
             ComponentContainer::getActionLogger()
                 ->log(Action::TYPE_WELCOME_LESSON_STATUS_CHANGED, $welcomeLesson->user, null, $welcomeLesson->course, WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]);
             $transaction->commit();
