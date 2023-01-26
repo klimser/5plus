@@ -15,6 +15,7 @@ use yii\web\Response;
 class PaymeServer extends AbstractPaymentServer
 {
     protected const ERROR_MESSAGES = [
+        'authorization_failed' => ['en' => 'Authorization failed', 'ru' => 'Неверная авторизация', 'uz' => 'Authorization failed'],
         'request_is_not_post' => ['en' => 'Request should be POST', 'ru' => 'Запрос должен быть POST', 'uz' => 'So‘rov POST bo‘lishi kerak'],
         'failed_to_parse' => ['en' => 'Failed to parse JSON', 'ru' => 'Не удалось распознать JSON запрос', 'uz' => 'JSON so‘rovini tanib bo‘lmadi'],
         'method_not_exist' => ['en' => 'Method does not exists', 'ru' => 'Вызываемый метод не существует', 'uz' => 'Chaqirilayotgan usul mavjud emas'],
@@ -85,7 +86,7 @@ class PaymeServer extends AbstractPaymentServer
                 }
             }
             if (!$authComplete) {
-                throw new PaymeApiException('Authorization failed', -32504);
+                throw new PaymeApiException('authorization_failed', -32504);
             }
             
             switch ($requestData['method'] ?? '') {
