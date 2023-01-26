@@ -222,19 +222,21 @@ class AppPaymeServer extends PaymeServer
         $searchResult = $this->findStudentAndCourse($params['account']['phone_number'], $params['account']['course']);
 
         /** @var Contract $existingContract */
-        $existingContract = Contract::find()->andWhere([
-            'user_id' => $searchResult['student']->id,
-            'course_id' => $searchResult['course']->id,
-            'amount' => (int) $params['amount'],
-            'status' => Contract::STATUS_PROCESS,
-        ])->one();
+        $existingContract = Contract::find()
+            ->andWhere([
+                'payment_type' => Contract::PAYMENT_TYPE_APP_PAYME,
+                'user_id' => $searchResult['student']->id,
+                'course_id' => $searchResult['course']->id,
+                'amount' => (int) $params['amount'],
+                'status' => Contract::STATUS_PROCESS,
+            ])
+            ->andWhere(['like', 'external_id', $params['id'] . '|%', false])
+            ->one();
 
         if ($existingContract) {
-            if ($existingContract->external_id) {
-                [$devNull, $time] = explode('|', $existingContract->external_id);
-                $transactionTime = (int) $time;
-            }
-            return ['result' => ['create_time' => $transactionTime ?? $params['time'], 'transaction' => $existingContract->number, 'state' => 1]];
+            [$devNull, $time] = explode('|', $existingContract->external_id);
+            $transactionTime = (int) $time;
+            return ['result' => ['create_time' => $transactionTime, 'transaction' => $existingContract->number, 'state' => 1]];
         }
 
         try {
