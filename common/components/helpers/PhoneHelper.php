@@ -1,7 +1,7 @@
 <?php
 namespace common\components\helpers;
 
-class Phone
+class PhoneHelper
 {
     public static function getPhoneDigitsOnly(string $phone): string
     {

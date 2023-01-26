@@ -42,6 +42,23 @@ return [
     'payme-login' => 'test',
     'payme-password' => 'test',
 
+    'app-payme-url' => '',
+    'app-payme-merchantId' => '',
+    'app-payme-login' => 'test',
+    'app-payme-password' => 'test',
+    'app-payme-subject-map' => [
+        'english' => [2, 6, 8],
+        'math' => [1, 5],
+        'russian' => [9],
+        'uzbek' => [33],
+        'history' => [11],
+        'physics' => [3],
+        'chemistry' => [4],
+        'biology' => [10],
+        'kids' => [16],
+        'deutsch' => [12],
+    ],
+
     'smsbroker-url' => 'http://91.204.239.44/broker-api',
     'smsbroker-login' => 'test',
     'smsbroker-password' => 'test',

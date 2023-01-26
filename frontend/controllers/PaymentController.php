@@ -2,20 +2,16 @@
 
 namespace frontend\controllers;
 
-use common\components\AgeValidator;
 use common\components\ComponentContainer;
 use common\components\extended\Controller;
-use common\components\helpers\MaskString;
-use common\components\helpers\Phone;
+use common\components\helpers\PhoneHelper;
 use common\components\MoneyComponent;
-use common\components\paymo\PaymoApiException;
-use common\models\AgeConfirmation;
 use common\models\Company;
 use common\models\Contract;
-use common\models\GiftCard;
-use common\models\GiftCardType;
 use common\models\Course;
 use common\models\CourseStudent;
+use common\models\GiftCard;
+use common\models\GiftCardType;
 use common\models\Module;
 use common\models\PaymentLink;
 use common\models\User;
@@ -172,7 +168,7 @@ class PaymentController extends Controller
                 $pageParams,
                 [
                     'user' => $user,
-                    'phone' => $phone ? Phone::getPhoneFormatted($phone) : null
+                    'phone' => $phone ? PhoneHelper::getPhoneFormatted($phone) : null
                 ]
             )
         );

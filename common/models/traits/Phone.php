@@ -2,7 +2,7 @@
 
 namespace common\models\traits;
 
-use common\components\helpers\Phone as PhoneHelper;
+use common\components\helpers\PhoneHelper as PhoneHelper;
 
 /**
  * Trait Phone

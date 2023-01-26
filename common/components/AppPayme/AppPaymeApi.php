@@ -1,9 +1,7 @@
 <?php
 
-namespace common\components\payme;
+namespace common\components\AppPayme;
 
-use common\service\payment\PaymentApiInterface;
-use common\service\payment\TransactionResponse;
 use yii\base\BaseObject;
 
 /**
@@ -15,12 +13,13 @@ use yii\base\BaseObject;
  * @property string $login
  * @property string $password
  */
-class PaymeApi extends BaseObject implements PaymentApiInterface
+class AppPaymeApi extends BaseObject
 {
     protected string $paymentUrl;
     protected int|string $merchantId;
     protected string $login;
     protected string $password;
+    protected array $subjectMap;
 
     public function getPaymentUrl(): string
     {
@@ -63,16 +62,18 @@ class PaymeApi extends BaseObject implements PaymentApiInterface
     }
 
     /**
-     * @param array<mixed> $details
+     * @return array<string,int[]>
      */
-    public function payCreate(float $amount, string $paymentId, ?string $returnUrl = null, array $details = []): TransactionResponse
+    public function getSubjectMap(): array
     {
-        return new TransactionResponse(
-            null,
-            $this->paymentUrl . '/' . base64_encode(
-        "m={$this->merchantId};ac.order_id={$paymentId};a=" . round($amount * 100) . ';' . ($returnUrl ? "c={$returnUrl};" : '') . 'cr=860'
-            ),
-            []
-        );
+        return $this->subjectMap;
+    }
+
+    /**
+     * @param array<string,int[]> $subjectMap
+     */
+    public function setSubjectMap(array $subjectMap): void
+    {
+        $this->subjectMap = $subjectMap;
     }
 }

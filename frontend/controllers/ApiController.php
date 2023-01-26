@@ -3,6 +3,7 @@
 namespace frontend\controllers;
 
 use common\components\apelsin\ApelsinServer;
+use common\components\AppPayme\AppPaymeServer;
 use common\components\paybox\PayboxServer;
 use common\components\click\ClickServer;
 use common\components\ComponentContainer;
@@ -67,6 +68,11 @@ class ApiController extends Controller
     public function actionPayme()
     {
         return (new PaymeServer())->handle(Yii::$app->request);
+    }
+
+    public function actionAppPayme()
+    {
+        return (new AppPaymeServer())->handle(Yii::$app->request);
     }
 
     public function actionApelsin()

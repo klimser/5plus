@@ -152,7 +152,15 @@ return [
             'class' => \common\components\paybox\PayboxApi::class,
             'merchantId' => $params['paybox-merchantId'],
             'secretKey' => $params['paybox-secretKey'],
-        ]
+        ],
+        'appPaymeApi' => [
+            'class' => \common\components\AppPayme\AppPaymeApi::class,
+            'paymentUrl' => $params['app-payme-url'],
+            'merchantId' => $params['app-payme-merchantId'],
+            'login' => $params['app-payme-login'],
+            'password' => $params['app-payme-password'],
+            'subjectMap' => $params['app-payme-subject-map'],
+        ],
     ],
     'aliases' => [
         '@uploads' => '@frontend/web/uploads',
