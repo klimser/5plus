@@ -31,3 +31,6 @@ phpunit.phar
 
 # npm vendor dir
 /node_modules
+
+# yarn cache dir
+/.yarn
