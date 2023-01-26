@@ -21,6 +21,7 @@ class PaymeServer extends AbstractPaymentServer
         'method_not_exist' => ['en' => 'Method does not exists', 'ru' => 'Вызываемый метод не существует', 'uz' => 'Chaqirilayotgan usul mavjud emas'],
         'password_is_immutable' => ['en' => 'Password is immutable', 'ru' => 'Пароль не меняется', 'uz' => 'Parol o‘zgarmaydi'],
         'invalid_request_data' => ['en' => 'Invalid request data', 'ru' => 'Неверные данные запроса', 'uz' => 'So‘rov ma’lumotlari noto‘g‘ri'],
+        'invalid_amount' => ['en' => 'Invalid amount', 'ru' => 'Неверная сумма', 'uz' => 'Noto’g’ri miqdor'],
         'unable_to_identify_student' => [
             'en' => 'Unable to identify student uniquely by phone, go to school\'s website to pay',
             'ru' => 'Невозможно определить студента по номеру телефона, перейдите на сайт учебного центра для оплаты',

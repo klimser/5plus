@@ -195,6 +195,10 @@ class AppPaymeServer extends PaymeServer
             throw new PaymeApiException('invalid_request_data', -31050);
         }
 
+        if ($params['amount'] < 1000 || $params['amount'] > 100000000) {
+            throw new PaymeApiException('invalid_amount', -31001);
+        }
+
         if ($this->findStudentAndCourse($params['account']['phone_number'], $params['account']['course'])) {
             return ['result' => ['allow' => true]];
         }
@@ -210,6 +214,10 @@ class AppPaymeServer extends PaymeServer
             || !isset($params['account']['phone_number'])
             || !isset($params['account']['course'])) {
             throw new PaymeApiException('invalid_request_data', -31050);
+        }
+
+        if ($params['amount'] < 1000 || $params['amount'] > 100000000) {
+            throw new PaymeApiException('invalid_amount', -31001);
         }
 
         $searchResult = $this->findStudentAndCourse($params['account']['phone_number'], $params['account']['course']);
