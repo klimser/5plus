@@ -223,7 +223,7 @@ class AppPaymeServer extends PaymeServer
 
         /** @var Contract $existingContract */
         $existingContract = Contract::find()->andWhere([
-            'user' => $searchResult['student']->id,
+            'user_id' => $searchResult['student']->id,
             'course_id' => $searchResult['course']->id,
             'amount' => (int) $params['amount'],
             'status' => Contract::STATUS_PROCESS,
