@@ -184,8 +184,8 @@ class AppPaymeServer extends PaymeServer
             throw new PaymeApiException('unable_to_identify_course', -31062);
         }
     }
-    
-    private function checkPerformTransaction($params): array
+
+    private function validateParams(array $params): void
     {
         if (empty($params)
             || !array_key_exists('amount', $params)
@@ -194,6 +194,11 @@ class AppPaymeServer extends PaymeServer
             || !isset($params['account']['course'])) {
             throw new PaymeApiException('invalid_request_data', -31050);
         }
+    }
+    
+    private function checkPerformTransaction($params): array
+    {
+        $this->validateParams($params);
 
         if ($params['amount'] < 1000 || $params['amount'] > 100000000) {
             throw new PaymeApiException('invalid_amount', -31001);
@@ -208,19 +213,29 @@ class AppPaymeServer extends PaymeServer
 
     private function createTransaction($params): array
     {
-        if (empty($params)
-            || !array_key_exists('amount', $params)
-            || !array_key_exists('account', $params)
-            || !isset($params['account']['phone_number'])
-            || !isset($params['account']['course'])) {
-            throw new PaymeApiException('invalid_request_data', -31050);
-        }
+        $this->validateParams($params);
 
         if ($params['amount'] < 1000 || $params['amount'] > 100000000) {
             throw new PaymeApiException('invalid_amount', -31001);
         }
 
         $searchResult = $this->findStudentAndCourse($params['account']['phone_number'], $params['account']['course']);
+
+        /** @var Contract $existingContract */
+        $existingContract = Contract::find()->andWhere([
+            'user' => $searchResult['student']->id,
+            'course_id' => $searchResult['course']->id,
+            'amount' => (int) $params['amount'],
+            'status' => Contract::STATUS_PROCESS,
+        ])->one();
+
+        if ($existingContract) {
+            if ($existingContract->external_id) {
+                [$devNull, $time] = explode('|', $existingContract->external_id);
+                $transactionTime = (int) $time;
+            }
+            return ['result' => ['create_time' => $transactionTime ?? $params['time'], 'transaction' => $existingContract->number, 'state' => 1]];
+        }
 
         try {
             $contract = MoneyComponent::addStudentContract(
@@ -287,7 +302,7 @@ class AppPaymeServer extends PaymeServer
 
         /** @var Contract $contract */
         if ($contract = Contract::find()
-            ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_PAYME])
+            ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_APP_PAYME])
             ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one()) {
             if ($contract->status == Contract::STATUS_PAID) {
                 throw new PaymeApiException('unable_to_cancel_transaction', -31007);
@@ -306,7 +321,7 @@ class AppPaymeServer extends PaymeServer
 
         /** @var Contract $contract */
         if ($contract = Contract::find()
-            ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_PAYME])
+            ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_APP_PAYME])
             ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one()) {
             [$id, $time] = explode('|', $contract->external_id);
             return ['result' => [
@@ -339,7 +354,7 @@ class AppPaymeServer extends PaymeServer
         
         /** @var Contract[] $contracts */
         $contracts = Contract::find()
-            ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_PAYME])
+            ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_APP_PAYME])
             ->andWhere(['between', 'created_at', $startDate->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
             ->andWhere(['not', ['external_id' => null]])
             ->orderBy(['created_at' => SORT_ASC])
