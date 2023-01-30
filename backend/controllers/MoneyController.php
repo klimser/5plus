@@ -449,7 +449,7 @@ class MoneyController extends AdminController
     public function actionProcessDebt()
     {
         $this->checkRequestIsAjax();
-        $this->checkAccess('root');
+        $this->checkAccess('relieveDebt');
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $formData = Yii::$app->request->post('debt', []);

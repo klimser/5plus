@@ -647,7 +647,7 @@ class UserController extends AdminController
             'student' => $student,
             'activeTab' => $tab,
             'incomeAllowed' => Yii::$app->user->can('moneyManagement'),
-            'debtAllowed' => Yii::$app->user->can('root'),
+            'debtAllowed' => Yii::$app->user->can('relieveDebt'),
             'contractAllowed' => Yii::$app->user->can('contractManagement'),
             'courseManagementAllowed' => Yii::$app->user->can('manageGroups'),
             'moveMoneyAllowed' => Yii::$app->user->can('moveMoney'),

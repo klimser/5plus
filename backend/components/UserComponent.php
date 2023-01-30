@@ -22,6 +22,7 @@ class UserComponent extends Component
         'cashier' => 'Кассир (приём денег)',
         'groupManager' => 'Редактор групп',
         'moneyMover' => 'Перенос остатков денег в другую группу',
+        'relieveDebt' => 'Возвраты',
         'scheduler' => 'Расписание',
         'accountant' => 'Бухгалтер (зарплата)',
         'support' => 'Техподдержка (заявки и т п)',

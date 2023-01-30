@@ -18,6 +18,7 @@ return [
             'moneyCorrection',
             'deleteTeachers',
             'adminSchedule',
+            'relieveDebt',
         ],
     ],
     'manager' => [
@@ -315,6 +316,10 @@ return [
     'manageNews' => [
         'type' => 2,
         'description' => 'Manage news',
+    ],
+    'relieveDebt' => [
+        'type' => 2,
+        'description' => 'Relieve debts',
     ],
 
     'viewMySchedule' => [
