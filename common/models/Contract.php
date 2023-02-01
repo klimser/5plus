@@ -69,8 +69,9 @@ class Contract extends ActiveRecord
 
     public const STATUS_LABELS = [
         self::STATUS_NEW => 'не оплачен',
-        self::STATUS_PROCESS => 'не завершен',
+        self::STATUS_PROCESS => 'не завершён',
         self::STATUS_PAID => 'оплачен',
+        self::STATUS_CANCEL => 'отменён',
     ];
 
     public const PAYMENT_TYPE_LABELS = [
