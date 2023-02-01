@@ -495,11 +495,12 @@ class CourseController extends AdminController
             'courseStudent' => $courseStudent,
             'moneyLeft' => $moneyLeft,
             'courseList' => Course::find()
-                ->joinWith('courseStudents')
-                ->andWhere([CourseStudent::tableName() . '.active' => CourseStudent::STATUS_ACTIVE, CourseStudent::tableName() . '.user_id' => $courseStudent->user_id])
-                ->andWhere(Course::tableName() . '.id != :courseFrom', ['courseFrom' => $courseStudent->course_id])
-                ->distinct(true)
-                ->orderBy(Course::tableName() . '.name')->all(),
+                ->alias('c')
+                ->leftJoin(CourseStudent::tableName() . ' cs', 'cs.course_id = c.id')
+                ->andWhere(['cs.active' => CourseStudent::STATUS_ACTIVE, 'cs.user_id' => $courseStudent->user_id])
+                ->andWhere('c.id != :courseFrom', ['courseFrom' => $courseStudent->course_id])
+                ->distinct()
+                ->all(),
         ]);
     }
     
