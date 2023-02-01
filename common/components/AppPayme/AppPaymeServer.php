@@ -310,6 +310,7 @@ class AppPaymeServer extends PaymeServer
                 throw new PaymeApiException('unable_to_cancel_transaction', -31007);
             }
             $contract->status = Contract::STATUS_CANCEL;
+            $contract->external_id .= '|' . $params['reason'];
             $contract->save();
 
             return ['result' => ['transaction' => $contract->number, 'cancel_time' => $contract->createDate->getTimestamp() * 1000, 'state' => -1]];
@@ -328,9 +329,9 @@ class AppPaymeServer extends PaymeServer
         if ($contract = Contract::find()
             ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_APP_PAYME])
             ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one()) {
-            [$id, $time] = explode('|', $contract->external_id);
+            $externalParams = explode('|', $contract->external_id);
             return ['result' => [
-                'create_time' => (int)$time,
+                'create_time' => (int)$externalParams[1],
                 'transaction' => $contract->number,
                 'state' => match ($contract->status) {
                     Contract::STATUS_PAID => 2,
@@ -339,7 +340,7 @@ class AppPaymeServer extends PaymeServer
                 },
                 'perform_time' => $contract->status == Contract::STATUS_PAID ? $contract->paidDate->getTimestamp() * 1000 : 0,
                 'cancel_time' => $contract->status == Contract::STATUS_CANCEL ? $contract->createDate->getTimestamp() * 1000 : 0,
-                'reason' => null,
+                'reason' => $externalParams[2] ?? null,
             ]];
         }
 
