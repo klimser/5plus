@@ -2,6 +2,7 @@
 
 namespace backend\components\report;
 
+use common\models\CourseCategory;
 use common\models\Payment;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -10,7 +11,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class CashReport
 {
-    public static function create(\DateTimeImmutable $date, bool $kids): Spreadsheet
+    public static function create(\DateTimeImmutable $date, CourseCategory $courseCategory): Spreadsheet
     {
         $date = $date->modify('midnight');
         $endDate = $date->modify('+1 day -1 second');
@@ -22,7 +23,7 @@ class CashReport
             ->andWhere('contract_id IS NOT NULL')
             ->andWhere('admin_id IS NOT NULL')
             ->joinWith('course c')
-            ->andWhere('c.kids = ' . ($kids ? 1 : 0))
+            ->andWhere('c.category_id = :category', ['category' => $courseCategory->id])
             ->with('admin', 'contract.payments')
             ->all();
 
@@ -61,7 +62,7 @@ class CashReport
 
         $spreadsheet->getActiveSheet()->mergeCells('A1:B1');
         $spreadsheet->getActiveSheet()
-            ->setCellValue('A1', "Касса за {$date->format('d.m.Y')}" . ($kids ? ' KIDS' : ''));
+            ->setCellValue('A1', "Касса за {$date->format('d.m.Y')}" . $courseCategory->name);
         $spreadsheet->getActiveSheet()->getStyle('A1')->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER)
             ->setVertical(Alignment::VERTICAL_CENTER);

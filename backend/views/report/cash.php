@@ -6,6 +6,7 @@ use yii\helpers\ArrayHelper;
 use yii\jui\DatePicker;
 
 /* @var $this yii\web\View */
+/* @var $courseCategories \common\models\CourseCategory[] */
 
 $this->title = 'Кассовый отчёт';
 $this->params['breadcrumbs'][] = $this->title;
@@ -24,18 +25,13 @@ $this->params['breadcrumbs'][] = $this->title;
             ])); ?>
     </div>
     <div class="form-group">
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="kids" id="non-kids" value="0" checked>
-            <label class="form-check-label" for="non-kids">
-                не KIDS
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="kids" id="kids" value="1" checked>
-            <label class="form-check-label" for="kids">
-                KIDS
-            </label>
-        </div>
+        <label for="report-course-type">Категория</label>
+        <?= Html::dropDownList(
+                'category',
+                null,
+                ArrayHelper::map($courseCategories, 'id', 'name'),
+                ['id' => 'report-course-type', 'class' => 'form-control'],
+        ); ?>
     </div>
     <div class="form-group">
         <button class="btn btn-primary">Получить</button>

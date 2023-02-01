@@ -14,6 +14,7 @@ use backend\models\Event;
 use backend\models\TeacherSubjectLink;
 use common\components\CourseComponent;
 use common\models\Course;
+use common\models\CourseCategory;
 use common\models\CourseConfig;
 use common\models\Subject;
 use common\models\Teacher;
@@ -133,9 +134,13 @@ class ReportController extends AdminController
             $date = new DateTimeImmutable(Yii::$app->request->post('date', 'now'));
             if (!$date) throw new NotFoundHttpException('Wrong date');
 
+            if (!$courseCategory = CourseCategory::findOne(Yii::$app->request->post('category', 0))) {
+                throw new NotFoundHttpException('Category not found');
+            }
+
             ob_start();
             $objWriter = IOFactory::createWriter(
-                CashReport::create($date, boolval(Yii::$app->request->post('kids', 0))),
+                CashReport::create($date, $courseCategory),
                 'Xlsx'
             );
             $objWriter->save('php://output');
@@ -146,7 +151,7 @@ class ReportController extends AdminController
             );
         }
 
-        return $this->render('cash');
+        return $this->render('cash', ['courseCategories' => CourseCategory::find()->orderBy('name')->all()]);
     }
 
     public function actionRestMoney()
