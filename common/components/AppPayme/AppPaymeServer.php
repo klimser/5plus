@@ -309,7 +309,7 @@ class AppPaymeServer extends PaymeServer
             if ($contract->status == Contract::STATUS_PAID) {
                 throw new PaymeApiException('unable_to_cancel_transaction', -31007);
             }
-            return ['result' => ['transaction' => $contract->number, 'cancel_time' => $contract->createDate->getTimestamp() * 1000, 'state' => -2]];
+            return ['result' => ['transaction' => $contract->number, 'cancel_time' => $contract->createDate->getTimestamp() * 1000, 'state' => -1]];
         }
 
         throw new PaymeApiException('transaction_not_found', -31003);
