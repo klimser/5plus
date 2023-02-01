@@ -238,6 +238,43 @@ class CourseController extends AdminController
                             throw new \Exception('Course cannot be created without initial config');
                         }
 
+                        $courseConfigs = $course->courseConfigs;
+                        if ($course->date_start) {
+                            while (true) {
+                                $firstConfig = reset($courseConfigs);
+                                if ($firstConfig->date_from == $course->date_start) {
+                                    break;
+                                }
+                                if ($firstConfig->date_to && $firstConfig->date_to < $course->date_start) {
+                                    $firstConfig->delete();
+                                    $course->unlink('courseConfigs', $firstConfig);
+                                    array_shift($courseConfigs);
+                                    continue;
+                                }
+                                $firstConfig->date_from = $course->date_start;
+                                $firstConfig->save();
+                                break;
+                            }
+                        }
+
+                        if ($course->date_end) {
+                            while (true) {
+                                $lastConfig = end($courseConfigs);
+                                if ($lastConfig->date_to == $course->date_end) {
+                                    break;
+                                }
+                                if ($lastConfig->date_from > $course->date_end) {
+                                    $lastConfig->delete();
+                                    $course->unlink('courseConfigs', $lastConfig);
+                                    array_pop($courseConfigs);
+                                    continue;
+                                }
+                                $lastConfig->date_to = $course->date_end;
+                                $lastConfig->save();
+                                break;
+                            }
+                        }
+
                         $this->saveCourseStudents($course, $newStudents);
                         /** @var Course $course */
                         $course = Course::find()->with(['courseStudents', 'events.members.payments'])->andWhere(['id' => $course->id])->one();
