@@ -50,6 +50,7 @@ class Contract extends ActiveRecord
     public const STATUS_NEW     = 0;
     public const STATUS_PROCESS = 1;
     public const STATUS_PAID    = 2;
+    public const STATUS_CANCEL  = 3;
 
     public const PAYMENT_TYPE_MANUAL         = 1;
     public const PAYMENT_TYPE_PAYME          = 2;
@@ -120,7 +121,7 @@ class Contract extends ActiveRecord
             [['number'], 'unique'],
             ['discount', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
             ['discount', 'default', 'value' => self::STATUS_INACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_NEW, self::STATUS_PROCESS, self::STATUS_PAID]],
+            ['status', 'in', 'range' => [self::STATUS_NEW, self::STATUS_PROCESS, self::STATUS_PAID, self::STATUS_CANCEL]],
             ['status', 'default', 'value' => self::STATUS_NEW],
             ['payment_type', 'in', 'range' => [
                 self::PAYMENT_TYPE_MANUAL,
