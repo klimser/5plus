@@ -274,7 +274,11 @@ class AppPaymeServer extends PaymeServer
         if ($contract = Contract::find()
             ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_APP_PAYME])
             ->andWhere(['like', 'external_id', $params['id'] . '|%', false])->one()) {
-            if (!in_array($contract->status, [Contract::STATUS_PAID, Contract::STATUS_CANCEL])) {
+            if ($contract->status == Contract::STATUS_CANCEL) {
+                throw new PaymeApiException('transaction_canceled', -31008);
+            }
+
+            if ($contract->status != Contract::STATUS_PAID) {
                 $transaction = Yii::$app->db->beginTransaction();
                 try {
                     MoneyComponent::payContract(
@@ -290,6 +294,7 @@ class AppPaymeServer extends PaymeServer
                     throw new PaymeApiException('internal_server_error', -31008);
                 }
             }
+
             return ['result' => ['transaction' => $contract->number, 'perform_time' => $contract->paidDate->getTimestamp() * 1000, 'state' => 2]];
         }
 

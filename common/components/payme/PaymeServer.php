@@ -47,6 +47,7 @@ class PaymeServer extends AbstractPaymentServer
         ],
         'internal_server_error' => ['en' => 'Internal server error', 'ru' => 'Внутренняя ошибка сервера', 'uz' => 'Serverdagi ichki xatolik'],
         'transaction_not_found' => ['en' => 'Transaction not found', 'ru' => 'Транзакция не найдена', 'uz' => 'Tranzaksiya topilmadi'],
+        'transaction_canceled' => ['en' => 'Transaction canceled', 'ru' => 'Транзакция отменена', 'uz' => 'Tranzaksiya bekor qilindi'],
         'unable_to_cancel_transaction' => [
             'en' => 'Unable to cancel transaction',
             'ru' => 'Невозможно вернуть транзакцию',
