@@ -345,7 +345,7 @@ class AppPaymeServer extends PaymeServer
                 },
                 'perform_time' => $contract->status == Contract::STATUS_PAID ? $contract->paidDate->getTimestamp() * 1000 : 0,
                 'cancel_time' => $contract->status == Contract::STATUS_CANCEL ? $contract->createDate->getTimestamp() * 1000 : 0,
-                'reason' => (int)$externalParams[2] ?? null,
+                'reason' => (int)($externalParams[2] ?? 0) ?: null,
             ]];
         }
 
