@@ -103,7 +103,7 @@ class AppPaymeServer extends PaymeServer
                     break;
                 case User::ROLE_PARENTS:
                 case User::ROLE_COMPANY:
-                    $students += $user->children;
+                    $students = array_merge($students, $user->children);
                     break;
             }
         }
