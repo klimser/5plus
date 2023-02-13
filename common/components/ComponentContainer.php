@@ -3,6 +3,7 @@
 namespace common\components;
 
 use common\components\apelsin\ApelsinApi;
+use common\components\AppApelsin\AppApelsinApi;
 use common\components\AppPayme\AppPaymeApi;
 use common\components\click\ClickApi;
 use common\components\paybox\PayboxApi;
@@ -77,6 +78,10 @@ class ComponentContainer
     public static function getApelsinApi(): ApelsinApi
     {
         return Yii::$app->apelsinApi;
+    }
+    public static function getAppApelsinApi(): AppApelsinApi
+    {
+        return Yii::$app->appApelsinApi;
     }
     public static function getPayboxApi(): PayboxApi
     {

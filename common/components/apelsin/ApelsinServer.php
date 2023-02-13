@@ -24,7 +24,7 @@ class ApelsinServer extends AbstractPaymentServer
             return $response;
         }
         
-        $requestData = json_decode(Yii::$app->request->rawBody, true);
+        $requestData = json_decode($request->rawBody, true);
         
         if (!$requestData
             || !array_key_exists('transactionId', $requestData)
@@ -37,7 +37,7 @@ class ApelsinServer extends AbstractPaymentServer
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $authComplete = false;
-            $auth = Yii::$app->request->getHeaders()->get('Authorization', '');
+            $auth = $request->getHeaders()->get('Authorization', '');
             if ($auth) {
                 [$devNull, $auth] = explode(' ', trim($auth), 2);
                 $auth = base64_decode($auth);

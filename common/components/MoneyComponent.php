@@ -107,7 +107,7 @@ class MoneyComponent extends Component
 
     /**
      * @param Contract      $contract
-     * @param DateTime|null $studentStartDate
+     * @param DateTimeInterface|null $studentStartDate
      * @param int           $payType
      * @param null|string   $paymentComment
      *

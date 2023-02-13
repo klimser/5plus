@@ -10,8 +10,7 @@ use yii\base\BaseObject;
  * Class PaymeApi
  * @package common\components
  * @property string $paymentUrl
- * @property int|string $storeId
- * @property int|string $apiKey
+ * @property int|string $merchantId
  * @property string $login
  * @property string $password
  */

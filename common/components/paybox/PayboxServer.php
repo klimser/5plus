@@ -37,7 +37,7 @@ class PayboxServer extends AbstractPaymentServer
             return $response;
         }
 
-        $requestData = Yii::$app->request->post();
+        $requestData = $request->post();
 
         if (!$requestData
             || !array_key_exists('pg_order_id', $requestData)
