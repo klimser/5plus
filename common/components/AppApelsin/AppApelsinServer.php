@@ -98,7 +98,7 @@ class AppApelsinServer extends AbstractPaymentServer
                         ->select(['SUM(amount) as balance'])
                         ->andWhere(['course_id' => $courseStudent->course_id, 'user_id' => $student->id])
                         ->scalar(),
-                    'shouldPay' => $courseStudent->course->courseConfig->price12Lesson,
+                    'shouldPay' => (string) $courseStudent->course->courseConfig->price12Lesson,
                 ];
                 $courseIdSet[$courseStudent->course_id] = true;
             }
@@ -112,7 +112,7 @@ class AppApelsinServer extends AbstractPaymentServer
                             ->select(['SUM(amount) as balance'])
                             ->andWhere(['course_id' => $debt->course_id, 'user_id' => $student->id])
                             ->scalar(),
-                        'shouldPay' => $debt->amount,
+                        'shouldPay' => (string) $debt->amount,
                     ];
                     $courseIdSet[$debt->course_id] = true;
                 }
