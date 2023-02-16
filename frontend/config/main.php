@@ -47,6 +47,8 @@ return [
             'rules' => [
                 ['class' => \frontend\components\WebpageUrlRule::class],
                 'pay/<key:[a-z0-9]+>' => 'payment/link',
+                'api/payment/apelsin/info' => 'api/app-apelsin-check',
+                'api/payment/apelsin/pay' => 'api/app-apelsin-pay',
             ],
         ],
     ],

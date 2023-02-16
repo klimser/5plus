@@ -31,9 +31,11 @@ class AppApelsinServer extends AbstractPaymentServer
     {
         $response = new Response();
         $response->format = Response::FORMAT_JSON;
-        $response->data = ['success' => false];
+        $response->data = ['status' => false];
 
         if (!$request->isPost) {
+            $response->data['error'] = 'Request is not POST';
+
             return $response;
         }
 
@@ -48,6 +50,8 @@ class AppApelsinServer extends AbstractPaymentServer
             }
         }
         if (!$authComplete) {
+            $response->data['error'] = 'Authentication failed';
+
             return $response;
         }
 
@@ -62,11 +66,15 @@ class AppApelsinServer extends AbstractPaymentServer
 
         $response = new Response();
         $response->format = Response::FORMAT_JSON;
-        $response->data = ['success' => false];
+        $response->data = ['status' => false];
 
-        if (!$phone = $request->rawBody) {
+        $requestData = json_decode($request->rawBody, true);
+        if (empty($requestData['phone'])) {
+            $response->data['error'] = 'phone is empty';
+
             return $response;
         }
+        $phone = $requestData['phone'];
 
         $phoneNumber = mb_substr(PhoneHelper::getPhoneDigitsOnly($phone), -9, null, 'UTF-8');
         $phoneNumber = PhoneHelper::getPhoneInternational($phoneNumber);
@@ -92,13 +100,12 @@ class AppApelsinServer extends AbstractPaymentServer
             $courseIdSet = [];
             foreach ($student->activeCourseStudents as $courseStudent) {
                 $result[] = [
-                    'id' => $student->id . ':' . $courseStudent->course_id,
-                    'name' => $student->nameHidden . ', группа ' . $courseStudent->course->courseConfig->legal_name,
+                    'cabinetId' => $student->id . ':' . $courseStudent->course_id,
+                    'fullName' => $student->nameHidden . ', группа ' . $courseStudent->course->courseConfig->legal_name,
                     'balance' => Payment::find()
                         ->select(['SUM(amount) as balance'])
                         ->andWhere(['course_id' => $courseStudent->course_id, 'user_id' => $student->id])
                         ->scalar(),
-                    'shouldPay' => (string) $courseStudent->course->courseConfig->price12Lesson,
                 ];
                 $courseIdSet[$courseStudent->course_id] = true;
             }
@@ -106,20 +113,20 @@ class AppApelsinServer extends AbstractPaymentServer
             foreach ($student->debts as $debt) {
                 if (!isset($courses[$debt->course_id])) {
                     $result[] = [
-                        'id' => $student->id . ':' . $debt->course_id,
-                        'name' => $student->nameHidden . ', группа ' . $debt->course->courseConfig->legal_name,
+                        'cabinetId' => $student->id . ':' . $debt->course_id,
+                        'fullName' => $student->nameHidden . ', группа ' . $debt->course->courseConfig->legal_name,
                         'balance' => Payment::find()
                             ->select(['SUM(amount) as balance'])
                             ->andWhere(['course_id' => $debt->course_id, 'user_id' => $student->id])
                             ->scalar(),
-                        'shouldPay' => (string) $debt->amount,
                     ];
                     $courseIdSet[$debt->course_id] = true;
                 }
             }
         }
 
-        $response->data = ['students' => $result];
+        $response->data['status'] = true;
+        $response->data['data'] = $result;
 
         return $response;
     }
@@ -132,15 +139,19 @@ class AppApelsinServer extends AbstractPaymentServer
 
         $response = new Response();
         $response->format = Response::FORMAT_JSON;
-        $response->data = ['success' => false];
+        $response->data = ['status' => false];
 
         $requestData = json_decode($request->rawBody, true);
-        if (empty($requestData['id']) || empty($requestData['amount']) || empty($requestData['studentId'])) {
+        if (empty($requestData['transactionId']) || empty($requestData['amount']) || empty($requestData['cabinetId'])) {
+            $response->data['error'] = 'Not valid request parameters';
+
             return $response;
         }
 
-        $identity = explode(':', $requestData['studentId']);
+        $identity = explode(':', $requestData['cabinetId']);
         if (count($identity) < 2) {
+            $response->data['error'] = 'Not valid cabinetId request parameter';
+
             return $response;
         }
 
@@ -148,6 +159,14 @@ class AppApelsinServer extends AbstractPaymentServer
         if (!($courseStudent = CourseStudent::find()
             ->andWhere(['user_id' => $identity[0], 'course_id' => $identity[1], 'active' => CourseStudent::STATUS_ACTIVE])
             ->one())) {
+            $response->data['error'] = 'Student not found';
+
+            return $response;
+        }
+
+        if (null !== Contract::findOne(['payment_type' => Contract::PAYMENT_TYPE_APP_APELSIN, 'external_id' => $requestData['transactionId']])) {
+            $response->data['error'] = 'Duplicated transactionId';
+
             return $response;
         }
 
@@ -161,12 +180,13 @@ class AppApelsinServer extends AbstractPaymentServer
             );
 
             $contract->status = Contract::STATUS_PROCESS;
-            $contract->external_id = $requestData['id'];
+            $contract->external_id = $requestData['transactionId'];
 
             if (!$contract->save()) {
                 $transaction->rollBack();
                 ComponentContainer::getErrorLogger()
                     ->logError('payment/create', print_r($contract->getErrors(), true), true);
+                $response->data['error'] = 'Internal server error';
 
                 return $response;
             }
@@ -179,7 +199,7 @@ class AppApelsinServer extends AbstractPaymentServer
             );
 
             $transaction->commit();
-            $response->data = ['success' => true, 'transactionId' => $contract->number, 'timeStamp' => date('c')];
+            $response->data = ['status' => true, 'transactionId' => $contract->number, 'timeStamp' => date('c')];
         } catch (\Throwable $ex) {
             $transaction->rollBack();
         }
