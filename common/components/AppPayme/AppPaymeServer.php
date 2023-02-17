@@ -199,8 +199,9 @@ class AppPaymeServer extends PaymeServer
     private function checkPerformTransaction($params): array
     {
         $this->validateParams($params);
+        $amount = (int) $params['amount'] / 100;
 
-        if ($params['amount'] < 1000 || $params['amount'] > 100000000) {
+        if ($amount < 1000 || $amount > 100000000) {
             throw new PaymeApiException('invalid_amount', -31001);
         }
 
@@ -214,8 +215,9 @@ class AppPaymeServer extends PaymeServer
     private function createTransaction($params): array
     {
         $this->validateParams($params);
+        $amount = (int) $params['amount'] / 100;
 
-        if ($params['amount'] < 1000 || $params['amount'] > 100000000) {
+        if ($amount < 1000 || $amount > 100000000) {
             throw new PaymeApiException('invalid_amount', -31001);
         }
 
@@ -227,7 +229,7 @@ class AppPaymeServer extends PaymeServer
                 'payment_type' => Contract::PAYMENT_TYPE_APP_PAYME,
                 'user_id' => $searchResult['student']->id,
                 'course_id' => $searchResult['course']->id,
-                'amount' => (int) $params['amount'],
+                'amount' => $amount,
                 'status' => Contract::STATUS_PROCESS,
             ])
             ->andWhere(['like', 'external_id', $params['id'] . '|%', false])
@@ -243,7 +245,7 @@ class AppPaymeServer extends PaymeServer
             $contract = MoneyComponent::addStudentContract(
                 Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
                 $searchResult['student'],
-                (int) $params['amount'],
+                $amount,
                 $searchResult['course']
             );
         } catch (\Throwable $ex) {
