@@ -113,8 +113,9 @@ class WelcomeLessonSearch extends WelcomeLesson
         if (isset($params['WelcomeLessonSearch'], $params['WelcomeLessonSearch']['teacherId']) && !empty($params['WelcomeLessonSearch']['teacherId'])) {
             $query->leftJoin(
                 CourseConfig::tableName() . ' c_c',
-                'c_c.date_from <= DATE(wl.lesson_date) AND (c_c.date_to IS NULL OR c_c.date_to > DATE(wl.lesson_date))'
-            );
+                'c_c.course_id = wl.course_id AND c_c.date_from <= DATE(wl.lesson_date) AND (c_c.date_to IS NULL OR c_c.date_to > DATE(wl.lesson_date))'
+            )
+                ->andWhere(['c_c.teacher_id' => $params['WelcomeLessonSearch']['teacherId']]);
         }
 
         return $dataProvider;
