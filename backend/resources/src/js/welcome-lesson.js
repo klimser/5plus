@@ -66,7 +66,7 @@ let WelcomeLesson = {
                     '</button>' +
                     '<button type="button" title="Не будет ходить" class="btn btn-danger ml-2" onclick="WelcomeLesson.changeStatusHandler(this, ' + data.id + ', ' + WelcomeLesson.statusDenied + ')">' +
                         '<span class="fas fa-running"></span>' +
-                    '</buttona>';
+                    '</button>';
                 break;
             case this.statusDenied:
                 if (!data.denyReason) {
