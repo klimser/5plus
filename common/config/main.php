@@ -163,6 +163,7 @@ return [
             'class' => \common\components\AppApelsin\AppApelsinApi::class,
             'login' => $params['app-apelsin-login'],
             'password' => $params['app-apelsin-password'],
+            'subjectMap' => $params['app-apelsin-subject-map'],
         ],
     ],
     'aliases' => [

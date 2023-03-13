@@ -2,6 +2,7 @@
 
 namespace common\components\AppApelsin;
 
+use common\components\apelsin\ApelsinApiException;
 use common\components\ComponentContainer;
 use common\components\helpers\PhoneHelper;
 use common\components\MoneyComponent;
@@ -9,6 +10,7 @@ use common\models\Company;
 use common\models\Contract;
 use common\models\Course;
 use common\models\CourseStudent;
+use common\models\Debt;
 use common\models\Payment;
 use common\models\User;
 use common\service\payment\AbstractPaymentServer;
@@ -58,23 +60,13 @@ class AppApelsinServer extends AbstractPaymentServer
         return null;
     }
 
-    public function handleCheck(Request $request): Response
+    /**
+     * @return array{student:User,course:Course}
+     * @throws ApelsinApiException
+     */
+    private function findStudentAndCourse(string $phone, string $subject): array
     {
-        if ($response = $this->validateRequest($request)) {
-            return $response;
-        }
-
-        $response = new Response();
-        $response->format = Response::FORMAT_JSON;
-        $response->data = ['status' => false];
-
-        $requestData = json_decode($request->rawBody, true);
-        if (empty($requestData['phone'])) {
-            $response->data['error'] = 'phone is empty';
-
-            return $response;
-        }
-        $phone = $requestData['phone'];
+        $result = [];
 
         $phoneNumber = mb_substr(PhoneHelper::getPhoneDigitsOnly($phone), -9, null, 'UTF-8');
         $phoneNumber = PhoneHelper::getPhoneInternational($phoneNumber);
@@ -93,40 +85,120 @@ class AppApelsinServer extends AbstractPaymentServer
                     break;
             }
         }
+        if (count($students) > 1) {
+            throw new ApelsinApiException('Не удалось однозначно идентифицировать студента по номеру телефона');
+        } elseif (count($students) === 0) {
+            throw new ApelsinApiException('Студент не найден');
+        }
 
-        $result = [];
-        foreach ($students as $student) {
-            /** @var array<int, Course> $courses */
-            $courseIdSet = [];
-            foreach ($student->activeCourseStudents as $courseStudent) {
-                $result[] = [
-                    'cabinetId' => $student->id . ':' . $courseStudent->course_id,
-                    'fullName' => $student->nameHidden . ', группа ' . $courseStudent->course->courseConfig->legal_name,
-                    'balance' => Payment::find()
-                        ->select(['SUM(amount) as balance'])
-                        ->andWhere(['course_id' => $courseStudent->course_id, 'user_id' => $student->id])
-                        ->scalar(),
-                ];
-                $courseIdSet[$courseStudent->course_id] = true;
+        $student = reset($students);
+        $result['student'] = $student;
+
+        /** @var array<int, Course> $courses */
+        $courses = [];
+        foreach ($student->activeCourseStudents as $courseStudent) {
+            $courses[$courseStudent->course_id] = $courseStudent->course;
+        }
+
+        foreach ($student->debts as $debt) {
+            if (!isset($courses[$debt->course_id])) {
+                $courses[$debt->course_id] = Course::findOne($debt->course_id);
+            }
+        }
+
+        if (count($courses) === 0) {
+            throw new ApelsinApiException('У студента нет курсов для оплаты');
+        }
+
+        if (count($courses) === 1) {
+            $result['course'] = reset($courses);
+
+            return $result;
+        }
+
+        $subjectMap = ComponentContainer::getAppApelsinApi()->getSubjectMap();
+        $subject = mb_strtolower($subject, 'UTF-8');
+        if (isset($subjectMap[$subject])) {
+            $subjectIds = $subjectMap[$subject];
+            $payCourse = null;
+            foreach ($courses as $course) {
+                if (in_array($course->subject_id, $subjectIds)) {
+                    if (null === $payCourse) {
+                        $payCourse = $course;
+                    } else {
+                        throw new ApelsinApiException('Не удалось определить курс, возможно студент занимается на нескольких курасах по этому предмету');
+                    }
+                }
             }
 
-            foreach ($student->debts as $debt) {
-                if (!isset($courses[$debt->course_id])) {
-                    $result[] = [
-                        'cabinetId' => $student->id . ':' . $debt->course_id,
-                        'fullName' => $student->nameHidden . ', группа ' . $debt->course->courseConfig->legal_name,
-                        'balance' => Payment::find()
-                            ->select(['SUM(amount) as balance'])
-                            ->andWhere(['course_id' => $debt->course_id, 'user_id' => $student->id])
-                            ->scalar(),
-                    ];
-                    $courseIdSet[$debt->course_id] = true;
+            if (null !== $payCourse) {
+                $result['course'] = $payCourse;
+
+                return $result;
+            } else {
+                throw new ApelsinApiException('Не удалось определить курс, возможно студент не занимается на курсах по этому предмету');
+            }
+        }
+
+        $definedSubjects = [];
+        foreach ($subjectMap as $subjectIds) {
+            $definedSubjects = array_merge($definedSubjects, $subjectIds);
+        }
+        $payCourse = null;
+        foreach ($courses as $course) {
+            if (!in_array($course->subject_id, $definedSubjects)) {
+                if (null === $payCourse) {
+                    $payCourse = $course;
+                } else {
+                    throw new ApelsinApiException('Не удалось определить курс, возможно студент занимается на нескольких курасах по этому предмету');
                 }
             }
         }
 
-        $response->data['status'] = true;
-        $response->data['data'] = $result;
+        if (null !== $payCourse) {
+            $result['course'] = $payCourse;
+
+            return $result;
+        } else {
+            throw new ApelsinApiException('Не удалось определить курс, возможно студент не занимается на курсах по этому предмету');
+        }
+    }
+
+    public function handleCheck(Request $request): Response
+    {
+        if ($response = $this->validateRequest($request)) {
+            return $response;
+        }
+
+        $response = new Response();
+        $response->format = Response::FORMAT_JSON;
+        $response->data = ['status' => false];
+
+        $requestData = json_decode($request->rawBody, true);
+        if (empty($requestData['phone']) || empty($requestData['course'])) {
+            $response->data['error'] = 'Missing mandatory request parameters';
+
+            return $response;
+        }
+        $phone = $requestData['phone'];
+        $course = $requestData['course'];
+
+        try {
+            if ($searchResult = $this->findStudentAndCourse($phone, $course)) {
+                $response->data['status'] = true;
+                $response->data['data'] = [
+                    'fullName' => $searchResult['student']->nameHidden . ', группа ' . $searchResult['course']->courseConfig->legal_name,
+                    'balance' => 100 * Payment::find()
+                        ->select(['SUM(amount) as balance'])
+                        ->andWhere(['course_id' => $searchResult['course']->id, 'user_id' => $searchResult['student']->id])
+                        ->scalar(),
+                ];
+            }
+        } catch (ApelsinApiException $ex) {
+            $response->data['error'] = $ex->getMessage();
+
+            return $response;
+        }
 
         return $response;
     }
@@ -142,30 +214,45 @@ class AppApelsinServer extends AbstractPaymentServer
         $response->data = ['status' => false];
 
         $requestData = json_decode($request->rawBody, true);
-        if (empty($requestData['transactionId']) || empty($requestData['amount']) || empty($requestData['cabinetId'])) {
-            $response->data['error'] = 'Not valid request parameters';
+        if (empty($requestData['transactionId']) || empty($requestData['amount']) || empty($requestData['phone']) || empty($requestData['course'])) {
+            $response->data['error'] = 'Missing mandatory request parameters';
 
             return $response;
         }
 
-        $identity = explode(':', $requestData['cabinetId']);
-        if (count($identity) < 2) {
-            $response->data['error'] = 'Not valid cabinetId request parameter';
+        $amount = (int) $requestData['amount'] / 100;
+        $phone = $requestData['phone'];
+        $course = $requestData['course'];
+
+        if (null !== Contract::findOne(['payment_type' => Contract::PAYMENT_TYPE_APP_APELSIN, 'external_id' => $requestData['transactionId']])) {
+            $response->data['error'] = 'Duplicated transactionId';
+
+            return $response;
+        }
+
+        if ($amount < 1000 || $amount > 100000000) {
+            $response->data['error'] = 'Invalid amount';
+
+            return $response;
+        }
+
+        try {
+            $searchResult = $this->findStudentAndCourse($phone, $course);
+        } catch (ApelsinApiException $ex) {
+            $response->data['error'] = $ex->getMessage();
 
             return $response;
         }
 
         /** @var $courseStudent CourseStudent */
-        if (!($courseStudent = CourseStudent::find()
-            ->andWhere(['user_id' => $identity[0], 'course_id' => $identity[1], 'active' => CourseStudent::STATUS_ACTIVE])
-            ->one())) {
-            $response->data['error'] = 'Student not found';
+        $courseStudent = CourseStudent::find()
+            ->andWhere(['user_id' => $searchResult['student']->id, 'course_id' => $searchResult['course']->id, 'active' => CourseStudent::STATUS_ACTIVE])
+            ->one();
+        /** @var Debt $debt */
+        $debt = Debt::find()->andWhere(['user_id' => $searchResult['student']->id, 'course_id' => $searchResult['course']->id])->one();
 
-            return $response;
-        }
-
-        if (null !== Contract::findOne(['payment_type' => Contract::PAYMENT_TYPE_APP_APELSIN, 'external_id' => $requestData['transactionId']])) {
-            $response->data['error'] = 'Duplicated transactionId';
+        if (!($courseStudent) && !($debt)) {
+            $response->data['error'] = 'Не найден курс, за который возможна оплата';
 
             return $response;
         }
@@ -174,9 +261,9 @@ class AppApelsinServer extends AbstractPaymentServer
         try {
             $contract = MoneyComponent::addStudentContract(
                 Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
-                $courseStudent->user,
-                ((int) $requestData['amount']) / 100,
-                $courseStudent->course
+                ($courseStudent ?? $debt)->user,
+                $amount,
+                ($courseStudent ?? $debt)->course
             );
 
             $contract->status = Contract::STATUS_PROCESS;
@@ -195,13 +282,14 @@ class AppApelsinServer extends AbstractPaymentServer
                 $contract,
                 new \DateTime('now'),
                 Contract::PAYMENT_TYPE_APP_APELSIN,
-                $requestData['id']
+                $requestData['transactionId']
             );
 
             $transaction->commit();
-            $response->data = ['status' => true, 'transactionId' => $contract->number, 'timeStamp' => date('c')];
+            $response->data = ['status' => true];
         } catch (\Throwable $ex) {
             $transaction->rollBack();
+            $response->data['error'] = 'Internal server error';
         }
 
         return $response;
