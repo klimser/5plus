@@ -117,7 +117,7 @@ class AppApelsinServer extends AbstractPaymentServer
         }
 
         $subjectMap = ComponentContainer::getAppApelsinApi()->getSubjectMap();
-        $subject = mb_strtolower($subject, 'UTF-8');
+        $subject = (int) $subject;
         if (isset($subjectMap[$subject])) {
             $subjectIds = $subjectMap[$subject];
             $payCourse = null;
