@@ -164,7 +164,7 @@ class AppApelsinServer extends AbstractPaymentServer
         }
     }
 
-    public function handleCheck(Request $request): Response
+    public function handleInfo(Request $request): Response
     {
         if ($response = $this->validateRequest($request)) {
             return $response;
@@ -198,6 +198,34 @@ class AppApelsinServer extends AbstractPaymentServer
             $response->data['error'] = $ex->getMessage();
 
             return $response;
+        }
+
+        return $response;
+    }
+
+    public function handleCheck(Request $request): Response
+    {
+        if ($response = $this->validateRequest($request)) {
+            return $response;
+        }
+
+        $response = new Response();
+        $response->format = Response::FORMAT_JSON;
+        $response->data = ['status' => false];
+
+        $requestData = json_decode($request->rawBody, true);
+        if (empty($requestData['transactionId'])) {
+            $response->data['error'] = 'Missing mandatory request parameters';
+
+            return $response;
+        }
+
+        if (Contract::findOne([
+                'payment_type' => Contract::PAYMENT_TYPE_APP_APELSIN,
+                'external_id' => $requestData['transactionId'],
+                'status' => Contract::STATUS_PAID,
+            ])) {
+            $response->data['status'] = true;
         }
 
         return $response;

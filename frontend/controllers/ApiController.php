@@ -81,6 +81,11 @@ class ApiController extends Controller
         return (new ApelsinServer())->handle(Yii::$app->request);
     }
 
+    public function actionAppApelsinInfo()
+    {
+        return (new AppApelsinServer())->handleInfo(Yii::$app->request);
+    }
+
     public function actionAppApelsinCheck()
     {
         return (new AppApelsinServer())->handleCheck(Yii::$app->request);
