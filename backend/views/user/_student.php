@@ -31,7 +31,7 @@ use yii\bootstrap4\Html;
     <label for="user-student-phoneformatted">Телефон</label>
     <?= str_replace(
         '{input}',
-        '<input name="student[phoneFormatted]" id="user-student-phoneformatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" class="form-control phone-formatted" onchange="User.checkPhone(this);">',
+        '<input name="student[phoneFormatted]" id="user-student-phoneformatted" maxlength="11" pattern="\d{2} \d{3}-\d{4}" class="form-control phone-formatted" onchange="User.checkPhone(this);" required>',
         DefaultValuesComponent::getPhoneInputTemplate()
     ); ?>
 </div>

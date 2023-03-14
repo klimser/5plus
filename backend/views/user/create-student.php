@@ -46,7 +46,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?= $form->field($student, '[student]note')->textarea(['maxlength' => true, 'htmlOptions' => ['rows' => 3]]); ?>
 
                 <?= $form->field($student, '[student]phoneFormatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
-                    ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
+                    ->textInput(['required' => true, 'maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
 
                 <?= $form->field($student, '[student]phone2Formatted', ['inputTemplate' => DefaultValuesComponent::getPhoneInputTemplate()])
                     ->textInput(['maxlength' => 11, 'pattern' => '\d{2} \d{3}-\d{4}', 'class' => 'form-control phone-formatted', 'onchange' => 'User.checkPhone(this);']); ?>
