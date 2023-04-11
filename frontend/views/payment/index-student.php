@@ -10,6 +10,10 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для учащих�
 
 <div class="container">
     <div class="content-box payment-panel">
+        <p>Вы можете <a href="https://payment.apelsin.uz/merchant?serviceId=498605820" target="_blank" class="btn apelsin_logo pay_button m-2">
+            оплатить с помощью <span class="sr-only">Apelsin</span> <i class="ml-2"></i>
+        </a></p>
+        <p>ИЛИ</p>
         <?= Html::beginForm(Url::to(['payment/find']), 'post', ['onsubmit' => 'var gToken = grecaptcha.getResponse(); if (gToken.length === 0) return false;']); ?>
             <div class="form-group">
                 <label for="student-phone">Введите свой номер телефона</label>

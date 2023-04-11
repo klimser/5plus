@@ -79,10 +79,10 @@ $this->params['breadcrumbs'][] = 'Онлайн оплата для новых с
                     <span class="fab fa-cc-visa"></span>
                     <span class="fab fa-cc-mastercard"></span>
                     <span class="fab fa-cc-amex"></span>
-                </button>*/ ?>
+                </button>
                 <button type="submit" onclick="return Payment.completeNewPayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_APELSIN; ?>" class="btn apelsin_logo pay_button m-2">
                     Оплатить через <span class="sr-only">Apelsin</span> <i class="ml-2"></i>
-                </button>
+                </button>*/ ?>
                 <button type="submit" onclick="return Payment.completeNewPayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_ATMOS; ?>" class="btn atmos_logo pay_button m-2">
                     Оплатить через <span class="sr-only">Atmos</span> <i class="ml-2"></i>
                 </button>
