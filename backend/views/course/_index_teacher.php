@@ -71,7 +71,7 @@ use yii\web\View;
             'template' => '{update}',
             'buttons' => [
                 'update' =>  function($url,$model) {
-                    return Html::a('<span class="fas fa-pencil-alt"></span>', $url, [
+                    return Html::a('<span class="fas fa-pencil-alt"></span>', '#', [
                         'title' => Yii::t('yii', 'Update'),
                         'class' => 'btn btn-outline-dark collapse show',
                         'onclick' => 'Course.toggleNoteUpdate(this); return false;',
