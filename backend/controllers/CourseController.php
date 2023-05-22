@@ -231,7 +231,9 @@ class CourseController extends AdminController
                             if (!empty($courseConfigs)) {
                                 $previousCourseConfig = end($courseConfigs);
                                 $previousCourseConfig->date_to = $courseConfig->date_from;
-                                $previousCourseConfig->save();
+                                if (!$previousCourseConfig->save()) {
+                                    throw new \Exception('Unable to save course config: ' . $previousCourseConfig->getErrorsAsString());
+                                }
                             }
                             $course->link('courseConfigs', $courseConfig);
                         } elseif ($isNew) {
