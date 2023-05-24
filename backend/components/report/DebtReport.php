@@ -36,7 +36,6 @@ class DebtReport
         $courses = Course::find()
             ->joinWith('courseStudents')
             ->andWhere(['<', CourseStudent::tableName() . '.paid_lessons', 0])
-            ->addOrderBy([Course::tableName() . '.name' => SORT_ASC])
             ->all();
         foreach ($courses as $course) {
             $this->report->getActiveSheet()->mergeCells("A$row:D$row");
