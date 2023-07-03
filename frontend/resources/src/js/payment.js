@@ -24,7 +24,7 @@ let Payment = {
                     (addonText.length > 0 ? '<br><small>' + addonText + '</small>' : '') +
                     '</button><div id="payment-' + course.id + '" class="course-payments collapse" data-courseid="' + course.id + '" data-coursename="' + course.name + '"><div class="row">';
                 if (course.debt > 0) {
-                    htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-primary btn-block" data-sum="' + course.debt + '" onclick="Payment.selectSum(this);">' +
+                    htmlData += '<div class="col-12 col-md-auto mb-2"><button class="btn btn-primary btn-block" data-sum="' + course.debt + '" data-limit="' + course.priceDiscountLimit + '" onclick="Payment.selectSum(this);">' +
                         'Погасить задолженность ' + course.debt + ' сум' +
                         '</button></div>';
                 }
