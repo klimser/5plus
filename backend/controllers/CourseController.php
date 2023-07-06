@@ -248,8 +248,7 @@ class CourseController extends AdminController
                                     break;
                                 }
                                 if ($firstConfig->date_to && $firstConfig->date_to < $course->date_start) {
-                                    $firstConfig->delete();
-                                    $course->unlink('courseConfigs', $firstConfig);
+                                    $course->unlink('courseConfigs', $firstConfig, true);
                                     array_shift($courseConfigs);
                                     continue;
                                 }
@@ -266,8 +265,7 @@ class CourseController extends AdminController
                                     break;
                                 }
                                 if ($lastConfig->date_from > $course->date_end) {
-                                    $lastConfig->delete();
-                                    $course->unlink('courseConfigs', $lastConfig);
+                                    $course->unlink('courseConfigs', $lastConfig, true);
                                     array_pop($courseConfigs);
                                     continue;
                                 }
