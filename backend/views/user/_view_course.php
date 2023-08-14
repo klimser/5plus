@@ -12,10 +12,13 @@ use common\models\CourseStudent;
 /* @var $courseManagementAllowed bool */
 /* @var $moveMoneyAllowed bool */
 $activeCourseIdSet = [];
+$debtCourseIdSet = [];
 foreach ($student->courseStudentsAggregated as $courseId => $courseStudents) {
     foreach ($courseStudents as $courseStudent) {
         if ($courseStudent->active === CourseStudent::STATUS_ACTIVE) {
             $activeCourseIdSet[$courseId] = true;
+        } elseif ($courseStudent->moneyLeft < 0) {
+            $debtCourseIdSet[$courseId] = true;
         }
     }
 }
@@ -122,7 +125,7 @@ foreach ($student->courseStudentsAggregated as $courseId => $courseStudents) {
                         <?php elseif (!$isActive && $moveMoneyAllowed && $courseStudent->moneyLeft > 0): ?>
                             <button type="button" title="перенести оставшиеся деньги" class="btn btn-outline-dark mb-2" onclick="Dashboard.showMoveMoneyForm(this);"
                                     data-id="<?= $courseStudent->id; ?>" data-course="<?= $courseStudent->course_id; ?>" data-amount="<?= MoneyHelper::formatThousands($courseStudent->moneyLeft); ?>"
-                                    data-courses="<?= implode(',', array_keys($activeCourseIdSet)); ?>">
+                                    data-courses="<?= implode(',', array_merge(array_keys($activeCourseIdSet), array_keys($debtCourseIdSet))); ?>">
                                 <span class="fas fa-dollar-sign"></span> <span class="fas fa-arrow-right"></span>
                             </button>
                         <?php endif; ?>

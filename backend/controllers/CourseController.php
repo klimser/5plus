@@ -564,7 +564,11 @@ class CourseController extends AdminController
         
         $courseStudentsTo = CourseStudent::find()->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseTo->id, 'active' => CourseStudent::STATUS_ACTIVE])->all();
         if (count($courseStudentsTo) == 0) {
-            return self::getJsonErrorResult('Student in destination group is not found');
+            /** @var CourseStudent[] $courseStudentsTo */
+            $courseStudentsTo = CourseStudent::find()->andWhere(['user_id' => $courseStudent->user_id, 'course_id' => $courseTo->id, 'active' => CourseStudent::STATUS_INACTIVE])->all();
+            if (count($courseStudentsTo) == 0 || $courseStudentsTo[0]->moneyLeft > 0) {
+                return self::getJsonErrorResult('Student in destination group is not found');
+            }
         }
 
         $unknownEvent = EventComponent::getUncheckedEvent($courseStudent->course, $courseStudent->endDateObject);
