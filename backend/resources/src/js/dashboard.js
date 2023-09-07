@@ -561,7 +561,7 @@ let Dashboard = {
     },
     clearCreateStudentForm: function() {
         let form = $("#create-student-form");
-        $(form).find("input, select, textarea").each((index, elem) => {
+        $(form).find('select, textarea, input:not([type="radio"]):not([type="checkbox"])').each((index, elem) => {
             $(elem).val('');
         });
         $(form).find(".step-tab").removeClass(['step-success', 'step-invalid', 'active'])
