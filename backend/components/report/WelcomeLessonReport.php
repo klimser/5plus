@@ -87,7 +87,9 @@ class WelcomeLessonReport
 
         $row = 2;
         foreach ($lessons as $lesson) {
-            $courseConfig = CourseComponent::getCourseConfig($lesson->course, $lesson->lessonDateTime);
+            if (!$courseConfig = CourseComponent::getCourseConfig($lesson->course, $lesson->lessonDateTime, false)) {
+                $courseConfig = $lesson->course->latestCourseConfig;
+            }
             $spreadsheet->getActiveSheet()->setCellValue("A$row", $courseConfig->name);
             $spreadsheet->getActiveSheet()->setCellValue("B$row", Date::PHPToExcel($lesson->lessonDateTime));
             $spreadsheet->getActiveSheet()->setCellValue("C$row", $courseConfig->teacher->name);
