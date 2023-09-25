@@ -78,21 +78,21 @@ class MoneyComponent extends Component
         $courseStudent = CourseStudent::find()
             ->andWhere(['user_id' => $student->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])
             ->one();
-        if ($courseStudent) {
-            $courseConfig = CourseComponent::getCourseConfig($courseStudent->course, $courseStudent->startDateObject);
-//            if ($courseStudent->startDateObject->format('Y-m') === date('Y-m')) {
-//                $courseConfig = CourseComponent::getCourseConfig($courseStudent->course, $courseStudent->startDateObject);
-//            } elseif ($courseStudent->startDateObject->format('Y-m') < date('Y-m')) {
-//                $groupConfig1 = CourseComponent::getCourseConfig($courseStudent->course, new DateTime('-1 month'));
-//                $groupConfig2 = CourseComponent::getCourseConfig($courseStudent->course, new DateTime());
-//                $courseConfig = $groupConfig1->price12Lesson < $groupConfig2->price12Lesson ? $groupConfig1 : $groupConfig2;
+//        if ($courseStudent) {
+//            $courseConfig = CourseComponent::getCourseConfig($courseStudent->course, $courseStudent->startDateObject);
+////            if ($courseStudent->startDateObject->format('Y-m') === date('Y-m')) {
+////                $courseConfig = CourseComponent::getCourseConfig($courseStudent->course, $courseStudent->startDateObject);
+////            } elseif ($courseStudent->startDateObject->format('Y-m') < date('Y-m')) {
+////                $groupConfig1 = CourseComponent::getCourseConfig($courseStudent->course, new DateTime('-1 month'));
+////                $groupConfig2 = CourseComponent::getCourseConfig($courseStudent->course, new DateTime());
+////                $courseConfig = $groupConfig1->price12Lesson < $groupConfig2->price12Lesson ? $groupConfig1 : $groupConfig2;
+////            }
+//            if (isset($courseConfig)) {
+//                $contract->discount = $courseConfig->lesson_price_discount && $amount >= $courseConfig->price12Lesson
+//                    ? Contract::STATUS_ACTIVE
+//                    : Contract::STATUS_INACTIVE;
 //            }
-            if (isset($courseConfig)) {
-                $contract->discount = $courseConfig->lesson_price_discount && $amount >= $courseConfig->price12Lesson
-                    ? Contract::STATUS_ACTIVE
-                    : Contract::STATUS_INACTIVE;
-            }
-        }
+//        }
         if (!$contract->save()) throw new \Exception('Не удалось создать договор: ' . $contract->getErrorsAsString());
 
         ComponentContainer::getActionLogger()->log(
