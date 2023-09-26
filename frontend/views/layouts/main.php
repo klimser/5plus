@@ -108,9 +108,6 @@ $this->render('/grunt-assets');
                         <div class="swiper-slide">
                             <div class="text">
                                 <h2 class="title">Мы дорожим качеством ваших знаний</h2>
-                                <?php /*
-                                <div class="desc">We are a technology company that understands <br>complexity of businesses, and with our technical <br>expertise, we help them transform and scale</div>
-                                */ ?>
                                 <div class="btns-group flex-column align-items-center align-items-md-start">
                                     <a href="<?= Url::to(['webpage', 'id' => $quizWebpage->id]); ?>" class="btn btn-danger btn-ico btn-lg p-3 p-lg-4">Проверь свои знания <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/puzzle-ico.png" alt="ico" class="ico"></a>
                                     <div class="btn btn-primary btn-ico btn-lg p-3 p-lg-4" data-container="body" data-toggle="popover" data-placement="bottom" data-trigger="click" data-html="true" data-content="<a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'student']); ?>'>для учащихся</a><br><br> <a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'new']); ?>'>для новых студентов</a>">
