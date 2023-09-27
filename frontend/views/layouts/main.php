@@ -119,9 +119,9 @@ $this->render('/grunt-assets');
                             </div>
                             <div class="img">
                                 <picture>
-                                    <source srcset="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img-3.webp" type="image/webp">
-                                    <source srcset="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img-3.jpg" type="image/jpeg">
-                                    <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img-3.jpg" alt="image">
+                                    <source srcset="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img-1.webp" type="image/webp">
+                                    <source srcset="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img-1.jpg" type="image/jpeg">
+                                    <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/main-slider-img-1.jpg" alt="image">
                                 </picture>
                             </div>
                         </div>
