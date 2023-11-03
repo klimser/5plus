@@ -28,7 +28,7 @@ foreach ($student->courseStudentsAggregated as $courseId => $courseStudents) {
         <div class="text-right form-check mb-2">
             <input class="form-check-input filter-type" type="checkbox" value="1" onchange="Dashboard.filterCourses(this);" id="filter-type-<?= $student->id; ?>">
             <label class="form-check-label" for="filter-type-<?= $student->id; ?>">
-                показать завершенные
+                скрыть завершенные
             </label>
         </div>
     <?php endif; ?>
@@ -43,7 +43,7 @@ foreach ($student->courseStudentsAggregated as $courseId => $courseStudents) {
                     $isActive = true;
                 }
             ?>
-                <div class="row justify-content-between align-items-start border-bottom pb-3 mb-3 collapse course-item <?= $courseStudent->active === CourseStudent::STATUS_INACTIVE ? ' inactive table-secondary ' : ' show '; ?>">
+                <div class="row justify-content-between align-items-start border-bottom pb-3 mb-3 collapse show course-item <?= $courseStudent->active === CourseStudent::STATUS_INACTIVE ? ' inactive table-secondary ' : ''; ?>">
                     <div class="col-8 col-md-9">
                         <div class="row">
                             <div class="col-12 col-md-4 col-lg-6">

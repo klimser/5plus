@@ -547,7 +547,7 @@ let Dashboard = {
     },
     filterCourses: function(e) {
         $(e).closest(".courses").find(".courses-table .course-item.inactive")
-            .collapse($(e).is(':checked') ? 'show' : 'hide');
+            .collapse($(e).is(':checked') ? 'hide' : 'show');
     },
     showCreateStudentForm: function() {
         $("#user-student-name").val($("input.search").val());
