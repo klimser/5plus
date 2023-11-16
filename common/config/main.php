@@ -166,7 +166,7 @@ return [
             'subjectMap' => $params['app-apelsin-subject-map'],
         ],
         'paynetApi' => [
-            'class' => \common\components\Paynet\PaynetApi::class,
+            'class' => \common\components\paynet\PaynetApi::class,
             'login' => $params['paynet-login'],
             'password' => $params['paynet-password'],
             'subjectMap' => $params['paynet-subject-map'],
