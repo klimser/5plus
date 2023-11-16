@@ -10,6 +10,7 @@ use common\components\paybox\PayboxApi;
 use common\components\paygram\PaygramApi;
 use common\components\payme\PaymeApi;
 use common\components\paymo\PaymoApi;
+use common\components\paynet\PaynetApi;
 use common\components\SmsBroker\SmsBrokerApi;
 use Yii;
 
@@ -86,5 +87,9 @@ class ComponentContainer
     public static function getPayboxApi(): PayboxApi
     {
         return Yii::$app->payboxApi;
+    }
+    public static function getPaynetApi(): PaynetApi
+    {
+        return Yii::$app->paynetApi;
     }
 }

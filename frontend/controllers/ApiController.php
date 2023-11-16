@@ -10,6 +10,7 @@ use common\components\click\ClickServer;
 use common\components\ComponentContainer;
 use common\components\payme\PaymeServer;
 use common\components\paymo\PaymoServer;
+use common\components\paynet\PaynetServer;
 use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\TelegramLog;
 use Yii;
@@ -99,5 +100,10 @@ class ApiController extends Controller
     public function actionPayboxComplete()
     {
         return (new PayboxServer())->handle(Yii::$app->request);
+    }
+
+    public function actionPaynet()
+    {
+        return (new PaynetServer())->handle(Yii::$app->request);
     }
 }

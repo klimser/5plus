@@ -165,6 +165,12 @@ return [
             'password' => $params['app-apelsin-password'],
             'subjectMap' => $params['app-apelsin-subject-map'],
         ],
+        'paynetApi' => [
+            'class' => \common\components\Paynet\PaynetApi::class,
+            'login' => $params['paynet-login'],
+            'password' => $params['paynet-password'],
+            'subjectMap' => $params['paynet-subject-map'],
+        ],
     ],
     'aliases' => [
         '@uploads' => '@frontend/web/uploads',
