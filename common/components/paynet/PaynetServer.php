@@ -317,11 +317,11 @@ class PaynetServer extends PaymeServer
                     'timestamp' => $contract->paid_at,
                     'providerTrnId' => $contract->number,
                 ],
-                Contract::STATUS_CANCEL => [
-                    'transactionState' => 2,
-                    'timestamp' => $contract->created_at,
-                    'providerTrnId' => $contract->number,
-                ],
+//                Contract::STATUS_CANCEL => [
+//                    'transactionState' => 2,
+//                    'timestamp' => $contract->created_at,
+//                    'providerTrnId' => $contract->number,
+//                ],
                 default => [
                     'transactionState' => 3,
                 ],
