@@ -283,7 +283,7 @@ class PaynetServer extends PaymeServer
 
             switch ($contract->status) {
                 case Contract::STATUS_PAID:
-                    throw new PaynetApiException('unable_to_cancel_transaction', 103);
+                    throw new PaynetApiException('unable_to_cancel_transaction', 77);
                 case Contract::STATUS_CANCEL:
                     throw new PaynetApiException('transaction_canceled', 202);
             }
