@@ -342,7 +342,7 @@ class PaynetServer extends PaymeServer
         
         /** @var Contract[] $contracts */
         $contracts = Contract::find()
-            ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_PAYNET])
+            ->andWhere(['payment_type' => Contract::PAYMENT_TYPE_PAYNET, 'status' => Contract::STATUS_PAID])
             ->andWhere(['between', 'created_at', $startDate->format('Y-m-d H:i:s'), $endDate->format('Y-m-d H:i:s')])
             ->andWhere(['not', ['external_id' => null]])
             ->orderBy(['created_at' => SORT_ASC])
@@ -350,7 +350,7 @@ class PaynetServer extends PaymeServer
         foreach ($contracts as $contract) {
             $results[] = [
                 'transactionId' => $contract->external_id,
-                'timestamp' => $contract->status == Contract::STATUS_PAID ? $contract->paid_at : $contract->created_at,
+                'timestamp' => $contract->paid_at,
                 'amount' => $contract->amount * 100,
                 'providerTrnId' => $contract->number,
             ];
