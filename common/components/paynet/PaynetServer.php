@@ -17,12 +17,19 @@ use yii\web\Response;
 
 class PaynetServer extends PaymeServer
 {
+    private const IP_WHITELIST = ['213.230.106.112', '213.230.65.80'];
+
     public function handle(Request $request): Response
     {
         $response = new Response();
         $response->format = Response::FORMAT_JSON;
         if (!$request->isPost) {
             $response->data = ['jsonrpc' => '2.0', 'id' => 0, 'error' => ['code' => -32300, 'message' => self::ERROR_MESSAGES['request_is_not_post']['en']]];
+            return $response;
+        }
+
+        if (!in_array($request->remoteIP, self::IP_WHITELIST)) {
+            $response->data = ['jsonrpc' => '2.0', 'id' => 0, 'error' => ['code' => -32300, 'message' => self::ERROR_MESSAGES['untrusted_ip']['en']]];
             return $response;
         }
         

@@ -17,6 +17,7 @@ class PaymeServer extends AbstractPaymentServer
     protected const ERROR_MESSAGES = [
         'authorization_failed' => ['en' => 'Authorization failed', 'ru' => 'Неверная авторизация', 'uz' => 'Authorization failed'],
         'request_is_not_post' => ['en' => 'Request should be POST', 'ru' => 'Запрос должен быть POST', 'uz' => 'So‘rov POST bo‘lishi kerak'],
+        'untrusted_ip' => ['en' => 'Request received from untrusted IP', 'ru' => 'Запрос получен с ненадежного IP-адреса', 'uz' => 'Ishonchsiz IPdan so‘rov qabul qilindi'],
         'failed_to_parse' => ['en' => 'Failed to parse JSON', 'ru' => 'Не удалось распознать JSON запрос', 'uz' => 'JSON so‘rovini tanib bo‘lmadi'],
         'method_not_exist' => ['en' => 'Method does not exists', 'ru' => 'Вызываемый метод не существует', 'uz' => 'Chaqirilayotgan usul mavjud emas'],
         'password_is_immutable' => ['en' => 'Password is immutable', 'ru' => 'Пароль не меняется', 'uz' => 'Parol o‘zgarmaydi'],
