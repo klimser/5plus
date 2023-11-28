@@ -72,7 +72,10 @@ class PaynetServer extends PaymeServer
         } catch (PaymentServiceException $ex) {
             $responseData = ['error' => ['code' => $ex->getCode(), 'message' => self::ERROR_MESSAGES[$ex->getMessage()]['ru']]];
         }
-        
+
+        if (!isset($responseData['error'])) {
+            $responseData = ['result' => $responseData];
+        }
         $responseData['jsonrpc'] = '2.0';
         $responseData['id'] = $requestData['id'];
         $response->data =  $responseData;
@@ -290,7 +293,7 @@ class PaynetServer extends PaymeServer
             $contract->status = Contract::STATUS_CANCEL;
             $contract->save();
 
-            return ['result' => ['providerTrnId' => $contract->number, 'timestamp' => date('Y-m-d H:i:s'), 'transactionState' => 2]];
+            return ['providerTrnId' => $contract->number, 'timestamp' => date('Y-m-d H:i:s'), 'transactionState' => 2];
         }
 
         throw new PaynetApiException('transaction_not_found', 203);
@@ -310,23 +313,21 @@ class PaynetServer extends PaymeServer
             ])
             ->one();
 
-        return [
-            'result' => match ($contract?->status) {
-                Contract::STATUS_PAID => [
-                    'transactionState' => 1,
-                    'timestamp' => $contract->paid_at,
-                    'providerTrnId' => $contract->number,
-                ],
-                Contract::STATUS_CANCEL => [
-                    'transactionState' => 3,
-                    'timestamp' => $contract->created_at,
-                    'providerTrnId' => $contract->number,
-                ],
-                default => [
-                    'transactionState' => 3,
-                ],
-            }
-        ];
+        return match ($contract?->status) {
+            Contract::STATUS_PAID => [
+                'transactionState' => 1,
+                'timestamp' => $contract->paid_at,
+                'providerTrnId' => $contract->number,
+            ],
+            Contract::STATUS_CANCEL => [
+                'transactionState' => 3,
+                'timestamp' => $contract->created_at,
+                'providerTrnId' => $contract->number,
+            ],
+            default => [
+                'transactionState' => 3,
+            ],
+        };
     }
 
     private function history($params)
@@ -356,7 +357,7 @@ class PaynetServer extends PaymeServer
             ];
         }
 
-        return ['result' => ['statements' => $results]];
+        return ['statements' => $results];
     }
 
     public function getPaymentTypeId(): int
