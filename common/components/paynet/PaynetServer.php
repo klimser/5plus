@@ -17,7 +17,7 @@ use yii\web\Response;
 
 class PaynetServer extends PaymeServer
 {
-    private const IP_WHITELIST = ['213.230.106.112', '213.230.65.80', '91.196.76.51'];
+    private const IP_WHITELIST = ['213.230.106.112', '213.230.65.80', '91.196.76.51', '94.158.63.245'];
 
     public function handle(Request $request): Response
     {
