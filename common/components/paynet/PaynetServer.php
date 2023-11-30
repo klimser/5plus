@@ -29,7 +29,7 @@ class PaynetServer extends PaymeServer
         }
 
         if (!in_array($request->remoteIP, self::IP_WHITELIST)) {
-            $response->data = ['jsonrpc' => '2.0', 'id' => 0, 'error' => ['code' => -32300, 'message' => self::ERROR_MESSAGES['untrusted_ip']['en']]];
+            $response->data = ['jsonrpc' => '2.0', 'id' => 0, 'error' => ['code' => 601, 'message' => self::ERROR_MESSAGES['untrusted_ip']['en']]];
             return $response;
         }
         
