@@ -225,7 +225,7 @@ class MoneyComponent extends Component
                                 } else {
                                     $payment->amount = $parentPayment->moneyLeft * (-1);
                                     $payment->discount = $isDiscount ? Payment::STATUS_ACTIVE : Payment::STATUS_INACTIVE;
-                                    $rate = bcadd($rate, number_format($payment->amount / $lessonPrice, 8, '.', ''));
+                                    $rate = bcadd($rate, number_format($payment->amount / $lessonPrice, 8, '.', ''), 8);
                                 }
                                 $payment->used_payment_id = $parentPayment->id;
                             } else {
@@ -509,7 +509,7 @@ class MoneyComponent extends Component
 
                         if ($payments[0]['amount'] <= 0) array_shift($payments);
                     } else {
-                        $toCharge[] = ['id' => null, 'discount' => 0, 'amount' => (int) bcmul($rate, (string) $courseConfigs[$key]->lesson_price, 0)];
+                        $toCharge[] = ['id' => null, 'discount' => 0, 'amount' => MoneyHelper::roundTen((int) bcmul($rate, (string) $courseConfigs[$key]->lesson_price, 0))];
                         $rate = '0';
                     }
                 }
