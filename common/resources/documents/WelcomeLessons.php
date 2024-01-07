@@ -74,7 +74,7 @@ class WelcomeLessons
             $this->_doc->Write(6, Yii::$app->formatter->asDatetime($welcomeLesson->lessonDateTime, 'php:j F Y'));
 
             $this->_doc->SetFont($fontRegular, '', $fontSize);
-            $subjectStrings = $this->splitText($welcomeLesson->course->subject->name, 50);
+            $subjectStrings = $this->splitText($welcomeLesson->course->subject->name['ru'], 50);
             foreach ($subjectStrings as $i => $subjectString) {
                 $this->_doc->SetXY($xLeft + 45, 5 * $i + $yTop + 25);
                 $this->_doc->Write(6, $subjectString);

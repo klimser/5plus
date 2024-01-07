@@ -60,10 +60,10 @@ $script = '';
 
                     foreach ($quizList as $quiz):
                         if (!array_key_exists($quiz->subject_id, $subjectSet)):
-                            $script .= "QuizList.data.set({$quiz->subject_id}, {name: \"{$quiz->subject->name}\", quizzes: new Map()});\n";
+                            $script .= "QuizList.data.set({$quiz->subject_id}, {name: \"{$quiz->subject->name['ru']}\", quizzes: new Map()});\n";
                             $subjectSet[$quiz->subject_id] = true; ?>
                             <a href="#" data-subject="<?= $quiz->subject_id; ?>" class="list-group-item" onclick="return QuizList.setSubject(this);">
-                                <?= $quiz->subject->name; ?>
+                                <?= $quiz->subject->name['ru']; ?>
                             </a>
                         <?php endif;
                         $script .= "QuizList.data.get({$quiz->subject_id}).quizzes.set({$quiz->id}, {name: \"{$quiz->name}\", questionCount: {$quiz->questionCount}});\n";
@@ -105,7 +105,7 @@ SCRIPT
     , View::POS_HEAD, 'track_quiz_start');
 
 if (isset($activeSubject) && $activeSubject) {
-    $this->title .= ' - ' . $activeSubject->name;
+    $this->title .= ' - ' . $activeSubject->name['ru'];
     $script .= "QuizList.setSubject($('a[data-subject={$activeSubject->id}]'));\n";
 }
 

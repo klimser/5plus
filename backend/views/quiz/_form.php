@@ -16,7 +16,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($quiz, 'name')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($quiz, 'subject_id')->dropDownList(\yii\helpers\ArrayHelper::map($subjects, 'id', 'name', 'subjectCategory.name')) ?>
+    <?= $form->field($quiz, 'subject_id')->dropDownList(\yii\helpers\ArrayHelper::map($subjects, 'id', 'name.ru', 'subjectCategory.name')) ?>
 
     <div class="form-group">
         <?= Html::submitButton($quiz->isNewRecord ? 'Создать' : 'Сохранить', ['class' => $quiz->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

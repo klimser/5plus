@@ -38,7 +38,7 @@ use yii\helpers\Url; ?>
             <th>Описание предмета</th>
         </tr>
         <tr>
-            <td><?= $contract->course->subject->name; ?></td>
+            <td><?= $contract->course->subject->name['ru']; ?></td>
             <td class="text-center"><?= number_format($contract->amount, 0, '.', ' '); ?></td>
             <td class="text-center"><?= number_format($contract->monthCount, 2, '.', ''); ?></td>
             <td class="text-center"><?= $contract->courseConfig->lesson_duration; ?></td>
@@ -47,7 +47,7 @@ use yii\helpers\Url; ?>
             </td>
         </tr>
     </table>
-    <p style="color: gray; font-size: smaller;">
+    <p style="color: rgb(128,128,128); font-size: smaller;">
         * 1 учебный месяц = 28 календарных дней<br>
         ** При запросе возврата внесенных за обучение остатков денежных средств по любой причине, не зависящей от ООО "Exclusive Education", последняя внесенная за обучение оплата пересчитывается по стоимости за 1 занятие с повышающим коэффициентом 1,2 к текущей стоимости 1 занятия при условии, что было проведено менее 12 занятий.<br>
         *** При увеличении или уменьшении Исполнителем стоимости занятий, новая установленная стоимость занятий применяется с даты официального утверждения и объявления на сайте www.5plus.uz, а все внесенные до момента изменения стоимости занятий денежные средства перерасчитываются согласно новой установленной стоимости занятий.

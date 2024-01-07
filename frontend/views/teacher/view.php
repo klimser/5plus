@@ -22,7 +22,7 @@ use frontend\components\widgets\TeacherSubjectWidget; ?>
             <dl>
                 <dt>Предметы</dt>
                 <?php foreach ($teacher->subjects as $subject): ?>
-                    <dd><?= $subject->name; ?></dd>
+                    <dd><?= $subject->name['ru']; ?></dd>
                 <?php endforeach; ?>
             </dl>
         <?php endif; ?>

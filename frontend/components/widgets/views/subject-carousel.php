@@ -45,28 +45,28 @@ $vars = [
                         <div class="swiper-slide item">
                                 <?php if ($subjectCategory->id === 1): ?>
                                     <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="card">
-                                        <span class="img"><img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name; ?>"></span>
-                                        <span class="name"><?= $subject->name; ?></span>
+                                        <span class="img"><img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name['ru']; ?>"></span>
+                                        <span class="name"><?= $subject->name['ru']; ?></span>
                                     </a>
                                 <?php elseif ($subjectCategory->id === 2): ?>
                                     <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="card">
-                                        <span class="ico"><img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name; ?>"></span>
-                                        <span class="name"><?= $subject->name; ?></span>
+                                        <span class="ico"><img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name['ru']; ?>"></span>
+                                        <span class="name"><?= $subject->name['ru']; ?></span>
                                     </a>
                                 <?php elseif ($subjectCategory->id === 3): ?>
                                     <div class="card">
-                                        <img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name; ?>" class="img">
+                                        <img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name['ru']; ?>" class="img">
                                         <div class="text">
-                                            <div class="name"><?= $subject->name; ?></div>
+                                            <div class="name"><?= $subject->name['ru']; ?></div>
                                             <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="link-readmore">подробнее</a>
                                         </div>
                                     </div>
                                 <?php elseif ($subjectCategory->id === 4): ?>
                                     <div class="card">
                                         <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="img">
-                                            <img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name; ?>">
+                                            <img src="<?= $subject->imageUrl; ?>" alt="<?= $subject->name['ru']; ?>">
                                         </a>
-                                        <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="name"><?= $subject->name; ?></a>
+                                        <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>" class="name"><?= $subject->name['ru']; ?></a>
                                     </div>
                                 <?php endif; ?>
                         </div>

@@ -79,7 +79,7 @@ class TeacherTimeReport
 
         $textrun = $section->addTextRun($pStyleJustify);
         $textrun->addText('Исполнителем выполнены, а Заказчиком приняты услуги по обучению групп(ы) слушателей учебного курса «');
-        $textrun->addText($teacherSubject->subject->name, $fontUnderlined);
+        $textrun->addText($teacherSubject->subject->name['ru'], $fontUnderlined);
         $textrun->addText('» по договору №');
         $textrun->addText($teacherSubject->teacher->contractNumber, $fontBold);
         $textrun->addText(' от ');

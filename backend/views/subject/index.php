@@ -40,7 +40,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'name',
                 'format' => 'html',
                 'content' => function ($model, $key, $index, $column) {
-                    return Html::a($model->name, ['update', 'id' => $model->id]);
+                    return Html::a($model->name['ru'] ?? 'Нет названия', ['update', 'id' => $model->id]);
                 },
             ],
             [

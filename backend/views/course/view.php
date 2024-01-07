@@ -16,7 +16,7 @@ $this->params['breadcrumbs'][] = $course->courseConfig->name;
 
 <div class="row pb-3">
     <div class="col-12 text-center">
-        Группа <b><?= $course->courseConfig->name; ?></b> <small class="text-muted">(<?= $course->subject->name; ?>)</small>
+        Группа <b><?= $course->courseConfig->name; ?></b> <small class="text-muted">(<?= $course->subject->name['ru']; ?>)</small>
     </div>
 </div>
 <div class="row border-top py-2 text-center">

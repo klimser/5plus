@@ -20,7 +20,7 @@ $this->params['breadcrumbs'][] = 'Настройки страницы';
     $sortableItems = [];
     foreach ($quizes as $quiz) {
         $sortableItems[] = [
-            'content' => '<span class="fas fa-arrows-alt"></span> ' . $quiz->name . ' (<small>' . $quiz->subject->subjectCategory->name . '/' . $quiz->subject->name . '</small>)',
+            'content' => '<span class="fas fa-arrows-alt"></span> ' . $quiz->name . ' (<small>' . $quiz->subject->subjectCategory->name . '/' . $quiz->subject->name['ru'] . '</small>)',
             'options' => ['id' => $prefix . $quiz->id],
         ];
     }

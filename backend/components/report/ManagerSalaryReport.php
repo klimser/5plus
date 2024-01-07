@@ -75,7 +75,7 @@ class ManagerSalaryReport
 
             $consultationSheet->setCellValue("A$row", $consultation->createdAdmin->name);
             $consultationSheet->setCellValue("B$row", $consultation->user->name);
-            $consultationSheet->setCellValue("C$row", $consultation->subject->name);
+            $consultationSheet->setCellValue("C$row", $consultation->subject->name['ru']);
             $consultationSheet->setCellValue("D$row", Date::PHPToExcel($consultation->createDate));
             $managerMap[$consultation->createdAdmin->id]['consultation']++;
             $row++;

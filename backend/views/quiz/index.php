@@ -31,7 +31,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'html',
                 'content' => function ($model, $key, $index, $column) {
                     return Html::a(
-                        $model->name . ' (<small>' . $model->subject->subjectCategory->name . ' / ' . $model->subject->name . '</small>)',
+                        $model->name . ' (<small>' . $model->subject->subjectCategory->name . ' / ' . $model->subject->name['ru'] . '</small>)',
                         Url::to(['update', 'id' => $model->id])
                     );
                 }

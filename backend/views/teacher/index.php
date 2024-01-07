@@ -44,7 +44,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => 'Предметы',
                 'content' => function ($model, $key, $index, $column) {
                     $content = '';
-                    foreach ($model->subjects as $subject) $content .= $subject->name . "<br>\n";
+                    foreach ($model->subjects as $subject) $content .= $subject->name['ru'] . "<br>\n";
                     return $content;
                 }
             ],

@@ -77,7 +77,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <div class="row form-group">
                     <div class="col-10 col-md-11">
                         <input type="hidden" name="subject[]" value="<?= $subject->id; ?>">
-                        <input readonly class="form-control-plaintext" value="<?= $subject->name; ?>">
+                        <input readonly class="form-control-plaintext" value="<?= $subject->name['ru']; ?>">
                     </div>
                     <div class="col-2 col-md-1">
                         <button class="btn btn-outline-dark" onclick="return Teacher.removeSubject(this);"><span class="fas fa-times"></span></button>

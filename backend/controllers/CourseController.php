@@ -42,7 +42,7 @@ class CourseController extends AdminController
         $this->checkAccess('viewGroups');
 
         if (\Yii::$app->user->identity->role == User::ROLE_ROOT) {
-//        $user = User::findOne(20811);
+//        $user = User::findOne(27934);
 //        foreach ($user->courseStudents as $courseStudent) {
 //            EventComponent::fillSchedule($courseStudent->course);
 //            MoneyComponent::rechargeStudent($courseStudent->user, $courseStudent->course);

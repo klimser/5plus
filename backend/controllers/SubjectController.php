@@ -27,12 +27,8 @@ class SubjectController extends AdminController
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => Subject::find()->orderBy(['category_id' => SORT_ASC, 'name' => SORT_ASC]),
+            'query' => Subject::find()->orderBy(['category_id' => SORT_ASC]),
             'pagination' => ['pageSize' => 50,],
-            'sort' => [
-                'defaultOrder' => ['name' => SORT_ASC],
-                'attributes' => ['name'],
-            ],
         ]);
 
         return $this->render('index', [
@@ -77,6 +73,8 @@ class SubjectController extends AdminController
                 /*     Сохраняем курс      */
                 if (!$subject->load(Yii::$app->request->post())) \Yii::$app->session->addFlash('error', 'Form data not found');
                 else {
+                    $names = Yii::$app->request->post('name');
+                    $subject->name = $names;
                     $subject->imageFile = yii\web\UploadedFile::getInstance($subject, 'imageFile');
                     if (!$subject->save()) {
                         $subject->moveErrorsToFlash();

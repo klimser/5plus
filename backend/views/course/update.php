@@ -55,7 +55,7 @@ $script .= ";\n";
 
             <?= $form->field($course, 'subject_id', ['options' => ['class' => 'form-group']])
                 ->dropDownList(
-                    ArrayHelper::map($subjects, 'id', 'name'),
+                    ArrayHelper::map($subjects, 'id', 'name.ru'),
                     ['onChange' => 'Course.loadTeacherSelect(this);', 'required' => true, 'disabled' => !$course->isNewRecord]
                 ); ?>
         </div>

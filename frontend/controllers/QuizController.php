@@ -29,7 +29,7 @@ class QuizController extends Controller
             'activeSubject' => $subject,
             'quizList' => Quiz::find()->with('subject')->orderBy('page_order')->all(),
             'quizResult' => new QuizResult(),
-            'h1' => 'Проверь свой уровень' . ($subject ? " - \"{$subject->name}\"" : ''),
+            'h1' => 'Проверь свой уровень' . ($subject ? ' - "' . $subject->name['ru'] . '"' : ''),
         ]);
     }
 
@@ -51,7 +51,7 @@ class QuizController extends Controller
         if (Yii::$app->request->isPost) {
             if ($quizResult->load(Yii::$app->request->post())) {
                 $quizResult->hash = sha1(strval(time()));
-                $quizResult->subject_name = $quiz->subject->name;
+                $quizResult->subject_name = $quiz->subject->name['ru'];
                 $quizResult->quiz_name = $quiz->name;
                 $questionsData = [];
                 $answersData = [];
@@ -77,7 +77,7 @@ class QuizController extends Controller
             'activeQuiz' => $quiz,
             'quizList' => Quiz::find()->with('subject')->orderBy('page_order')->all(),
             'quizResult' => $quizResult,
-            'h1' => "Проверь свой уровень - \"{$quiz->subject->name}\"",
+            'h1' => 'Проверь свой уровень - "' . $quiz->subject->name['ru'] . '"',
         ]);
     }
 

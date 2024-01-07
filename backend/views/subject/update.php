@@ -1,6 +1,7 @@
 <?php
 
 use common\components\DefaultValuesComponent;
+use common\components\helpers\Language;
 use dosamigos\tinymce\TinyMce;
 use yii\helpers\ArrayHelper;
 use yii\bootstrap4\Html;
@@ -10,9 +11,9 @@ use yii\bootstrap4\ActiveForm;
 /* @var $subject common\models\Subject */
 /* @var $subjectCategories \common\models\SubjectCategory[] */
 
-$this->title = $subject->isNewRecord ? 'Новый курс' : $subject->name;
+$this->title = $subject->isNewRecord ? 'Новый курс' : $subject->name['ru'] ?? 'Нет названия';
 $this->params['breadcrumbs'][] = ['label' => 'Курсы', 'url' => ['index']];
-$this->params['breadcrumbs'][] = $subject->name;
+$this->params['breadcrumbs'][] = $subject->name['ru'] ?? 'Нет названия';
 
 ?>
 <div class="subject-update">
@@ -22,7 +23,17 @@ $this->params['breadcrumbs'][] = $subject->name;
     <div class="subject-form">
         <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]); ?>
 
-        <?= $form->field($subject, 'name')->textInput(['required' => true, 'maxlength' => true]); ?>
+        <div class="form-group">
+            <label><?= $subject->getAttributeLabel('name'); ?></label>
+            <?php foreach (Language::ALLOWED_LANGUAGES as $language): ?>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><?= Language::LABELS[$language]; ?></span>
+                    </div>
+                    <?= Html::textInput('name[' . $language . ']', $subject->name[$language] ?? '', ['class' => 'form-control']); ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
 
         <?= $form->field($subject, 'category_id')->dropDownList(ArrayHelper::map($subjectCategories, 'id', 'name')); ?>
 
@@ -33,7 +44,7 @@ $this->params['breadcrumbs'][] = $subject->name;
             ?>
             <div class="col-2">
                 <?php if ($subject->image): ?>
-                    <img class="img-fluid" alt="<?= $subject->name; ?>" src="<?= $subject->imageUrl; ?>">
+                    <img class="img-fluid" alt="<?= $subject->name['ru'] ?? 'Нет названия'; ?>" src="<?= $subject->imageUrl; ?>">
                 <?php endif; ?>
             </div>
         </div>
@@ -47,7 +58,7 @@ $this->params['breadcrumbs'][] = $subject->name;
         <?= $this->render('/webpage/_form', [
             'form' => $form,
             'webpage' => $subject->webpage,
-            'module' => isset($module) ? $module : null,
+            'module' => $module ?? null,
         ]); ?>
 
         <div class="form-group">

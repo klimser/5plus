@@ -222,7 +222,7 @@ class OrderCommand extends UserCommand
                 /** @var Subject[] $subjects */
                 $subjects = Subject::getActiveListQuery()->andWhere(['category_id' => $subjectCategory->id])->all();
                 foreach ($subjects as $subject) {
-                    $buttons[] = [$subject->name];
+                    $buttons[] = [$subject->name['ru']];
                 }
                 $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
 
@@ -248,7 +248,7 @@ class OrderCommand extends UserCommand
                         ];
                     }
 
-                    $this->addNote($conversation, 'subject', $subject->name);
+                    $this->addNote($conversation, 'subject', $subject->name['ru']);
                 }
                 
                 $keyboard = new Keyboard([PublicMain::ORDER_STEP_5_BUTTON], [PublicMain::TO_BACK, PublicMain::TO_MAIN]);

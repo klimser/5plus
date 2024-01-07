@@ -7,6 +7,7 @@ use backend\models\Event;
 use backend\models\WelcomeLesson;
 use common\components\CourseComponent;
 use common\components\extended\ActiveRecord;
+use common\components\helpers\Language;
 use DateTimeImmutable;
 use DateTimeInterface;
 use yii\db\ActiveQuery;
@@ -79,6 +80,7 @@ class Course extends ActiveRecord
             [['date_end'], 'safe'],
             [['subject_id'], 'exist', 'targetRelation' => 'subject'],
             [['category_id'], 'exist', 'targetRelation' => 'category'],
+            ['language', 'in', 'range' => Language::ALLOWED_LANGUAGES],
         ];
     }
 
@@ -91,6 +93,7 @@ class Course extends ActiveRecord
             'id' => 'ID группы',
             'type_id' => 'Тип группы',
             'subject_id' => 'Предмет',
+            'language' => 'Язык',
             'active' => 'Занимается',
             'category_id' => 'Категория',
             'date_start' => 'Дата начала занятий',

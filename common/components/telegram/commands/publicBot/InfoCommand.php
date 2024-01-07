@@ -178,7 +178,7 @@ class InfoCommand extends UserCommand
 
                 $textLines = ['*' . Entity::escapeMarkdownV2(PublicMain::INFO_STEP_3_SUBJECT_TEXT) . '*'];
                 foreach ($category->activeSubjects as $subject) {
-                    $textLines[] = "[{$subject->name}](https://5plus.uz/{$subject->webpage->url})";
+                    $textLines[] = "[{$subject->name['ru']}](https://5plus.uz/{$subject->webpage->url})";
                 }
 
                 $buttons = [[PublicMain::TO_BACK, PublicMain::TO_MAIN]];
@@ -212,7 +212,7 @@ class InfoCommand extends UserCommand
                     ->all();
                 $buttons = [];
                 foreach ($activeSubjects as $subject) {
-                    $buttons[] = $subject->name;
+                    $buttons[] = $subject->name['ru'];
                 }
 
                 $officeStaffCount = Teacher::find()

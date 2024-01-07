@@ -25,7 +25,7 @@ $printable = false;
                     <td>
                         <?php if ($welcomeLesson->course_id): ?>
                             <?= $welcomeLesson->courseConfig->name; ?><br>
-                            <?= $welcomeLesson->course->subject->name; ?><br>
+                            <?= $welcomeLesson->course->subject->name['ru']; ?><br>
                             <?= $welcomeLesson->course->teacher->name; ?>
                         <?php endif; ?>
                         

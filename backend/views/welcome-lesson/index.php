@@ -96,7 +96,7 @@ SCRIPT
             [
                 'attribute' => 'subjectId',
                 'content' => function (WelcomeLesson $model, $key, $index, $column) {
-                    return $model->course_id ? $model->course->subject->name : '';
+                    return $model->course_id ? $model->course->subject->name['ru'] : '';
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,

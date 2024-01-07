@@ -32,7 +32,7 @@ class OrderController extends Controller
         $subject = Subject::findOne($order->subject);
         if (!$subject) return self::getJsonErrorResult('Неверный запрос');
         
-        $order->subject = $subject->name;
+        $order->subject = $subject->name['ru'];
         if (!$order->save(true)) {
             ComponentContainer::getErrorLogger()
                 ->logError('Order.create', $order->getErrorsAsString());

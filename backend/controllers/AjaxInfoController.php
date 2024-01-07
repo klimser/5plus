@@ -60,7 +60,7 @@ class AjaxInfoController extends AdminController
         foreach ($subjects as $subject) {
             $resultArray[] = [
                 'id' => $subject->id,
-                'name' => $subject->name,
+                'name' => $subject->name['ru'],
                 'categoryId' => $subject->category_id,
                 'category' => $subject->subjectCategory->name,
             ];
@@ -103,7 +103,7 @@ class AjaxInfoController extends AdminController
                 'name' => $courseConfig->name,
                 'active' => $course->active === Course::STATUS_ACTIVE,
                 'subjectId' => $course->subject_id,
-                'subject' => $course->subject->name,
+                'subject' => $course->subject->name['ru'],
                 'teacherId' => $courseConfig->teacher_id,
                 'teacher' => $courseConfig->teacher->name,
                 'priceLesson' => $courseConfig->lesson_price,

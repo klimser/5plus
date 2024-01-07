@@ -10,7 +10,7 @@ use yii\helpers\Url;
 /* @var $quizWebpage \common\models\Webpage */
 
 $this->params['breadcrumbs'][] = ['url' => Yii::$app->homeUrl . $subject->subjectCategory->webpage->url, 'label' => $subject->subjectCategory->name];
-$this->params['breadcrumbs'][] = $subject->name;
+$this->params['breadcrumbs'][] = $subject->name['ru'];
 ?>
 
 <div class="container">

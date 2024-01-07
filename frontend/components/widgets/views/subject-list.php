@@ -12,7 +12,7 @@
             <ul class="list-unstyled">
                 <?php foreach ($subjectCategory->activeSubjects as $subject): ?>
                     <li>
-                        <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>"><?= $subject->name; ?></a>
+                        <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>"><?= $subject->name['ru']; ?></a>
                     </li>
                 <?php endforeach; ?>
             </ul>

@@ -10,7 +10,7 @@
             <img src="<?= $subject->imageUrl; ?>" class="img-fluid">
         </a>
     <?php endif; ?>
-    <h2><a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>"><?= $subject->name; ?></a></h2>
+    <h2><a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>"><?= $subject->name['ru']; ?></a></h2>
     <p><?= nl2br($subject->description); ?></p>
     <a href="<?= Yii::$app->homeUrl . $subject->webpage->url; ?>">
         <span class="icon icon-details"></span>

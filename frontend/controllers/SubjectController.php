@@ -25,7 +25,7 @@ class SubjectController extends Controller
         return $this->render('view', [
             'subject' => $subject,
             'webpage' => $webpage,
-            'h1' => $subject->name,
+            'h1' => $subject->name['ru'],
             'quizCount' => Quiz::find()->where(['subject_id' => $subject->id])->count(),
             'quizWebpage' => Webpage::findOne(['module_id' => Module::getModuleIdByControllerAndAction('quiz', 'list')]),
         ]);
@@ -42,7 +42,7 @@ class SubjectController extends Controller
         foreach ($categories as $category) {
             $subjects = [];
             foreach ($category->activeSubjects as $subject) {
-                $subjects[] = ['id' => $subject->id, 'name' => $subject->name];
+                $subjects[] = ['id' => $subject->id, 'name' => $subject->name['ru']];
             }
             $jsonData[] = ['name' => $category->name, 'subjects' => $subjects];
         }

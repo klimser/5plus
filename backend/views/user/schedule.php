@@ -70,7 +70,7 @@ $intervalMonth = new \DateInterval('P1M');
                         <?php endif; ?>
                         <div class="row">
                             <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">Группа: <b><?=$courseInfo->courseConfig->name; ?></b></div>
-                            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">Предмет: <b><?=$courseInfo->subject->name; ?></b></div>
+                            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">Предмет: <b><?=$courseInfo->subject->name['ru']; ?></b></div>
                             <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">Занятия проводит: <b><?=$courseInfo->teacher->name; ?></b></div>
                         </div>
                         <?php if ($courseInfo->scheduleData): ?>
@@ -142,10 +142,10 @@ $intervalMonth = new \DateInterval('P1M');
                         </div>
                         <div class="row input-group">
                             <span class="input-group-addon"><span class="icon icon-book"></span></span>
-                            <span class="form-control input-sm" title="<?= $eventMember->event->course->subject->name; ?>">
-                                <?= mb_strlen($eventMember->event->course->subject->name, 'UTF-8') > 15
-                                    ? mb_substr($eventMember->event->course->subject->name, 0, 15, 'UTF-8') . '...'
-                                    : $eventMember->event->course->subject->name; ?>
+                            <span class="form-control input-sm" title="<?= $eventMember->event->course->subject->name['ru']; ?>">
+                                <?= mb_strlen($eventMember->event->course->subject->name['ru'], 'UTF-8') > 15
+                                    ? mb_substr($eventMember->event->course->subject->name['ru'], 0, 15, 'UTF-8') . '...'
+                                    : $eventMember->event->course->subject->name['ru']; ?>
                             </span>
                         </div>
                         <div class="row input-group">

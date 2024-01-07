@@ -12,7 +12,7 @@
             </tr>
             <?php foreach ($student->consultations as $consultation): ?>
                 <tr>
-                    <td><?= $consultation->subject->name; ?></td>
+                    <td><?= $consultation->subject->name['ru']; ?></td>
                     <td><?= $consultation->createDate->format('d.m.Y H:i'); ?></td>
                     <td><?= $consultation->createdAdmin->name; ?></td>
                 </tr>

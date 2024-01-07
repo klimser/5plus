@@ -12,7 +12,7 @@ use yii\web\UploadedFile;
  * This is the model class for table "{{%subject}}".
  *
  * @property int $id
- * @property string $name
+ * @property array $name
  * @property string $description
  * @property string $content
  * @property int $webpage_id
@@ -60,7 +60,6 @@ class Subject extends ActiveRecord
     {
         return [
             [['name', 'content', 'description', 'category_id'], 'required'],
-            [['name'], 'string', 'max' => 50],
             [['category_id'], 'integer'],
             [['image'], 'string', 'max' => 255],
             [['content', 'description'], 'string'],
@@ -68,7 +67,6 @@ class Subject extends ActiveRecord
             [['imageFile'], 'required', 'when' => function ($model) {return $model->isNewRecord;}, 'whenClient' => "function (attribute, value) {
                 return !$(attribute.input).data(\"id\");
             }"],
-            ['name', 'unique', 'targetAttribute' => ['name', 'category_id']],
             [['category_id'], 'exist', 'targetRelation' => 'subjectCategory'],
             [['active'], 'integer'],
             [['active'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
@@ -161,8 +159,8 @@ class Subject extends ActiveRecord
     public function beforeValidate()
     {
         if (!parent::beforeValidate()) return false;
+        $this->name = array_map(fn (string $name): string => trim($name), $this->name ?? []);
 
-        $this->name = trim($this->name);
         return true;
     }
 
