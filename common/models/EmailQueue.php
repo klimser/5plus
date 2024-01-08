@@ -12,8 +12,8 @@ use common\models\traits\InsertedUpdated;
  * @property string $template_html
  * @property string $template_text
  * @property array|null $params
- * @property array|string $sender
- * @property array|string $recipient
+ * @property array $sender
+ * @property array $recipient
  * @property int $subject
  * @property int $state
  */
@@ -37,10 +37,9 @@ class EmailQueue extends ActiveRecord
     {
         return [
             [['template_html', 'template_text', 'sender', 'recipient', 'subject'], 'required'],
-            [['params'], 'string'],
             [['state'], 'integer'],
             [['template_html', 'template_text'], 'string', 'max' => 50],
-            [['sender', 'recipient', 'subject'], 'string', 'max' => 255],
+            [['subject'], 'string', 'max' => 255],
             ['state', 'in', 'range' => [self::STATUS_NEW, self::STATUS_SENDING, self::STATUS_SENT,self::STATUS_ERROR]],
         ];
     }
