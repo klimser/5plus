@@ -238,7 +238,7 @@ class OrderCommand extends UserCommand
             case 5:
                 if ($message->getText() !== PublicMain::TO_BACK) {
                     /** @var Subject $subject */
-                    $subject = Subject::findOne(['name' => $message->getText()]);
+                    $subject = Subject::find()->andWhere('name->"$.ru" = :subject', ['subject' => $message->getText()])->one();
                     if (!$subject) {
                         $conversation->notes['step']--;
                         $conversation->update();
