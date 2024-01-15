@@ -257,7 +257,7 @@ class InfoCommand extends UserCommand
                     
                     /** @var Subject $subject */
                     $subject = Subject::find()
-                        ->andWhere(['name' => $subjectName])
+                        ->andWhere('name->"$.ru" = :subject', ['subject' => $subjectName])
                         ->with('visibleTeachers.webpage')
                         ->one();
                     if (!$subject) {
