@@ -87,7 +87,11 @@ class EventComponent extends Component
         /** @var Event[] $overEvents */
         $overEvents = Event::find()
             ->andWhere(['course_id' => $course->id])
-            ->andWhere(['>', 'event_date', $endDate->format('Y-m-d H:i:s')])
+            ->andWhere([
+                'or',
+                ['<', 'event_date', $course->date_start],
+                ['>', 'event_date', $endDate->format('Y-m-d H:i:s')]
+            ])
             ->with('members.payments')
             ->all();
         foreach ($overEvents as $event) {
