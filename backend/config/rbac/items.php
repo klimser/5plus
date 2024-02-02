@@ -107,6 +107,7 @@ return [
             'manageGroups',
             'viewNotes',
             'reportGroupMovement',
+            'reportWelcomeLesson',
             'manageGiftCardTypes',
             'viewMissed',
             'callMissed',
@@ -230,6 +231,10 @@ return [
     'reportGroupMovement' => [
         'type' => 2,
         'description' => 'Get course student movement report',
+    ],
+    'reportWelcomeLesson' => [
+        'type' => 2,
+        'description' => 'Get welcome lessons report',
     ],
     'reportDebt' => [
         'type' => 2,

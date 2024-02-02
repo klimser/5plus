@@ -297,7 +297,7 @@ class ReportController extends AdminController
 
     public function actionWelcomeLesson()
     {
-        $this->checkAccess('reportGroupMovement');
+        $this->checkAccess('reportWelcomeLesson');
 
         if (Yii::$app->request->isPost) {
             [$month, $year] = explode('.', Yii::$app->request->post('date', ''));

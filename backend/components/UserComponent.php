@@ -31,6 +31,7 @@ class UserComponent extends Component
         'viewNotes' => 'Смотреть темы групп',
         'reportMoneyTotal' => 'Просмотр финансового отчета по всем группам',
         'adminSchedule' => 'Администратор расписания (изменение статуса занятий/студентов)',
+        'reportWelcomeLesson' => 'Просмотр отчёта по пробным урокам',
     ];
     
     public const ACL_TEACHER_RULES =[
