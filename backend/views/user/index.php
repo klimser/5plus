@@ -129,10 +129,6 @@ $this->params['breadcrumbs'][] = $this->title;
                             ? Html::button(Html::tag('span', '', ['class' => 'fas fa-lock']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 0);', 'class' => 'btn btn-outline-dark ml-2', 'type' => 'button', 'title' => 'Заблокировать'])
                             : Html::button(Html::tag('span', '', ['class' => 'fas fa-lock-open']), ['onclick' => 'Main.changeEntityActive("user", ' . $model->id . ', this, 1);', 'class' => 'btn btn-outline-dark ml-2', 'type' => 'button', 'title' => 'Разблокировать']);
                     },
-                    'money_income' => function ($url, $model, $key) {
-                        if ($model->role != User::ROLE_STUDENT) return '';
-                        return Html::a(Html::tag('span', '', ['class' => 'fas fa-dollar-sign']), Url::to(['money/income', 'user' => $model->id]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'Внести деньги']);
-                    },
                     'payment_history' => function ($url, $model, $key) {
                         if ($model->role != User::ROLE_STUDENT) return '';
                         return Html::a(Html::tag('span', '', ['class' => 'fas fa-list-alt']), Url::to(['money/payment', 'PaymentSearch' => ['user_id' => $model->id]]), ['class' => 'btn btn-outline-dark ml-2', 'title' => 'История платежей']);
