@@ -200,6 +200,7 @@ $this->title = 'Панель управления';
 
             <?php if ($admin->can('reportGroupMovement')
                 || $admin->can('reportDebt')
+                || $admin->can('reportWelcomeLesson')
                 || $admin->can('reportMoney')
                 || $admin->can('reportCash')
             ): ?>
@@ -212,6 +213,8 @@ $this->title = 'Панель управления';
                             <a class="dropdown-item" href="<?= Url::to(['report/group-movement']); ?>">
                                 <span class="fas fa-walking"></span> Отчет движения
                             </a>
+                        <?php endif; ?>
+                        <?php if ($admin->can('reportWelcomeLesson')): ?>
                             <a class="dropdown-item" href="<?= Url::to(['report/welcome-lesson']); ?>">
                                 <span class="fas fa-list"></span> Отчет пробных уроков
                             </a>
