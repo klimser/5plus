@@ -35,9 +35,6 @@ $printable = false;
                         <?= WelcomeLesson::STATUS_LABELS[$welcomeLesson->status]; ?>
                         <?php if ($welcomeLesson->status === WelcomeLesson::STATUS_DENIED && $welcomeLesson->deny_reason): ?>
                             <br><b>Причина</b> <?= $welcomeLesson::DENY_REASON_LABELS[$welcomeLesson->deny_reason]; ?>
-                            <?php if ($welcomeLesson->comment): ?>
-                                <br><i><?= $welcomeLesson->comment; ?></i>
-                            <?php endif; ?>
                         <?php endif; ?>
                         <?php if ($welcomeLesson->comments): ?>
                             <br><br><p class="small">
@@ -47,7 +44,7 @@ $printable = false;
                                     <?= $comment['date']; ?>
 
                                 </i><br>
-                                <?= $comment['text']; ?><br>
+                                <?= nl2br($comment['text']); ?><br>
                                 -<br>
                             <?php endforeach; ?>
                             </p>

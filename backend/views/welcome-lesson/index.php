@@ -71,8 +71,16 @@ SCRIPT
         'columns' => [
             [
                 'attribute' => 'user_id',
-                'content' => function ($model, $key, $index, $column) {
-                    return $model->user->name;
+                'content' => function (WelcomeLesson $model, $key, $index, $column) {
+                    $content = $model->user->name;
+                    if ($model->user->phone) {
+                        $content .= '<br><span class="text-nowrap">' . $model->user->phoneFormatted . '</span>';
+                    }
+                    if ($model->user->phone2) {
+                        $content .= '<br><span class="text-nowrap">' . $model->user->phone2Formatted . '</span>';
+                    }
+
+                    return $content;
                 },
                 'filter' => Html::activeDropDownList(
                     $searchModel,
@@ -147,14 +155,16 @@ SCRIPT
             ],
             [
                 'attribute' => 'deny_reason',
+                'label' => 'Детали',
                 'content' => function ($model, $key, $index, $column) {
                     /** @var WelcomeLesson $model */
                     $content = '';
                     if ($model->deny_reason) {
-                        $content .= WelcomeLesson::DENY_REASON_LABELS[$model->deny_reason] . '<br>';
+                        $content .= 'Причина отказа: <b>' . WelcomeLesson::DENY_REASON_LABELS[$model->deny_reason] . '</b><br>';
                     }
-                    if ($model->comment) {
-                        $content .= '<div class="label label-info"><small>' . nl2br($model->comment) . '</small></div>';
+                    foreach ($model->comments ?? [] as $comment) {
+                        $content .= '<i class="small">' . User::getNameById($comment['admin_id']) . ' > '
+                        . $comment['date'] . '</i><br>' . nl2br($comment['text']) . '<br>';
                     }
                     if ($model->user->note) {
                         $content .= '<div class="label label-info"><small>' . nl2br($model->user->note) . '</small></div>';

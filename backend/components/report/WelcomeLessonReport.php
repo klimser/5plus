@@ -4,6 +4,8 @@ namespace backend\components\report;
 
 use backend\models\WelcomeLesson;
 use common\components\CourseComponent;
+use common\models\User;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -106,12 +108,21 @@ class WelcomeLessonReport
                     ? WelcomeLesson::DENY_REASON_LABELS[$lesson->deny_reason]
                     : ''
             );
-            $spreadsheet->getActiveSheet()->setCellValue("H$row", $lesson->comment);
+
+            $commentsData = new RichText();
+            foreach ($lesson->comments ?? [] as $comment) {
+                $adminName = $commentsData->createTextRun(User::getNameById($comment['admin_id']) . ' > ' . $comment['date'] . "\n");
+                $adminName->getFont()->setSize(9);
+                $commentsData->createText($comment['text'] . "\n");
+            }
+
+            $spreadsheet->getActiveSheet()->setCellValue("H$row", $commentsData);
 
             $row++;
         }
         $spreadsheet->getActiveSheet()->getStyle("B2:B$row")->getNumberFormat()->setFormatCode('dd mmmm yy');
         $spreadsheet->getActiveSheet()->getStyle("D2:D$row")->getAlignment()->setWrapText(true);
+        $spreadsheet->getActiveSheet()->getStyle("H2:H$row")->getAlignment()->setWrapText(true);
         for ($i = 1; $i <= 8; $i++) {
             $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($i, 2, $i, $row)->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
             $spreadsheet->getActiveSheet()->getColumnDimensionByColumn($i)->setAutoSize(true);
