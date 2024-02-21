@@ -15,7 +15,6 @@ use yii\web\UploadedFile;
  * @property int $admin_id
  * @property string $message_text
  * @property string $message_image
- * @property string $data
  * @property array $processResult
  * @property array $usersResult
  * @property string $created_at
@@ -48,7 +47,8 @@ class BotMailing extends ActiveRecord
         return [
             [['admin_id'], 'required'],
             [['admin_id'], 'integer'],
-            [['message_text', 'data'], 'string'],
+            [['message_text'], 'string'],
+            [['message_text'], 'string'],
             [['created_at', 'started_at', 'finished_at'], 'safe'],
             [['message_image'], 'string', 'max' => 255],
             [['imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg', 'checkExtensionByMimeType' => true, 'maxSize' => 5242880, 'tooBig' => 'Файл должен быть не более 5МБ'],
@@ -66,7 +66,7 @@ class BotMailing extends ActiveRecord
             'admin_id' => 'Автор',
             'message_text' => 'Сообщение',
             'message_image' => 'Картинка',
-            'data' => 'Результат',
+            'process_result' => 'Результат',
             'created_at' => 'Рассылка создана',
             'started_at' => 'Начало рассылки',
             'finished_at' => 'Рассылка завершена',
@@ -80,22 +80,6 @@ class BotMailing extends ActiveRecord
     public function getAdmin()
     {
         return $this->hasOne(User::class, ['id' => 'admin_id']);
-    }
-
-    /**
-     * @return array
-     */
-    public function getProcessResult(): array
-    {
-        return json_decode($this->getAttribute('data') ?? '', true) ?: [];
-    }
-
-    /**
-     * @param array $value
-     */
-    public function setProcessResult(array $value)
-    {
-        $this->setAttribute('data', json_encode($value));
     }
     
     public function getUsersResult(): array
