@@ -43,16 +43,16 @@ class BotMailingController extends Controller
                 return ExitCode::OK;
             }
 
-            if (($botMailing->processResult['status'] ?? 'new') === 'sending') {
+            if (($botMailing->process_result['status'] ?? 'new') === 'sending') {
                 sleep(5);
                 continue;
             }
 
-            $processResult = $botMailing->processResult;
+            $processResult = $botMailing->process_result;
             $processResult['status'] = 'sending';
             $processResult['success'] = $processResult['success'] ?? 0;
             $processResult['error'] = $processResult['error'] ?? 0;
-            $botMailing->processResult = $processResult;
+            $botMailing->process_result = $processResult;
             if (!$botMailing->started_at) {
                 $botMailing->started_at = date('Y-m-d H:i:s');
             }
@@ -105,12 +105,12 @@ class BotMailingController extends Controller
                 }
 
                 $processResult['userResult'] = $userResultMap;
-                $botMailing->processResult = $processResult;
+                $botMailing->process_result = $processResult;
                 $botMailing->save();
 
                 if (microtime(true) - $startTime > self::TIME_LIMIT) {
                     $processResult['status'] = 'paused';
-                    $botMailing->processResult = $processResult;
+                    $botMailing->process_result = $processResult;
                     $botMailing->save();
                     break;
                 }
@@ -118,7 +118,7 @@ class BotMailingController extends Controller
             
             if ($processResult['status'] === 'sending') {
                 $processResult['status'] = 'finished';
-                $botMailing->processResult = $processResult;
+                $botMailing->process_result = $processResult;
                 $botMailing->finished_at = date('Y-m-d H:i:s');
                 $botMailing->save();
             }

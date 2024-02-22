@@ -62,12 +62,12 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'data',
                 'header' => 'Результат',
-                'content' => function ($model, $key, $index, $column) {
+                'content' => function (\common\models\BotMailing $model, $key, $index, $column) {
                     $content = '';
-                    if ($model->processResult) {
-                        $content .= 'Успешно: ' . $model->processResult['success'];
-                        if ($model->processResult['error']) {
-                            $content .= '<br>Неуспешно: ' . $model->processResult['error'];
+                    if ($model->process_result) {
+                        $content .= 'Успешно: ' . $model->process_result['success'];
+                        if ($model->process_result['error']) {
+                            $content .= '<br>Неуспешно: ' . $model->process_result['error'];
                         }
                     }
                     return $content;

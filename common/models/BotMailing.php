@@ -15,7 +15,7 @@ use yii\web\UploadedFile;
  * @property int $admin_id
  * @property string $message_text
  * @property string $message_image
- * @property array $processResult
+ * @property array $process_result
  * @property array $usersResult
  * @property string $created_at
  * @property string $started_at
@@ -84,13 +84,13 @@ class BotMailing extends ActiveRecord
     
     public function getUsersResult(): array
     {
-        if ($this->processResult) {
-            $chatIds = !empty($this->processResult['userResult']) ? array_keys($this->processResult['userResult']) : [];
+        if ($this->process_result) {
+            $chatIds = !empty($this->process_result['userResult']) ? array_keys($this->process_result['userResult']) : [];
             /** @var User[] $users */
             $users = User::find()->andWhere(['tg_chat_id' => $chatIds])->all();
             $result = [];
             foreach ($users as $user) {
-                $result[] = ['user' => $user, 'result' => $this->processResult['userResult'][$user->tg_chat_id]];
+                $result[] = ['user' => $user, 'result' => $this->process_result['userResult'][$user->tg_chat_id]];
             }
             return $result;
         }

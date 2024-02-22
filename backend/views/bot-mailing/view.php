@@ -47,10 +47,10 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value' => function ($model, $widget) {
                     /** @var \common\models\BotMailing $model */
                     $content = '';
-                    if ($model->processResult) {
-                        $buttonLabel = 'Успешно: ' . $model->processResult['success'];
-                        if ($model->processResult['error']) {
-                            $buttonLabel .= "\nНеуспешно: " . $model->processResult['error'];
+                    if ($model->process_result) {
+                        $buttonLabel = 'Успешно: ' . $model->process_result['success'];
+                        if ($model->process_result['error']) {
+                            $buttonLabel .= "\nНеуспешно: " . $model->process_result['error'];
                         }
                         $content = '<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#mailing-result" aria-expanded="false" aria-controls="mailing-result">'
                             . $buttonLabel . '</button>
