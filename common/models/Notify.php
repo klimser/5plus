@@ -35,6 +35,7 @@ class Notify extends ActiveRecord
     const TEMPLATE_PARENT_DEBT = 2;
     const TEMPLATE_STUDENT_LOW = 3;
     const TEMPLATE_PARENT_LOW  = 4;
+    const TEMPLATE_WELCOME_LESSON = 5;
 
     /**
      * {@inheritdoc}

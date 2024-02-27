@@ -48,6 +48,12 @@ REV:20191206T124648Z
 END:VCARD
 VCARD;
 
+    const LOCATION_LATITUDE = '41.29696932989273';
+    const LOCATION_LONGITUDE = '69.27454679248275';
+    const LOCATION_TITLE = 'Пять с Плюсом';
+    const LOCATION_ADDRESS = 'Ташкент, ул. Ойбек 16';
+    const GOOGLE_PLACE_ID = 'ChIJ8dAoiiiLrjgR9deiQfCakq0';
+
     const CONTACT_MESSAGE = <<<MESSAGE
 Написать нам в Telegram: @fiveplusuz\_bot
 🏢Наш адрес: *г\.Ташкент, ул\. Ойбек, 16*

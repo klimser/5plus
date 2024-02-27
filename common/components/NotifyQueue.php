@@ -10,14 +10,9 @@ use yii\base\BaseObject;
 class NotifyQueue extends BaseObject
 {
     /**
-     * @param User        $recipient
-     * @param int         $templateId
-     * @param array       $params
-     * @param Course|null $course
-     *
-     * @return bool
+     * @param array<string,mixed> $params
      */
-    public function add(User $recipient, int $templateId, array $params, ?Course $course = null)
+    public function add(User $recipient, int $templateId, array $params, ?Course $course = null): bool
     {
         $notification = new Notify();
         $notification->user_id = $recipient->id;

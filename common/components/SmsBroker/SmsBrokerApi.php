@@ -34,7 +34,10 @@ class SmsBrokerApi extends BaseObject
         $this->sender = $sender;
     }
 
-    public function sendSingleMessage(string $recipientPhone, string $content, string $messageId, ?string $from = null)
+    /**
+     * @throws SmsBrokerApiException
+     */
+    public function sendSingleMessage(string $recipientPhone, string $content, string $messageId, ?string $from = null): mixed
     {
         $recipientPhone = preg_replace('#\D#', '', $recipientPhone);
         if (12 !== strlen($recipientPhone)) {
@@ -54,7 +57,13 @@ class SmsBrokerApi extends BaseObject
         return $this->execute('/send', ['messages' => [$message]]);
     }
 
-    private function execute(string $urlAddon, array $params = [], array $headers = [])
+    /**
+     * @param array<string,mixed>  $params
+     * @param array<string>  $headers
+     *
+     * @throws SmsBrokerApiException
+     */
+    private function execute(string $urlAddon, array $params = [], array $headers = []): mixed
     {
         $curl = curl_init($this->baseUrl . $urlAddon);
         $headers[] = 'Content-Type: application/json; charset=utf-8';
