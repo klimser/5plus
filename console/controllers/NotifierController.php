@@ -446,39 +446,39 @@ class NotifierController extends Controller
                     . '*' . Entity::escapeMarkdownV2(' в твоём любимом "Пять с Плюсом"😊 Это тут: ул. Ойбек 16')
                     . "\n\n" . Entity::escapeMarkdownV2('С нетерпением ждем тебя!');
 
-//                $response = Request::sendMessage([
-//                    'chat_id' => $welcomeLesson->user->tg_chat_id,
-//                    'text' => $message,
-//                    'parse_mode' => 'MarkdownV2',
-//                    'disable_web_page_preview' => true,
-//                ]);
+                $response = Request::sendMessage([
+                    'chat_id' => $welcomeLesson->user->tg_chat_id,
+                    'text' => $message,
+                    'parse_mode' => 'MarkdownV2',
+                    'disable_web_page_preview' => true,
+                ]);
 
-//                if ($response->isOk()) {
-//                    $isSent = true;
-//                    $sendSms = false;
-//
-////                    Request::sendVenue([
-////                        'chat_id' => $welcomeLesson->user->tg_chat_id,
-////                        'latitude' => PublicMain::LOCATION_LATITUDE,
-////                        'longitude' => PublicMain::LOCATION_LONGITUDE,
-////                        'title' => PublicMain::LOCATION_TITLE,
-////                        'address' => PublicMain::LOCATION_ADDRESS,
-////                        'google_place_id' => PublicMain::GOOGLE_PLACE_ID,
-////                    ]);
-//                } else {
-//                    ComponentContainer::getErrorLogger()->logError(
-//                        'notify/send',
-//                        print_r(
-//                            [
-//                                'error_code' => $response->getErrorCode(),
-//                                'error_message' => $response->getDescription(),
-//                                'result' => $response->getResult(),
-//                            ],
-//                            true,
-//                        ),
-//                        true,
-//                    );
-//                }
+                if ($response->isOk()) {
+                    $isSent = true;
+                    $sendSms = false;
+
+                    Request::sendVenue([
+                        'chat_id' => $welcomeLesson->user->tg_chat_id,
+                        'latitude' => PublicMain::LOCATION_LATITUDE,
+                        'longitude' => PublicMain::LOCATION_LONGITUDE,
+                        'title' => PublicMain::LOCATION_TITLE,
+                        'address' => PublicMain::LOCATION_ADDRESS,
+                        'google_place_id' => PublicMain::GOOGLE_PLACE_ID,
+                    ]);
+                } else {
+                    ComponentContainer::getErrorLogger()->logError(
+                        'notify/send',
+                        print_r(
+                            [
+                                'error_code' => $response->getErrorCode(),
+                                'error_message' => $response->getDescription(),
+                                'result' => $response->getResult(),
+                            ],
+                            true,
+                        ),
+                        true,
+                    );
+                }
             }
 
             if ($sendSms) {
