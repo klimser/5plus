@@ -413,9 +413,19 @@ class NotifierController extends Controller
                 'wl.course_id = n.course_id AND wl.user_id = n.user_id AND n.template_id = :welcomeLessonTemplate',
                 [':welcomeLessonTemplate' => Notify::TEMPLATE_WELCOME_LESSON]
             )
-            ->andWhere(['status' => WelcomeLesson::STATUS_UNKNOWN])
-            ->andWhere(['between', 'wl.lesson_date', new DateTime('+1 hour 50 minutes'), new DateTime('+2 hours')])
-            ->andWhere(['between', 'n.created_at', new DateTime('+1 hour 40 minutes'), new DateTime('+2 hours 10 minutes')])
+            ->andWhere(['wl.status' => WelcomeLesson::STATUS_UNKNOWN])
+            ->andWhere([
+                'between',
+                'wl.lesson_date',
+                (new DateTime('+1 hour 50 minutes'))->format('Y-m-d H:i:s'),
+                (new DateTime('+2 hours'))->format('Y-m-d H:i:s'),
+            ])
+            ->andWhere([
+                'between',
+                'n.created_at',
+                (new DateTime('+1 hour 40 minutes'))->format('Y-m-d H:i:s'),
+                (new DateTime('+2 hours 10 minutes'))->format('Y-m-d H:i:s'),
+            ])
             ->andWhere(['n.id' => null])
             ->all();
 
@@ -436,39 +446,39 @@ class NotifierController extends Controller
                     . '*' . Entity::escapeMarkdownV2(' в твоём любимом "Пять с Плюсом"😊 Это тут: ул. Ойбек 16')
                     . "\n\n" . Entity::escapeMarkdownV2('С нетерпением ждем тебя!');
 
-                $response = Request::sendMessage([
-                    'chat_id' => $welcomeLesson->user->tg_chat_id,
-                    'text' => $message,
-                    'parse_mode' => 'MarkdownV2',
-                    'disable_web_page_preview' => true,
-                ]);
+//                $response = Request::sendMessage([
+//                    'chat_id' => $welcomeLesson->user->tg_chat_id,
+//                    'text' => $message,
+//                    'parse_mode' => 'MarkdownV2',
+//                    'disable_web_page_preview' => true,
+//                ]);
 
-                if ($response->isOk()) {
-                    $isSent = true;
-                    $sendSms = false;
-
-                    Request::sendVenue([
-                        'chat_id' => $welcomeLesson->user->tg_chat_id,
-                        'latitude' => PublicMain::LOCATION_LATITUDE,
-                        'longitude' => PublicMain::LOCATION_LONGITUDE,
-                        'title' => PublicMain::LOCATION_TITLE,
-                        'address' => PublicMain::LOCATION_ADDRESS,
-                        'google_place_id' => PublicMain::GOOGLE_PLACE_ID,
-                    ]);
-                } else {
-                    ComponentContainer::getErrorLogger()->logError(
-                        'notify/send',
-                        print_r(
-                            [
-                                'error_code' => $response->getErrorCode(),
-                                'error_message' => $response->getDescription(),
-                                'result' => $response->getResult(),
-                            ],
-                            true,
-                        ),
-                        true,
-                    );
-                }
+//                if ($response->isOk()) {
+//                    $isSent = true;
+//                    $sendSms = false;
+//
+////                    Request::sendVenue([
+////                        'chat_id' => $welcomeLesson->user->tg_chat_id,
+////                        'latitude' => PublicMain::LOCATION_LATITUDE,
+////                        'longitude' => PublicMain::LOCATION_LONGITUDE,
+////                        'title' => PublicMain::LOCATION_TITLE,
+////                        'address' => PublicMain::LOCATION_ADDRESS,
+////                        'google_place_id' => PublicMain::GOOGLE_PLACE_ID,
+////                    ]);
+//                } else {
+//                    ComponentContainer::getErrorLogger()->logError(
+//                        'notify/send',
+//                        print_r(
+//                            [
+//                                'error_code' => $response->getErrorCode(),
+//                                'error_message' => $response->getDescription(),
+//                                'result' => $response->getResult(),
+//                            ],
+//                            true,
+//                        ),
+//                        true,
+//                    );
+//                }
             }
 
             if ($sendSms) {
