@@ -41,8 +41,7 @@ class Subject extends ActiveRecord
             'neededImageHeight' => 0,
             'imageFolder' => 'subject',
             'imageDBField' => 'image',
-            'imageFilenameBase' => 'name',
-            'imageFilenameAppendix' => 'id',
+            'imageFilenameBase' => 'id',
         ];
     }
 

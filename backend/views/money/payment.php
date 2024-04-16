@@ -16,7 +16,7 @@ use yii\jui\DatePicker;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $searchModel \common\models\PaymentSearch */
 /* @var $adminMap User[] */
-/* @var $courseMap User[] */
+/* @var $courseMap \common\models\Course[] */
 
 $this->title = 'Платежи';
 $this->params['breadcrumbs'][] = $this->title;

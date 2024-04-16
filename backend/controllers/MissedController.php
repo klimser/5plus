@@ -27,8 +27,7 @@ class MissedController extends AdminController
     {
         $this->checkAccess('callMissed');
 
-        /** @var Course[] $courses */
-        $courses = Course::find()->andWhere(['active' => Course::STATUS_ACTIVE])->orderBy(['name' => SORT_ASC])->all();
+        $courses = CourseComponent::getActiveSortedByName();
         $courseMap = [];
         foreach ($courses as $course) {
             $courseMap[$course->id] = [
