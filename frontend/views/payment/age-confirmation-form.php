@@ -25,7 +25,7 @@ use yii\helpers\Url;
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="1" id="agree" name="agree" autocomplete="off" required onchange="AgeConfirmation.agreeClick(this);">
                         <label class="form-check-label" for="agree">
-                            Подтверждаю, что ознакомлен(-а) и согласен(-на) с <a href="<?= Yii::$app->homeUrl; ?>uploads/images/legal_documents/public_offer.pdf" target="_blank">Публичной офертой</a> и подтверждаю, что мне исполнилось 18 лет.
+                            Подтверждаю, что ознакомлен(-а) и согласен(-на) с <a href="<?= Yii::$app->homeUrl; ?>uploads/images/legal_documents/public_offer_2022.pdf" target="_blank">Публичной офертой</a> и подтверждаю, что мне исполнилось 18 лет.
                         </label>
                     </div>    
                     <div id="confirmation-block" class="collapse">
