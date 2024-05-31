@@ -97,6 +97,10 @@ class AgeValidator extends BaseObject
     public function validate(string $phoneFull, ?User $user, string $code): bool
     {
         $ageConfirmations = $this->findValid($phoneFull, $user);
+        if (empty($ageConfirmations)) {
+            return false;
+        }
+
         $transaction = Yii::$app->db->beginTransaction();
         foreach ($ageConfirmations as $ageConfirmation) {
             if ($ageConfirmation->validateHash($code)) {
