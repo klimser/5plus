@@ -410,8 +410,12 @@ class NotifierController extends Controller
             ->alias('wl')
             ->leftJoin(
                 Notify::tableName() . ' n',
-                'wl.course_id = n.course_id AND wl.user_id = n.user_id AND n.template_id = :welcomeLessonTemplate',
-                [':welcomeLessonTemplate' => Notify::TEMPLATE_WELCOME_LESSON]
+                'wl.course_id = n.course_id AND wl.user_id = n.user_id AND n.template_id = :welcomeLessonTemplate AND n.created_at BETWEEN :date_from AND :date_to',
+                [
+                    ':welcomeLessonTemplate' => Notify::TEMPLATE_WELCOME_LESSON,
+                    ':date_from' => (new \DateTime('+1 hour 40 minutes'))->format('Y-m-d H:i:s'),
+                    ':date_to' => (new \DateTime('+2 hours 10 minutes'))->format('Y-m-d H:i:s'),
+                ]
             )
             ->andWhere(['wl.status' => WelcomeLesson::STATUS_UNKNOWN])
             ->andWhere([
@@ -419,12 +423,6 @@ class NotifierController extends Controller
                 'wl.lesson_date',
                 (new DateTime('+1 hour 50 minutes'))->format('Y-m-d H:i:s'),
                 (new DateTime('+2 hours'))->format('Y-m-d H:i:s'),
-            ])
-            ->andWhere([
-                'between',
-                'n.created_at',
-                (new DateTime('+1 hour 40 minutes'))->format('Y-m-d H:i:s'),
-                (new DateTime('+2 hours 10 minutes'))->format('Y-m-d H:i:s'),
             ])
             ->andWhere(['n.id' => null])
             ->all();

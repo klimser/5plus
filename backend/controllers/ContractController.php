@@ -67,6 +67,23 @@ class ContractController extends AdminController
         );
     }
 
+    public function actionQrVideoLessons()
+    {
+        $link = 'https://app.beshplus.uz/entry/login';
+        $options = new QROptions([
+            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+            'addQuietzone' => false,
+            'imageBase64' => false,
+        ]);
+        $generator = new QRCode($options);
+
+        return \Yii::$app->response->sendContentAsFile(
+            $generator->render($link),
+            "qrcode.svg",
+            ['mimeType' => 'image/svg+xml', 'inline' => true]
+        );
+    }
+
     public function actionIndex()
     {
         $searchModel = new ContractSearch();
