@@ -413,8 +413,8 @@ class NotifierController extends Controller
                 'wl.course_id = n.course_id AND wl.user_id = n.user_id AND n.template_id = :welcomeLessonTemplate AND n.created_at BETWEEN :date_from AND :date_to',
                 [
                     ':welcomeLessonTemplate' => Notify::TEMPLATE_WELCOME_LESSON,
-                    ':date_from' => (new \DateTime('+1 hour 40 minutes'))->format('Y-m-d H:i:s'),
-                    ':date_to' => (new \DateTime('+2 hours 10 minutes'))->format('Y-m-d H:i:s'),
+                    ':date_from' => (new \DateTime('-11 minutes'))->format('Y-m-d H:i:s'),
+                    ':date_to' => (new \DateTime('+11 minutes'))->format('Y-m-d H:i:s'),
                 ]
             )
             ->andWhere(['wl.status' => WelcomeLesson::STATUS_UNKNOWN])
