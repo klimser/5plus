@@ -505,16 +505,15 @@ class NotifierController extends Controller
 
             if ($sendSms) {
                 ++$quantity;
-                $courseName = TranslitComponent::text($welcomeLesson->course->subject->name['ru']);
                 $smsText = sprintf(
                     'Napominaem! %s v %s u vas probnoe zanyatie po predmetu "%s" v uchebnom centre "5+". Adres: ulitsa Oybek, 16'
                     . "\n" . 'Sizga eslatamiz! %s soat %s da "5+" o\'quv markazida "%s" fanidan sinov darsingiz bor. Manzil: Oybek ko\'chasi, 16-uy',
                     $paramDate,
                     $paramTime,
-                    $courseName,
+                    TranslitComponent::text($welcomeLesson->course->subject->name['ru']),
                     $paramDate,
                     $paramTime,
-                    $courseName,
+                    TranslitComponent::text($welcomeLesson->course->subject->name['uz'] ?? $welcomeLesson->course->subject->name['ru']),
                 );
 
                 try {
