@@ -111,41 +111,65 @@ class NotifierController extends Controller
             if ($sendSms) {
                 try {
                     $smsText = '';
+                    $courseName = TranslitComponent::text($toSend->course->courseConfig->legal_name);
+                    $paymentLink = PaymentComponent::getPaymentLink($toSend->user_id, $toSend->course_id)->url;
                     switch ($toSend->template_id) {
                         case Notify::TEMPLATE_STUDENT_DEBT:
                             $smsText = sprintf(
-                                'U vas zadolzhennost v gruppe "%s" - %s. Oplata online - %s',
-                                TranslitComponent::text($toSend->course->courseConfig->legal_name),
+                                'U vas zadolzhennost v gruppe "%s" - %s. Oplata online - %s'
+                                . "\n" . 'Sizning "%s" guruhida "%d dars" qarzdorligingiz mavjud. Onlayn to`lov - %s',
+                                $courseName,
                                 $toSend->parameters['debt'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['debt'])),
-                                PaymentComponent::getPaymentLink($toSend->user_id, $toSend->course_id)->url
+                                $paymentLink,
+                                $courseName,
+                                (int) $toSend->parameters['debt'],
+                                $paymentLink,
                             );
                             break;
                         case Notify::TEMPLATE_STUDENT_LOW:
                             $smsText = sprintf(
-                                'V gruppe "%s" u vas ostalos %s. Oplata online - %s',
-                                TranslitComponent::text($toSend->course->courseConfig->legal_name),
+                                'V gruppe "%s" u vas ostalos %s. Oplata online - %s'
+                                . "\n" . '"%s" guruhida "%d dars" qoldi. Onlayn to`lov - %s',
+                                $courseName,
                                 $toSend->parameters['paid_lessons'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['paid_lessons'])),
-                                PaymentComponent::getPaymentLink($toSend->user_id, $toSend->course_id)->url
+                                $paymentLink,
+                                $courseName,
+                                (int) $toSend->parameters['paid_lessons'],
+                                $paymentLink,
+
                             );
                             break;
                         case Notify::TEMPLATE_PARENT_DEBT:
                             $child = User::findOne($toSend->parameters['child_id']);
+                            $childName = TranslitComponent::text($child->name);
+                            $paymentLink = PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url;
                             $smsText = sprintf(
-                                'U studenta %s zadolzhennost v gruppe "%s" - %s. Oplata online - %s',
-                                TranslitComponent::text($child->name),
-                                TranslitComponent::text($toSend->course->courseConfig->legal_name),
+                                'U studenta %s zadolzhennost v gruppe "%s" - %s. Oplata online - %s'
+                                . "\n" . 'Student %s "%s" guruhida qarzdorligi mavjud. Onlayn to`lov - %s',
+                                $childName,
+                                $courseName,
                                 $toSend->parameters['debt'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['debt'])),
-                                PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url
+                                $paymentLink,
+                                $childName,
+                                $courseName,
+                                $paymentLink,
                             );
                             break;
                         case Notify::TEMPLATE_PARENT_LOW:
                             $child = User::findOne($toSend->parameters['child_id']);
+                            $childName = TranslitComponent::text($child->name);
+                            $paymentLink = PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url;
                             $smsText = sprintf(
-                                'U studenta %s v gruppe "%s" ostalos %s. Oplata online - %s',
-                                TranslitComponent::text($child->name),
-                                TranslitComponent::text($toSend->course->courseConfig->legal_name),
+                                'U studenta %s v gruppe "%s" ostalos %s. Oplata online - %s'
+                                . "\n" . 'Student %s "%s" guruhida "%d dars" qoldi. Onlayn to`lov - %s',
+                                $childName,
+                                $courseName,
                                 $toSend->parameters['paid_lessons'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['paid_lessons'])),
-                                PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url
+                                $paymentLink,
+                                $childName,
+                                $courseName,
+                                $toSend->parameters['paid_lessons'],
+                                $paymentLink,
                             );
                             break;
                     }
@@ -481,11 +505,16 @@ class NotifierController extends Controller
 
             if ($sendSms) {
                 ++$quantity;
+                $courseName = TranslitComponent::text($welcomeLesson->course->subject->name['ru']);
                 $smsText = sprintf(
-                    'Napominaem! %s v %s u vas probnoe zanyatie po predmetu "%s" v uchebnom centre "5+". Adres: ulitsa Oybek, 16',
+                    'Napominaem! %s v %s u vas probnoe zanyatie po predmetu "%s" v uchebnom centre "5+". Adres: ulitsa Oybek, 16'
+                    . "\n" . 'Sizga eslatamiz! %s soat %s da "5+" o\'quv markazida "%s" fanidan sinov darsingiz bor. Manzil: Oybek ko\'chasi, 16-uy',
                     $paramDate,
                     $paramTime,
-                    TranslitComponent::text($welcomeLesson->course->subject->name['ru']),
+                    $courseName,
+                    $paramDate,
+                    $paramTime,
+                    $courseName,
                 );
 
                 try {

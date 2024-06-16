@@ -33,8 +33,9 @@ class SmsConfirmation extends BaseObject
 
             ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
                 substr($phone, -12, 12),
-                sprintf('Kod podtverzhdeniya %s. Deystvitelen v techenie %d minut.', $confirmation->code, $validMinutes),
-                'fic' . mt_rand(100, 999) . '_' . time()
+                '5plus.uz Kod podtverzhdeniya registracii v Telegram-bote ' . $confirmation->code . ' Deystvitelen v techenie ' . $validMinutes . ' minut'
+                . "\n" . '5plus.uz Telegram botiga ulanish uchun tasdiqlash kodi: ' . $confirmation->code . '. ' . $validMinutes . ' daqiqa amal qiladi',
+                'fic' . mt_rand(100, 999) . '_' . time(),
             );
 
             $transaction->commit();

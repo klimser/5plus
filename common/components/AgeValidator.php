@@ -49,8 +49,9 @@ class AgeValidator extends BaseObject
 
             ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
                 substr($phone, -12, 12),
-                'Vash kod: ' . $code . '. Perehod po ssilke https://5plus.uz/age i vvod dannogo koda oznachaet vashe soglasie s publichnoy ofertoy OOO "Exclusive Education"',
-                'fav' . $users[0]->id . '_' . time()
+                '5plus.uz Vash kod: ' . $code . ' Perehod po ssilke https://5plus.uz/age i vvod dannogo koda oznachaet vashe soglasie s publichnoy ofertoy OOO "Exclusive Education"'
+                . "\n" . '5plus.uz Sizning tasdiqlash kodingiz: ' . $code . ' https://5plus.uz/age havolani bosing va ushbu kodni kiriting "Exclusive Education" MChJ ommaviy taklifiga roziligingizni bildiradi',
+                'fav' . $users[0]->id . '_' . time(),
             );
 //            $params = [
 //                'code' => $code,
