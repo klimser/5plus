@@ -150,7 +150,7 @@ class NotifierController extends Controller
                                 $courseName,
                                 $toSend->parameters['debt'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['debt'])),
                                 $paymentLink,
-                                $childName,
+                                $childName . 'ning',
                                 $courseName,
                                 $paymentLink,
                             );
@@ -166,7 +166,7 @@ class NotifierController extends Controller
                                 $courseName,
                                 $toSend->parameters['paid_lessons'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['paid_lessons'])),
                                 $paymentLink,
-                                $childName,
+                                $childName . 'ning',
                                 $courseName,
                                 $toSend->parameters['paid_lessons'],
                                 $paymentLink,
