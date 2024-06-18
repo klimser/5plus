@@ -337,7 +337,7 @@ class PaymentController extends Controller
             ),
             'ip' => Yii::$app->request->userIP,
             'paymentDetails' => [
-                'студент' => $course->courseConfig->name,
+                'студент' => $student->name,
                 'группа' => $course->courseConfig->legal_name,
                 'занятий' => intval(round($contract->amount / ($contract->discount ? $course->courseConfig->lesson_price_discount : $course->courseConfig->lesson_price)))
             ]
