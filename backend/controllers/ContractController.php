@@ -69,7 +69,7 @@ class ContractController extends AdminController
 
     public function actionQrVideoLessons()
     {
-        $link = 'https://app.beshplus.uz/entry/login';
+        $link = 'https://fiveplus.uz';
         $options = new QROptions([
             'outputType' => QRCode::OUTPUT_MARKUP_SVG,
             'addQuietzone' => false,
