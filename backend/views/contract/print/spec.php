@@ -15,7 +15,7 @@ use yii\helpers\Url; ?>
 
 <div style="margin: 0.5cm;">
     <div style="float: left; width: 3cm; height: 3cm; margin: 0 5mm 5mm 0;">
-        <img src="<?= Url::to(['contract/qr-video-lessons']); ?>" style="width: 3cm;" alt="https://t.me/fiveplus_public_bot?start=account">
+        <img src="<?= Url::to(['contract/qr-video-lessons']); ?>" style="width: 3cm;" alt="https://fiveplus.uz">
     </div>
     <div style="float: left;">Видеоуроки</div>
     <div style="float: right; width: 3cm; height: 3cm; margin: 0 0 5mm 5mm;">
@@ -64,7 +64,7 @@ use yii\helpers\Url; ?>
     <p><b>Юридический и почтовый адрес и банковские реквизиты:</b></p>
     <p><i>Юридический адрес: 100140, г. Ташкент, микрорайон ТашГрэс, д. 20, кв. 52.<br>
     Адрес нахождения курсов: г. Ташкент, Мирабадский район, ул. Ойбек, 16<br>
-    Тел.: +99871 200-03-50<br>
+    Тел.: +99878 777-03-50<br>
     р/с 20208000400444136001<br>
     в ОПЕРУ АИТБ «Ипак Йули».<br>
     МФО 00444.<br>

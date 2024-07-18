@@ -15,7 +15,7 @@ use yii\base\BaseObject;
  */
 class PaymoApi extends BaseObject implements PaymentApiInterface
 {
-    const API_URL = 'https://api.paymo.uz';
+    const API_URL = 'https://partner.paymo.uz';
 
     /** @var string */
     protected $paymentUrl;

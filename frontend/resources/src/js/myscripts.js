@@ -418,7 +418,7 @@ function initMap() {
         {
             "title":"Пять с плюсом",
             "address":"г. Ташкент, ул. Ойбек, 16",
-            "tel":"+998712000350",
+            "tel":"+998787770350",
             "int_tel":"",
             "email":"5plus.center@gmail.com",
             "web":"https://5plus.uz",

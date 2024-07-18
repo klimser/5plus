@@ -272,7 +272,7 @@ use yii\helpers\Url;
                             </div>
                         </div>
                         <div class="col-12 col-lg-6 yellow">
-                            <a href="tel:+998712000350" class="text-decoration-none">71 200 03 50</a><br>
+                            <a href="tel:+998787770350" class="text-decoration-none">78 777 03 50</a><br>
                             <a href="https://t.me/fiveplus_public_bot" class="text-decoration-none">@fiveplus_public_bot</a>
                         </div>
                     </div>

@@ -27,7 +27,7 @@ class PublicMain
 
     const CONTACT_NAME = 'Пять с Плюсом';
     const CONTACT_SURNAME = 'Ваш Учебный центр';
-    const CONTACT_PHONE = '+99871-200-03-50';
+    const CONTACT_PHONE = '+99878-777-03-50';
     const CONTACT_VCARD = <<<VCARD
 BEGIN:VCARD
 VERSION:3.0
@@ -36,7 +36,7 @@ FN:Пять с Плюсом™
 KIND:organization
 URL:https://5plus.uz
 PHOTO;TYPE=PNG:https://5plus.uz/icons/apple-touch-icon.png
-TEL;TYPE=work,voice;VALUE=main:+99871-200-03-50
+TEL;TYPE=work,voice;VALUE=main:+99878-777-03-50
 ADR;TYPE=WORK;GEO="41.297022,69.274574";LANGUAGE="RU";LABEL="Ваш Учебный центр Пять с Плюсом":;2 этаж;ул. Ойбек 16;Ташкент;;100015;Узбекистан
 GEO:41.297022,69.274574
 EMAIL:5plus.center@gmail.com
