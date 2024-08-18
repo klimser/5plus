@@ -40,7 +40,8 @@
     "kartik-v/yii2-widget-datetimepicker": "^1",
     "yiisoft/yii2-redis": "^2.0",
     "phpoffice/phpword": "^1",
-    "longman/telegram-bot": "*"
+    "longman/telegram-bot": "*",
+    "skeeks/yii2-http-basic-auth": "^1.0"
   },
   "require-dev": {
     "yiisoft/yii2-debug": "*",

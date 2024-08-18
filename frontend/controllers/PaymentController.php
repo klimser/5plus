@@ -300,69 +300,15 @@ class PaymentController extends Controller
         $amount = intval(Yii::$app->request->post('amount'));
         $paymentMethodId = intval(Yii::$app->request->post('method', 0));
 
-        if (!$studentId) return self::getJsonErrorResult('No student ID');
-        if (!$courseId) return self::getJsonErrorResult('No course ID');
-        if ($amount < 1000) return self::getJsonErrorResult('Wrong payment amount');
-
-        /** @var User $student */
-        $student = User::find()->andWhere(['id' => $studentId, 'role' => User::ROLE_STUDENT, 'status' => User::STATUS_ACTIVE])->one();
-        /** @var Course $course */
-        $course = Course::find()->andWhere(['id' => $courseId, 'active' => Course::STATUS_ACTIVE])->one();
-
-        if (!$student) return self::getJsonErrorResult('Student not found');
-        if (!$course) return self::getJsonErrorResult('Course not found');
-
-        $courseStudent = CourseStudent::find()->andWhere(['user_id' => $student->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])->one();
-        if (!$courseStudent) return self::getJsonErrorResult('Для этого студента внесение оплаты невозможно');
-
         try {
-            $paymentApi = PaymentApiFactory::getPaymentApi($paymentMethodId);
-        } catch (PaymentServiceException $ex) {
-            return self::getJsonErrorResult('Wrong payment method');
-        }
+            $redirectUrl = ComponentContainer::getApi()->createPayment($studentId, $courseId, $amount, $paymentMethodId);
 
-        $contract = MoneyComponent::addStudentContract(
-            Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
-            $student,
-            $amount,
-            $course
-        );
-
-        $returnUrl = Url::to(['payment/complete', 'payment' => $contract->id], true);
-        $details = [
-            'description' => sprintf(
-                'Оплата занятий в группе %s: %d занятий',
-                $course->courseConfig->legal_name,
-                intval(round($contract->amount / ($contract->discount ? $course->courseConfig->lesson_price_discount : $course->courseConfig->lesson_price)))
-            ),
-            'ip' => Yii::$app->request->userIP,
-            'paymentDetails' => [
-                'студент' => $student->name,
-                'группа' => $course->courseConfig->legal_name,
-                'занятий' => intval(round($contract->amount / ($contract->discount ? $course->courseConfig->lesson_price_discount : $course->courseConfig->lesson_price)))
-            ]
-        ];
-
-        try {
-            $transactionResponse = $paymentApi->payCreate($contract->amount, $contract->number, $returnUrl, $details);
-            $contract->payment_type = $paymentMethodId;
-            $contract->status = Contract::STATUS_PROCESS;
-            if ($transactionResponse->getTransactionId()) {
-                $contract->external_id = $transactionResponse->getTransactionId();
-            }
-            
-            if (!$contract->save()) {
-                ComponentContainer::getErrorLogger()
-                    ->logError('payment/create', print_r($contract->getErrors(), true), true);
-                return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
-            }
-
-            return self::getJsonOkResult(['redirectUrl' => $transactionResponse->getRedirectUrl()]);
-        } catch (\Throwable $exception) {
+            return self::getJsonOkResult(['redirectUrl' => $redirectUrl]);
+        } catch (\Throwable $ex) {
             ComponentContainer::getErrorLogger()
-                ->logError('payment/create', 'Exception: ' . $exception->getMessage(), true);
+                ->logError('payment/create', $ex->getMessage(), true);
 
-            return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
+            return self::getJsonErrorResult($ex->getMessage());
         }
     }
 
@@ -374,74 +320,15 @@ class PaymentController extends Controller
         $giftCardData = Yii::$app->request->post('giftcard', []);
         $paymentMethodId = intval(Yii::$app->request->post('method', 0));
 
-        if (!isset($giftCardData['student_name'])) return self::getJsonErrorResult('No student name');
-        if (!isset($giftCardData['student_phone'])) return self::getJsonErrorResult('No student phone');
-        if (!isset($giftCardData['type'])) return self::getJsonErrorResult('No payment type selected');
-        if (!isset($giftCardData['email'])) return self::getJsonErrorResult('No email');
-        $giftCardType = GiftCardType::findOne(['id' => $giftCardData['type'], 'active' => GiftCardType::STATUS_ACTIVE]);
-        if (!$giftCardType) return self::getJsonErrorResult('Unknown type');
-
         try {
-            $paymentApi = PaymentApiFactory::getPaymentApi($paymentMethodId);
-        } catch (PaymentServiceException $ex) {
-            return self::getJsonErrorResult('Wrong payment method');
-        }
+            $redirectUrl = ComponentContainer::getApi()->createGiftCardPayment($giftCardData, $paymentMethodId);
 
-        $transaction = Yii::$app->db->beginTransaction();
-
-        $giftCard = new GiftCard();
-        $giftCard->name = $giftCardType->name;
-        $giftCard->amount = $giftCardType->amount;
-        $giftCard->status = GiftCard::STATUS_NEW;
-        $giftCard->customer_name = $giftCardData['student_name'];
-        $giftCard->phoneFormatted = $giftCardData['student_phone'];
-        $giftCard->customer_email = $giftCardData['email'];
-        $additionalData = ['payment_method' => $paymentMethodId];
-        if ($giftCardData['parents_name'] && $giftCardData['parents_phone']) {
-            $additionalData['parents_name'] = $giftCardData['parents_name'];
-            $additionalData['parents_phone'] = $giftCardData['parents_phone'];
-        }
-        $giftCard->additionalData = $additionalData;
-
-        if (!$giftCard->save()) {
-            $transaction->rollBack();
+            return self::getJsonOkResult(['redirectUrl' => $redirectUrl]);
+        } catch (\Throwable $ex) {
             ComponentContainer::getErrorLogger()
-                ->logError('payment/create-new', print_r($giftCard->getErrors(), true), true);
-            return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
-        }
+                ->logError('payment/create-new', $ex->getMessage(), true);
 
-        $returnUrl = urlencode(Url::to(['payment/complete', 'gc' => $giftCard->code], true));
-        $details = [
-            'description' => sprintf(
-                'Оплата занятий по предмету %s',
-                $giftCard->name
-            ),
-            'ip' => Yii::$app->request->userIP,
-            'paymentDetails' => [
-                'студент' => $giftCard->customer_name,
-                'предмет' => $giftCard->name,
-            ]
-        ];
-
-        try {
-            $transactionResponse = $paymentApi->payCreate($giftCard->amount, "gc-$giftCard->id", $returnUrl, $details);
-
-            if ($transactionResponse->getTransactionId()) {
-                $additionalData = $giftCard->additionalData;
-                $additionalData['transaction_id'] = $transactionResponse->getTransactionId();
-                $giftCard->additionalData = $additionalData;
-                $giftCard->save();
-            }
-            
-            $transaction->commit();
-
-            return self::getJsonOkResult(['redirectUrl' => $transactionResponse->getRedirectUrl()]);
-        } catch (\Throwable $exception) {
-            $transaction->rollBack();
-            ComponentContainer::getErrorLogger()
-                ->logError('payment/create-new', 'Exception: ' . $exception->getMessage(), true);
-
-            return self::getJsonErrorResult('Произошла ошибка, оплата не может быть зарегистрирована');
+            return self::getJsonErrorResult($ex->getMessage());
         }
     }
 
@@ -470,16 +357,14 @@ class PaymentController extends Controller
 
     public function actionPrint()
     {
-        if ($giftCardCode = Yii::$app->request->get('gc')) {
-            $giftCard = GiftCard::findOne(['code' => $giftCardCode]);
-            if ($giftCard && $giftCard->status == GiftCard::STATUS_PAID) {
-                $giftCardDoc = new \common\resources\documents\GiftCard($giftCard);
-                return Yii::$app->response->sendContentAsFile(
-                    $giftCardDoc->save(),
-                    'flyer.pdf',
-                    ['inline' => true, 'mimeType' => 'application/pdf']
-                );
-            }
+        if (($giftCardCode = Yii::$app->request->get('gc'))
+            && ($giftCard = GiftCard::findOne(['code' => $giftCardCode, 'status' => GiftCard::STATUS_PAID]))) {
+
+            return Yii::$app->response->sendContentAsFile(
+                (new \common\resources\documents\GiftCard($giftCard))->save(),
+                'flyer.pdf',
+                ['inline' => true, 'mimeType' => 'application/pdf'],
+            );
         }
 
         throw new NotFoundHttpException('Wrong URL');

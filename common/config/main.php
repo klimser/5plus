@@ -5,6 +5,7 @@ $params = array_merge(
 );
 
 return [
+    'name' => '5plus',
     'vendorPath' => dirname(dirname(__DIR__)) . '/vendor',
     'components' => [
         'user' => [
@@ -171,6 +172,12 @@ return [
             'password' => $params['paynet-password'],
             'subjectMap' => $params['paynet-subject-map'],
         ],
+        'api' => [
+            'class' => \common\components\ApiComponent::class,
+            'url' => $params['api-url'],
+            'login' => $params['api-login'],
+            'password' => $params['api-password'],
+        ]
     ],
     'aliases' => [
         '@uploads' => '@frontend/web/uploads',

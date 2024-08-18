@@ -258,21 +258,19 @@ class CourseController extends AdminController
                             }
                         }
 
-                        if ($course->date_end) {
-                            while (true) {
-                                $lastConfig = end($courseConfigs);
-                                if ($lastConfig->date_to == $course->date_end) {
-                                    break;
-                                }
-                                if ($lastConfig->date_from > $course->date_end) {
-                                    $course->unlink('courseConfigs', $lastConfig, true);
-                                    array_pop($courseConfigs);
-                                    continue;
-                                }
-                                $lastConfig->date_to = $course->date_end;
-                                $lastConfig->save();
+                        while (true) {
+                            $lastConfig = end($courseConfigs);
+                            if ($lastConfig->date_to == $course->date_end) {
                                 break;
                             }
+                            if (!empty($course->date_end) && $lastConfig->date_from > $course->date_end) {
+                                $course->unlink('courseConfigs', $lastConfig, true);
+                                array_pop($courseConfigs);
+                                continue;
+                            }
+                            $lastConfig->date_to = $course->date_end;
+                            $lastConfig->save();
+                            break;
                         }
 
                         $this->saveCourseStudents($course, $newStudents);

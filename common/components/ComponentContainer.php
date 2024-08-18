@@ -12,6 +12,7 @@ use common\components\payme\PaymeApi;
 use common\components\paymo\PaymoApi;
 use common\components\paynet\PaynetApi;
 use common\components\SmsBroker\SmsBrokerApi;
+use skeeks\yii2\httpBasicAuth\HttpBasicAuthComponent;
 use Yii;
 
 class ComponentContainer
@@ -91,5 +92,15 @@ class ComponentContainer
     public static function getPaynetApi(): PaynetApi
     {
         return Yii::$app->paynetApi;
+    }
+
+    public static function getExternalBasicAuth(): HttpBasicAuthComponent
+    {
+        return \Yii::$app->externalBasicAuth;
+    }
+
+    public static function getApi(): ApiComponent
+    {
+        return \Yii::$app->api;
     }
 }
