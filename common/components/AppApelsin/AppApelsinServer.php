@@ -188,7 +188,7 @@ class AppApelsinServer extends AbstractPaymentServer
                 $response->data['status'] = true;
                 $response->data['data'] = [
                     'fullName' => $searchResult['student']->nameHidden . ', группа ' . $searchResult['course']->courseConfig->legal_name,
-                    'balance' => 100 * Payment::find()
+                    'balance' => Payment::find()
                         ->select(['SUM(amount) as balance'])
                         ->andWhere(['course_id' => $searchResult['course']->id, 'user_id' => $searchResult['student']->id])
                         ->scalar(),

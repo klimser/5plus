@@ -4,7 +4,9 @@ namespace external\controllers;
 
 use common\components\ComponentContainer;
 use common\components\MoneyComponent;
+use common\models\Company;
 use common\models\Contract;
+use common\models\CourseStudent;
 use common\models\GiftCard;
 use common\service\payment\PaymentServiceException;
 use yii\web\Controller;
@@ -29,6 +31,8 @@ class PaymentController extends Controller
     {
         if (preg_match('#^gc-(\d+)$#', $id)) {
             return GiftCard::class;
+        } elseif (preg_match('#^app-.+$#', $id)) {
+            return 'create';
         }
         return Contract::class;
     }
@@ -100,6 +104,47 @@ class PaymentController extends Controller
 
         try {
             switch ($this->getTypeById($params['number'])) {
+                case 'create':
+                    $userId = $params['parameters']['userId'] ?? null;
+                    $courseId = $params['parameters']['courseId'] ?? null;
+                    if (!$userId || !$courseId) {
+                        $response->setStatusCode(400);
+                        $response->data = 'userId and courseId are required';
+
+                        return $response;
+                    }
+
+                    $courseStudent = CourseStudent::findOne(['user_id' => $userId, 'course_id' => $courseId]);
+                    if (!$courseStudent || ($courseStudent->active != CourseStudent::STATUS_ACTIVE && $courseStudent->paid_lessons >= 0)) {
+                        $response->setStatusCode(404);
+                        $response->data = 'Unable to pay for that student';
+
+                        return $response;
+                    }
+
+                    $transaction = \Yii::$app->db->beginTransaction();
+                    try {
+                        $contract = MoneyComponent::addStudentContract(
+                            Company::findOne(Company::COMPANY_EXCLUSIVE_ID),
+                            $courseStudent->user,
+                            $params['amount'],
+                            $courseStudent->course,
+                        );
+                        $paymentId = MoneyComponent::payContract(
+                            $contract,
+                            new \DateTime($params['paid_at'] ?: 'now'),
+                            $params['provider'],
+                            $params['external_id'],
+                        );
+
+                        $transaction->commit();
+                    } catch (\Throwable $exception) {
+                        ComponentContainer::getErrorLogger()->logError('external/payment', $exception->getMessage() . "\n" . $exception->getTraceAsString(), true);
+                        $response->setStatusCode(500);
+                        $response->data = 'Ошибка регистрации оплаты: ' . $exception->getMessage();
+                        return $response;
+                    }
+                    break;
                 case Contract::class:
                     $contract = $this->getContractById($params['number'], $params['amount']);
 
