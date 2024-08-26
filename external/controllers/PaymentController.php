@@ -114,8 +114,12 @@ class PaymentController extends Controller
                         return $response;
                     }
 
-                    $courseStudent = CourseStudent::findOne(['user_id' => $userId, 'course_id' => $courseId]);
-                    if (!$courseStudent || ($courseStudent->active != CourseStudent::STATUS_ACTIVE && $courseStudent->paid_lessons >= 0)) {
+                    /** @var CourseStudent $courseStudent */
+                    $courseStudent = CourseStudent::find()
+                        ->andWhere(['user_id' => $userId, 'course_id' => $courseId])
+                        ->andWhere('active = :active OR paid_lessons < 0', ['active' => CourseStudent::STATUS_ACTIVE])
+                        ->one();
+                    if (!$courseStudent) {
                         $response->setStatusCode(404);
                         $response->data = 'Unable to pay for that student';
 
