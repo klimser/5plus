@@ -145,7 +145,7 @@ class PaynetServer extends PaymeServer
             return $result;
         }
 
-        $subjectMap = ComponentContainer::getAppPaymeApi()->getSubjectMap();
+        $subjectMap = ComponentContainer::getPaynetApi()->getSubjectMap();
         $subjectSlug = mb_strtolower($subjectSlug, 'UTF-8');
         if (isset($subjectMap[$subjectSlug])) {
             $subjectIds = $subjectMap[$subjectSlug];
