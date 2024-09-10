@@ -37,6 +37,7 @@ class EventComponent extends Component
                 if (!$event->save()) {
                     throw new Exception('Schedule save error: ' . $event->getErrorsAsString());
                 }
+                $course->resetEventIdByDateMap();
             }
 
             foreach ($course->courseStudents as $courseStudent) {
@@ -60,6 +61,7 @@ class EventComponent extends Component
                 $event->removeCourseStudent($member->courseStudent);
             }
             $event->delete();
+            $course->resetEventIdByDateMap();
         }
 
         return null;

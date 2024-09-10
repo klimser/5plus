@@ -105,6 +105,11 @@ class Course extends ActiveRecord
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
+        $this->resetEventIdByDateMap();
+    }
+
+    public function resetEventIdByDateMap():void
+    {
         $this->eventIdByDateMap = null;
     }
 
