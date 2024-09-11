@@ -102,5 +102,17 @@ use yii\web\View;
                 },
             ],
         ],
+        [
+            'format' => 'text',
+            'header' => 'Пробные уроки',
+            'content' => function (Course $model, $key, $index, $column) {
+                $data = $model->getUpcomingWelcomeLessons();
+                if (empty($data) || empty($data['lesson_date'])) {
+                    return 'нет';
+                } else {
+                    return '<b>' . $data['count'] . '</b> студентов на <i>' . $data['lesson_date'] . '</i>';
+                }
+            },
+        ],
     ],
 ]); ?>

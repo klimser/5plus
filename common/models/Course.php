@@ -302,4 +302,20 @@ class Course extends ActiveRecord
 
         return $lessonsCount > 0;
     }
+
+    /**
+     * @return null|array{lesson_date: string, count: int}
+     */
+    public function getUpcomingWelcomeLessons(): ?array
+    {
+        return WelcomeLesson::find()
+            ->select(['lesson_date', 'COUNT(id) as count'])
+            ->andWhere(['course_id' => $this->id])
+            ->andWhere(['>', 'lesson_date', date('Y-m-d H:i:s')])
+            ->groupBy('lesson_date')
+            ->orderBy(['lesson_date' => SORT_ASC])
+            ->limit(1)
+            ->asArray()
+            ->one();
+    }
 }
