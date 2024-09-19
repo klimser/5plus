@@ -113,7 +113,8 @@ $this->render('/grunt-assets');
                                     <div class="btn btn-primary btn-ico btn-lg p-3 p-lg-4" data-container="body" data-toggle="popover" data-placement="bottom" data-trigger="click" data-html="true" data-content="<a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'student']); ?>'>для учащихся</a><br><br> <a class='btn btn-primary' href='<?= Url::to(['webpage', 'id' => $paymentWebpage->id, 'type' => 'new']); ?>'>для новых студентов</a>">
                                         Онлайн оплата <span class="far fa-credit-card ml-3"></span>
                                     </div>
-                                    <a href="https://beshplus.uz" class="btn btn-danger btn-ico btn-lg p-3 p-lg-4" target="_blank">Онлайн-школа <span class="fas fa-globe ml-3"></span></a>
+                                    <a href="https://beshplus.uz" class="btn btn-danger btn-ico btn-lg p-3 p-lg-4" target="_blank">Онлайн-школа BESHPLUS.UZ<span class="fas fa-globe ml-3"></span></a>
+                                    <a href="https://fiveplus.uz" class="btn btn-primary btn-ico btn-lg p-3 p-lg-4" target="_blank">Видеокурсы FIVEPLUS.UZ<span class="fas fa-video ml-3"></span></a>
                                     <?php /* <a href="#" class="btn btn-outline-info btn-ico btn-lg">Мы вам перезвоним <img src="<?= Yii::$app->homeUrl; ?>assets/grunt/images/phone-ico.png" alt="ico" class="ico"></a> */ ?>
                                 </div>
                             </div>
