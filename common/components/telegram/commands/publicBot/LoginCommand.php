@@ -76,6 +76,15 @@ class LoginCommand extends UserCommand
             case 2:
                 if ($message->getText() !== PublicMain::TO_BACK) {
                     $phone = $message->getContact() ? $message->getContact()->getPhoneNumber() : $message->getText();
+                    if (empty($phone)) {
+                        $conversation->notes['step']--;
+                        $conversation->update();
+                        return [
+                            'parse_mode' => 'MarkdownV2',
+                            'text' => Entity::escapeMarkdownV2(PublicMain::ERROR_PHONE_LENGTH),
+                        ];
+                    }
+
                     $phoneDigits = preg_replace('#\D#', '', $phone);
                     if (preg_match('#^\+#', $phone) && !preg_match('#^\+998#', $phone)) {
                         $conversation->notes['step']--;
