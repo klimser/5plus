@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dda1de3950bdc9e0ba9f7c5aacb21486",
+    "content-hash": "ad63ddc3fd2d5beac85f7c7733ac4d7d",
     "packages": [
         {
             "name": "2amigos/yii2-tinymce-widget",
@@ -1541,16 +1541,16 @@
         },
         {
             "name": "longman/telegram-bot",
-            "version": "0.83.1",
+            "version": "0.82.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-telegram-bot/core.git",
-                "reference": "ca9eeb1c9e51c39a33070efeba01aac105ed9aa7"
+                "reference": "26433b3d29f31c7760ba881490f84640ebef2652"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-telegram-bot/core/zipball/ca9eeb1c9e51c39a33070efeba01aac105ed9aa7",
-                "reference": "ca9eeb1c9e51c39a33070efeba01aac105ed9aa7",
+                "url": "https://api.github.com/repos/php-telegram-bot/core/zipball/26433b3d29f31c7760ba881490f84640ebef2652",
+                "reference": "26433b3d29f31c7760ba881490f84640ebef2652",
                 "shasum": ""
             },
             "require": {
@@ -1559,7 +1559,7 @@
                 "ext-mbstring": "*",
                 "ext-pdo": "*",
                 "guzzlehttp/guzzle": "^6.0|^7.0",
-                "php": "^8.1",
+                "php": "^7.3|^8.0",
                 "psr/log": "^1.1|^2.0|^3.0"
             },
             "require-dev": {
@@ -1571,7 +1571,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-develop": "0.83.x-dev"
+                    "dev-develop": "0.81.x-dev"
                 }
             },
             "autoload": {
@@ -1643,7 +1643,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-05-30T21:05:25+00:00"
+            "time": "2023-10-26T20:16:16+00:00"
         },
         {
             "name": "maennchen/zipstream-php",
