@@ -48,7 +48,7 @@ use yii\helpers\Url;
                                 <span class="fab fa-cc-amex"></span>
                             </button>*/ ?>
                             <a href="https://payment.apelsin.uz/merchant?serviceId=498605820" target="_blank" class="btn apelsin_logo pay_button m-2">
-                                Оплатить через <span class="sr-only">Apelsin</span> <i class="ml-2"></i>
+                                Оплатить через <span class="sr-only">Uzum</span> <i class="ml-2"></i>
                             </a>
                             <button type="submit" onclick="return Payment.completePayment(this);" data-payment="<?= Contract::PAYMENT_TYPE_ATMOS; ?>" class="btn atmos_logo pay_button m-2">
                                 Оплатить через <span class="sr-only">ATMOS</span> <i class="ml-2"></i>

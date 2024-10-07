@@ -90,12 +90,12 @@ class Contract extends ActiveRecord
         self::PAYMENT_TYPE_MANUAL_PAYME => 'Payme приложение',
         self::PAYMENT_TYPE_MANUAL_BANK => 'Банковский перевод (юр лица)',
         self::PAYMENT_TYPE_MANUAL_OLD => 'прошлый учебный год',
-        self::PAYMENT_TYPE_APELSIN => 'Apelsin',
+        self::PAYMENT_TYPE_APELSIN => 'Uzum',
         self::PAYMENT_TYPE_PAYBOX => 'PayBox',
         self::PAYMENT_TYPE_APP_PAYME => 'Payme приложение + биллинг',
         self::PAYMENT_TYPE_MANUAL_FREE => 'Учится бесплатно',
         self::PAYMENT_TYPE_MANUAL_STUDENT => 'Перевод от другого студента',
-        self::PAYMENT_TYPE_APP_APELSIN => 'Apelsin приложение',
+        self::PAYMENT_TYPE_APP_APELSIN => 'Uzum приложение',
         self::PAYMENT_TYPE_PAYNET => 'Paynet',
     ];
 

@@ -51,6 +51,9 @@ class GenericmessageCommand extends SystemCommand
     public function execute(): ServerResponse
     {
         $message = $this->getMessage();
+        if (null === $message) {
+            return Request::emptyResponse();
+        }
 
         if ($payment = $message->getSuccessfulPayment()) {
             return AccountCommand::handleSuccessfulPayment($payment, $message->getChat()->getId());
