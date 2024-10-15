@@ -117,7 +117,7 @@ class NotifierController extends Controller
                         case Notify::TEMPLATE_STUDENT_DEBT:
                             $smsText = sprintf(
                                 'U vas zadolzhennost v gruppe "%s" - %s. Oplata online - %s'
-                                . "\n" . 'Sizning "%s" guruhida "%d dars" qarzdorligingiz mavjud. Onlayn to`lov - %s',
+                                . "\n" . 'Sizning "%s" guruhida "%d dars" qarzdorligingiz mavjud. Onlayn to\'lov - %s',
                                 $courseName,
                                 $toSend->parameters['debt'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['debt'])),
                                 $paymentLink,
@@ -129,7 +129,7 @@ class NotifierController extends Controller
                         case Notify::TEMPLATE_STUDENT_LOW:
                             $smsText = sprintf(
                                 'V gruppe "%s" u vas ostalos %s. Oplata online - %s'
-                                . "\n" . '"%s" guruhida "%d dars" qoldi. Onlayn to`lov - %s',
+                                . "\n" . '"%s" guruhida "%d dars" qoldi. Onlayn to\'lov - %s',
                                 $courseName,
                                 $toSend->parameters['paid_lessons'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['paid_lessons'])),
                                 $paymentLink,
@@ -145,7 +145,7 @@ class NotifierController extends Controller
                             $paymentLink = PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url;
                             $smsText = sprintf(
                                 'U studenta %s zadolzhennost v gruppe "%s" - %s. Oplata online - %s'
-                                . "\n" . 'Student %s "%s" guruhida qarzdorligi mavjud. Onlayn to`lov - %s',
+                                . "\n" . 'Student %s "%s" guruhida qarzdorligi mavjud. Onlayn to\'lov - %s',
                                 $childName,
                                 $courseName,
                                 $toSend->parameters['debt'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['debt'])),
@@ -161,7 +161,7 @@ class NotifierController extends Controller
                             $paymentLink = PaymentComponent::getPaymentLink($child->id, $toSend->course_id)->url;
                             $smsText = sprintf(
                                 'U studenta %s v gruppe "%s" ostalos %s. Oplata online - %s'
-                                . "\n" . 'Student %s "%s" guruhida "%d dars" qoldi. Onlayn to`lov - %s',
+                                . "\n" . 'Student %s "%s" guruhida "%d dars" qoldi. Onlayn to\'lov - %s',
                                 $childName,
                                 $courseName,
                                 $toSend->parameters['paid_lessons'] . ' ' . TranslitComponent::text(WordForm::getLessonsForm($toSend->parameters['paid_lessons'])),
