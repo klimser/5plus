@@ -103,4 +103,9 @@ class ComponentContainer
     {
         return \Yii::$app->api;
     }
+
+    public static function getSmsApi(): SmsServiceComponent
+    {
+        return \Yii::$app->smsApi;
+    }
 }

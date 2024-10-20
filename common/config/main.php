@@ -177,6 +177,12 @@ return [
             'url' => $params['api-url'],
             'login' => $params['api-login'],
             'password' => $params['api-password'],
+        ],
+        'smsApi' => [
+            'class' => \common\components\SmsServiceComponent::class,
+            'url' => $params['sms-api-url'],
+            'login' => $params['sms-api-login'],
+            'password' => $params['sms-api-password'],
         ]
     ],
     'aliases' => [

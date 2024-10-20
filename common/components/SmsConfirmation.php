@@ -31,12 +31,20 @@ class SmsConfirmation extends BaseObject
                 return false;
             }
 
-            ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+            ComponentContainer::getSmsApi()->sendSms(
+                'phone_confirmation',
                 substr($phone, -12, 12),
-                '5plus.uz Kod podtverzhdeniya registracii v Telegram-bote ' . $confirmation->code . ' Deystvitelen v techenie ' . $validMinutes . ' minut'
-                . "\n" . '5plus.uz Telegram botiga ulanish uchun tasdiqlash kodi: ' . $confirmation->code . '. ' . $validMinutes . ' daqiqa amal qiladi',
-                'fic' . mt_rand(100, 999) . '_' . time(),
+                [
+                    'code' => $confirmation->code,
+                    'lifetime' => (string) $validMinutes,
+                ],
             );
+//            ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+//                substr($phone, -12, 12),
+//                '5plus.uz Kod podtverzhdeniya registracii v Telegram-bote ' . $confirmation->code . ' Deystvitelen v techenie ' . $validMinutes . ' minut'
+//                . "\n" . '5plus.uz Telegram botiga ulanish uchun tasdiqlash kodi: ' . $confirmation->code . '. ' . $validMinutes . ' daqiqa amal qiladi',
+//                'fic' . mt_rand(100, 999) . '_' . time(),
+//            );
 
             $transaction->commit();
             return true;
