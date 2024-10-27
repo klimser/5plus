@@ -12,6 +12,7 @@ use common\components\MoneyComponent;
 use backend\models\Event;
 use backend\models\EventMember;
 use common\models\CourseConfig;
+use common\models\Teacher;
 use DateTime;
 use Exception;
 use Throwable;
@@ -297,6 +298,50 @@ class EventController extends AdminController
                 ->logError('Event.setMark', $member->getErrorsAsString(), true);
             return self::getJsonErrorResult();
         }
+    }
+
+    public function actionTable()
+    {
+        $startDate = new \DateTimeImmutable(in_array(date('w'), ['0', '1']) ? 'this Monday' : 'previous Monday');
+        $endDate = $startDate->modify('+7 days midnight');
+        /** @var CourseConfig[] $configs */
+        $configs = CourseConfig::find()
+            ->andWhere(['<=', 'date_from', $endDate->format('Y-m-d')])
+            ->andWhere(['OR', ['>=', 'date_to', $startDate->format('Y-m-d')], ['date_to' => null]])
+            ->all();
+        /** @var array<int,array{intervals:string[],configs:array<string,array<string,CourseConfig>>}> $configMap */
+        $configMap = [];
+        $oneDayInterval = new \DateInterval('P1D');
+        foreach ($configs as $config) {
+            for ($date = \DateTime::createFromImmutable($startDate); $date < $endDate; $date->add($oneDayInterval)) {
+                if ($config->hasLesson($date)) {
+                    $configMap[$config->teacher_id]['configs'][$date->format('Y-m-d')][] = $config;
+                }
+            }
+        }
+        foreach ($configMap as $teacherId => $configData) {
+            $timeIntervalSet = [];
+            foreach ($configData['configs'] as $date => $configs) {
+                $configByInterval = [];
+                foreach ($configs as $config) {
+                    $lessonStart = new \DateTimeImmutable($config->getLessonDateTime(new \DateTimeImmutable($date)));
+                    $lessonEnd = $lessonStart->modify('+ ' . $config->lesson_duration . ' minutes');
+                    $timeInterval = $lessonStart->format('H:i') . '-' . $lessonEnd->format('H:i');
+                    $timeIntervalSet[$timeInterval] = true;
+                    $configByInterval[$timeInterval] = $config;
+                }
+                $configMap[$teacherId]['configs'][$date] = $configByInterval;
+            }
+            ksort($timeIntervalSet);
+            $configMap[$teacherId]['intervals'] = $timeIntervalSet;
+        }
+
+        return $this->render('table', [
+            'configMap' => $configMap,
+            'teacherMap' => yii\helpers\ArrayHelper::map(Teacher::find()->andWhere(['id' => array_keys($configMap)])->asArray()->all(), 'id', 'name'),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
     }
 
     /**

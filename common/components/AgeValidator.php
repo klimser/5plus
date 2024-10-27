@@ -47,21 +47,21 @@ class AgeValidator extends BaseObject
                 $ageConfirmations[] = $ageConfirmation;
             }
 
-            ComponentContainer::getSmsApi()->sendSms(
-                'age_validation',
-                substr($phone, -12, 12),
-                ['code' => $code],
-            );
-
-//            ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+//            ComponentContainer::getSmsApi()->sendSms(
+//                'age_validation',
 //                substr($phone, -12, 12),
-//                '5plus.uz Vash kod: ' . $code . ' Perehod po ssilke https://5plus.uz/age i vvod dannogo koda oznachaet vashe soglasie s publichnoy ofertoy OOO "Exclusive Education"'
-//                . "\n" . '5plus.uz Sizning tasdiqlash kodingiz: ' . $code . ' https://5plus.uz/age havolani bosing va ushbu kodni kiriting "Exclusive Education" MChJ ommaviy taklifiga roziligingizni bildiradi',
-//                'fav' . $users[0]->id . '_' . time(),
+//                ['code' => $code],
 //            );
-//            $params = [
-//                'code' => $code,
-//            ];
+
+            ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+                substr($phone, -12, 12),
+                '5plus.uz Vash kod: ' . $code . ' Perehod po ssilke https://5plus.uz/age i vvod dannogo koda oznachaet vashe soglasie s publichnoy ofertoy OOO "Exclusive Education"'
+                . "\n" . '5plus.uz Sizning tasdiqlash kodingiz: ' . $code . ' https://5plus.uz/age havolani bosing va ushbu kodni kiriting "Exclusive Education" MChJ ommaviy taklifiga roziligingizni bildiradi',
+                'fav' . $users[0]->id . '_' . time(),
+            );
+            $params = [
+                'code' => $code,
+            ];
 //            ComponentContainer::getPaygramApi()
 //                ->sendSms(self::TEMPLATE_AGE_CONFIRMATION, substr($phone, -12, 12), $params);
 

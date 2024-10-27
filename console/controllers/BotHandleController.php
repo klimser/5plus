@@ -33,12 +33,12 @@ class BotHandleController extends Controller
         Yii::$app->db->open();
         $telegram = ComponentContainer::getTelegramPublic()->telegram;
         try {
-//            while (true) {
+            while (true) {
                 $lastResponse = $telegram->handleGetUpdates(['timeout' => 3600]);
                 if (!$lastResponse->isOk()) {
                     TelegramLog::error('NOk response. ' . $lastResponse->getErrorCode() . ': ' . $lastResponse->getDescription(), ['response' => $lastResponse]);
                 }
-//            }
+            }
         } catch (TelegramException $e) {
             TelegramLog::error($e);
         }
