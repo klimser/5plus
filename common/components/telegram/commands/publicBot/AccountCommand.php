@@ -445,8 +445,9 @@ class AccountCommand extends UserCommand
             ->all();
         
         if ($conversation->notes['step'] === 3) {
-            if (preg_match('#^(\d+) ([' . PublicMain::ICON_CHECK . PublicMain::ICON_CROSS . '])#u', $this->getMessage()->getText(), $matches)
-                || (preg_match('#^([' . PublicMain::ICON_CHECK . PublicMain::ICON_CROSS . '])#u', $this->getMessage()->getText(), $matches))) {
+            if ($this->getMessage()->getText()
+                && (preg_match('#^(\d+) ([' . PublicMain::ICON_CHECK . PublicMain::ICON_CROSS . '])#u', $this->getMessage()->getText(), $matches)
+                    || (preg_match('#^([' . PublicMain::ICON_CHECK . PublicMain::ICON_CROSS . '])#u', $this->getMessage()->getText(), $matches)))) {
                 
                 $offset = count($matches) > 2 ? $matches[1] - 1 : 0;
                 $icon = count($matches) > 2 ? $matches[2] : $matches[1];
