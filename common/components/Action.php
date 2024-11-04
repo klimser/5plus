@@ -23,6 +23,7 @@ class Action extends BaseObject
     public const TYPE_EVENT_CANCELLED = 16;
     public const TYPE_EVENT_STATUS_REVERTED = 17;
     public const TYPE_WELCOME_LESSON_STATUS_CHANGED = 18;
+    public const TYPE_WELCOME_LESSON_ADDED = 19;
 
     public const TYPE_LABELS = [
         self::TYPE_INCOME => 'Внесение админом',
@@ -40,6 +41,7 @@ class Action extends BaseObject
         self::TYPE_EVENT_CANCELLED => 'Занятие отмечено отмененным',
         self::TYPE_EVENT_STATUS_REVERTED => 'Статус занятия сброшен',
         self::TYPE_WELCOME_LESSON_STATUS_CHANGED => 'Статус пробного занятия изменён',
+        self::TYPE_WELCOME_LESSON_ADDED => 'Добавлено пробное занятие',
     ];
 
     public function log(int $type, ?User $user = null, ?int $amount = null, ?Course $course = null, ?string $comment = null): bool

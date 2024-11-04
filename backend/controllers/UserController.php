@@ -7,6 +7,7 @@ use backend\components\UserComponent;
 use backend\models\Consultation;
 use backend\models\EventMember;
 use backend\models\WelcomeLesson;
+use common\components\Action;
 use common\components\ComponentContainer;
 use common\components\CourseComponent;
 use common\components\MoneyComponent;
@@ -331,6 +332,9 @@ class UserController extends AdminController
         if (!$welcomeLesson->save()) {
             throw new Exception('Server error: ' . $welcomeLesson->getErrorsAsString());
         }
+
+        ComponentContainer::getActionLogger()
+            ->log(Action::TYPE_WELCOME_LESSON_ADDED, $welcomeLesson->user, null, $welcomeLesson->course, $welcomeLesson->lesson_date);
         
         EventComponent::fillSchedule($course);
 
