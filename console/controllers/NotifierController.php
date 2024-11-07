@@ -211,16 +211,16 @@ class NotifierController extends Controller
                     }
 
                     if ($toSend->user->phone) {
-//                        ComponentContainer::getSmsApi()->sendSms(
-//                            $smsTemplateId,
-//                            substr($toSend->user->phone, -12, 12),
-//                            $smsParams,
-//                        );
-                        ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+                        ComponentContainer::getSmsApi()->sendSms(
+                            $smsTemplateId,
                             substr($toSend->user->phone, -12, 12),
-                            $smsText,
-                            'fsn' . $toSend->user->id . '_' . time()
+                            $smsParams,
                         );
+//                        ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+//                            substr($toSend->user->phone, -12, 12),
+//                            $smsText,
+//                            'fsn' . $toSend->user->id . '_' . time()
+//                        );
                     }
                     $toSend->status = Notify::STATUS_SENT;
                     $toSend->sent_at = date('Y-m-d H:i:s');
@@ -559,21 +559,21 @@ class NotifierController extends Controller
 
                 try {
                     if ($welcomeLesson->user->phone) {
-//                        ComponentContainer::getSmsApi()->sendSms(
-//                            'welcome_lesson',
-//                            substr($welcomeLesson->user->phone, -12, 12),
-//                            [
-//                                'date' => $paramDate,
-//                                'time' => $paramTime,
-//                                'subject_ru' => TranslitComponent::text($welcomeLesson->course->subject->name['ru']),
-//                                'subject_uz' => TranslitComponent::text($welcomeLesson->course->subject->name['uz'] ?? $welcomeLesson->course->subject->name['ru']),
-//                            ],
-//                        );
-                        ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+                        ComponentContainer::getSmsApi()->sendSms(
+                            'welcome_lesson',
                             substr($welcomeLesson->user->phone, -12, 12),
-                            $smsText,
-                            'fsn' . $welcomeLesson->user->id . '_' . time()
+                            [
+                                'date' => $paramDate,
+                                'time' => $paramTime,
+                                'subject_ru' => TranslitComponent::text($welcomeLesson->course->subject->name['ru']),
+                                'subject_uz' => TranslitComponent::text($welcomeLesson->course->subject->name['uz'] ?? $welcomeLesson->course->subject->name['ru']),
+                            ],
                         );
+//                        ComponentContainer::getSmsBrokerApi()->sendSingleMessage(
+//                            substr($welcomeLesson->user->phone, -12, 12),
+//                            $smsText,
+//                            'fsn' . $welcomeLesson->user->id . '_' . time()
+//                        );
                     }
                     $isSent = true;
                 } catch (\Throwable $exception) {
