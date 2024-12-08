@@ -308,8 +308,9 @@ class EventController extends AdminController
         $configs = CourseConfig::find()
             ->andWhere(['<=', 'date_from', $endDate->format('Y-m-d')])
             ->andWhere(['OR', ['>=', 'date_to', $startDate->format('Y-m-d')], ['date_to' => null]])
+            ->with('course')
             ->all();
-        /** @var array<int,array{intervals:string[],configs:array<string,array<string,CourseConfig>>}> $configMap */
+        /** @var array<int,array{intervals:string[],configs:array<string,array<string,CourseConfig>>,rooms:string[]}> $configMap */
         $configMap = [];
         $oneDayInterval = new \DateInterval('P1D');
         foreach ($configs as $config) {
@@ -321,6 +322,7 @@ class EventController extends AdminController
         }
         foreach ($configMap as $teacherId => $configData) {
             $timeIntervalSet = [];
+            $roomSet = [];
             foreach ($configData['configs'] as $date => $configs) {
                 $configByInterval = [];
                 foreach ($configs as $config) {
@@ -328,12 +330,15 @@ class EventController extends AdminController
                     $lessonEnd = $lessonStart->modify('+ ' . $config->lesson_duration . ' minutes');
                     $timeInterval = $lessonStart->format('H:i') . '-' . $lessonEnd->format('H:i');
                     $timeIntervalSet[$timeInterval] = true;
+                    $roomSet[$config->room_number] = true;
                     $configByInterval[$timeInterval] = $config;
                 }
                 $configMap[$teacherId]['configs'][$date] = $configByInterval;
             }
             ksort($timeIntervalSet);
-            $configMap[$teacherId]['intervals'] = $timeIntervalSet;
+            $configMap[$teacherId]['intervals'] = array_keys($timeIntervalSet);
+            ksort($roomSet);
+            $configMap[$teacherId]['rooms'] = array_filter(array_keys($roomSet));
         }
 
         return $this->render('table', [
