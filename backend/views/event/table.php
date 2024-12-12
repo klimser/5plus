@@ -25,7 +25,7 @@ $oneDayInterval = new \DateInterval('P1D');
 
     <div id="messages_place"></div>
 
-    <table class="table table-hover table-condensed table-bordered small">
+    <table class="table table-hover table-condensed table-bordered small schedule-table">
         <thead>
             <tr>
                 <th></th>
@@ -53,21 +53,19 @@ $oneDayInterval = new \DateInterval('P1D');
                         <?php for ($date = \DateTime::createFromImmutable($startDate); $date < $endDate; $date->add($oneDayInterval)): ?>
                             <?php if (!isset($configData['configs'][$date->format('Y-m-d')][$interval])): ?> <td></td>
                             <?php else: ?>
-                                <td
-                                    <?php
+                                <td class="p-1 <?php
                                     if (preg_match('#.*тест.*#iu',$configData['configs'][$date->format('Y-m-d')][$interval]->name)) {
-                                        echo 'class="schedule-bg-yellow"';
+                                        echo 'schedule-bg-yellow';
                                     } else {
                                         switch ($configData['configs'][$date->format('Y-m-d')][$interval]->course->category_id) {
-                                                case 1: echo 'class="schedule-bg-blue"'; break;
-                                            case 2: echo 'class="schedule-bg-orange"'; break;
-                                            case 3: echo 'class="schedule-bg-green"'; break;
+                                                case 1: echo 'schedule-bg-blue'; break;
+                                            case 2: echo 'schedule-bg-orange'; break;
+                                            case 3: echo 'schedule-bg-green'; break;
                                         }
                                     }
-                                ?>
-                                >
-                                        <?= $configData['configs'][$date->format('Y-m-d')][$interval]->name; ?>
-
+                                ?>">
+                                    <?= $configData['configs'][$date->format('Y-m-d')][$interval]->name; ?>
+                                    <span class="badge badge-info"><?= $configData['configs'][$date->format('Y-m-d')][$interval]->room_number; ?></span>
                                 </td>
                             <?php endif; ?>
                         <?php endfor; ?>

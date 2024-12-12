@@ -24,7 +24,6 @@ class EventController extends AdminController
 {
     private string $adminRule = 'adminSchedule';
     protected $accessRule = 'manageSchedule';
-    
 
     private function getLimitDate(): DateTime
     {

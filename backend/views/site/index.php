@@ -144,6 +144,14 @@ $this->title = 'Панель управления';
                 </li>
             <?php endif; ?>
 
+            <?php if ($admin->can('manageSchedule')): ?>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" href="<?= Url::to(['event/table']); ?>">
+                        <span class="fas fa-table"></span> Расписание (таблица)
+                    </a>
+                </li>
+            <?php endif; ?>
+
             <?php if ($admin->can('viewMissed')): ?>
                 <li class="nav-item dropdown" role="presentation">
                     <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
