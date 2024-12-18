@@ -1,6 +1,6 @@
 <?php
 
-namespace external\controllers;
+namespace bot\controllers;
 
 use common\components\ComponentContainer;
 use Longman\TelegramBot\Exception\TelegramException;

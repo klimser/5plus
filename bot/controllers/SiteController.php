@@ -1,5 +1,5 @@
 <?php
-namespace external\controllers;
+namespace bot\controllers;
 
 use yii\web\Controller;
 
