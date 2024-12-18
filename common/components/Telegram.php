@@ -105,7 +105,7 @@ class Telegram extends BaseObject
     public function checkAccess(Request $request): bool
     {
         if ($this->webhookKey) {
-            return $request->getQueryParam('key') == $this->webhookKey;
+            return $request->getHeaders()->get('X-Telegram-Bot-Api-Secret-Token') == $this->webhookKey;
         }
         return true;
     }

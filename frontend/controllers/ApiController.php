@@ -5,17 +5,13 @@ namespace frontend\controllers;
 use common\components\apelsin\ApelsinServer;
 use common\components\AppApelsin\AppApelsinServer;
 use common\components\AppPayme\AppPaymeServer;
-use common\components\paybox\PayboxServer;
 use common\components\click\ClickServer;
-use common\components\ComponentContainer;
+use common\components\paybox\PayboxServer;
 use common\components\payme\PaymeServer;
 use common\components\paymo\PaymoServer;
 use common\components\paynet\PaynetServer;
-use Longman\TelegramBot\Exception\TelegramException;
-use Longman\TelegramBot\TelegramLog;
 use Yii;
 use yii\web\Controller;
-use yii\web\HttpException;
 
 /**
  * ApiController is used to provide API-messaging
@@ -23,34 +19,6 @@ use yii\web\HttpException;
 class ApiController extends Controller
 {
     public $enableCsrfValidation = false;
-
-    public function actionTgAdminBot()
-    {
-        Yii::$app->db->open();
-        try {
-            $telegram = ComponentContainer::getTelegramAdminNotifier();
-
-            if (!$telegram->checkAccess(Yii::$app->request)) throw new HttpException(403, 'Access denied');
-
-            $telegram->telegram->handle();
-        } catch (TelegramException $e) {
-            TelegramLog::error($e);
-        }
-    }
-
-    public function actionTgPublicBot()
-    {
-        Yii::$app->db->open();
-        try {
-            $telegram = ComponentContainer::getTelegramPublic();
-
-            if (!$telegram->checkAccess(Yii::$app->request)) throw new HttpException(403, 'Access denied');
-
-            $telegram->telegram->handle();
-        } catch (TelegramException $e) {
-            TelegramLog::error($e);
-        }
-    }
 
     public function actionPaymoComplete()
     {
