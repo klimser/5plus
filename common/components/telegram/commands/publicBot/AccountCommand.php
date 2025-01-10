@@ -361,7 +361,7 @@ class AccountCommand extends UserCommand
                     $courseSet[$courseStudent->course_id] = true;
                     $rows[] = Entity::escapeMarkdownV2($courseStudent->course->courseConfig->legal_name) . ': *' . ($balance > 0 ? $balance : PublicMain::DEBT . ' ' . (0 - $balance)) . '* ' . PublicMain::CURRENCY_SIGN . ' '
                         . '\\(*' . abs($courseStudent->paid_lessons) . '* ' . WordForm::getLessonsForm(abs($courseStudent->paid_lessons)) . '\\) '
-                        . '[' . PublicMain::PAY_ONLINE . '](' . PaymentComponent::getPaymentLink($courseStudent->user_id, $courseStudent->course_id)->url . ')';
+                        . '[' . PublicMain::PAY_ONLINE . '](' . str_replace('bot.5plus.uz', '5plus.uz', PaymentComponent::getPaymentLink($courseStudent->user_id, $courseStudent->course_id)->url) . ')';
                 }
             }
         }
