@@ -110,7 +110,7 @@ use yii\web\View;
                 if (empty($data) || empty($data['lesson_date'])) {
                     $text = 'нет';
                 } else {
-                    $text = '<b>' . $data['count'] . '</b> ' . WordForm::getStudentsForm($data['count']) . ' на <i>' . $data['lesson_date'] . '</i>';
+                    $text = '<b>' . $data['count'] . '</b> ' . WordForm::getStudentsForm($data['count']) . ' на <i>' . (new \DateTime($data['lesson_date']))->format('d.m.Y') . '</i>';
                 }
 
                 $pendingStudents = $model->getPendingWelcomeLessons();
