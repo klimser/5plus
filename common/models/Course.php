@@ -318,4 +318,17 @@ class Course extends ActiveRecord
             ->asArray()
             ->one();
     }
+
+    public function getPendingWelcomeLessons(): ?int
+    {
+        $result = WelcomeLesson::find()
+            ->select('COUNT(id) as count')
+            ->andWhere(['course_id' => $this->id])
+            ->andWhere(['BETWEEN', 'lesson_date', (new \DateTime('-7 days'))->format('Y-m-d H:i:s'), date('Y-m-d H:i:s')])
+            ->andWhere(['status' => WelcomeLesson::STATUS_PASSED])
+            ->asArray()
+            ->one();
+
+        return $result['count'] ?? null;
+    }
 }

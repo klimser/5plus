@@ -108,10 +108,17 @@ use yii\web\View;
             'content' => function (Course $model, $key, $index, $column) {
                 $data = $model->getUpcomingWelcomeLessons();
                 if (empty($data) || empty($data['lesson_date'])) {
-                    return 'нет';
+                    $text = 'нет';
                 } else {
-                    return '<b>' . $data['count'] . '</b> студентов на <i>' . $data['lesson_date'] . '</i>';
+                    $text = '<b>' . $data['count'] . '</b> ' . WordForm::getStudentsForm($data['count']) . ' на <i>' . $data['lesson_date'] . '</i>';
                 }
+
+                $pendingStudents = $model->getPendingWelcomeLessons();
+                if (!empty($pendingStudents)) {
+                    $text .= '<br>В ожидании: <b>' . $pendingStudents . '</b>';
+                }
+
+                return $text;
             },
         ],
     ],
