@@ -139,7 +139,14 @@ class MoneyComponent extends Component
             ->andWhere(['user_id' => $contract->user_id, 'course_id' => $contract->course_id, 'active' => CourseStudent::STATUS_ACTIVE])
             ->one();
         if (!$courseStudent && $studentStartDate) {
-            CourseComponent::addStudentToCourse($contract->user, $contract->course, $studentStartDate);
+            /** @var CourseStudent $inactiveStudent */
+            $inactiveStudent = CourseStudent::find()
+                ->andWhere(['user_id' => $contract->user_id, 'course_id' => $contract->course_id, 'active' => CourseStudent::STATUS_INACTIVE])
+                ->one();
+
+            if (empty($inactiveStudent) || $inactiveStudent->moneyLeft >= 0) {
+                CourseComponent::addStudentToCourse($contract->user, $contract->course, $studentStartDate);
+            }
         }
 
         $paymentId = self::registerIncome($payment);
