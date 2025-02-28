@@ -74,10 +74,10 @@ class MoneyComponent extends Component
         $contract->discount = $course->courseConfig->lesson_price_discount && $amount >= $course->courseConfig->price12Lesson
             ? Contract::STATUS_ACTIVE
             : Contract::STATUS_INACTIVE;
-        /** @var CourseStudent $courseStudent */
-        $courseStudent = CourseStudent::find()
-            ->andWhere(['user_id' => $student->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])
-            ->one();
+//        /** @var CourseStudent $courseStudent */
+//        $courseStudent = CourseStudent::find()
+//            ->andWhere(['user_id' => $student->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])
+//            ->one();
 //        if ($courseStudent) {
 //            $courseConfig = CourseComponent::getCourseConfig($courseStudent->course, $courseStudent->startDateObject);
 ////            if ($courseStudent->startDateObject->format('Y-m') === date('Y-m')) {

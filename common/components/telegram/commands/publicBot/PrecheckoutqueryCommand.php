@@ -63,9 +63,11 @@ class PrecheckoutqueryCommand extends SystemCommand
                 $user = User::findOne($payloadData['user_id']);
                 $course = Course::findOne($payloadData['course_id']);
                 if ($user && $course) {
-                    if (!empty(CourseStudent::find()
-                        ->andWhere(['user_id' => $user->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])
-                        ->one())) {
+                    /** @var CourseStudent $courseStudent */
+                    $courseStudent = CourseStudent::find()
+                        ->andWhere(['user_id' => $user->id, 'course_id' => $course->id])
+                        ->one();
+                    if (!empty($courseStudent) && ($courseStudent->active == CourseStudent::STATUS_ACTIVE || $courseStudent->moneyLeft < 0)) {
                         return $this->getPreCheckoutQuery()->answer(true);
                     }
                 }

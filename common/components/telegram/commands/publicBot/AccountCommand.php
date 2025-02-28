@@ -917,7 +917,7 @@ class AccountCommand extends UserCommand
         
         $buttons = $courseMap = [];
         foreach ($userResult->courseStudents as $courseStudent) {
-            if (!array_key_exists($courseStudent->course_id, $courseMap) && ($courseStudent->active || $courseStudent->moneyLeft < 0)) {
+            if (!array_key_exists($courseStudent->course_id, $courseMap) && ($courseStudent->active == CourseStudent::STATUS_ACTIVE || $courseStudent->moneyLeft < 0)) {
                 $courseMap[$courseStudent->course_id] = $courseStudent->course->courseConfig->legal_name;
                 $buttons[] = Entity::escapeMarkdownV2($courseStudent->course->courseConfig->legal_name);
             }
@@ -1104,9 +1104,9 @@ class AccountCommand extends UserCommand
                     if ($user && $course) {
                         /** @var CourseStudent $courseStudent */
                         $courseStudent = CourseStudent::find()
-                            ->andWhere(['user_id' => $user->id, 'course_id' => $course->id, 'active' => CourseStudent::STATUS_ACTIVE])
+                            ->andWhere(['user_id' => $user->id, 'course_id' => $course->id])
                             ->one();
-                        if ($courseStudent) {
+                        if (!empty($courseStudent)  && ($courseStudent->active == CourseStudent::STATUS_ACTIVE || $courseStudent->moneyLeft < 0)) {
                             $newContract = MoneyComponent::addStudentContract(Company::findOne(Company::COMPANY_EXCLUSIVE_ID), $user, (int) ($payment->getTotalAmount() / 100), $course);
                             MoneyComponent::payContract($newContract, null, Contract::PAYMENT_TYPE_TELEGRAM_PAYME, $payment->getTelegramPaymentChargeId());
                             $newContract->external_id = $payment->getProviderPaymentChargeId();
