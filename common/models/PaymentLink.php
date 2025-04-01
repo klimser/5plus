@@ -14,6 +14,7 @@ use yii\helpers\Url;
  * @property int    $user_id Студент
  * @property int    $course_id Группа
  * @property string $url
+ * @property string $urlV2
  *
  * @property User   $user
  * @property Course $course
@@ -70,5 +71,10 @@ class PaymentLink extends ActiveRecord
     public function getUrl(): string
     {
         return Url::to(['/payment/link', 'key' => $this->hash_key], true);
+    }
+
+    public function getUrlV2(): string
+    {
+        return Url::to(['/payment/link', 'key' => $this->hash_key, 'v' => 2], true);
     }
 }
