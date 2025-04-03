@@ -75,6 +75,6 @@ class PaymentLink extends ActiveRecord
 
     public function getUrlHardcoded(): string
     {
-        return Url::to('', true) . 'pay/' . $this->hash_key;
+        return Url::to('/', true) . 'pay/' . $this->hash_key;
     }
 }
