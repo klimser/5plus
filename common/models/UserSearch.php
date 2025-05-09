@@ -92,7 +92,7 @@ class UserSearch extends User
         ]);
 
         $query->andFilterWhere(['like', 'username', $this->username])
-            ->andFilterWhere(['like', 'name', $this->name]);
+            ->andFilterWhere(['or', ['like', 'name', $this->name], ['like', 'note', $this->name]]);
 
         return $dataProvider;
     }

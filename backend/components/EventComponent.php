@@ -16,6 +16,8 @@ use yii\base\Component;
 
 class EventComponent extends Component
 {
+    public const REDIS_CHARGE_GROUP_SET = 'charge_group';
+
     /**
      * @param Course   $course
      * @param DateTime $date

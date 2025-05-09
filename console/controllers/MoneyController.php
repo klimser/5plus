@@ -4,6 +4,7 @@ namespace console\controllers;
 
 use backend\components\EventComponent;
 use common\components\ComponentContainer;
+use common\components\MoneyComponent;
 use common\models\Course;
 use common\models\CourseStudent;
 use common\models\User;
@@ -66,6 +67,31 @@ class MoneyController extends Controller
                 ->logError('console/money-charge', $ex->getMessage(), true);
             $transaction?->rollBack();
             return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        return ExitCode::OK;
+    }
+
+    /**
+     * Charges students that are not charged yet.
+     * @return int
+     */
+    public function actionChargeGroups()
+    {
+        /** @var yii\redis\Connection $redis */
+        $redis = \Yii::$app->redisConnection;
+        while ($courseId = $redis->spop(EventComponent::REDIS_CHARGE_GROUP_SET, 1)) {
+            if ($course = Course::findOne($courseId)) {
+                foreach ($course->courseStudents as $courseStudent) {
+                    MoneyComponent::rechargeStudent($courseStudent->user, $courseStudent->course);
+                    MoneyComponent::setUserChargeDates($courseStudent->user, $courseStudent->course);
+                    MoneyComponent::recalculateDebt($courseStudent->user, $courseStudent->course);
+
+                    if ($courseStudent->user->getDebt($course)) {
+                        ComponentContainer::getBotPush()->lowBalance($courseStudent);
+                    }
+                }
+            }
         }
 
         return ExitCode::OK;

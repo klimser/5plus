@@ -136,14 +136,23 @@ class EventController extends AdminController
                     ->logError('event/change-status', $event->getErrorsAsString(), true);
                 throw new Exception('Server error');
             }
+            /** @var yii\redis\Connection $redis */
+            $redis = \Yii::$app->redisConnection;
+
             switch ($status) {
                 case Event::STATUS_PASSED:
-                    MoneyComponent::chargeByEvent($event);
+                    $queued = (bool) $redis->sadd(EventComponent::REDIS_CHARGE_GROUP_SET, $event->course_id);
+
+                    if (!$queued) {
+                        MoneyComponent::chargeByEvent($event);
+                    }
 
                     foreach ($event->members as $member) {
-                        MoneyComponent::setUserChargeDates($member->courseStudent->user, $event->course);
-                        if ($member->courseStudent->user->getDebt($member->courseStudent->course)) {
-                            ComponentContainer::getBotPush()->lowBalance($member->courseStudent);
+                        if (!$queued) {
+                            MoneyComponent::setUserChargeDates($member->courseStudent->user, $event->course);
+                            if ($member->courseStudent->user->getDebt($member->courseStudent->course)) {
+                                ComponentContainer::getBotPush()->lowBalance($member->courseStudent);
+                            }
                         }
                         if ($revertMemberStatuses) {
                             $member->status = EventMember::STATUS_UNKNOWN;
@@ -159,7 +168,9 @@ class EventController extends AdminController
                     ComponentContainer::getActionLogger()->log(Action::TYPE_EVENT_PASSED, null, null, $event->course, $event->event_date);
                     break;
                 case Event::STATUS_CANCELED:
-                    if ($recalculateCharges) {
+                    $queued = (bool) $redis->sadd(EventComponent::REDIS_CHARGE_GROUP_SET, $event->course_id);
+
+                    if (!$queued && $recalculateCharges) {
                         $event = EventComponent::addEvent($event->course, $event->eventDateTime);
                         if ($event) {
                             MoneyComponent::chargeByEvent($event);
@@ -168,10 +179,12 @@ class EventController extends AdminController
                     foreach ($event->members as $member) {
                         $member->status = EventMember::STATUS_MISS;
                         $member->save();
-                        if ($recalculateCharges) {
-                            MoneyComponent::rechargeStudent($member->courseStudent->user, $event->course);
+                        if (!$queued) {
+                            if ($recalculateCharges) {
+                                MoneyComponent::rechargeStudent($member->courseStudent->user, $event->course);
+                            }
+                            MoneyComponent::setUserChargeDates($member->courseStudent->user, $event->course);
                         }
-                        MoneyComponent::setUserChargeDates($member->courseStudent->user, $event->course);
                     }
                     foreach ($event->welcomeMembers as $welcomeMember) {
                         $welcomeMember->status = WelcomeLesson::STATUS_CANCELED;

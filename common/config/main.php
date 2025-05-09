@@ -183,7 +183,13 @@ return [
             'url' => $params['sms-api-url'],
             'login' => $params['sms-api-login'],
             'password' => $params['sms-api-password'],
-        ]
+        ],
+        'redisConnection' => [
+            'class' => \yii\redis\Connection::class,
+            'hostname' => 'localhost',
+            'port' => 6379,
+            'database' => 0,
+        ],
     ],
     'aliases' => [
         '@uploads' => '@frontend/web/uploads',
