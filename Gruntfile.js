@@ -1,7 +1,7 @@
 var path = require('path');
 
 module.exports = function(grunt) {
-    grunt.loadNpmTasks('grunt-contrib-sass');
+    // RIP sass TODO: implement something that works
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-uglify');

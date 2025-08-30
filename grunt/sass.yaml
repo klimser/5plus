@@ -1,16 +1,24 @@
 dev_back:
+  options:
+    implementation: require('sass')
+    sourceMap: true
   files:
     "backend/web/assets/grunt/css/main.css": "backend/resources/src/sass/main.scss"
 prod_back:
   options:
+    implementation: require('sass')
     style: compressed
   files:
     "backend/web/assets/grunt/css/main.css": "backend/resources/src/sass/main.scss"
 dev_front:
+  options:
+    implementation: require('sass')
+    sourceMap: true
   files:
     "frontend/web/assets/grunt/css/styles.css": "frontend/resources/src/sass/styles.sass"
 prod_front:
   options:
+    implementation: require('sass')
     style: compressed
   files:
     "frontend/web/assets/grunt/css/styles.css": "frontend/resources/src/sass/styles.sass"
