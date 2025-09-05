@@ -56,6 +56,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'teacher_id',
                 'format' => 'text',
+                'header' => 'Учитель',
                 'content' => static fn (Course $model, $key, $index, $column) => $model->courseConfig->teacher->name,
                 'filter' => Html::activeDropDownList(
                     $searchModel,

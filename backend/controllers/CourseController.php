@@ -728,7 +728,7 @@ class CourseController extends AdminController
             'subjectMap' => ArrayHelper::map(
                 Subject::find()->orderBy('name')->select(['id', 'name'])->asArray()->all(),
                 'id',
-                'name'
+                'name.ru',
             ),
             'teacherMap' => ArrayHelper::map(
                 Teacher::find()
