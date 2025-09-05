@@ -726,7 +726,7 @@ class CourseController extends AdminController
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
             'subjectMap' => ArrayHelper::map(
-                Subject::find()->orderBy('name')->select(['id', 'name'])->asArray()->all(),
+                Subject::find()->orderBy('name')->select(['id', 'name'])->all(),
                 'id',
                 'name.ru',
             ),
