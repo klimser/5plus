@@ -124,7 +124,7 @@ class WelcomeLessonReport
         $spreadsheet->getActiveSheet()->getStyle("D2:D$row")->getAlignment()->setWrapText(true);
         $spreadsheet->getActiveSheet()->getStyle("H2:H$row")->getAlignment()->setWrapText(true);
         for ($i = 1; $i <= 8; $i++) {
-            $spreadsheet->getActiveSheet()->getStyleByColumnAndRow($i, 2, $i, $row)->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
+            $spreadsheet->getActiveSheet()->getStyle([$i, 2, $i, $row])->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
             $spreadsheet->getActiveSheet()->getColumnDimensionByColumn($i)->setAutoSize(true);
         }
 

@@ -85,14 +85,14 @@ class GroupMovementReport
 
             $spreadsheet->getSheet($index)
                 ->setTitle($courseCategory->name)
-                ->setCellValueByColumnAndRow(1, 2, "№")
-                ->setCellValueByColumnAndRow(2, 2, "группа")
-                ->setCellValueByColumnAndRow(3, 2, "учитель")
-                ->setCellValueByColumnAndRow(4, 2, "в начале месяца")
-                ->setCellValueByColumnAndRow(5, 2, "прибыло")
-                ->setCellValueByColumnAndRow(6, 2, "убыло")
-                ->setCellValueByColumnAndRow(7, 2, "всего занималось")
-                ->setCellValueByColumnAndRow(8, 2, "в конце месяца");
+                ->setCellValue('A2', "№")
+                ->setCellValue('B2', "группа")
+                ->setCellValue('C2', "учитель")
+                ->setCellValue('D2', "в начале месяца")
+                ->setCellValue('E2', "прибыло")
+                ->setCellValue('F2', "убыло")
+                ->setCellValue('G2', "всего занималось")
+                ->setCellValue('H2', "в конце месяца");
         }
         $courseCollections = [];
         foreach ($courses as $course) {
@@ -102,14 +102,14 @@ class GroupMovementReport
             if (!array_key_exists($index, $courseCollections)) $courseCollections[$index] = [];
             $courseCollections[$index][] = $course->id;
             $spreadsheet->getSheet($index)
-                ->setCellValueByColumnAndRow(1, $rows[$index], $nums[$index])
-                ->setCellValueByColumnAndRow(2, $rows[$index], $courseConfig->name)
-                ->setCellValueByColumnAndRow(3, $rows[$index], $courseConfig->teacher->name)
-                ->setCellValueByColumnAndRow(4, $rows[$index], array_key_exists($course->id, $startStudentCount) ? $startStudentCount[$course->id] : 0)
-                ->setCellValueByColumnAndRow(5, $rows[$index], array_key_exists($course->id, $inStudentCount) ? $inStudentCount[$course->id] : 0)
-                ->setCellValueByColumnAndRow(6, $rows[$index], array_key_exists($course->id, $outStudentCount) ? $outStudentCount[$course->id] : 0)
-                ->setCellValueByColumnAndRow(7, $rows[$index], array_key_exists($course->id, $totalStudentCount) ? $totalStudentCount[$course->id] : 0)
-                ->setCellValueByColumnAndRow(8, $rows[$index], array_key_exists($course->id, $endStudentCount) ? $endStudentCount[$course->id] : 0);
+                ->setCellValue('A' . $rows[$index], $nums[$index])
+                ->setCellValue('B' . $rows[$index], $courseConfig->name)
+                ->setCellValue('C' . $rows[$index], $courseConfig->teacher->name)
+                ->setCellValue('D' . $rows[$index], array_key_exists($course->id, $startStudentCount) ? $startStudentCount[$course->id] : 0)
+                ->setCellValue('E' . $rows[$index], array_key_exists($course->id, $inStudentCount) ? $inStudentCount[$course->id] : 0)
+                ->setCellValue('F' . $rows[$index], array_key_exists($course->id, $outStudentCount) ? $outStudentCount[$course->id] : 0)
+                ->setCellValue('G' . $rows[$index], array_key_exists($course->id, $totalStudentCount) ? $totalStudentCount[$course->id] : 0)
+                ->setCellValue('H' . $rows[$index], array_key_exists($course->id, $endStudentCount) ? $endStudentCount[$course->id] : 0);
             $nums[$index]++;
             $rows[$index]++;
         }
@@ -117,7 +117,7 @@ class GroupMovementReport
         foreach ($courseCollections as $index => $courseIds) {
             $row = $rows[$index] - 1;
 
-            $spreadsheet->getSheet($index)->getStyleByColumnAndRow(1, 2, 8, $row)->applyFromArray([
+            $spreadsheet->getSheet($index)->getStyle([1, 2, 8, $row])->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -198,35 +198,35 @@ class GroupMovementReport
                 ->select('COUNT(DISTINCT user_id)')
                 ->scalar();
 
-            $spreadsheet->getSheet($index)->getStyleByColumnAndRow(1, $row, 7, $row + 4)
+            $spreadsheet->getSheet($index)->getStyle([1, $row, 7, $row + 4])
                 ->getFont()->setBold(true);
 
             $spreadsheet->getSheet($index)
-                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
-                ->setCellValueByColumnAndRow(1, $row, "Итого новых студентов: $totalIn");
+                ->mergeCells([1, $row, 7, $row])
+                ->setCellValue([1, $row], "Итого новых студентов: $totalIn");
             $row++;
             
             $spreadsheet->getSheet($index)
-                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
-                ->setCellValueByColumnAndRow(1, $row, "Начали заниматься в группах (для бонуса): $totalNewCourseStudent");
+                ->mergeCells([1, $row, 7, $row])
+                ->setCellValue([1, $row], "Начали заниматься в группах (для бонуса): $totalNewCourseStudent");
             $row++;
             
             $spreadsheet->getSheet($index)
-                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
-                ->setCellValueByColumnAndRow(1, $row, "Итого ушли из учебного центра: $totalOut");
+                ->mergeCells([1, $row, 7, $row])
+                ->setCellValue([1, $row], "Итого ушли из учебного центра: $totalOut");
             $row++;
 
             $spreadsheet->getSheet($index)
-                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
-                ->setCellValueByColumnAndRow(1, $row, "В начале месяца было $startUsers человек - $startStudents студентов в гуппах");
+                ->mergeCells([1, $row, 7, $row])
+                ->setCellValue([1, $row], "В начале месяца было $startUsers человек - $startStudents студентов в гуппах");
             $row++;
             $spreadsheet->getSheet($index)
-                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
-                ->setCellValueByColumnAndRow(1, $row, "В этом месяце занималось $totalUsers человек - $totalStudents студентов в гуппах");
+                ->mergeCells([1, $row, 7, $row])
+                ->setCellValue([1, $row], "В этом месяце занималось $totalUsers человек - $totalStudents студентов в гуппах");
             $row++;
             $spreadsheet->getSheet($index)
-                ->mergeCellsByColumnAndRow(1, $row, 7, $row)
-                ->setCellValueByColumnAndRow(1, $row, "В конце месяца было $finalUsers человек - $finalStudents студентов в гуппах");
+                ->mergeCells([1, $row, 7, $row])
+                ->setCellValue([1, $row], "В конце месяца было $finalUsers человек - $finalStudents студентов в гуппах");
         }
 
         return $spreadsheet;

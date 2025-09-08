@@ -76,16 +76,16 @@ class CashReport
         $row = 3;
         foreach ($adminSumMap as $adminId => $sum) {
             $spreadsheet->getActiveSheet()
-                ->setCellValueByColumnAndRow(1, $row, $adminMap[$adminId])
-                ->setCellValueExplicitByColumnAndRow(2, $row, $sum, DataType::TYPE_NUMERIC);
+                ->setCellValue('A' . $row, $adminMap[$adminId])
+                ->setCellValueExplicit('B' . $row, $sum, DataType::TYPE_NUMERIC);
             $totalCash += $sum;
             $row++;
         }
 
         $spreadsheet->getActiveSheet()
-            ->setCellValueByColumnAndRow(1, $row, 'Итого')
-            ->setCellValueExplicitByColumnAndRow(2, $row, $totalCash, DataType::TYPE_NUMERIC);
-        $spreadsheet->getActiveSheet()->getStyleByColumnAndRow(1, $row, 2, $row)
+            ->setCellValue('A' . $row, 'Итого')
+            ->setCellValueExplicit('B' . $row, $totalCash, DataType::TYPE_NUMERIC);
+        $spreadsheet->getActiveSheet()->getStyle([1, $row, 2, $row])
             ->getFont()->setBold(true)->setSize(12);
 
         $spreadsheet->getActiveSheet()->getColumnDimensionByColumn(1)->setAutoSize(true);
