@@ -361,6 +361,57 @@ class EventController extends AdminController
         ]);
     }
 
+    public function actionTable2()
+    {
+        $startDate = new \DateTimeImmutable(in_array(date('w'), ['0', '1']) ? 'this Monday' : 'previous Monday');
+        $endDate = $startDate->modify('+7 days midnight');
+        /** @var CourseConfig[] $configs */
+        $configs = CourseConfig::find()
+            ->andWhere(['<=', 'date_from', $endDate->format('Y-m-d')])
+            ->andWhere(['OR', ['>=', 'date_to', $startDate->format('Y-m-d')], ['date_to' => null]])
+            ->with('course')
+            ->all();
+        /** @var array<int,array<string,array<string,CourseConfig>>> $configMap */
+        $configMap = [];
+        $oneDayInterval = new \DateInterval('P1D');
+        foreach ($configs as $config) {
+            for ($date = \DateTime::createFromImmutable($startDate); $date < $endDate; $date->add($oneDayInterval)) {
+                if ($config->hasLesson($date)) {
+                    $configMap[$config->room_number][$date->format('Y-m-d')][] = $config;
+                }
+            }
+        }
+        $timeIntervalMap = [];
+        $teacherIdSet = [];
+        foreach ($configMap as $room => $configData) {
+            $timeIntervalSet = [];
+            foreach ($configData as $day => $configs) {
+                $configByInterval = [];
+                foreach ($configs as $config) {
+                    $lessonStart = new \DateTimeImmutable($config->getLessonDateTime(new \DateTimeImmutable($day)));
+                    $lessonEnd = $lessonStart->modify('+ ' . $config->lesson_duration . ' minutes');
+                    $timeInterval = $lessonStart->format('H:i') . '-' . $lessonEnd->format('H:i');
+                    $timeIntervalSet[$timeInterval] = true;
+                    $teacherIdSet[$config->teacher_id] = true;
+                    $configByInterval[$timeInterval] = $config;
+                }
+                uksort($configByInterval, static fn ($a, $b) => $a <=> $b);
+                $configMap[$room][$day] = $configByInterval;
+            }
+            $timeIntervalMap[$room] = array_keys($timeIntervalSet);
+            sort($timeIntervalMap[$room]);
+        }
+        ksort($configMap);
+
+        return $this->render('table2', [
+            'configMap' => $configMap,
+            'teacherMap' => yii\helpers\ArrayHelper::map(Teacher::find()->andWhere(['id' => array_keys($teacherIdSet)])->asArray()->all(), 'id', 'name'),
+            'timeIntervalMap' => $timeIntervalMap,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
+    }
+
     /**
      * Finds the Event model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.

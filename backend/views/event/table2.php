@@ -5,8 +5,9 @@ use yii\bootstrap4\Html;
 use common\components\helpers\Calendar;
 
 /* @var $this yii\web\View */
-/* @var $configMap array<int,array{intervals:string[],configs:array<string,array<string,CourseConfig>>}> */
+/* @var $configMap array<int,array<string,array<string,CourseConfig>>> */
 /* @var $teacherMap array<int,string> */
+/* @var $timeIntervalMap array<string,string[]> */
 /* @var $startDate \DateTimeImmutable */
 /* @var $endDate \DateTimeImmutable */
 
@@ -39,33 +40,33 @@ $oneDayInterval = new \DateInterval('P1D');
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($configMap as $teacherId => $configData): ?>
+            <?php foreach ($configMap as $room => $configs): ?>
                 <tr>
-                    <td rowspan="<?= count($configData['intervals']) + 1; ?>" class="font-weight-bold">
-                        <?= implode(', ', $configData['rooms']); ?> <?= $teacherMap[$teacherId]; ?>
+                    <td rowspan="<?= count($timeIntervalMap[$room]) + 1; ?>" class="font-weight-bold">
+                        <?= $room; ?>
                     </td>
                 </tr>
-                <?php foreach ($configData['intervals'] as $interval): ?>
+                <?php foreach ($timeIntervalMap[$room] as $interval): ?>
                     <tr>
                         <td class="font-weight-bold font-italic">
                             <nobr><?= $interval; ?></nobr>
                         </td>
                         <?php for ($date = \DateTime::createFromImmutable($startDate); $date < $endDate; $date->add($oneDayInterval)): ?>
-                            <?php if (!isset($configData['configs'][$date->format('Y-m-d')][$interval])): ?> <td></td>
+                            <?php if (!isset($configs[$date->format('Y-m-d')][$interval])): ?> <td></td>
                             <?php else: ?>
                                 <td class="p-1 <?php
-                                    if (preg_match('#.*тест.*#iu',$configData['configs'][$date->format('Y-m-d')][$interval]->name)) {
+                                    if (preg_match('#.*тест.*#iu',$configs[$date->format('Y-m-d')][$interval]->name)) {
                                         echo 'schedule-bg-yellow';
                                     } else {
-                                        switch ($configData['configs'][$date->format('Y-m-d')][$interval]->course->category_id) {
+                                        switch ($configs[$date->format('Y-m-d')][$interval]->course->category_id) {
                                                 case 1: echo 'schedule-bg-blue'; break;
                                             case 2: echo 'schedule-bg-orange'; break;
                                             case 3: echo 'schedule-bg-green'; break;
                                         }
                                     }
                                 ?>">
-                                    <?= $configData['configs'][$date->format('Y-m-d')][$interval]->name; ?>
-                                    <span class="badge badge-info"><?= $configData['configs'][$date->format('Y-m-d')][$interval]->room_number; ?></span>
+                                    <?= $configs[$date->format('Y-m-d')][$interval]->name; ?>
+                                    <small><?= $teacherMap[$configs[$date->format('Y-m-d')][$interval]->teacher_id]; ?></small>
                                 </td>
                             <?php endif; ?>
                         <?php endfor; ?>
