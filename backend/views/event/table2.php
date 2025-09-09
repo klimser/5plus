@@ -29,8 +29,8 @@ $oneDayInterval = new \DateInterval('P1D');
     <table class="table table-hover table-condensed table-bordered small schedule-table">
         <thead>
             <tr>
-                <th></th>
-                <th></th>
+                <th>Кабинет</th>
+                <th>Время</th>
                 <?php for ($date = \DateTime::createFromImmutable($startDate); $date < $endDate; $date->add($oneDayInterval)): ?>
                     <th scope="col" class="text-center font-italic">
                         <?= Calendar::$weekDays[$date->format('w')]; ?><br>
