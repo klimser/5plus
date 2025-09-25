@@ -322,55 +322,6 @@ class EventController extends AdminController
             ->andWhere(['OR', ['>=', 'date_to', $startDate->format('Y-m-d')], ['date_to' => null]])
             ->with('course')
             ->all();
-        /** @var array<int,array{intervals:string[],configs:array<string,array<string,CourseConfig>>,rooms:string[]}> $configMap */
-        $configMap = [];
-        $oneDayInterval = new \DateInterval('P1D');
-        foreach ($configs as $config) {
-            for ($date = \DateTime::createFromImmutable($startDate); $date < $endDate; $date->add($oneDayInterval)) {
-                if ($config->hasLesson($date)) {
-                    $configMap[$config->teacher_id]['configs'][$date->format('Y-m-d')][] = $config;
-                }
-            }
-        }
-        foreach ($configMap as $teacherId => $configData) {
-            $timeIntervalSet = [];
-            $roomSet = [];
-            foreach ($configData['configs'] as $date => $configs) {
-                $configByInterval = [];
-                foreach ($configs as $config) {
-                    $lessonStart = new \DateTimeImmutable($config->getLessonDateTime(new \DateTimeImmutable($date)));
-                    $lessonEnd = $lessonStart->modify('+ ' . $config->lesson_duration . ' minutes');
-                    $timeInterval = $lessonStart->format('H:i') . '-' . $lessonEnd->format('H:i');
-                    $timeIntervalSet[$timeInterval] = true;
-                    $roomSet[$config->room_number] = true;
-                    $configByInterval[$timeInterval] = $config;
-                }
-                $configMap[$teacherId]['configs'][$date] = $configByInterval;
-            }
-            ksort($timeIntervalSet);
-            $configMap[$teacherId]['intervals'] = array_keys($timeIntervalSet);
-            ksort($roomSet);
-            $configMap[$teacherId]['rooms'] = array_filter(array_keys($roomSet));
-        }
-
-        return $this->render('table', [
-            'configMap' => $configMap,
-            'teacherMap' => yii\helpers\ArrayHelper::map(Teacher::find()->andWhere(['id' => array_keys($configMap)])->asArray()->all(), 'id', 'name'),
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-        ]);
-    }
-
-    public function actionTable2()
-    {
-        $startDate = new \DateTimeImmutable(in_array(date('w'), ['0', '1']) ? 'this Monday' : 'previous Monday');
-        $endDate = $startDate->modify('+7 days midnight');
-        /** @var CourseConfig[] $configs */
-        $configs = CourseConfig::find()
-            ->andWhere(['<=', 'date_from', $endDate->format('Y-m-d')])
-            ->andWhere(['OR', ['>=', 'date_to', $startDate->format('Y-m-d')], ['date_to' => null]])
-            ->with('course')
-            ->all();
         /** @var array<int,array<string,array<string,CourseConfig>>> $configMap */
         $configMap = [];
         $oneDayInterval = new \DateInterval('P1D');
@@ -398,12 +349,26 @@ class EventController extends AdminController
                 uksort($configByInterval, static fn ($a, $b) => $a <=> $b);
                 $configMap[$room][$day] = $configByInterval;
             }
-            $timeIntervalMap[$room] = array_keys($timeIntervalSet);
-            sort($timeIntervalMap[$room]);
+            $timeIntervalList = array_keys($timeIntervalSet);
+            sort($timeIntervalList);
+            $timeIntervalMap[$room] = [];
+            foreach ($timeIntervalList as $pos => $timeInterval) {
+                if (0 != $pos) {
+                    $prevTime = new \DateTimeImmutable('today ' . trim(strstr($timeIntervalList[$pos - 1], '-'), '-'));
+                    $currTime = new \DateTimeImmutable('today ' . strstr($timeInterval, '-', true));
+                    if ($currTime > $prevTime) {
+                        $diff = $currTime->diff($prevTime);
+                        if ($diff->h > 0 || $diff->i > 30) {
+                            $timeIntervalMap[$room][] = $prevTime->format('H:i') . '-' . $currTime->format('H:i');
+                        }
+                    }
+                }
+                $timeIntervalMap[$room][] = $timeInterval;
+            }
         }
         ksort($configMap);
 
-        return $this->render('table2', [
+        return $this->render('table', [
             'configMap' => $configMap,
             'teacherMap' => yii\helpers\ArrayHelper::map(Teacher::find()->andWhere(['id' => array_keys($teacherIdSet)])->asArray()->all(), 'id', 'name'),
             'timeIntervalMap' => $timeIntervalMap,
