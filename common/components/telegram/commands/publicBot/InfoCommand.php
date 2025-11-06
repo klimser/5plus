@@ -116,28 +116,12 @@ class InfoCommand extends UserCommand
         if (($conversation->notes['step'] ?? 0) > 2) {
             return $this->stepBack($conversation);
         }
-        
-        $priceWebpage = Webpage::findOne(['url' => Page::PRICE_PAGE_URL]);
-        $link = '//5plus.uz';
-        if ($priceWebpage) {
-            $link .= '/' . $priceWebpage->url;
-            $pricePage = Page::findOne(['webpage_id' => $priceWebpage->id]);
-            if ($pricePage) {
-                $content = $pricePage->content;
-                if (preg_match('#<a[^>]+href=[\'"]([^\'"]+)[\'"]#', $content, $matches)) {
-                    $link = $matches[1];
-                }
-            }
-        }
-        if (preg_match('#^\/\/#', $link)) {
-            $link = "https:$link";
-        }
-        
+
         $conversation->notes['step']--;
         $conversation->update();
         return [
             'parse_mode' => 'MarkdownV2',
-            'text' => sprintf(PublicMain::INFO_STEP_2_PRICE_TEXT, $link),
+            'text' => sprintf(PublicMain::INFO_STEP_2_PRICE_TEXT, "https://5plus.uz/ru/price"),
         ];
     }
 

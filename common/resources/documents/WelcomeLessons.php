@@ -108,7 +108,7 @@ class WelcomeLessons
                 }
                 $y += 15;
                 $this->_doc->SetXY($xLeft + 5, $y);
-                $this->_doc->Write(6, 'Цена - ' . $welcomeLesson->courseConfig->lesson_price_discount . ' за 1 занятие');
+                $this->_doc->Write(6, 'Цена - ' . ($welcomeLesson->courseConfig->lesson_price_discount * 12) . ' за 12 занятий');
                 $y += 6;
                 $this->_doc->SetXY($xLeft + 5, $y);
                 $this->_doc->Write(6, 'При оплате менее 12 занятий - ' . $welcomeLesson->courseConfig->lesson_price . ' за 1 занятие');
