@@ -891,29 +891,24 @@ class AccountCommand extends UserCommand
             $this->removeNote($conversation, 'userId');
         }
 
-        $userResult = $this->processUserSelect($conversation);
+        if (isset($conversation->notes['userId'])) {
+            $user = User::find()
+                ->andWhere(['id' => $conversation->notes['userId'], 'tg_chat_id' => $this->getMessage()->getChat()->getId()])
+                ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
+                ->one();
+        }
+        $userResult = $user ?? $this->processUserSelect($conversation);
         $this->addNote($conversation, 'step2', PublicMain::BUTTON_PAY);
 
         if (!$userResult instanceof User) {
-            if (isset($conversation->notes['userId'])) {
-                $user = User::find()
-                    ->andWhere(['id' => $conversation->notes['userId'], 'tg_chat_id' => $this->getMessage()->getChat()->getId()])
-                    ->andWhere(['not', ['status' => User::STATUS_LOCKED]])
-                    ->one();
-            }
-            if (isset($user)) {
-                $userResult = $user;
-            } else {
-                return $userResult;
-            }
+            return $userResult;
         }
 
         if (!$userResult->isAgeConfirmed()) {
             return $this->processAgeConfirmation($conversation, $userResult);
         }
-        
-        $this->addNote($conversation, 'userId', $userResult->id);
 
+        $this->addNote($conversation, 'userId', $userResult->id);
         
         $buttons = $courseMap = [];
         foreach ($userResult->courseStudents as $courseStudent) {
