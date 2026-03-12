@@ -70,6 +70,7 @@ class Contract extends ActiveRecord
     public const PAYMENT_TYPE_MANUAL_STUDENT = 16;
     public const PAYMENT_TYPE_APP_APELSIN = 17;
     public const PAYMENT_TYPE_PAYNET = 18;
+    public const PAYMENT_TYPE_IPAK_YULI = 19;
 
     public const STATUS_LABELS = [
         self::STATUS_NEW => 'не оплачен',
@@ -97,6 +98,7 @@ class Contract extends ActiveRecord
         self::PAYMENT_TYPE_MANUAL_STUDENT => 'Перевод от другого студента',
         self::PAYMENT_TYPE_APP_APELSIN => 'Uzum приложение',
         self::PAYMENT_TYPE_PAYNET => 'Paynet',
+        self::PAYMENT_TYPE_IPAK_YULI => 'Ipak Yuli',
     ];
 
     public const MANUAL_PAYMENT_TYPES = [
@@ -153,6 +155,7 @@ class Contract extends ActiveRecord
                 self::PAYMENT_TYPE_MANUAL_STUDENT,
                 self::PAYMENT_TYPE_APP_APELSIN,
                 self::PAYMENT_TYPE_PAYNET,
+                self::PAYMENT_TYPE_IPAK_YULI,
             ]],
             [['user_id'], 'exist', 'targetRelation' => 'user'],
             [['course_id'], 'exist', 'targetRelation' => 'course'],
