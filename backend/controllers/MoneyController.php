@@ -346,6 +346,9 @@ class MoneyController extends AdminController
         $date = new DateTimeImmutable("$year-$month-01 midnight");
         if ($course) {
             $course = Course::findOne($course);
+            if ($date < $course->startDateObject) {
+                $date = $course->startDateObject;
+            }
             $courseConfig = CourseComponent::getCourseConfig($course, $date);
             if (!$course) throw new NotFoundHttpException('Course not found');
             try {
