@@ -131,10 +131,9 @@ class InfoCommand extends UserCommand
         /** @var BotSubject[] $subjects */
         $subjects = BotSubject::find()->orderBy(new Expression('name->>"$.ru" ASC'))->all();
 
-//        $textLines = ['*' . Entity::escapeMarkdownV2(PublicMain::INFO_STEP_3_SUBJECT_TEXT) . '*'];
         $textLines = [];
         foreach ($subjects as $subject) {
-            $textLines[] = "[{$subject->name['ru']}](https://5plus.uz/ru{$subject->url})";
+            $textLines[] = '[' . Entity::escapeMarkdownV2($subject->name['ru']) . "](https://5plus.uz/ru{$subject->url})";
         }
         $conversation->notes['step']--;
         $conversation->update();
