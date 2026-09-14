@@ -2,24 +2,21 @@
 
 namespace Longman\TelegramBot\Commands\UserCommands;
 
-use backend\models\TeacherSubjectLink;
 use common\components\telegram\commands\ConversationTrait;
 use common\components\telegram\commands\StepableTrait;
-use Longman\TelegramBot\Entities\Entity;
-use Longman\TelegramBot\Request;
 use common\components\telegram\text\PublicMain;
-use common\models\Page;
-use common\models\Subject;
-use common\models\SubjectCategory;
-use common\models\Teacher;
-use common\models\Webpage;
+use common\models\BotSubject;
+use common\models\BotTeacher;
+use common\models\BotTeacherSubject;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Conversation;
+use Longman\TelegramBot\Entities\Entity;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Exception\TelegramException;
+use Longman\TelegramBot\Request;
 
 /**
  * User "/help" command
@@ -29,19 +26,22 @@ use Longman\TelegramBot\Exception\TelegramException;
 class InfoCommand extends UserCommand
 {
     use StepableTrait, ConversationTrait;
-    
+
     /**
      * @var string
      */
     protected $name = 'info';
+
     /**
      * @var string
      */
     protected $description = 'Вся информация о Вашем учебном центре "5 с плюсом"';
+
     /**
      * @var string
      */
     protected $usage = '/info';
+
     /**
      * @var string
      */
@@ -57,12 +57,13 @@ class InfoCommand extends UserCommand
         if ($result instanceof ServerResponse) {
             return $result;
         }
-        
+
         return Request::sendMessage(array_merge(['chat_id' => $this->getMessage()->getChat()->getId()], $result));
     }
 
     /**
      * @param Conversation $conversation
+     *
      * @return array|ServerResponse|mixed
      * @throws TelegramException
      */
@@ -72,45 +73,43 @@ class InfoCommand extends UserCommand
         switch ($conversation->notes['step']) {
             case 1:
                 $this->removeNote($conversation, 'step2');
-                $buttons = [
-                    PublicMain::INFO_STEP_BUTTON_TEACHERS,
-                    PublicMain::INFO_STEP_BUTTON_SUBJECTS,
-                    PublicMain::INFO_STEP_BUTTON_PRICES,
-                    [PublicMain::TO_BACK, PublicMain::TO_MAIN],
-                ];
-                $keyboard = new Keyboard(...$buttons);
-                $keyboard->setResizeKeyboard(true)->setSelective(false);
+                $keyboard = $this->getMainKeyboard();
+
                 return [
                     'parse_mode' => 'MarkdownV2',
                     'text' => Entity::escapeMarkdownV2(PublicMain::INFO_STEP_1_TEXT),
                     'reply_markup' => $keyboard,
                 ];
-                break;
             default:
                 $parameter = $message->getText();
                 if (array_key_exists('step2', $conversation->notes)) {
                     $parameter = $conversation->notes['step2'];
                     $this->removeNote($conversation, 'step2');
                 }
-                
-                switch ($parameter) {
-                    case PublicMain::INFO_STEP_BUTTON_PRICES:
-                        return $this->processPrices($conversation);
-                        break;
-                    case PublicMain::INFO_STEP_BUTTON_SUBJECTS:
-                        return $this->processSubjects($conversation);
-                        break;
-                    case PublicMain::INFO_STEP_BUTTON_TEACHERS:
-                        return $this->processTeachers($conversation);
-                        break;
-                    default:
-                        return $this->stepBack($conversation);
-                        break;
-                }
-                break;
+
+                return match ($parameter) {
+                    PublicMain::INFO_STEP_BUTTON_PRICES => $this->processPrices($conversation),
+                    PublicMain::INFO_STEP_BUTTON_SUBJECTS => $this->processSubjects($conversation),
+                    PublicMain::INFO_STEP_BUTTON_TEACHERS => $this->processTeachers($conversation),
+                    default => $this->stepBack($conversation),
+                };
         }
     }
-    
+
+    private function getMainKeyboard()
+    {
+        $buttons = [
+            PublicMain::INFO_STEP_BUTTON_TEACHERS,
+            PublicMain::INFO_STEP_BUTTON_SUBJECTS,
+            PublicMain::INFO_STEP_BUTTON_PRICES,
+            [PublicMain::TO_BACK, PublicMain::TO_MAIN],
+        ];
+        $keyboard = new Keyboard(...$buttons);
+        $keyboard->setResizeKeyboard(true)->setSelective(false);
+
+        return $keyboard;
+    }
+
     private function processPrices(Conversation $conversation)
     {
         if (($conversation->notes['step'] ?? 0) > 2) {
@@ -119,6 +118,7 @@ class InfoCommand extends UserCommand
 
         $conversation->notes['step']--;
         $conversation->update();
+
         return [
             'parse_mode' => 'MarkdownV2',
             'text' => sprintf(PublicMain::INFO_STEP_2_PRICE_TEXT, "https://5plus.uz/ru/price"),
@@ -127,131 +127,96 @@ class InfoCommand extends UserCommand
 
     private function processSubjects(Conversation $conversation)
     {
-        switch ($conversation->notes['step'] ?? 0) {
-            case 2:
-                $this->addNote($conversation, 'step2', PublicMain::INFO_STEP_BUTTON_SUBJECTS);
-                
-                /** @var SubjectCategory[] $activeCategories */
-                $activeCategories = SubjectCategory::find()
-                    ->joinWith('activeSubjects', true, 'INNER JOIN')
-                    ->with('activeSubjects.webpage')
-                    ->all();
-                $buttons = [];
-                foreach ($activeCategories as $category) {
-                    $buttons[] = $category->name;
-                }
-                $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
-                $keyboard = new Keyboard(...$buttons);
-                $keyboard->setResizeKeyboard(true)->setSelective(false);
-                return [
-                    'parse_mode' => 'MarkdownV2',
-                    'text' => Entity::escapeMarkdownV2(PublicMain::INFO_STEP_2_SUBJECT_TEXT),
-                    'reply_markup' => $keyboard,
-                ];
-            case 3:
-                $this->addNote($conversation, 'step2', PublicMain::INFO_STEP_BUTTON_SUBJECTS);
-                
-                /** @var SubjectCategory $category */
-                $category = SubjectCategory::find()
-                    ->andWhere(['name' => $this->getMessage()->getText()])
-                    ->with('activeSubjects.webpage')
-                    ->one();
-                if (!$category) {
-                    return $this->stepBack($conversation);
-                }
+        /** @var BotSubject[] $subjects */
+        $subjects = BotSubject::find()->orderBy('name->"$.ru" ASC')->all();
 
-                $textLines = ['*' . Entity::escapeMarkdownV2(PublicMain::INFO_STEP_3_SUBJECT_TEXT) . '*'];
-                foreach ($category->activeSubjects as $subject) {
-                    $textLines[] = "[{$subject->name['ru']}](https://5plus.uz/{$subject->webpage->url})";
-                }
-
-                $buttons = [[PublicMain::TO_BACK, PublicMain::TO_MAIN]];
-                $keyboard = new Keyboard(...$buttons);
-                $keyboard->setResizeKeyboard(true)->setSelective(false);
-
-                return [
-                    'parse_mode' => 'MarkdownV2',
-                    'disable_web_page_preview' => true,
-                    'text' => implode("\n", $textLines),
-                    'reply_markup' => $keyboard,
-                ];
+//        $textLines = ['*' . Entity::escapeMarkdownV2(PublicMain::INFO_STEP_3_SUBJECT_TEXT) . '*'];
+        $textLines = [];
+        foreach ($subjects as $subject) {
+            $textLines[] = "[{$subject->name['ru']}](https://5plus.uz/ru{$subject->url})";
         }
-        return $this->stepBack($conversation);
+        $conversation->notes['step']--;
+        $conversation->update();
+
+        return [
+            'parse_mode' => 'MarkdownV2',
+            'disable_web_page_preview' => true,
+            'text' => implode("\n", $textLines),
+            'reply_markup' => $this->getMainKeyboard(),
+        ];
     }
-    
+
     private function processTeachers(Conversation $conversation)
     {
         switch ($conversation->notes['step'] ?? 0) {
             case 2:
                 $this->addNote($conversation, 'step2', PublicMain::INFO_STEP_BUTTON_TEACHERS);
-                
-                /** @var Subject[] $activeSubjects */
-                $activeSubjects = Subject::find()
-                    ->joinWith('subjectTeachers.teacher')
-                    ->andWhere([
-                        Teacher::tableName() . '.page_visibility' => Teacher::STATUS_ACTIVE,
-                        Teacher::tableName() . '.active' => Teacher::STATUS_ACTIVE,
-                        Subject::tableName() . '.active' => Subject::STATUS_ACTIVE,
-                    ])
+
+                $subjectIds = BotTeacherSubject::find()
+                    ->select('subject_id')
+                    ->distinct()
+                    ->column();
+
+                /** @var BotSubject[] $subjects */
+                $subjects = BotSubject::find()
+                    ->andWhere(['in', 'id', $subjectIds])
+                    ->orderBy('name->"$.ru" ASC')
                     ->all();
                 $buttons = [];
-                foreach ($activeSubjects as $subject) {
+                foreach ($subjects as $subject) {
                     $buttons[] = $subject->name['ru'];
                 }
 
-                $officeStaffCount = Teacher::find()
-                    ->leftJoin(TeacherSubjectLink::tableName(), Teacher::tableName() . '.id = ' . TeacherSubjectLink::tableName() . '.teacher_id')
-                    ->andWhere([
-                        TeacherSubjectLink::tableName() . '.id' => null,
-                        Teacher::tableName() . '.page_visibility' => Teacher::STATUS_ACTIVE,
-                        Teacher::tableName() . '.active' => Teacher::STATUS_ACTIVE,
-                    ])
-                    ->count(Teacher::tableName() . '.id');
+                $officeStaffCount = BotTeacher::find()
+                    ->leftJoin(BotTeacherSubject::tableName(), BotTeacher::tableName() . '.id = ' . BotTeacherSubject::tableName() . '.teacher_id')
+                    ->andWhere([BotTeacherSubject::tableName() . '.id' => null])
+                    ->count(BotTeacher::tableName() . '.id');
                 if ($officeStaffCount > 0) {
                     $buttons[] = 'Администрация';
                 }
                 $buttons[] = [PublicMain::TO_BACK, PublicMain::TO_MAIN];
                 $keyboard = new Keyboard(...$buttons);
                 $keyboard->setResizeKeyboard(true)->setSelective(false);
+
                 return [
                     'parse_mode' => 'MarkdownV2',
                     'text' => Entity::escapeMarkdownV2(PublicMain::INFO_STEP_2_TEACHER_TEXT),
                     'reply_markup' => $keyboard,
                 ];
-                break;
             case 3:
                 $this->addNote($conversation, 'step2', PublicMain::INFO_STEP_BUTTON_TEACHERS);
                 $subjectName = $this->getMessage()->getText();
-                
+
                 if ($subjectName === 'Администрация') {
                     $text = PublicMain::INFO_STEP_3_TEACHER_TEXT_OFFICE;
 
-                    $teachers = Teacher::find()
-                        ->leftJoin(TeacherSubjectLink::tableName(), Teacher::tableName() . '.id = ' . TeacherSubjectLink::tableName() . '.teacher_id')
-                        ->andWhere([
-                            TeacherSubjectLink::tableName() . '.id' => null,
-                            Teacher::tableName() . '.page_visibility' => Teacher::STATUS_ACTIVE,
-                            Teacher::tableName() . '.active' => Teacher::STATUS_ACTIVE,
-                        ])
-                        ->orWhere([Teacher::tableName() . '.id' => Teacher::CHIEF_OF_THE_BOARD_ID])
-                        ->orderBy([Teacher::tableName() . '.page_order' => SORT_ASC, Teacher::tableName() . '.name' => SORT_ASC])
+                    /** @var BotTeacher[] $teachers */
+                    $teachers = BotTeacher::find()
+                        ->leftJoin(BotTeacherSubject::tableName(), BotTeacher::tableName() . '.id = ' . BotTeacherSubject::tableName() . '.teacher_id')
+                        ->andWhere([BotTeacherSubject::tableName() . '.id' => null])
+                        ->orWhere([BotTeacher::tableName() . '.id' => BotTeacher::CHIEF_OF_THE_BOARD_ID])
+                        ->orderBy([BotTeacher::tableName() . '.name->"$.ru"' => SORT_ASC])
                         ->all();
                 } else {
                     $text = PublicMain::INFO_STEP_3_TEACHER_TEXT;
-                    
-                    /** @var Subject $subject */
-                    $subject = Subject::find()
+
+                    /** @var BotSubject $subject */
+                    $subject = BotSubject::find()
                         ->andWhere('name->"$.ru" = :subject', ['subject' => $subjectName])
-                        ->with('visibleTeachers.webpage')
                         ->one();
                     if (!$subject) {
                         return $this->stepBack($conversation);
                     }
-                    $teachers = $subject->visibleTeachers;
+                    /** @var BotTeacher[] $teachers */
+                    $teachers = BotTeacher::find()
+                        ->innerJoin(BotTeacherSubject::tableName(), BotTeacher::tableName() . '.id = ' . BotTeacherSubject::tableName() . '.teacher_id')
+                        ->andWhere([BotTeacherSubject::tableName() . '.subject_id' => $subject->id])
+                        ->orderBy([BotTeacher::tableName() . '.name->"$.ru"' => SORT_ASC])
+                        ->all();
                 }
 
                 $chatId = $this->getMessage()->getChat()->getId();
-                
+
                 Request::sendMessage([
                     'chat_id' => $chatId,
                     'parse_mode' => 'MarkdownV2',
@@ -260,21 +225,24 @@ class InfoCommand extends UserCommand
                 ]);
 
                 foreach ($teachers as $teacher) {
-                    $inlineKeyboard = new InlineKeyboard([new InlineKeyboardButton([
-                        'text' => 'ПОДРОБНЕЕ',
-                        'callback_data' => "teacher_info {$teacher->id}",
-                    ])]);
+                    $inlineKeyboard = new InlineKeyboard([
+                        new InlineKeyboardButton([
+                            'text' => 'ПОДРОБНЕЕ',
+                            'callback_data' => "teacher_info {$teacher->id}",
+                        ]),
+                    ]);
                     Request::sendMessage([
                         'chat_id' => $chatId,
                         'parse_mode' => 'MarkdownV2',
                         'disable_web_page_preview' => true,
-                        'text' => Entity::escapeMarkdownV2($teacher->title) . " [{$teacher->officialName}](https://5plus.uz/{$teacher->webpage->url})",
+                        'text' => "[{$teacher->name['ru']}](https://5plus.uz/ru{$teacher->url})",
                         'reply_markup' => $inlineKeyboard,
                     ]);
                 }
 
                 return Request::emptyResponse();
         }
+
         return $this->stepBack($conversation);
     }
 }

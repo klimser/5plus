@@ -312,6 +312,49 @@ class EventController extends AdminController
         }
     }
 
+    public function actionSetMarks()
+    {
+        $this->checkRequestIsAjax();
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $marksData = Yii::$app->getRequest()->post('marks_data', []);
+
+        $event = Event::findOne($marksData['event_id']);
+        if (empty($event)) {
+            return self::getJsonErrorResult('Неверный запрос');
+        }
+        if (Yii::$app->user->can('teacher') && $event->teacherEditLimitDate < new DateTime()) {
+            return self::getJsonErrorResult('Прошло слишком много времени после завершения занятия! Обратитесь в администрацию');
+        }
+
+        $responseData = [];
+        foreach ($marksData as $markData) {
+            /** @var EventMember $member */
+            $member = EventMember::findOne($markData['memberId']);
+            $mark = $markData['memberId'] ?? 0;
+
+            if (!$member || $member->event_id != $event->id || empty($mark) || !$this->isTeacherHasAccess($member->event) || $member->status != EventMember::STATUS_ATTEND) {
+                continue;
+            }
+
+            $member->mark = array_merge($member->mark ?? [], $mark);
+
+            if ($member->save()) {
+                if (($member->mark[EventMember::MARK_LESSON] ?? 0) > 0 && $member->event->eventDateTime >= date_create('midnight') && !$member->mark_notification_sent) {
+                    ComponentContainer::getBotPush()->mark($member);
+                    $member->mark_notification_sent = 1;
+                    $member->save();
+                }
+                $responseData[$member->id] = $this->prepareMemberData($member);
+            } else {
+                ComponentContainer::getErrorLogger()
+                    ->logError('Event.setMark', $member->getErrorsAsString(), true);
+            }
+        }
+
+        return self::getJsonOkResult($responseData);
+    }
+
     public function actionTable()
     {
         $startDate = new \DateTimeImmutable(in_array(date('w'), ['0', '1']) ? 'this Monday' : 'previous Monday');
