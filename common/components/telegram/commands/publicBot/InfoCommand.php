@@ -128,7 +128,7 @@ class InfoCommand extends UserCommand
     private function processSubjects(Conversation $conversation)
     {
         /** @var BotSubject[] $subjects */
-        $subjects = BotSubject::find()->orderBy('name->"$.ru" ASC')->all();
+        $subjects = BotSubject::find()->orderBy('name->>"$.ru" ASC')->all();
 
 //        $textLines = ['*' . Entity::escapeMarkdownV2(PublicMain::INFO_STEP_3_SUBJECT_TEXT) . '*'];
         $textLines = [];
@@ -160,7 +160,7 @@ class InfoCommand extends UserCommand
                 /** @var BotSubject[] $subjects */
                 $subjects = BotSubject::find()
                     ->andWhere(['in', 'id', $subjectIds])
-                    ->orderBy('name->"$.ru" ASC')
+                    ->orderBy('name->>"$.ru" ASC')
                     ->all();
                 $buttons = [];
                 foreach ($subjects as $subject) {
@@ -195,14 +195,14 @@ class InfoCommand extends UserCommand
                         ->leftJoin(BotTeacherSubject::tableName(), BotTeacher::tableName() . '.id = ' . BotTeacherSubject::tableName() . '.teacher_id')
                         ->andWhere([BotTeacherSubject::tableName() . '.id' => null])
                         ->orWhere([BotTeacher::tableName() . '.id' => BotTeacher::CHIEF_OF_THE_BOARD_ID])
-                        ->orderBy([BotTeacher::tableName() . '.name->"$.ru"' => SORT_ASC])
+                        ->orderBy(BotTeacher::tableName() . '.name->>"$.ru" ASC')
                         ->all();
                 } else {
                     $text = PublicMain::INFO_STEP_3_TEACHER_TEXT;
 
                     /** @var BotSubject $subject */
                     $subject = BotSubject::find()
-                        ->andWhere('name->"$.ru" = :subject', ['subject' => $subjectName])
+                        ->andWhere('name->>"$.ru" = :subject', ['subject' => $subjectName])
                         ->one();
                     if (!$subject) {
                         return $this->stepBack($conversation);
@@ -211,7 +211,7 @@ class InfoCommand extends UserCommand
                     $teachers = BotTeacher::find()
                         ->innerJoin(BotTeacherSubject::tableName(), BotTeacher::tableName() . '.id = ' . BotTeacherSubject::tableName() . '.teacher_id')
                         ->andWhere([BotTeacherSubject::tableName() . '.subject_id' => $subject->id])
-                        ->orderBy([BotTeacher::tableName() . '.name->"$.ru"' => SORT_ASC])
+                        ->orderBy(BotTeacher::tableName() . '.name->>"$.ru" ASC')
                         ->all();
                 }
 
