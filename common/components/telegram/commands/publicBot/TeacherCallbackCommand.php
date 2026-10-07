@@ -22,18 +22,20 @@ class TeacherCallbackCommand
                     Request::sendPhoto([
                         'chat_id' => $callbackQuery->getMessage()->getChat()->getId(),
                         'photo' => $teacher->photo,
-                        'caption' => $teacher->name['ru'],
+                        'disable_web_page_preview' => true,
+                        'caption' => '[' . Entity::escapeMarkdownV2($teacher->name['ru']) . "](https://5plus.uz/ru{$teacher->url})",
                     ]);
                 } else {
-                    $message .= '*' . Entity::escapeMarkdownV2($teacher->name['ru']) . "*\n";
+                    $message .= '*[' . Entity::escapeMarkdownV2($teacher->name['ru']) . "](https://5plus.uz/ru{$teacher->url})*\n";
                 }
 
                 if (!empty($teacher->teaser['ru'])) {
-                    $message .= str_replace(['{{', '}}'], '*', Entity::escapeMarkdownV2($teacher->teaser['ru']));
+                    $message .= Entity::escapeMarkdownV2($teacher->teaser['ru']);
                 }
                 Request::sendMessage([
                     'chat_id' => $callbackQuery->getMessage()->getChat()->getId(),
                     'parse_mode' => 'MarkdownV2',
+                    'disable_web_page_preview' => true,
                     'text' => $message,
                 ]);
             }

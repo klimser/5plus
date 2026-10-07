@@ -14,6 +14,7 @@ use yii\helpers\Url; ?>
 </style>
 
 <div style="margin: 0.5cm;">
+    <!--
     <div style="float: left; width: 3cm; height: 3cm; margin: 0 5mm 5mm 0;">
         <img src="<?= Url::to(['contract/qr-video-lessons']); ?>" style="width: 3cm;" alt="https://fiveplus.uz">
     </div>
@@ -24,7 +25,8 @@ use yii\helpers\Url; ?>
     <div style="float: right;">Личный кабинет</div>
 
     <div style="clear: both;"></div>
-    <img src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQQAAAAzCAMAAABG3oaZAAAAjVBMVEUAAABaWnZsbH0/Pm5iYnlSUnNJSHCIiIh7e4A4N2x3d4Bzc3s9PG1ubnuAgIBZWXU7OmxEQ29oaHlLSnF0c3tgXXdqanlGRW9CQW5UU3VWVnRPT3NbW3VkZHdiYndNTHLLSkOwXVfZPTaeaWaXbGy/Uk3UQjvCT0mqYFuiZGKVbm7YQDjRRT42NWvkNy6ydPAdAAAALXRSTlMAgEDfYJ+/CCD3GCjnOBCH789QtzBwSMfXl4+neFhor7196k1An9encFg438/6nBDKAAAHE0lEQVRo3uyY65aaMBRGDxEI4RYQBBW8TKeX1cvH+z9eY4IGVCzTrv6Y2r3WMB5MDmEnOYr0nzkkrCehJ6X0BCwZPSMrgSEePSEusJAVYztH+r56HdDzEWYoOD05W+S/6SBlQyJ6v/AYCf0e7J8pJTsc6Okl+Cj/QELmGPx3LSFCTg8oV48lLMjgvGsJW7j0gAWCt0koWesolhQ4F5RIdUzpmmAnm5YN8tku7iguVdv+HIWrrefYTpErvTY5B3vZOBU3wcpxdqRRI6roATwTXHVmy31C99igfYuEtIHBswVDNwJubbYCJ+qIbJIz/ih29bX8205cQlNEg2BtbkUAmfaR/KpguWi4W+NE7NAtS/hvkeABqJ3DLAk+eoo3SPDQI7SFepCD5zizJBWajopG53tAjkNsr2xW7LdXupAKpPMlcACJMqsC/SViBcTqX3JPwgqADKiUYrgSCqaQVoJL5A0k7AHIkHYxUA9ybEWgWpv3qjUQh0QBYBqFAnhY+JZQ5JIlxNyF6UNfu++j+XLnS0j0CS3hqgGAHQvJwgVgiq46e1VY3EkJNcz2jASw0zn25xzpOeBrQOoOOVBqUzHihwsBiyUZeGHW0afux2jCirkSjP1gSoL2zainhB3YlITtWMLCkYAwZc8DJJX2+mYCLjNb6GMrsCVao/YBmsQB8tSmMUvhQ/eJLAEEnynBSF2vmJyUAFHap7biVxI8gFkJhvyymQ7kqoOdrUsQAJneOa6HjFeA2wAhTVABWUCWBcAp7brX8WLZzZcQ+tDckxAQq+2dL7XxxxJ8oLyWsCZNCzT9lN9YjYCF2UslsDsg5h5QTj81YE8Dtqe237ouHY+smS+BeAb46wkJVNk9EAFZ+FhCCoh0VBNCcZ7SAmh1jtTur/4TsV8gG6CiArlASxJg0/fgXw9ip+rikYYkKvd8CRtgQ+6UBDb42SoGDjqxW01I2EL7txL0vTfngp7oHB6ZHDYIzNw2ANPtRGgq7ASq6xDT9qV7oRExqtkSGBCnkxKS2mrX46tXrC2Q35WQFgCWVxKYAGq32gDYXOeoABQuk5nZaD4Q6SK11fWhpZk4QEVfuo80YoPNXAl8ccowIcHAhpvPsA7vSQjQR1aCectQ8+scNogjXeD0BnScSPeSNBMJMP6he/2oeFEEffmM50rYAA09/IisyFLFOCE53ZewlnQjgZIcCtHe5LCBl5IiAy6Jq3mPd+nL8XjsrvhEfa1j9HeIKrekCXhI9ymXLhuH5SDhnnH6XV47zYfjd/V3PH7WQZ+8gaSn4We7ZrrrJgyE0W+MsTH7lgRIk1T90U2dvv/j1TYh5NKWIqWtqtweyROCbSSOmCGG7JhrWxc/YYHkDq8FnXIFWxdzLIiZn+QpvCg2XQh4/x7fofiMp6DmGKskho+A/voBC3TB3OAp0Eau93d+Ff7568eFm6JkZvMkb2eaZtVBw36h9PHF6ik/V+ww9CQSzkavOzjCP0yIMRENhh3VOcaTEHONKzr6gYPGO/ry7jY+ZEf3JsJfQAtECf48hxBX+sUiNqkmB3j3Fh79pmRLmOAvcem7Gn8eSudbXog7pLk5yK91Mem8ggjrCCFiP024kVk0Nv8lyXyIBKDtoFZYELsYT312Wo5xXpTZWX63HXOdndmxmeuB7/YkuQ35Q++asvkXwR4TdeVOV09LCDhOJbMZYvwKthw18MYXlIDGxrah5hY4XIiBiCUUWyBdlAgDwAXBAuM8CoC4DGCRPHYiYObA97jAnlDYYHYPWOgKjOiKDSWwZEXHzKXEC/r57cY6LCGd2u5i9EICqgsS3t8kqNsJ4icSLmYhIQQwSZg6BEcYHrlhU4cr+YFnUsrHnbgSWi3bZHMhijJHwq2RSwk1x5TizMkLCUK8kBCSmCScONwoYc8PVKqWI0ycFHuCXuBKNjtoYmyCLQNQdDg2Swmoho4Qm1KxTwcXpXN+RsgOJ6E6cDhKiNOevk8HAWLHnYSBugoPEOwwo5d/14vElAuEjbCEsC1IVWDipYTacAxktDs5CZWriJKhjwZhKoRoxnSgUnsJfaCXEhpXA8mNDe8kHFQR4QEKhTXIhZN3sF1Cbs6CeyJzXkpAcHFxWROKdE6HWYJxmxvT4QF+fYRBA1HJEpvhTqVG9ymA5oAgUMrYNkroD9zeSSiVUrFkdeBhluDSoffpYD9uEuzI1AwIUrvx+yWgJEwkNVGvlAppJzAiT+Orx+0QUa1xPgHISO/oivDGqcZITi0kWfLWhhaod/AhIqIE2AkI0oDw2dqSQyn4w/mdY2jJCaUcDxJ2Lsb1oPgec5Q5gChEzW/wT0AKf4oTD6EqeaJTaqBBqYC5dIYrXSk8Pdrwlao/ZZgR1JVD1PfmadaLKxyZuVTFPsd3tH3a8YBXQEv7leoq+tdwIfzn1fMNlXAGDxAdSPUAAAAASUVORK5CYII=' alt="Logo" />
+    -->
+    <img src='data:image/png;base64,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' alt="Logo" style="width: 210px;" />
 
     <h1 class="text-center">
         Спецификация <span style="font-size: 0.6em;"><?= $contract->number; ?></span>
@@ -40,27 +42,41 @@ use yii\helpers\Url; ?>
         <tr>
             <th>Наименование предмета</th>
             <th>Сумма оплаты (сум)</th>
-            <th>Длительность (уч мес*)</th>
+            <th>Длительность (занятий)</th>
             <th>Продолжительность 1 занятия (мин)</th>
             <th>Описание предмета</th>
         </tr>
         <tr>
             <td><?= $contract->course->subject->name['ru']; ?></td>
             <td class="text-center"><?= number_format($contract->amount, 0, '.', ' '); ?></td>
-            <td class="text-center"><?= number_format($contract->monthCount, 2, '.', ''); ?></td>
+            <td class="text-center"><?= number_format($contract->lessonsCount, 0, '.', ''); ?></td>
             <td class="text-center"><?= $contract->courseConfig->lesson_duration; ?></td>
             <td>
                 Периодичность проведения занятий: <?= $perWeek; ?> раз<?= $perWeek > 1 ? 'а' : ''; ?> в неделю. Занятия проводятся с понедельника по субботу согласно утвержденному учебному расписанию.
             </td>
         </tr>
     </table>
+    <p>
+        Основные пункты публичной оферты:
+    </p>
     <p style="color: rgb(128,128,128); font-size: smaller;">
-        * 1 учебный месяц = 28 календарных дней<br>
-        ** При запросе возврата внесенных за обучение остатков денежных средств по любой причине, не зависящей от ООО "Exclusive Education", последняя внесенная за обучение оплата пересчитывается по стоимости за 1 занятие с повышающим коэффициентом 1,2 к текущей стоимости 1 занятия при условии, что было проведено менее 12 занятий.<br>
-        *** При увеличении или уменьшении Исполнителем стоимости занятий, новая установленная стоимость занятий применяется с даты официального утверждения и объявления на сайте www.5plus.uz, а все внесенные до момента изменения стоимости занятий денежные средства перерасчитываются согласно новой установленной стоимости занятий.
+        * Слушатель вправе пройти ОДИН пробный урок без внесения предоплаты за обучение. В случае успешного зачисления на курс, данный ОДИН пробный урок подлежит оплате.<br>
+        ** Занятия, попавшие на праздничные дни (1 января, 8 марта, 21 марта, 9 мая, Ураза-байрам, Курбан–байрам, 1 сентября, 1 октября, 8 декабря), являются официальными выходными, не пересчитываются, не восстанавливаются и возврату не подлежат.<br>
+        *** Внесённые денежные средства <b>не подлежат возврату, пересчету, переводу на баланс другого Слушателя и заморозке ни по какой причине.</b><br>
+        **** Перерасчет пропущенных занятий <b>НЕ ПРОИЗВОДИТСЯ</b> ни по каким причинам, за исключением болезни продолжительностью более 2-х недель, при наличии подтверждающего документа (только справка с QR-кодом из личного кабинета my.gov.uz или аналогичного приложения).<br>
+        ***** При увеличении или уменьшении Исполнителем стоимости занятий, новая установленная стоимость занятий применяется с даты официального утверждения и объявления на сайте www.5plus.uz, а все внесенные до момента изменения стоимости занятий денежные средства пересчитываются согласно новой установленной стоимости занятий.
     </p>
     <p>Со спецификацией ознакомлен(а) и согласен(на), Оплату подтверждаю</p>
-    <p>Студент или его законный представитель: <b><?= $contract->user->name; ?></b></p>
+    <table>
+        <tr>
+            <td>Студент или его законный представитель:</td>
+            <td><b><?= $contract->user->name; ?></b></td>
+            <td class="text-center">____________________________</td>
+        </tr>
+        <tr>
+            <td></td><td></td><td class="text-center"><i>(подпись)</i></td>
+        </tr>
+    </table>
     <p><b>Юридический и почтовый адрес и банковские реквизиты:</b></p>
     <p><i>Юридический адрес: 100015, Город Ташкент, Мирабадский район, МФЙ Лолазор, улица Ойбек, дом 16<br>
     Адрес нахождения курсов: Город Ташкент, Мирабадский район, МФЙ Лолазор, улица Ойбек, дом 16<br>
@@ -75,7 +91,6 @@ use yii\helpers\Url; ?>
     <p>
         Директор ООО «EXCLUSIVE EDUCATION», Климов Александр Сергеевич <img src="<?= require_once "sign.php"; ?>" style="width: 6cm;" alt="signature">
     </p>
-    <p></p>
     <p></p>
     <p>
         <img src="<?= require_once "stamp.php"; ?>" style="width: 4cm;" alt="stamp">
