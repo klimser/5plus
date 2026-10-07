@@ -21,6 +21,7 @@ class TeacherCallbackCommand
                 if ($teacher->photo) {
                     Request::sendPhoto([
                         'chat_id' => $callbackQuery->getMessage()->getChat()->getId(),
+                        'parse_mode' => 'MarkdownV2',
                         'photo' => $teacher->photo,
                         'disable_web_page_preview' => true,
                         'caption' => '[' . Entity::escapeMarkdownV2($teacher->name['ru']) . "](https://5plus.uz/ru{$teacher->url})",
