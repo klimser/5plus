@@ -1,12 +1,9 @@
 <?php
 
 use backend\controllers\SmsController;
-use common\components\DefaultValuesComponent;
 use common\components\SmsServiceComponent;
-use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
-use yii\jui\DatePicker;
 use yii\web\View;
 
 /* @var $this View */
@@ -25,11 +22,13 @@ $this->title = 'SMS';
 $this->params['breadcrumbs'][] = $this->title;
 
 $isCustom = SmsController::PERIOD_CUSTOM === $period;
-$pageUrl = static function (int $page) use ($period, $dateFrom, $dateTo, $phone, $isCustom): string {
+// Format of datetime-local input value
+$inputFormat = 'Y-m-d\TH:i';
+$pageUrl = static function (int $page) use ($period, $dateFrom, $dateTo, $phone, $isCustom, $inputFormat): string {
     $params = ['sms/index', 'period' => $period, 'phone' => $phone, 'page' => $page];
     if ($isCustom) {
-        $params['date_from'] = $dateFrom ? $dateFrom->format('d.m.Y') : '';
-        $params['date_to'] = $dateTo ? $dateTo->format('d.m.Y') : '';
+        $params['date_from'] = $dateFrom ? $dateFrom->format($inputFormat) : '';
+        $params['date_to'] = $dateTo ? $dateTo->format($inputFormat) : '';
     }
 
     return Url::to($params);
@@ -61,23 +60,11 @@ JS
         </select>
         <div class="sms-custom-period form-inline mr-2 mb-2 <?= $isCustom ? '' : 'd-none'; ?>">
             <span class="mr-1">с</span>
-            <?= DatePicker::widget(ArrayHelper::merge(
-                DefaultValuesComponent::getDatePickerSettings(),
-                [
-                    'name' => 'date_from',
-                    'value' => $isCustom && $dateFrom ? $dateFrom->format('d.m.Y') : '',
-                    'options' => ['autocomplete' => 'off', 'id' => 'sms-date-from', 'class' => 'form-control mr-1'],
-                ]
-            )); ?>
+            <input type="datetime-local" name="date_from" step="1" class="form-control mr-2"
+                   value="<?= $isCustom && $dateFrom ? $dateFrom->format($inputFormat) : ''; ?>">
             <span class="mr-1">по</span>
-            <?= DatePicker::widget(ArrayHelper::merge(
-                DefaultValuesComponent::getDatePickerSettings(),
-                [
-                    'name' => 'date_to',
-                    'value' => $isCustom && $dateTo ? $dateTo->format('d.m.Y') : '',
-                    'options' => ['autocomplete' => 'off', 'id' => 'sms-date-to'],
-                ]
-            )); ?>
+            <input type="datetime-local" name="date_to" step="1" class="form-control"
+                   value="<?= $isCustom && $dateTo ? $dateTo->format($inputFormat) : ''; ?>">
         </div>
         <input type="text" name="phone" class="form-control mr-2 mb-2" placeholder="Телефон" value="<?= Html::encode($phone); ?>">
         <button type="submit" class="btn btn-primary mb-2">Показать</button>

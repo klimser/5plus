@@ -7,6 +7,8 @@ use yii\base\BaseObject;
 class SmsServiceComponent extends BaseObject
 {
     public const MAX_PAGE_SIZE = 200;
+    /** Format required by SMS API for date_from / date_to: YYYY-MM-DD HH:MM:SS */
+    public const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
 
     public const STATUS_NEW = 0;
     public const STATUS_QUEUED = 1;
@@ -132,10 +134,10 @@ class SmsServiceComponent extends BaseObject
             'page_size' => max(1, min(self::MAX_PAGE_SIZE, $pageSize)),
         ];
         if ($dateFrom) {
-            $params['date_from'] = $dateFrom->format('Y-m-d');
+            $params['date_from'] = $dateFrom->format(self::DATE_TIME_FORMAT);
         }
         if ($dateTo) {
-            $params['date_to'] = $dateTo->format('Y-m-d');
+            $params['date_to'] = $dateTo->format(self::DATE_TIME_FORMAT);
         }
         if (null !== $phone && '' !== $phone) {
             $params['phone'] = $phone;

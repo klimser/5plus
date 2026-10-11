@@ -27,8 +27,8 @@ class SmsController extends AdminController
         $period = (string)$request->get('period', array_key_first($monthList));
         $dateFrom = $dateTo = null;
         if (self::PERIOD_CUSTOM === $period) {
-            $dateFrom = $this->parseDate($request->get('date_from'));
-            $dateTo = $this->parseDate($request->get('date_to'));
+            $dateFrom = $this->parseDateTime($request->get('date_from'));
+            $dateTo = $this->parseDateTime($request->get('date_to'));
             if ($dateFrom && $dateTo && $dateFrom > $dateTo) {
                 [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
             }
@@ -36,8 +36,8 @@ class SmsController extends AdminController
             if (!array_key_exists($period, $monthList)) {
                 $period = array_key_first($monthList);
             }
-            $dateFrom = new DateTimeImmutable($period . '-01');
-            $dateTo = $dateFrom->modify('last day of this month');
+            $dateFrom = new DateTimeImmutable($period . '-01 00:00:00');
+            $dateTo = $dateFrom->modify('last day of this month')->setTime(23, 59, 59);
         }
 
         $phone = preg_replace('#\D#', '', (string)$request->get('phone', ''));
@@ -87,13 +87,18 @@ class SmsController extends AdminController
         return $list;
     }
 
-    private function parseDate($value): ?DateTimeImmutable
+    /**
+     * Parses value of datetime-local input (YYYY-MM-DDTHH:MM[:SS]).
+     */
+    private function parseDateTime($value): ?DateTimeImmutable
     {
         if (!is_string($value) || '' === $value) {
             return null;
         }
-        $date = DateTimeImmutable::createFromFormat('!d.m.Y', $value);
-
-        return $date ?: null;
+        try {
+            return new DateTimeImmutable($value);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }
