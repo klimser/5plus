@@ -135,10 +135,6 @@ class ClickApi extends BaseObject implements PaymentApiInterface
             $err = curl_error($curl);
         } catch (\Throwable $ex) {
             throw new ClickApiException($ex->getMessage(), $ex->getCode(), $ex);
-        } finally {
-            if (is_resource($curl)) {
-                curl_close($curl);
-            }
         }
 
         if (!$response) throw new ClickApiException("Error: $err");

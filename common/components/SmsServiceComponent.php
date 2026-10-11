@@ -6,6 +6,20 @@ use yii\base\BaseObject;
 
 class SmsServiceComponent extends BaseObject
 {
+    public const MAX_PAGE_SIZE = 200;
+
+    public const STATUS_NEW = 0;
+    public const STATUS_QUEUED = 1;
+    public const STATUS_SENT = 2;
+    public const STATUS_ERROR = 3;
+
+    public const STATUS_LABELS = [
+        self::STATUS_NEW => 'Новое',
+        self::STATUS_QUEUED => 'В очереди',
+        self::STATUS_SENT => 'Отправлено',
+        self::STATUS_ERROR => 'Ошибка',
+    ];
+
     protected string $url;
     protected string $login;
     protected string $password;
@@ -31,6 +45,10 @@ class SmsServiceComponent extends BaseObject
         if ($urlAddon) {
             $url .= '/' . ltrim($urlAddon, '/');
         }
+        $isPost = mb_strtoupper($method, 'UTF-8') === 'POST';
+        if (!$isPost && !empty($params)) {
+            $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($params);
+        }
         $curl = curl_init($url);
         $headers[] = 'Content-Type: application/json';
         $curlOptions = [
@@ -40,25 +58,19 @@ class SmsServiceComponent extends BaseObject
             CURLOPT_TIMEOUT => 60,
             CURLOPT_RETURNTRANSFER => true,
         ];
-        if (mb_strtoupper($method, 'UTF-8') === 'POST') {
+        if ($isPost) {
             $curlOptions[CURLOPT_POST] = true;
-        }
-        if (!empty($params)) {
-            $curlOptions[CURLOPT_POSTFIELDS] = json_encode($params);
+            if (!empty($params)) {
+                $curlOptions[CURLOPT_POSTFIELDS] = json_encode($params);
+            }
         }
 
         curl_setopt_array($curl, $curlOptions);
 
-        try {
-            $response = curl_exec($curl);
-            $errNo = curl_errno($curl);
-            $errText = curl_error($curl);
-            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        } finally {
-            if (is_resource($curl) || $curl instanceof \CurlHandle) {
-                curl_close($curl);
-            }
-        }
+        $response = curl_exec($curl);
+        $errNo = curl_errno($curl);
+        $errText = curl_error($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         if (0 !== $errNo) throw new \Exception("Error: $errText");
 
@@ -67,7 +79,10 @@ class SmsServiceComponent extends BaseObject
                 return [];
             case 200:
                 $data = json_decode($response, true);
-                if ($data === false) throw new \Exception("Wrong response: $response");
+                if (null === $data && 'null' === trim((string)$response)) {
+                    return [];
+                }
+                if (!is_array($data)) throw new \Exception("Wrong response: $response");
 
                 return $data;
         }
@@ -98,5 +113,67 @@ class SmsServiceComponent extends BaseObject
         }
 
         return false;
+    }
+
+    /**
+     * @return array<array{id: int, phone: string, content: string|null, status: int, error: string|null, created_at: \DateTimeImmutable|null}>
+     * @throws \Exception
+     */
+    public function getMessages(
+        ?\DateTimeInterface $dateFrom = null,
+        ?\DateTimeInterface $dateTo = null,
+        ?string $phone = null,
+        int $page = 1,
+        int $pageSize = self::MAX_PAGE_SIZE,
+        ?string $password = null,
+    ): array {
+        $params = [
+            'page' => max(1, $page),
+            'page_size' => max(1, min(self::MAX_PAGE_SIZE, $pageSize)),
+        ];
+        if ($dateFrom) {
+            $params['date_from'] = $dateFrom->format('Y-m-d');
+        }
+        if ($dateTo) {
+            $params['date_to'] = $dateTo->format('Y-m-d');
+        }
+        if (null !== $phone && '' !== $phone) {
+            $params['phone'] = $phone;
+        }
+        if (null !== $password && '' !== $password) {
+            $params['password'] = $password;
+        }
+
+        $response = $this->execute('GET', null, $params);
+
+        $messages = [];
+        foreach ($response as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $content = null;
+            if (isset($item['content']) && '' !== $item['content']) {
+                $decoded = base64_decode($item['content'], true);
+                $content = false === $decoded ? (string)$item['content'] : $decoded;
+            }
+            $createdAt = null;
+            if (!empty($item['created_at'])) {
+                try {
+                    $createdAt = (new \DateTimeImmutable($item['created_at']))
+                        ->setTimezone(new \DateTimeZone(\Yii::$app->timeZone));
+                } catch (\Throwable) {
+                }
+            }
+            $messages[] = [
+                'id' => (int)($item['id'] ?? 0),
+                'phone' => (string)($item['phone'] ?? ''),
+                'content' => $content,
+                'status' => (int)($item['status'] ?? 0),
+                'error' => $item['error'] ?? null,
+                'created_at' => $createdAt,
+            ];
+        }
+
+        return $messages;
     }
 }

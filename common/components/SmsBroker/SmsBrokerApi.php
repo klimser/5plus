@@ -84,10 +84,6 @@ class SmsBrokerApi extends BaseObject
             $code = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
         } catch (Throwable $ex) {
             throw new SmsBrokerApiException($ex->getMessage(), $ex->getCode(), $ex);
-        } finally {
-            if ($curl instanceof CurlHandle) {
-                curl_close($curl);
-            }
         }
 
         if (!$response) throw new SmsBrokerApiException("Error: $err");

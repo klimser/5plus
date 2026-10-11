@@ -80,10 +80,6 @@ class PaygramApi extends BaseObject
             $err = curl_error($curl);
         } catch (\Throwable $ex) {
             throw new PaygramApiException($ex->getMessage(), $ex->getCode(), $ex);
-        } finally {
-            if (is_resource($curl)) {
-                curl_close($curl);
-            }
         }
 
         if (!$response) throw new PaygramApiException("Error: $err");

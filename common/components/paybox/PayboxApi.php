@@ -74,10 +74,6 @@ class PayboxApi extends BaseObject implements PaymentApiInterface
             $err = curl_error($curl);
         } catch (\Throwable $ex) {
             throw new PayboxApiException($ex->getMessage(), $ex->getCode(), $ex);
-        } finally {
-            if (false !== $curl) {
-                curl_close($curl);
-            }
         }
 
         if (!$response) {

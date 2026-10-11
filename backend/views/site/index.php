@@ -315,6 +315,11 @@ $this->title = 'Панель управления';
                         <span class="fas fa-mail-bulk"></span> Рассылки 
                     </a>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" href="<?= Url::to(['sms/index']); ?>">
+                        <span class="fas fa-sms"></span> SMS
+                    </a>
+                </li>
             <?php endif; ?>
         </ul>
     </div>

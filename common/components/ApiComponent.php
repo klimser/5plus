@@ -62,16 +62,10 @@ class ApiComponent extends BaseObject
             CURLOPT_RETURNTRANSFER => true,
         ]);
 
-        try {
-            $response = curl_exec($curl);
-            $errNo = curl_errno($curl);
-            $errText = curl_error($curl);
-            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        } finally {
-            if (is_resource($curl) || $curl instanceof \CurlHandle) {
-                curl_close($curl);
-            }
-        }
+        $response = curl_exec($curl);
+        $errNo = curl_errno($curl);
+        $errText = curl_error($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         if (0 !== $errNo) throw new \Exception("Error: $errText");
 

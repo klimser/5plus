@@ -1,7 +1,7 @@
 var path = require('path');
 
 module.exports = function(grunt) {
-    // RIP sass TODO: implement something that works
+    grunt.loadNpmTasks('grunt-sass');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-uglify');
@@ -12,5 +12,10 @@ module.exports = function(grunt) {
     require('load-grunt-config')(grunt, {
         configPath: path.join(process.cwd(), 'grunt'),
         jitGrunt: true
+    });
+
+    // YAML cannot call require(), so the Sass implementation is injected here.
+    ['dev_back', 'prod_back', 'dev_front', 'prod_front'].forEach(function (target) {
+        grunt.config.set('sass.' + target + '.options.implementation', require('sass'));
     });
 };
