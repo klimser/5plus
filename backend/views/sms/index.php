@@ -81,6 +81,9 @@ JS
             <th>ID</th>
             <th>Телефон</th>
             <th>Текст</th>
+            <?php if ($isRoot): ?>
+                <th>Кол-во SMS</th>
+            <?php endif; ?>
             <th>Статус</th>
             <th>Ошибка</th>
             <th>Создано</th>
@@ -88,7 +91,7 @@ JS
     </thead>
     <tbody>
         <?php if (empty($messages)): ?>
-            <tr><td colspan="6" class="text-center text-muted">Нет сообщений</td></tr>
+            <tr><td colspan="<?= $isRoot ? 7 : 6; ?>" class="text-center text-muted">Нет сообщений</td></tr>
         <?php endif; ?>
         <?php foreach ($messages as $message): ?>
             <tr>
@@ -101,6 +104,9 @@ JS
                         <span class="text-muted">скрыто</span>
                     <?php endif; ?>
                 </td>
+                <?php if ($isRoot): ?>
+                    <td><?= null !== $message['content'] ? SmsServiceComponent::countSmsParts($message['content']) : ''; ?></td>
+                <?php endif; ?>
                 <td>
                     <span class="badge badge-<?= $statusClasses[$message['status']] ?? 'light'; ?>">
                         <?= SmsServiceComponent::STATUS_LABELS[$message['status']] ?? $message['status']; ?>

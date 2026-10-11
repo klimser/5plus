@@ -7,6 +7,8 @@ use yii\base\BaseObject;
 class SmsServiceComponent extends BaseObject
 {
     public const MAX_PAGE_SIZE = 200;
+    public const SINGLE_SMS_LENGTH = 160;
+    public const MULTIPART_SMS_LENGTH = 153;
     /** Format required by SMS API for date_from / date_to: YYYY-MM-DD HH:MM:SS */
     public const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
 
@@ -177,5 +179,18 @@ class SmsServiceComponent extends BaseObject
         }
 
         return $messages;
+    }
+
+    /**
+     * Number of SMS parts: up to 160 characters for a single SMS, 153 characters per part for multipart.
+     */
+    public static function countSmsParts(string $content): int
+    {
+        $length = mb_strlen($content, 'UTF-8');
+        if ($length <= self::SINGLE_SMS_LENGTH) {
+            return 1;
+        }
+
+        return (int)ceil($length / self::MULTIPART_SMS_LENGTH);
     }
 }
