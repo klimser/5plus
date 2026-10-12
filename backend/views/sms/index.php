@@ -16,7 +16,8 @@ use yii\web\View;
 /* @var $dateTo DateTimeImmutable|null */
 /* @var $phone string */
 /* @var $page int */
-/* @var $hasNextPage bool */
+/* @var $totalMessages int */
+/* @var $totalPages int */
 
 $this->title = 'SMS';
 $this->params['breadcrumbs'][] = $this->title;
@@ -75,6 +76,10 @@ JS
     <div class="alert alert-danger"><?= Html::encode($error); ?></div>
 <?php endif; ?>
 
+<div class="mb-2">
+    <strong>Всего:</strong> <?= $totalMessages; ?>
+</div>
+
 <table class="table table-sm table-bordered table-striped">
     <thead>
         <tr>
@@ -119,15 +124,31 @@ JS
     </tbody>
 </table>
 
-<?php if ($page > 1 || $hasNextPage): ?>
+<?php if ($totalPages > 1): ?>
+    <?php
+    // Show first and last pages plus a window of 2 pages around the current one
+    $pagesToShow = array_filter(
+        range(1, $totalPages),
+        static fn(int $p): bool => $p === 1 || $p === $totalPages || abs($p - $page) <= 2
+    );
+    $previous = null;
+    ?>
     <nav>
         <ul class="pagination justify-content-center">
             <li class="page-item <?= $page > 1 ? '' : 'disabled'; ?>">
                 <a class="page-link" href="<?= $page > 1 ? $pageUrl($page - 1) : '#'; ?>">&laquo;</a>
             </li>
-            <li class="page-item active"><span class="page-link"><?= $page; ?></span></li>
-            <li class="page-item <?= $hasNextPage ? '' : 'disabled'; ?>">
-                <a class="page-link" href="<?= $hasNextPage ? $pageUrl($page + 1) : '#'; ?>">&raquo;</a>
+            <?php foreach ($pagesToShow as $p): ?>
+                <?php if (null !== $previous && $p - $previous > 1): ?>
+                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                <?php endif; ?>
+                <?php $previous = $p; ?>
+                <li class="page-item <?= $p === $page ? 'active' : ''; ?>">
+                    <a class="page-link" href="<?= $pageUrl($p); ?>"><?= $p; ?></a>
+                </li>
+            <?php endforeach; ?>
+            <li class="page-item <?= $page < $totalPages ? '' : 'disabled'; ?>">
+                <a class="page-link" href="<?= $page < $totalPages ? $pageUrl($page + 1) : '#'; ?>">&raquo;</a>
             </li>
         </ul>
     </nav>

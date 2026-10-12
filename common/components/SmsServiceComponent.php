@@ -120,7 +120,11 @@ class SmsServiceComponent extends BaseObject
     }
 
     /**
-     * @return array<array{id: int, phone: string, content: string|null, status: int, error: string|null, created_at: \DateTimeImmutable|null}>
+     * @return array{
+     *     messages: array<array{id: int, phone: string, content: string|null, status: int, error: string|null, created_at: \DateTimeImmutable|null}>,
+     *     totalMessages: int,
+     *     totalPages: int,
+     * }
      * @throws \Exception
      */
     public function getMessages(
@@ -151,7 +155,7 @@ class SmsServiceComponent extends BaseObject
         $response = $this->execute('GET', null, $params);
 
         $messages = [];
-        foreach ($response as $item) {
+        foreach ($response['data'] ?? [] as $item) {
             if (!is_array($item)) {
                 continue;
             }
@@ -178,7 +182,13 @@ class SmsServiceComponent extends BaseObject
             ];
         }
 
-        return $messages;
+        $meta = $response['meta'] ?? [];
+
+        return [
+            'messages' => $messages,
+            'totalMessages' => (int)($meta['total_messages'] ?? 0),
+            'totalPages' => (int)($meta['total_pages'] ?? 0),
+        ];
     }
 
     /**

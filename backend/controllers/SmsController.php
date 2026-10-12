@@ -44,9 +44,11 @@ class SmsController extends AdminController
         $page = max(1, (int)$request->get('page', 1));
 
         $messages = [];
+        $totalMessages = 0;
+        $totalPages = 0;
         $error = null;
         try {
-            $messages = ComponentContainer::getSmsApi()->getMessages(
+            $result = ComponentContainer::getSmsApi()->getMessages(
                 $dateFrom,
                 $dateTo,
                 $phone ?: null,
@@ -54,12 +56,17 @@ class SmsController extends AdminController
                 self::PAGE_SIZE,
                 $isRoot ? (Yii::$app->params['sms_decode_key'] ?? null) : null,
             );
+            $messages = $result['messages'];
+            $totalMessages = $result['totalMessages'];
+            $totalPages = $result['totalPages'];
         } catch (\Throwable $e) {
             $error = $e->getMessage();
         }
 
         return $this->render('index', [
             'messages' => $messages,
+            'totalMessages' => $totalMessages,
+            'totalPages' => $totalPages,
             'error' => $error,
             'isRoot' => $isRoot,
             'monthList' => $monthList,
@@ -68,7 +75,6 @@ class SmsController extends AdminController
             'dateTo' => $dateTo,
             'phone' => $phone,
             'page' => $page,
-            'hasNextPage' => count($messages) >= self::PAGE_SIZE,
         ]);
     }
 
