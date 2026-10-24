@@ -51,32 +51,32 @@ class WelcomeLessonController extends AdminController
 
         /** @var User[] $users */
         $users = User::find()->where(['id' => WelcomeLesson::find()->select(['user_id'])->distinct()->asArray()->column()])->orderBy(['name' => SORT_ASC])->all();
-        $studentMap = [null => 'Все'];
+        $studentMap = ['' => 'Все'];
         foreach ($users as $user) $studentMap[$user->id] = $user->name;
 
         /** @var Course[] $courses */
         $courses = Course::find()->where(['id' => WelcomeLesson::find()->select(['course_id'])->distinct()->asArray()->column()])->all();
-        $courseMap = [null => 'Все'];
+        $courseMap = ['' => 'Все'];
         foreach (CourseComponent::sortCoursesByName($courses) as $course) {
             $courseMap[$course->id] = $course->courseConfig->name;
         }
 
         /** @var Subject[] $subjects */
         $subjects = Subject::find()->orderBy('name')->all();
-        $subjectMap = [null => 'Все'];
+        $subjectMap = ['' => 'Все'];
         foreach ($subjects as $subject) $subjectMap[$subject->id] = $subject->name['ru'];
 
         /** @var Teacher[] $teachers */
         $teachers = Teacher::find()->andWhere(['active' => Teacher::STATUS_ACTIVE])->orderBy('name')->all();
-        $teacherMap = [null => 'Все'];
+        $teacherMap = ['' => 'Все'];
         foreach ($teachers as $teacher) $teacherMap[$teacher->id] = $teacher->name;
 
-        $statusMap = [null => 'Активные'];
+        $statusMap = ['' => 'Активные'];
         foreach (WelcomeLesson::STATUS_LABELS as $value => $label) {
             $statusMap[$value] = $label;
         }
 
-        $reasonsMap = [null => 'Все'];
+        $reasonsMap = ['' => 'Все'];
         foreach (WelcomeLesson::DENY_REASON_LABELS as $value => $label) {
             $reasonsMap[$value] = $label;
         }

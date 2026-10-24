@@ -157,7 +157,7 @@ MESSAGE;
     public const PAY_ITEM_DESCRIPTION = 'Оплата за обучение в группе "%s". Стоимость одного занятия - %d.';
     public const PAY_SUCCESSFUL = 'Оплата принята. Спасибо. Ждем вас в Вашем учебном центре "Пять с плюсом"!';
 
-    public const PUBLIC_OFFER_LINK = '[Публичной офертой](https://5plus.uz/uploads/images/legal_documents/public_offer.pdf)';
+    public const PUBLIC_OFFER_LINK = '[Публичной офертой](https://5plus.uz/docs/public_offer_2026.pdf)';
     public const AGE_GREETING = 'Для оплаты услуг учебного центра "Пять с плюсом" необходимо согласие с %s. Выберите номер телефона для получения кода подтверждения.';
     public const AGE_SEND_SMS = 'Получить код';
     public const AGE_ENTER_THE_CODE = 'Введите код из СМС или нажмите "' . self::AGE_SEND_SMS . '" если СМС еще не была вам отправлена.';
