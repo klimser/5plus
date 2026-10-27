@@ -100,7 +100,7 @@ MESSAGE;
 
     const ACCOUNT_BUTTON_ATTEND = '🍔Посещаемость';
     const ACCOUNT_BUTTON_MARKS = '5️⃣➕Оценки';
-    const ACCOUNT_BUTTON_BALANCE = '💰Баланс';
+    const ACCOUNT_BUTTON_BALANCE = '💰Оплатить';
     const ACCOUNT_BUTTON_PAYMENT = '💷История списаний';
     const ACCOUNT_SUBSCRIPTION  = '📢Управление подпиской на уведомления';
     const ACCOUNT_EDIT_STUDENTS = '🧒Добавить/сбросить студентов';
