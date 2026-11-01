@@ -37,7 +37,7 @@ class NotifierController extends Controller
     public function actionSend()
     {
         $currentTime = intval(date('H'));
-        if ($currentTime >= 20 || $currentTime < 9) {
+        if ($currentTime >= 18 || $currentTime < 9) {
             return ExitCode::OK;
         }
 
