@@ -868,7 +868,7 @@ class AccountCommand extends UserCommand
 
         if (ComponentContainer::getAgeValidator()->validate($phoneUsed, $user, $messageText)) {
             $this->removeNote($conversation, 'phone');
-            $this->addNote($conversation, 'step', 1);
+            $this->addNote($conversation, 'step', 3);
             $this->addNote($conversation, 'step2', PublicMain::BUTTON_PAY);
             return [
                 'parse_mode' => 'MarkdownV2',
@@ -904,11 +904,11 @@ class AccountCommand extends UserCommand
             return $userResult;
         }
 
+        $this->addNote($conversation, 'userId', $userResult->id);
+
         if (!$userResult->isAgeConfirmed()) {
             return $this->processAgeConfirmation($conversation, $userResult);
         }
-
-        $this->addNote($conversation, 'userId', $userResult->id);
         
         $buttons = $courseMap = [];
         foreach ($userResult->courseStudents as $courseStudent) {
