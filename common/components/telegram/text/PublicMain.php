@@ -19,7 +19,7 @@ class PublicMain
     const BUTTON_ACCOUNT = '🏰Личный кабинет';
     const BUTTON_CONTACT = '📱Связаться с нами';
     const BUTTON_ORDER = '💻Оставить заявку';
-    const BUTTON_PAY = '💳Оплатить';
+    const BUTTON_PAY = 'согласие с правилами учебного центра';
     
     const GREETING = '👩‍🏫Добро пожаловать в Ваш любимый "Пять с Плюсом"!';
     const TO_MAIN = '⬅️На главную';
