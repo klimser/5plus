@@ -114,11 +114,13 @@ class AgeValidator extends BaseObject
                 $ageConfirmation->confirmed_at = date('Y-m-d H:i:s');
                 $ageConfirmation->status = AgeConfirmation::STATUS_CONFIRMED;
                 $ageConfirmation->user->age_confirmed = 1;
-                if ($ageConfirmation->user->parent_id
-                    && ($ageConfirmation->user->parent->phone === $phoneFull || $ageConfirmation->user->parent->phone2 === $phoneFull)) {
-                    $ageConfirmation->user->parent->age_confirmed = 1;
+                $parent = $ageConfirmation->user->parent_id ? $ageConfirmation->user->parent : null;
+                if ($parent
+                    && in_array($phoneFull, [$parent->phoneInternational, $parent->phone2International], true)) {
+                    // Parent/company confirmation covers all of their children
+                    $parent->age_confirmed = 1;
                 }
-                if (!$ageConfirmation->save() || !$ageConfirmation->user->save() || ($ageConfirmation->user->parent_id && !$ageConfirmation->user->parent->save())) {
+                if (!$ageConfirmation->save() || !$ageConfirmation->user->save() || ($parent && !$parent->save())) {
                     $transaction->rollBack();
                     ComponentContainer::getErrorLogger()
                         ->logError('age-validator/validate', $ageConfirmation->getErrorsAsString() . ' - ' . $ageConfirmation->user->getErrorsAsString(), true);
